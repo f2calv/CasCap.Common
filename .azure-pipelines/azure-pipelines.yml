@@ -1,0 +1,46 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - hotfix/*
+    - feature/*
+  paths:
+    #include:
+    #- .azure-pipelines/CasCap.Common
+    #- src/CasCap.Common.Caching
+    #- src/CasCap.Common.Extensions
+    #- src/CasCap.Common.Logging
+    #- src/CasCap.Common.Net
+    #- src/CasCap.Common.Serialisation.Json
+    #- src/CasCap.Common.Serialisation.MessagePack
+    #- src/CasCap.Common.Threading
+    exclude:
+    - readme.md
+
+resources:
+  repositories:
+  - repository: sharedTemplates
+    type: github
+    name: f2calv/CasCap.YAMLTemplates
+    endpoint: github.com_f2calv
+
+variables:
+#- group: nuget-public
+- name: buildConfiguration
+  value: Release
+- name: poolName
+  value: AKSAgents
+- name: packagesToPack
+  value: CasCap.Common*.csproj
+
+jobs:
+- template: templates/jobs.dotnet.publish.nuget-v2.yml@sharedTemplates
+  parameters:
+    packagesToPack: $(packagesToPack)
+    #NuGetFeedUrl: https://api.nuget.org/v3/index.json
+    #NuGetFeedAPIKey: $(f2calvNuGet)
+    #NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
+    #NuGetFeedAPIKey: $(f2calvNuGetInt)
+    NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
+    NuGetFeedAPIKey: VSTS

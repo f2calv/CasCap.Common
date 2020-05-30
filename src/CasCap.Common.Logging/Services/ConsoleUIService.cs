@@ -1,0 +1,202 @@
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics;
+namespace CasCap.Services
+{
+    public interface IConsoleUIService
+    {
+        bool isScreenRefreshing { get; set; }//todo: replace with lock(object)?
+
+        event EventHandler<ConsoleKeyInfo> UIKeyPressEvent;
+
+        void Complete();
+        void Reset(bool autoResizeWindow = true);
+        void Write(char value, bool AutoWrap = false);
+        void Write(string value, bool AutoWrap = false);
+        void Write(string value, ConsoleColor? colour, bool AutoWrap = false);
+        void WriteLine();
+        void WriteLine(string value);
+        void WriteLine(string value, ConsoleColor? colour, bool enablePaging = false);
+    }
+
+    /// <summary>
+    /// Console UI functions
+    /// </summary>
+    public class ConsoleUIService : IConsoleUIService
+    {
+        readonly ILogger _logger;
+        readonly IHostEnvironment _env;
+
+        public ConsoleUIService(ILogger<ConsoleUIService> logger, IHostEnvironment env)
+        {
+            _logger = logger;
+            _env = env;
+            sw = new Stopwatch();
+        }
+
+        Stopwatch sw;
+        int rowCount { get; set; } = 0;
+        bool SkipRestOfScreen { get; set; } = false;
+        int lineWidth { get; set; } = 0;
+        public bool isScreenRefreshing { get; set; } = false;
+
+        int iWrite { get; set; } = 0;
+        int iWriteLine { get; set; } = 0;
+
+        /// <summary>
+        /// Call at the beginning of a screen refresh.
+        /// </summary>
+        public void Reset(bool autoResizeWindow = true)
+        {
+            iWrite = 0;
+            iWriteLine = 0;
+            isScreenRefreshing = true;
+            rowCount = 0;
+            SkipRestOfScreen = false;
+            //especially handy if we drag the console window to a new screen
+            //WindowHeight = 0;
+            //WindowWidth = 0;
+            if (autoResizeWindow)
+            {
+                Console.WindowHeight = Console.LargestWindowHeight - 1;
+                Console.WindowWidth = Console.LargestWindowWidth - 1;
+            }
+            sw = Stopwatch.StartNew();
+        }
+
+        /// <summary>
+        /// Called at the very end of a screen refresh.
+        /// </summary>
+        public void Complete()
+        {
+            sw.Stop();
+            if (nextKey.Key != 0)
+            {
+                var key = nextKey;
+                nextKey = new ConsoleKeyInfo();//clear it
+                OnUIKeyPress(key);//send it
+            }
+            else if (_env.IsDevelopment())
+            {
+                var msg = $"Render time {sw.ElapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)";
+                _logger.LogDebug(msg);
+            }
+            isScreenRefreshing = false;
+        }
+
+        //https://github.com/dotnet/csharplang/issues/3016
+        //public event EventHandler<ConsoleKeyInfo> UIKeyPress;
+        EventHandler<ConsoleKeyInfo>? UIKeyPressEventDelegate;
+        public event EventHandler<ConsoleKeyInfo> UIKeyPressEvent
+        {
+            add { UIKeyPressEventDelegate += value; }
+            remove { UIKeyPressEventDelegate -= value; }
+        }
+
+        protected virtual void OnUIKeyPress(ConsoleKeyInfo key) => UIKeyPressEventDelegate?.Invoke(this, key);
+
+        public void WriteLine() => WriteLine(string.Empty);
+
+        public void WriteLine(string value) => WriteLine(value, null);
+
+        public void WriteLine(string value, ConsoleColor? colour, bool enablePaging = false)
+        {
+            iWriteLine++;
+            if (SkipRestOfScreen) return;
+            lineWidth += value.Length;
+
+            var newWidth = Math.Min(Math.Max(Console.WindowWidth, lineWidth + 2), Console.LargestWindowWidth - 1);
+            if (newWidth > Console.WindowWidth)
+                Console.WindowWidth = newWidth;
+
+            //incremental change of WindowWidth & WindowHeight - disabled for speedy rendering purposes
+            /*
+            var newWidth = Math.Min(Math.Max(WindowWidth, lineWidth + 2), LargestWindowWidth - 1);
+            if (newWidth > WindowWidth)
+                WindowWidth = newWidth;
+            var totalHeight = Math.Min(LargestWindowHeight - 1, rowCount + 2);
+            if (totalHeight > WindowHeight)
+                WindowHeight = totalHeight;
+            */
+
+            if (colour.HasValue)
+            {
+                var current = Console.ForegroundColor;
+                Console.ForegroundColor = colour.Value;
+                Console.WriteLine(value);
+                Console.ForegroundColor = current;
+            }
+            else
+                Console.WriteLine(value);
+
+            rowCount++;
+
+            //if (Console.BufferHeight < rowCount)
+            //    Console.BufferHeight = rowCount + 10;
+
+            //Console.SetWindowSize(80, 20);
+            //Console.SetBufferSize(80, LargestWindowHeight);
+
+            lineWidth = 0;//reset
+            if (enablePaging && rowCount > Console.LargestWindowHeight - 3)
+            {
+                var current = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                if (sw is null)//because this class isn't thread safe
+                    return;
+                sw.Stop();
+                Console.Write($"Hit Enter to show more... rendering took {sw.ElapsedMilliseconds}ms");
+                nextKey = Console.ReadKey(true);//save the keypress
+                if (nextKey.Key == ConsoleKey.Enter)
+                {
+                    nextKey = new ConsoleKeyInfo();
+                    Console.SetCursorPosition(0, Console.CursorTop);//move cursor to zero
+                    Console.Write(string.Empty.PadRight(Console.WindowWidth - 1));//blank out the previous message
+                    Console.SetCursorPosition(0, Console.CursorTop);//move cursor to zero for a 2nd time
+                    sw.Start();
+                    rowCount = 0;
+                    //now we continue the plot
+                }
+                else
+                {
+                    //skip the rest of this screen
+                    SkipRestOfScreen = true;
+                    //...we then send off this key inside the Complete event
+                }
+                Console.ForegroundColor = current;
+            }
+        }
+
+        ConsoleKeyInfo nextKey { get; set; }
+
+        public void Write(char value, bool AutoWrap = false) => Write(value.ToString(), AutoWrap);
+
+        public void Write(string value, bool AutoWrap = false) => Write(value, null, AutoWrap);
+
+        //string wBuffer = string.Empty;
+
+        public void Write(string value, ConsoleColor? colour, bool AutoWrap = false)
+        {
+            if (AutoWrap && lineWidth + value.Length > Console.WindowWidth)
+                WriteLine();
+
+            if (SkipRestOfScreen) return;
+            lineWidth += value.Length;
+            //Console.WindowWidth = Math.Min(Math.Max(Console.WindowWidth, lineWidth + 2), Console.LargestWindowWidth - 1);
+
+            if (colour.HasValue)
+            {
+                var current = Console.ForegroundColor;
+                Console.ForegroundColor = colour.Value;
+                Console.Write(value);
+                Console.ForegroundColor = current;
+            }
+            else
+            {
+                Console.Write(value);
+                //wBuffer = string.Empty;//todo: all in an automatic buffer for simple Write calls, to only output at end of buffer
+            }
+        }
+    }
+}
