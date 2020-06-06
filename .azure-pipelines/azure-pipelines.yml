@@ -32,16 +32,31 @@ variables:
 - name: poolName
   value: AKSAgents
 - name: packagesToPack
-  #value: CasCap.Common.Extensions.csproj
-  value: CasCap.Common*.csproj
+  value: CasCap.Common*
 
-jobs:
-- template: templates/jobs.dotnet.publish.nuget-v2.yml@sharedTemplates
-  parameters:
-    packagesToPack: $(packagesToPack)
-    #NuGetFeedUrl: https://api.nuget.org/v3/index.json
-    #NuGetFeedAPIKey: $(f2calvNuGet)
-    NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
-    NuGetFeedAPIKey: $(f2calvNuGetInt)
-    #NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
-    #NuGetFeedAPIKey: VSTS
+stages:
+- stage: Build
+  jobs:
+  - template: templates/jobs.dotnet.build-v1.yml@sharedTemplates
+    parameters:
+      ProjectName: $(ProjectName)
+      PublishArtifact: false
+
+- stage: Test
+  jobs:
+  - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
+    parameters:
+      ProjectName: $(ProjectName)
+
+- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+  - stage: Publish
+    jobs:
+    - template: templates/steps.dotnet.publish.nuget-v2.yml@sharedTemplates
+      parameters:
+        packagesToPack: $(packagesToPack).csproj
+        #NuGetFeedUrl: https://api.nuget.org/v3/index.json
+        #NuGetFeedAPIKey: $(f2calvNuGet)
+        NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
+        NuGetFeedAPIKey: $(f2calvNuGetInt)
+        #NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
+        #NuGetFeedAPIKey: VSTS
