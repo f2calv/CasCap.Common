@@ -32,7 +32,8 @@ variables:
 - name: poolName
   value: AKSAgents
 - name: packagesToPack
-  value: CasCap.Common*.csproj
+  value: CasCap.Common.Extensions.csproj
+  #value: CasCap.Common*.csproj
 
 jobs:
 - template: templates/jobs.dotnet.publish.nuget-v2.yml@sharedTemplates
@@ -40,7 +41,7 @@ jobs:
     packagesToPack: $(packagesToPack)
     #NuGetFeedUrl: https://api.nuget.org/v3/index.json
     #NuGetFeedAPIKey: $(f2calvNuGet)
-    #NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
-    #NuGetFeedAPIKey: $(f2calvNuGetInt)
-    NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
-    NuGetFeedAPIKey: VSTS
+    NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
+    NuGetFeedAPIKey: $(f2calvNuGetInt)
+    #NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
+    #NuGetFeedAPIKey: VSTS
