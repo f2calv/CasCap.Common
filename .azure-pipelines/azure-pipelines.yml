@@ -68,10 +68,10 @@ stages:
     - script: |
         curl localhost:${AGENT_SERVICES_REDIS_PORTS_6379}
     #- script: npm install -g redis-cli
-    - script: npm install redis-cli
+    #- script: npm install redis-cli
     #- script: redis-cli -p "${AGENT_SERVICES_REDIS_PORTS_6379}" ping
     #- script: rdcli -h your.redis.host -a yourredispassword -p 11111
-    - script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
+    #- script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
 
     - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
       parameters:
