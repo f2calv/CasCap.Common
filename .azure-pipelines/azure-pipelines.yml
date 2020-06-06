@@ -40,13 +40,14 @@ stages:
   - template: templates/jobs.dotnet.build-v1.yml@sharedTemplates
     parameters:
       SolutionName: $(SolutionName)
-      PublishArtifact: false
+      PublishArtifact: true
 
 - stage: Test
   jobs:
   - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
     parameters:
-      ProjectName: $(SolutionName)
+      SolutionName: $(SolutionName)
+      InstallDependencies: true
 
 - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - stage: Publish
