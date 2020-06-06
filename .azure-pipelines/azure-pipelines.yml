@@ -31,29 +31,29 @@ variables:
   value: Release
 - name: poolName
   value: AKSAgents
-- name: packagesToPack
-  value: CasCap.Common*
+- name: SolutionName
+  value: CasCap.Common
 
 stages:
 - stage: Build
   jobs:
   - template: templates/jobs.dotnet.build-v1.yml@sharedTemplates
     parameters:
-      ProjectName: $(ProjectName)
+      SolutionName: $(SolutionName)
       PublishArtifact: false
 
 - stage: Test
   jobs:
   - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
     parameters:
-      ProjectName: $(ProjectName)
+      ProjectName: $(SolutionName)
 
 - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - stage: Publish
     jobs:
     - template: templates/steps.dotnet.publish.nuget-v2.yml@sharedTemplates
       parameters:
-        packagesToPack: $(packagesToPack).csproj
+        packagesToPack: $(SolutionName)*.csproj
         #NuGetFeedUrl: https://api.nuget.org/v3/index.json
         #NuGetFeedAPIKey: $(f2calvNuGet)
         NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
