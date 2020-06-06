@@ -32,8 +32,8 @@ variables:
 - name: poolName
   value: AKSAgents
 - name: packagesToPack
-  value: CasCap.Common.Extensions.csproj
-  #value: CasCap.Common*.csproj
+  #value: CasCap.Common.Extensions.csproj
+  value: CasCap.Common*.csproj
 
 jobs:
 - template: templates/jobs.dotnet.publish.nuget-v2.yml@sharedTemplates
