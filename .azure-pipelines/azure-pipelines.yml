@@ -26,7 +26,7 @@ resources:
     endpoint: github.com_f2calv
 
 variables:
-#- group: nuget-public
+- group: nuget-public
 - name: buildConfiguration
   value: Release
 - name: poolName
