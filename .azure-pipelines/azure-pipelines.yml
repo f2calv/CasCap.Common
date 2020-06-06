@@ -24,6 +24,11 @@ resources:
     type: github
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
+  containers:
+  - container: redis
+    image: redis
+    ports:
+    - 6379:6379
 
 variables:
 - group: nuget-public
@@ -42,12 +47,33 @@ stages:
       SolutionName: $(SolutionName)
       PublishArtifact: true
 
+#vanilla test stage/job
+#- stage: Test
+#  jobs:
+#  - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
+#    parameters:
+#      SolutionName: $(SolutionName)
+#      InstallDependencies: true
+
 - stage: Test
   jobs:
-  - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
-    parameters:
-      SolutionName: $(SolutionName)
-      InstallDependencies: true
+  - job: TestJob
+    #pool:
+    #  name: $(poolName)
+    services:
+      redis: redis
+    steps:
+    #redis debug/testing of container job
+    - script: echo port=${AGENT_SERVICES_REDIS_PORTS_6379}
+    - script: |
+        curl localhost:${AGENT_SERVICES_REDIS_PORTS_6379}
+    - script: |
+        redis-cli -p "${AGENT_SERVICES_REDIS_PORTS_6379}" ping
+
+    - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
+      parameters:
+        SolutionName: $(SolutionName)
+        InstallDependencies: true
 
 - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - stage: Publish
