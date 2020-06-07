@@ -12,6 +12,7 @@
     <Description>Helper library for common threading requirements.</Description>
     <PackageTags>extensions,helpers,threading</PackageTags>
     <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/f2calv/CasCap.Common/master/src/images/logo.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
