@@ -79,6 +79,12 @@ stages:
     #- script: rdcli -h your.redis.host -a yourredispassword -p 11111
     #- script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
 
+
+    - script: |
+        apt-get update \
+          && apt-get install -y --no-install-recommends \
+          curl \
+          sudo
     - script: |
         apt install -y curl
         curl nginx
