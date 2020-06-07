@@ -10,6 +10,7 @@ trigger:
     - LICENSE
     - readme.md
 
+
 resources:
   repositories:
   - repository: sharedTemplates
@@ -17,8 +18,12 @@ resources:
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
   containers:
+  - container: testcontainer
+    image: ubuntu:16.04
   - container: redis
     image: redis
+    ports:
+    - 6379:6379
 
 variables:
 - group: nuget-public
@@ -40,9 +45,11 @@ stages:
 - stage: Test
   jobs:
   - job: TestJob
+    container: testcontainer
     services:
       redis: redis
     steps:
+
     - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
       parameters:
         SolutionName: $(SolutionName)
