@@ -8,7 +8,7 @@ trigger:
   paths:
     exclude:
     - LICENSE
-    - readme.md
+    - README.md
 
 resources:
   repositories:
