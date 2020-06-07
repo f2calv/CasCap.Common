@@ -40,7 +40,6 @@ stages:
 - stage: Test
   jobs:
   - job: TestJob
-    container: testcontainer
     services:
       redis: redis
     steps:
