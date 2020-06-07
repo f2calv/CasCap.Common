@@ -25,6 +25,8 @@ resources:
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
   containers:
+  - container: nginx
+    image: nginx
   - container: redis
     image: redis
     ports:
@@ -61,17 +63,26 @@ stages:
     #pool:
     #  name: $(poolName)
     services:
+      nginx: nginx
       redis: redis
     steps:
     #redis debug/testing of container job
-    - script: echo port=${AGENT_SERVICES_REDIS_PORTS_6379}
-    - script: |
-        curl localhost:${AGENT_SERVICES_REDIS_PORTS_6379}
+    - script: echo port=${AGENT_SERVICES_NGINX_PORTS_6379}
+    #- script: |
+    #    curl localhost:${AGENT_SERVICES_REDIS_PORTS_6379}
     #- script: npm install -g redis-cli
     #- script: npm install redis-cli
     #- script: redis-cli -p "${AGENT_SERVICES_REDIS_PORTS_6379}" ping
     #- script: rdcli -h your.redis.host -a yourredispassword -p 11111
     #- script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
+
+    - script: |
+        apt install -y curl
+        curl nginx
+    - script: |
+        apt install redis-tools
+        redis-cli -h redis ping
+        redis-cli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
 
     - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
       parameters:
