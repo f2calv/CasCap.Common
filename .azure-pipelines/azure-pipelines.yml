@@ -80,10 +80,10 @@ stages:
     #- script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
 
     - script: |
-        sudo apt install -y curl
+        apt install -y curl
         curl nginx
     - script: |
-        sudo apt install redis-tools
+        apt install redis-tools
         redis-cli -h redis ping
         redis-cli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
 
