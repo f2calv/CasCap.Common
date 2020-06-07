@@ -3,7 +3,7 @@
 
 [azdo-badge]: https://dev.azure.com/f2calv/github/_apis/build/status/f2calv.CasCap.Common?branchName=master
 [azdo-url]: https://dev.azure.com/f2calv/github/_build/latest?definitionId=6&branchName=master
-
+[azdo-coverage-url]: https://img.shields.io/azure-devops/coverage/f2calv/github/6
 
 [CasCap.Common.Caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
 [CasCap.Common.Caching-url]: https://nuget.org/packages/CasCap.Common.Caching
@@ -20,7 +20,7 @@
 [CasCap.Common.Threading-badge]: https://img.shields.io/nuget/v/CasCap.Threading.Net?color=blue
 [CasCap.Common.Threading-url]: https://nuget.org/packages/CasCap.Threading.Net
 
-[![Build Status][azdo-badge]][azdo-url] 
+[![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url]
 
 A range of .NET Standard 2.0 libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
 
