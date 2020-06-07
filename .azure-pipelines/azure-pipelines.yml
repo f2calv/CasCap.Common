@@ -97,7 +97,7 @@ stages:
       parameters:
         SolutionName: $(SolutionName)
         InstallDependencies: true
-        TestFolderPath: /src
+        TestProjectsPath: /src
 
 - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - stage: Publish
