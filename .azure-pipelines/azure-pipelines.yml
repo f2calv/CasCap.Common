@@ -25,6 +25,8 @@ resources:
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
   containers:
+  - container: testcontainer
+    image: ubuntu:16.04
   - container: nginx
     image: nginx
   - container: redis
@@ -62,6 +64,7 @@ stages:
   - job: TestJob
     #pool:
     #  name: $(poolName)
+    container: testcontainer
     services:
       nginx: nginx
       redis: redis
