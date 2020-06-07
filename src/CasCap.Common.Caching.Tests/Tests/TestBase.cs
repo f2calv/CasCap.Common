@@ -13,7 +13,7 @@ namespace CasCap.Common.Caching.Tests
         public TestBase()
         {
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.json", optional: false, reloadOnChange: false)
+                .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
                 .Build();
 
             //initiate ServiceCollection w/logging
