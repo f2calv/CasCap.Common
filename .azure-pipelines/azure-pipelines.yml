@@ -6,16 +6,8 @@ trigger:
     - hotfix/*
     - feature/*
   paths:
-    #include:
-    #- .azure-pipelines/CasCap.Common
-    #- src/CasCap.Common.Caching
-    #- src/CasCap.Common.Extensions
-    #- src/CasCap.Common.Logging
-    #- src/CasCap.Common.Net
-    #- src/CasCap.Common.Serialisation.Json
-    #- src/CasCap.Common.Serialisation.MessagePack
-    #- src/CasCap.Common.Threading
     exclude:
+    - LICENSE
     - readme.md
 
 resources:
@@ -25,14 +17,8 @@ resources:
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
   containers:
-  #- container: testcontainer
-  #  image: ubuntu:16.04
-  #- container: nginx
-  #  image: nginx
   - container: redis
     image: redis
-    ports:
-    - 6379:6379
 
 variables:
 - group: nuget-public
@@ -51,48 +37,13 @@ stages:
       SolutionName: $(SolutionName)
       PublishArtifact: true
 
-#vanilla test stage/job
-#- stage: Test
-#  jobs:
-#  - template: templates/jobs.dotnet.test-v1.yml@sharedTemplates
-#    parameters:
-#      SolutionName: $(SolutionName)
-#      InstallDependencies: true
-
 - stage: Test
   jobs:
   - job: TestJob
-    #pool:
-    #  name: $(poolName)
-    #container: testcontainer
+    container: testcontainer
     services:
-      #nginx: nginx
       redis: redis
     steps:
-    #redis debug/testing of container job
-    - script: echo port=${AGENT_SERVICES_NGINX_PORTS_6379}
-    #- script: |
-    #    curl localhost:${AGENT_SERVICES_REDIS_PORTS_6379}
-    #- script: npm install -g redis-cli
-    #- script: npm install redis-cli
-    #- script: redis-cli -p "${AGENT_SERVICES_REDIS_PORTS_6379}" ping
-    #- script: rdcli -h your.redis.host -a yourredispassword -p 11111
-    #- script: rdcli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
-
-
-    #- script: |
-    #    apt-get update \
-    #      && apt-get install -y --no-install-recommends \
-    #      curl \
-    #      sudo
-    #- script: |
-    #    apt install -y curl
-    #    curl nginx
-    #- script: |
-    #    apt install redis-tools
-    #    redis-cli -h redis ping
-    #    redis-cli -p ${AGENT_SERVICES_REDIS_PORTS_6379} ping
-
     - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
       parameters:
         SolutionName: $(SolutionName)
@@ -109,5 +60,3 @@ stages:
         #NuGetFeedAPIKey: $(f2calvNuGet)
         NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
         NuGetFeedAPIKey: $(f2calvNuGetInt)
-        #NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
-        #NuGetFeedAPIKey: VSTS
