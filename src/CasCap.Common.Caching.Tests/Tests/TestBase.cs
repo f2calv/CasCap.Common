@@ -26,12 +26,7 @@ namespace CasCap.Common.Caching.Tests
                 });
 
             //add services
-            services.AddCasCapCaching();//read from appsettings.Test.json
-            //services.AddCasCapCaching(options =>
-            //{
-            //    options.MemoryCacheSizeLimit = 100;
-            //    options.redisConnectionString = "redis:6379";
-            //});
+            services.AddCasCapCaching();
 
             var serviceProvider = services.BuildServiceProvider();
             _distCacheSvc = serviceProvider.GetRequiredService<IDistCacheService>();
