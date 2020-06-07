@@ -18,12 +18,16 @@ namespace CasCap.Common.Extensions
             {
                 foreach (var element in source)
                 {
+#pragma warning disable CAC001 // ConfigureAwaitChecker
                     await throttler.WaitAsync();
+#pragma warning restore CAC001 // ConfigureAwaitChecker
                     tasks.Add(Task.Run(async () =>
                     {
                         try
                         {
+#pragma warning disable CAC001 // ConfigureAwaitChecker
                             await body(element);
+#pragma warning restore CAC001 // ConfigureAwaitChecker
                         }
                         finally
                         {
@@ -31,7 +35,9 @@ namespace CasCap.Common.Extensions
                         }
                     }));
                 }
+#pragma warning disable CAC001 // ConfigureAwaitChecker
                 await Task.WhenAll(tasks);
+#pragma warning restore CAC001 // ConfigureAwaitChecker
             }
             return sw.Elapsed;
         }
@@ -40,7 +46,9 @@ namespace CasCap.Common.Extensions
         {
             var sw = Stopwatch.StartNew();
             foreach (var element in source)
+#pragma warning disable CAC001 // ConfigureAwaitChecker
                 await body(element);
+#pragma warning restore CAC001 // ConfigureAwaitChecker
             return sw.Elapsed;
         }
 

@@ -23,14 +23,14 @@ namespace CasCap.Services
     public class RedisCacheService : IRedisCacheService
     {
         readonly ILogger _logger;// = ApplicationLogging.CreateLogger<RedisCacheService>();
-        readonly DistCacheOptions _distCacheOptions;
+        readonly CachingConfig _cachingConfig;
 
-        public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<DistCacheOptions> distCacheOptions)
+        public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingConfig> cachingConfig)
         {
             _logger = logger;
-            _distCacheOptions = distCacheOptions.Value;
+            _cachingConfig = cachingConfig.Value;
             //_logger.LogInformation($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}\tconnecting to redis...");
-            _configurationOptions = ConfigurationOptions.Parse(_distCacheOptions.redisConnectionString);
+            _configurationOptions = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
             _configurationOptions.ConnectRetry = 20;
             _configurationOptions.ClientName = Environment.MachineName;
             //Note: below for getting redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002

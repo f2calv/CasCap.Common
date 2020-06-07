@@ -29,7 +29,7 @@ namespace CasCap.Services
     public class DistCacheService : IDistCacheService
     {
         readonly ILogger _logger;
-        readonly DistCacheOptions _distCacheOptions;
+        readonly CachingConfig _cachingConfig;
         readonly IRedisCacheService _redis;
         readonly IMemoryCache _local;
 
@@ -37,19 +37,19 @@ namespace CasCap.Services
         protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
         public DistCacheService(ILogger<DistCacheService> logger,
-            IOptions<DistCacheOptions> distCacheOptions,
+            IOptions<CachingConfig> cachingConfig,
             IRedisCacheService redis//,
                                     //IMemoryCache local
             )
         {
             _logger = logger;
-            _distCacheOptions = distCacheOptions.Value;
+            _cachingConfig = cachingConfig.Value;
             _redis = redis;
             //_local = local;
             //todo:consider a Flags to disable use of local/shared memory in (console) applications that don't need it?
             _local = new MemoryCache(new MemoryCacheOptions
             {
-                SizeLimit = _distCacheOptions.MemoryCacheSizeLimit,
+                SizeLimit = _cachingConfig.MemoryCacheSizeLimit,
             });
         }
 

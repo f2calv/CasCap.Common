@@ -10,17 +10,17 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void AddCasCapCaching(this IServiceCollection services)
             => services.AddCasCapCaching(_ => { });
 
-        static string sectionKey = $"{nameof(CasCap)}:{nameof(DistCacheOptions)}";
+        static string sectionKey = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
 
-        public static void AddCasCapCaching(this IServiceCollection services, Action<DistCacheOptions> configure)
+        public static void AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configure)
         {
             //services.AddMemoryCache();//now added inside RedisCacheService
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
             services.AddSingleton<IDistCacheService, DistCacheService>();
-            services.AddSingleton<IConfigureOptions<DistCacheOptions>>(s =>
+            services.AddSingleton<IConfigureOptions<CachingConfig>>(s =>
             {
                 var configuration = s.GetService<IConfiguration?>();
-                return new ConfigureOptions<DistCacheOptions>(options => configuration?.Bind(sectionKey, options));
+                return new ConfigureOptions<CachingConfig>(options => configuration?.Bind(sectionKey, options));
             });
         }
     }

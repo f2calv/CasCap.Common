@@ -12,6 +12,7 @@
     <Description>Helper library for common logging requirements.</Description>
     <PackageTags>extensions,helpers,logging</PackageTags>
     <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/f2calv/CasCap.Common/master/src/images/logo.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Models
 {
-    public class DistCacheOptions
+    public class CachingConfig
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public string redisConnectionString { get; set; }

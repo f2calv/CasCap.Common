@@ -6,17 +6,9 @@ trigger:
     - hotfix/*
     - feature/*
   paths:
-    #include:
-    #- .azure-pipelines/CasCap.Common
-    #- src/CasCap.Common.Caching
-    #- src/CasCap.Common.Extensions
-    #- src/CasCap.Common.Logging
-    #- src/CasCap.Common.Net
-    #- src/CasCap.Common.Serialisation.Json
-    #- src/CasCap.Common.Serialisation.MessagePack
-    #- src/CasCap.Common.Threading
     exclude:
-    - readme.md
+    - LICENSE
+    - README.md
 
 resources:
   repositories:
@@ -24,6 +16,11 @@ resources:
     type: github
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
+  containers:
+  - container: redis
+    image: redis
+    ports:
+    - 6379:6379
 
 variables:
 - group: nuget-public
@@ -31,17 +28,37 @@ variables:
   value: Release
 - name: poolName
   value: AKSAgents
-- name: packagesToPack
-  #value: CasCap.Common.Extensions.csproj
-  value: CasCap.Common*.csproj
+- name: SolutionName
+  value: CasCap.Common
 
-jobs:
-- template: templates/jobs.dotnet.publish.nuget-v2.yml@sharedTemplates
-  parameters:
-    packagesToPack: $(packagesToPack)
-    #NuGetFeedUrl: https://api.nuget.org/v3/index.json
-    #NuGetFeedAPIKey: $(f2calvNuGet)
-    NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
-    NuGetFeedAPIKey: $(f2calvNuGetInt)
-    #NuGetFeedUrl: https://pkgs.dev.azure.com/cascap/CAS/_packaging/MyInternal2/nuget/v3/index.json
-    #NuGetFeedAPIKey: VSTS
+stages:
+- stage: Build
+  jobs:
+  - template: templates/jobs.dotnet.build-v1.yml@sharedTemplates
+    parameters:
+      SolutionName: $(SolutionName)
+      PublishArtifact: true
+
+- stage: Test
+  jobs:
+  - job: TestJob
+    services:
+      redis: redis
+    steps:
+
+    - template: templates/steps.dotnet.test-v1.yml@sharedTemplates
+      parameters:
+        SolutionName: $(SolutionName)
+        InstallDependencies: true
+        TestProjectsPath: src/
+
+- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+  - stage: Publish
+    jobs:
+    - template: templates/steps.dotnet.publish.nuget-v2.yml@sharedTemplates
+      parameters:
+        packagesToPack: $(SolutionName)*.csproj
+        #NuGetFeedUrl: https://api.nuget.org/v3/index.json
+        #NuGetFeedAPIKey: $(f2calvNuGet)
+        NuGetFeedUrl: https://apiint.nugettest.org/v3/index.json
+        NuGetFeedAPIKey: $(f2calvNuGetInt)
