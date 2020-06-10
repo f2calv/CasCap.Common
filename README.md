@@ -17,8 +17,8 @@
 [CasCap.Common.Serialisation.Json-url]: https://nuget.org/packages/CasCap.Common.Serialisation.Json
 [CasCap.Common.Serialisation.MessagePack-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialisation.MessagePack?color=blue
 [CasCap.Common.Serialisation.MessagePack-url]: https://nuget.org/packages/CasCap.Common.Serialisation.MessagePack
-[CasCap.Common.Threading-badge]: https://img.shields.io/nuget/v/CasCap.Threading.Net?color=blue
-[CasCap.Common.Threading-url]: https://nuget.org/packages/CasCap.Threading.Net
+[CasCap.Common.Threading-badge]: https://img.shields.io/nuget/v/CasCap.Common.Threading.Net?color=blue
+[CasCap.Common.Threading-url]: https://nuget.org/packages/CasCap.Common.Threading.Net
 
 [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url]
 
