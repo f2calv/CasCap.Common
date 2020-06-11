@@ -3,12 +3,19 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 namespace CasCap.Common.Extensions
 {
     public static class Helpers
     {
+        public static string? TryGetValue(this HttpResponseHeaders headers, string name)
+        {
+            var headerValues = headers.GetValues(name);
+            return headerValues.FirstOrDefault();
+        }
+
         public static string ToQueryString(this NameValueCollection nvc)
         {
             var array = (from key in nvc.AllKeys

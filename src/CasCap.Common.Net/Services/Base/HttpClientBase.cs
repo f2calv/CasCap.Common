@@ -74,6 +74,10 @@ namespace CasCap.Services
         {
             (T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             tpl.httpStatusCode = response.StatusCode;
+            if (tpl.httpStatusCode == HttpStatusCode.Unauthorized)
+                throw new UnauthorizedAccessException($"Look likes you need to authenticate first!");
+            else if (tpl.httpStatusCode == HttpStatusCode.NotFound)
+                throw new UnauthorizedAccessException($"The URL you requested returned a 404, check '{response.RequestMessage.RequestUri}' is correct!");
             tpl.responseHeaders = response.Headers;
             if (response.IsSuccessStatusCode)
             {
