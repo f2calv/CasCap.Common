@@ -632,7 +632,9 @@ namespace CasCap.Common.Extensions
             return Convert.ToBase64String(bytes);
         }
 
-        public static int GetSizeInMB(this long bytes) => (int)(bytes / 1024 / 1024);
+        public static int GetSizeInKB(this long bytes) => (int)(bytes / 1024);
+
+        public static int GetSizeInMB(this long bytes) => bytes.GetSizeInKB() / 1024;
 
         public static int GetSizeInGB(this long bytes) => bytes.GetSizeInMB() / 1024;
 
