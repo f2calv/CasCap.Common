@@ -15,10 +15,9 @@ namespace CasCap.Common.Extensions
                    token.Type == JTokenType.Null;
         }
 
-        public static string ToJSON(this object obj, Formatting formatting = Formatting.None)
-        {
-            return JsonConvert.SerializeObject(obj, formatting);
-        }
+        public static string ToJSON(this object obj) => JsonConvert.SerializeObject(obj, Formatting.None);
+
+        public static string ToJSON(this object obj, Formatting formatting) => JsonConvert.SerializeObject(obj, formatting);
 
         //public static void ToJSON(this object value, Stream s)
         //{
