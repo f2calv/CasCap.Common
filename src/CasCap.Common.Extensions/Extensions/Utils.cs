@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 namespace CasCap.Common.Extensions
 {
@@ -9,7 +10,18 @@ namespace CasCap.Common.Extensions
         /// <summary>
         /// Gets all items for an enum value.
         /// </summary>
-        public static IEnumerable<T> GetAllItems<T>() where T : Enum => (T[])Enum.GetValues(typeof(T));
+        public static IEnumerable<TENum> GetAllItems<TENum>() where TENum : Enum => (TENum[])Enum.GetValues(typeof(TENum));
+
+        public static IEnumerable<TEnum> GetAllCombinations<TEnum>() where TEnum : Enum
+        {
+            var highestEnum = Enum.GetValues(typeof(TEnum)).Cast<int>().Max();
+            var upperBound = highestEnum * 2;
+            for (var x = 0; x < upperBound; x++)
+            {
+                var value = (TEnum)(object)x;
+                yield return value;
+            }
+        }
 
         /// <summary>
         /// Does a Path.Combine() and creates the destination directory if not existing
