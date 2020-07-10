@@ -19,6 +19,7 @@ namespace CasCap.Common.Extensions
             for (var x = 0; x < upperBound; x++)
             {
                 var value = (TEnum)(object)x;
+                //l.Add(value);
                 yield return value;
             }
         }

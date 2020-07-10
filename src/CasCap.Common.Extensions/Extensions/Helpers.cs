@@ -632,11 +632,11 @@ namespace CasCap.Common.Extensions
             return Convert.ToBase64String(bytes);
         }
 
-        public static int GetSizeInKB(this long bytes) => (int)(bytes / 1024);
+        public static double GetSizeInKB(this long bytes) => bytes / 1024d;
 
-        public static int GetSizeInMB(this long bytes) => bytes.GetSizeInKB() / 1024;
+        public static double GetSizeInMB(this long bytes) => bytes.GetSizeInKB() / 1024;
 
-        public static int GetSizeInGB(this long bytes) => bytes.GetSizeInMB() / 1024;
+        public static double GetSizeInGB(this long bytes) => bytes.GetSizeInMB() / 1024;
 
         /// <summary>
         /// Split a string by ';' characters. Accepts nulls :)
