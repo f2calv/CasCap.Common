@@ -647,5 +647,21 @@ namespace CasCap.Common.Extensions
         }
 
         public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
+
+        static readonly Regex rgxSanitize = new Regex("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        static readonly Regex rgxMultipleSpaces = new Regex(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        const string singleSpace = " ";
+
+        /// <summary>
+        /// Strips characters that are non-conducive to being in a file name.
+        /// </summary>
+        public static string? Sanitize(this string? input, string replacement = singleSpace)
+        {
+            if (input is null) return input;
+            var sanitized = rgxSanitize.Replace(input, replacement);
+            return replacement == singleSpace ? rgxMultipleSpaces.Replace(sanitized, replacement) : sanitized;
+        }
     }
 }
