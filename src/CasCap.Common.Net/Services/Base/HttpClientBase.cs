@@ -17,12 +17,19 @@ namespace CasCap.Services
         protected HttpClient _client;
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-        protected virtual async Task<T?> PostJsonAsync<T>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json") where T : class
-            => (await PostJson<T>(requestUri, req, timeout, headers, mediaType)).obj;
-
-        protected virtual async Task<(T? obj, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)> PostJson<T>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json") where T : class
+        protected virtual async Task<(TResult? result, TError? error)> PostJsonAsync<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json")
+            where TResult : class
+            where TError : class
         {
-            (T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
+            var res = await PostJson<TResult, TError>(requestUri, req, timeout, headers, mediaType);
+            return (res.result, res.error);
+        }
+
+        protected virtual async Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)> PostJson<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json")
+            where TResult : class
+            where TError : class
+        {
+            (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
             //_logger.LogDebug($"{HttpMethod.Post}\t{url}");
             var json = req!.ToJSON();
@@ -31,17 +38,24 @@ namespace CasCap.Services
                 request.Content = new StringContent(json, Encoding.UTF8, mediaType);
                 AddRequestHeaders(request, headers);
                 using (var response = await _client.SendAsync(request).ConfigureAwait(false))//need to create a new .NET Standard extension method to handle GetCT(timeout)
-                    tpl = await HandleResult<T>(response);
+                    tpl = await HandleResult<TResult, TError>(response);
             }
             return tpl;
         }
 
-        protected virtual async Task<T?> PostBytesAsync<T>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream") where T : class
-            => (await PostBytes<T>(requestUri, bytes, timeout, headers, mediaType)).obj;
-
-        protected virtual async Task<(T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostBytes<T>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream") where T : class
+        protected virtual async Task<(TResult? result, TError? error)> PostBytesAsync<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream")
+            where TResult : class
+            where TError : class
         {
-            (T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
+            var res = await PostBytes<TResult, TError>(requestUri, bytes, timeout, headers, mediaType);
+            return (res.result, res.error);
+        }
+
+        protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostBytes<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream")
+            where TResult : class
+            where TError : class
+        {
+            (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
             //_logger.LogDebug($"{HttpMethod.Post}\t{url}");
             using (var request = new HttpRequestMessage(HttpMethod.Post, url))
@@ -51,51 +65,61 @@ namespace CasCap.Services
                 //request.Headers.Add("Content-Type", mediaType);
                 AddRequestHeaders(request, headers);
                 using (var response = await _client.SendAsync(request).ConfigureAwait(false))
-                    tpl = await HandleResult<T>(response);
+                    tpl = await HandleResult<TResult, TError>(response);
             }
             return tpl;
         }
 
-        protected virtual async Task<T?> GetAsync<T>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null) where T : class
-            => (await Get<T>(requestUri, timeout, headers)).obj;
-
-        protected virtual async Task<(T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> Get<T>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null) where T : class
+        protected virtual async Task<(TResult? result, TError? error)> GetAsync<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null)
+            where TResult : class
+            where TError : class
         {
-            (T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
+            var res = await Get<TResult, TError>(requestUri, timeout, headers);
+            return (res.result, res.error);
+        }
+
+        protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> Get<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null)
+            where TResult : class
+            where TError : class
+        {
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
             //_logger.LogDebug($"{HttpMethod.Get}\t{url}");
             //todo: add in headers?
             using (var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, GetCT(timeout)).ConfigureAwait(false))
-                tpl = await HandleResult<T>(response);
-            return tpl;
+                return await HandleResult<TResult, TError>(response);
         }
 
-        async Task<(T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> HandleResult<T>(HttpResponseMessage response) where T : class
+        async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> HandleResult<TResult, TError>(HttpResponseMessage response)
+            where TResult : class
+            where TError : class
         {
-            (T? obj, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
+            (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             tpl.httpStatusCode = response.StatusCode;
-            if (tpl.httpStatusCode == HttpStatusCode.Unauthorized)
-                throw new UnauthorizedAccessException($"Look likes you need to authenticate first!");
-            else if (tpl.httpStatusCode == HttpStatusCode.NotFound)
-                throw new UnauthorizedAccessException($"The URL you requested returned a 404, check '{response.RequestMessage.RequestUri}' is correct!");
             tpl.responseHeaders = response.Headers;
             if (response.IsSuccessStatusCode)
             {
-                if (typeof(T).Equals(typeof(string)))
-                    tpl.obj = (T)(object)await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                else if (typeof(T).Equals(typeof(byte[])))
-                    tpl.obj = (T)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                if (typeof(TResult).Equals(typeof(string)))
+                    tpl.result = (TResult)(object)await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                else if (typeof(TResult).Equals(typeof(byte[])))
+                    tpl.result = (TResult)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
                 else
-                    tpl.obj = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<T>();
+                    tpl.result = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TResult>();
+                tpl.error = default(TError);
             }
             else
             {
+                if (typeof(TError).Equals(typeof(string)))
+                    tpl.error = (TError)(object)await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                else if (typeof(TError).Equals(typeof(byte[])))
+                    tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                else
+                    tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TError>();
                 _logger.LogError($"{response.StatusCode}\t{response.RequestMessage.RequestUri}");
                 //var err = $"requestUri= fail";
                 //if (response.RequestMessage.Content.)
                 //if (req != null) err += $"{json}";
                 //throw new Exception(err);
-                tpl.obj = default(T);
+                tpl.result = default(TResult);
             }
             return tpl;
         }
