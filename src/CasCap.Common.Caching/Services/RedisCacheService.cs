@@ -156,6 +156,7 @@ namespace CasCap.Services
             }
 
             var luaScript = LuaScript.Prepare(script);
+            _logger.LogDebug($"Connecting to redis: {_cachingConfig.redisConnectionString}");
             var loadedLuaScript = luaScript.Load(server);
             return loadedLuaScript;
         }
