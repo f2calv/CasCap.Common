@@ -7,6 +7,8 @@ namespace CasCap.Common.Extensions
 {
     public static class Helpers
     {
+        public static Task<TimeSpan> ForEachAsyncSemaphore<T>(this IEnumerable<T> source, Func<T, Task> body) => source.ForEachAsyncSemaphore(body, Environment.ProcessorCount);
+
         /// <summary>
         /// throttling asynchronous methods
         /// </summary>
