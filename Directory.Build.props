@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>CasCap</RootNamespace>
     <!--<LangVersion>latest</LangVersion>-->
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
 
