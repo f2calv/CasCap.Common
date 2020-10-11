@@ -5,6 +5,8 @@
     <!--<LangVersion>latest</LangVersion>-->
     <LangVersion>9.0</LangVersion>
     <!--<Nullable>enable</Nullable>-->
+    <!-- change the default value of IsPackable from true to false, so we must be explicit in setting it -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <PropertyGroup>
