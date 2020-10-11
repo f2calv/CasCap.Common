@@ -43,8 +43,8 @@ pool:
 services:
   redis: redis
 
-steps:
-- template: templates/steps.dotnet.publish.nuget-v3.yml@sharedTemplates
+extends:
+  template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
   parameters:
     BuildConfiguration: ${{ parameters.BuildConfiguration }}
     gitHubConnection: github.com_f2calv
