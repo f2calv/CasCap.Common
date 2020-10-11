@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Extensions.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation.Tests", "src\CasCap.Common.Serialisation.Tests\CasCap.Common.Serialisation.Tests.csproj", "{C4C34D6C-3A0A-4716-B4FA-CEBBC03D1435}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasCap.Common.Net.Tests", "src\CasCap.Common.Net.Tests\CasCap.Common.Net.Tests.csproj", "{E3D7C965-3B4D-4A2F-A16B-F014B3477347}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Net.Tests", "src\CasCap.Common.Net.Tests\CasCap.Common.Net.Tests.csproj", "{E3D7C965-3B4D-4A2F-A16B-F014B3477347}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
