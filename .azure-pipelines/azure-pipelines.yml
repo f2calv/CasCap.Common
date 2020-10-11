@@ -49,4 +49,5 @@ steps:
 - template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
   parameters:
     BuildConfiguration: ${{ parameters.BuildConfiguration }}
+    CoverageInclude: '[CasCap.*]*'
     gitHubConnection: github.com_f2calv
