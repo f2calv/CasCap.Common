@@ -8,6 +8,7 @@ parameters:
   - debug
 
 trigger:
+  batch: true
   branches:
     include:
     - master
