@@ -1,7 +1,6 @@
 ﻿using CasCap.Common.Extensions;
 using Newtonsoft.Json;
 using System;
-using System.Reflection;
 namespace CasCap.Models
 {
     //https://stackoverflow.com/questions/10302902/can-you-tell-json-net-to-serialize-datetime-as-utc-even-if-unspecified/10305908
@@ -82,7 +81,7 @@ namespace CasCap.Models
             var sDate = (string?)reader.Value;
             if (sDate == "N/A") return null;
             if (!DateTime.TryParse(sDate, out var time))
-                throw new Exception($"{MethodBase.GetCurrentMethod().Name} unable to parse '{nameof(time)}'??");
+                throw new Exception($"{nameof(ReadJson)} unable to parse '{nameof(time)}'??");
             return time;
         }
 

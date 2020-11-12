@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 namespace CasCap.Common.Extensions
 {
@@ -74,7 +73,7 @@ namespace CasCap.Common.Extensions
             if (decimal.TryParse(input, out decimal val))
                 return val;
             else
-                throw new Exception($"{MethodBase.GetCurrentMethod().Name} issue! :/");
+                throw new Exception($"{nameof(string2decimal)} issue! :/");
         }
 
         //make this a generic? - used for new DateTime(tickCount)

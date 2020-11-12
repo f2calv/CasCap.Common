@@ -63,7 +63,7 @@ namespace CasCap.Services
                 return (o.Expiry, requestedObject);
             }
             else
-                return (null, (T)(object?)null);
+                return (null, (T)(object?)null);//todo: fix me
         }
 
         [Obsolete("Superceded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
@@ -117,7 +117,7 @@ namespace CasCap.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex);
-                    throw ex;
+                    throw;
                 }
 
                 //edits the item cacheKey by appending the date.
@@ -151,8 +151,11 @@ namespace CasCap.Services
             //var resources = assembly.GetManifestResourceNames();
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                using var reader = new StreamReader(stream);
-                script = reader.ReadToEnd();
+                if (stream is object)
+                {
+                    using var reader = new StreamReader(stream);
+                    script = reader.ReadToEnd();
+                }
             }
 
             var luaScript = LuaScript.Prepare(script);

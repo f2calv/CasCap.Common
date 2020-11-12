@@ -330,14 +330,14 @@ namespace CasCap.Common.Extensions
 
         public static string GetDescription<T>(this T enumerationValue) where T : struct
         {
-            Type type = enumerationValue.GetType();
+            var type = enumerationValue.GetType();
             if (!type.IsEnum)
-                throw new ArgumentException("EnumerationValue must be of Enum type", "enumerationValue");
+                throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
             //Tries to find a DescriptionAttribute for a potential friendly name for the enum
             var memberInfo = type.GetMember(enumerationValue.ToString());
             if (memberInfo.IsAny())
             {
-                object[] attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
                 if (attrs.IsAny())
                 {
                     //Pull out the description value
