@@ -444,12 +444,10 @@ namespace CasCap.Common.Extensions
 
         public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
-        static DateTime ParseDateTime(object input) => ParseDateTime(input.ToString(), DateTime.MinValue);
+        static DateTime ParseDateTime(object input) => input is object ? ParseDateTime(input.ToString()) : throw new ArgumentNullException();
 
-        static DateTime ParseDateTime(string input)
-        {
-            return ParseDateTime(input, DateTime.MinValue);
-        }
+        static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
+
         static DateTime ParseDateTime(string input, DateTime _def)
         {
             DateTime output = _def;
