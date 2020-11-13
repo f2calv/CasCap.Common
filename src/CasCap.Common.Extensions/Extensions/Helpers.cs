@@ -531,24 +531,29 @@ namespace CasCap.Common.Extensions
         public static void AppendTextFile(this string path, string content)
         {
             var dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            if (!File.Exists(path))
+            if (dir is object)
             {
-                using (var sw = File.CreateText(path))
-                    sw.WriteLine(content);
-            }
-            else
-            {
-                try
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!File.Exists(path))
                 {
-                    using (var sw = File.AppendText(path))
+                    using (var sw = File.CreateText(path))
                         sw.WriteLine(content);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Debug.WriteLine(ex.ToString());
+                    try
+                    {
+                        using (var sw = File.AppendText(path))
+                            sw.WriteLine(content);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.ToString());
+                    }
                 }
             }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static List<string> ReadTextFile(this string path)
