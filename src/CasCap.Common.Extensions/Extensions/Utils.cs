@@ -30,12 +30,12 @@ namespace CasCap.Common.Extensions
         public static string GetLocalPath(string localPath, string subFolder)
         {
             subFolder = Path.Combine(localPath, subFolder);
-            var directory = Path.GetDirectoryName(subFolder);
-            if (!directories.Contains(directory) && !Directory.Exists(directory))
+            var dir = Path.GetDirectoryName(subFolder);
+            if (dir is object && !directories.Contains(dir) && !Directory.Exists(dir))
             {
                 //Debugger.Break();
-                Directory.CreateDirectory(directory);
-                directories.Add(directory);
+                Directory.CreateDirectory(dir);
+                directories.Add(dir);
             }
             return subFolder;
         }

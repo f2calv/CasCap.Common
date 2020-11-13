@@ -506,16 +506,26 @@ namespace CasCap.Common.Extensions
 
         public static void WriteAllBytes(this string path, byte[] bytes)
         {
-            var dName = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dName)) Directory.CreateDirectory(dName);
-            File.WriteAllBytes(path, bytes);
+            var dir = Path.GetDirectoryName(path);
+            if (dir is object)
+            {
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllBytes(path, bytes);
+            }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static void WriteAllText(this string path, string str)
         {
-            var dName = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dName)) Directory.CreateDirectory(dName);
-            File.WriteAllText(path, str);
+            var dir = Path.GetDirectoryName(path);
+            if (dir is object)
+            {
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(path, str);
+            }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static void AppendTextFile(this string path, string content)
