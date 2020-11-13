@@ -59,8 +59,10 @@ namespace CasCap.Services
             //WindowWidth = 0;
             if (autoResizeWindow)
             {
+#pragma warning disable CA1416
                 Console.WindowHeight = Console.LargestWindowHeight - 1;
                 Console.WindowWidth = Console.LargestWindowWidth - 1;
+#pragma warning restore CA1416
             }
             sw = Stopwatch.StartNew();
         }
@@ -108,7 +110,9 @@ namespace CasCap.Services
 
             var newWidth = Math.Min(Math.Max(Console.WindowWidth, lineWidth + 2), Console.LargestWindowWidth - 1);
             if (newWidth > Console.WindowWidth)
+#pragma warning disable CA1416
                 Console.WindowWidth = newWidth;
+#pragma warning restore CA1416
 
             //incremental change of WindowWidth & WindowHeight - disabled for speedy rendering purposes
             /*
