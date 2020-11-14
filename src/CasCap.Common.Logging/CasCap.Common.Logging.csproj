@@ -8,14 +8,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Authors>Alex Vincent</Authors>
-    <Copyright>Alex Vincent</Copyright>
     <Description>Helper library for common logging requirements.</Description>
     <PackageTags>extensions,helpers,logging</PackageTags>
-    <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>

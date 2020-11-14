@@ -8,14 +8,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Authors>Alex Vincent</Authors>
-    <Copyright>Alex Vincent</Copyright>
     <Description>Helper library for object caching with Redis.</Description>
     <PackageTags>extensions,helpers,caching,redis</PackageTags>
-    <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
