@@ -328,14 +328,14 @@ namespace CasCap.Common.Extensions
                     yield return s;
         }
 
-        public static string GetDescription<T>(this T enumerationValue) where T : notnull
+        public static string GetDescription<T>(this T enumerationValue)
         {
             if (enumerationValue is null) throw new ArgumentNullException();
             var type = enumerationValue.GetType();
             if (!type.IsEnum)
                 throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
             //Tries to find a DescriptionAttribute for a potential friendly name for the enum
-            var memberInfo = type.GetMember(enumerationValue.ToString());
+            var memberInfo = type.GetMember(enumerationValue.ToString()!);
             if (memberInfo.IsAny())
             {
                 var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
@@ -346,7 +346,7 @@ namespace CasCap.Common.Extensions
                 }
             }
             //If we have no description attribute, just return the ToString of the enum
-            return enumerationValue.ToString();
+            return enumerationValue.ToString()!;
         }
 
         static Dictionary<string, object> dEnumLookup { get; set; } = new Dictionary<string, object>();
@@ -361,7 +361,7 @@ namespace CasCap.Common.Extensions
         {
             //todo: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
             //i.e. enum1.MyVal and enum2.MyVal
-            if (!dEnumLookup.TryGetValue(value, out object result))
+            if (!dEnumLookup.TryGetValue(value, out object? result))
             {
                 var val = (T)Enum.Parse(typeof(T), value, true);
                 dEnumLookup.Add(value, val);
@@ -420,11 +420,8 @@ namespace CasCap.Common.Extensions
         //    result = ParseInt(input);
         //    return result;
         //}
-        static int ParseInt(object input)
-        {
-            var defaultInt = 0;
-            return input is null ? defaultInt : ParseInt(input.ToString(), 0);
-        }
+        static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
+
         static int ParseInt(string input) => ParseInt(input, 0);
         static int ParseInt(string input, int _def)
         {
@@ -445,7 +442,7 @@ namespace CasCap.Common.Extensions
 
         public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
-        static DateTime ParseDateTime(object input) => input is object ? ParseDateTime(input.ToString()) : throw new ArgumentNullException();
+        static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
 
         static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
 
