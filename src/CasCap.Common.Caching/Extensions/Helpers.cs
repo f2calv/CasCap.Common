@@ -3,9 +3,9 @@ namespace CasCap.Common.Extensions
 {
     public static class Helpers
     {
-        public static TimeSpan? GetExpiry(this int ttl)
+        public static TimeSpan GetExpiry(this int ttl)
         {
-            TimeSpan? expiry = null;
+            TimeSpan expiry = default;
             if (ttl > -1)//if -1, the key does not have expiry timeout.
                 expiry = TimeSpan.FromSeconds(ttl);
             return expiry;

@@ -46,17 +46,17 @@ namespace CasCap.Common.Caching.Tests
             //retrieve object from cache + ttl info
             {
                 var result2a = tasks[0];
-                Assert.NotNull(result2a);
+                Assert.NotEqual(default, result2a);
 
-                Assert.Equal(obj.ToJSON(), result2a.Value.cacheEntry.ToJSON());
-                Assert.True(result2a.Value.expiry.HasValue && result2a.Value.expiry.Value.TotalSeconds < expiry.TotalSeconds);
+                Assert.Equal(obj.ToJSON(), result2a.cacheEntry.ToJSON());
+                Assert.True(result2a.expiry.TotalSeconds < expiry.TotalSeconds);
             }
             {
                 var result2b = tasks[1];
-                Assert.NotNull(result2b);
+                Assert.NotEqual(default, result2b);
 
-                Assert.Equal(obj.ToJSON(), result2b.Value.cacheEntry.ToJSON());
-                Assert.True(result2b.Value.expiry.HasValue && result2b.Value.expiry.Value.TotalSeconds < expiry.TotalSeconds);
+                Assert.Equal(obj.ToJSON(), result2b.cacheEntry.ToJSON());
+                Assert.True(result2b.expiry.TotalSeconds < expiry.TotalSeconds);
             }
         }
 
