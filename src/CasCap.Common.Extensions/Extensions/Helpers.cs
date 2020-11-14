@@ -48,7 +48,7 @@ namespace CasCap.Common.Extensions
             return batches;
         }
 
-        public static ConcurrentDictionary<T, V> ToConcurrentDictionary<T, V>(this Dictionary<T, V> d2)
+        public static ConcurrentDictionary<T, V> ToConcurrentDictionary<T, V>(this Dictionary<T, V> d2) where T : notnull
         {
             var d1 = new ConcurrentDictionary<T, V>();
             foreach (var z in d2)
@@ -59,7 +59,7 @@ namespace CasCap.Common.Extensions
             return d1;
         }
 
-        public static ConcurrentDictionary<T, V> AddRange<T, V>(this ConcurrentDictionary<T, V> d1, Dictionary<T, V> d2)
+        public static ConcurrentDictionary<T, V> AddRange<T, V>(this ConcurrentDictionary<T, V> d1, Dictionary<T, V> d2) where T : notnull
         {
             foreach (var z in d2)
             {
@@ -69,7 +69,7 @@ namespace CasCap.Common.Extensions
             return d1;
         }
 
-        public static Dictionary<T, V> AddRange<T, V>(this Dictionary<T, V> d1, Dictionary<T, V> d2)
+        public static Dictionary<T, V> AddRange<T, V>(this Dictionary<T, V> d1, Dictionary<T, V> d2) where T : notnull
         {
             foreach (var z in d2)
                 d1.Add(z.Key, z.Value);
@@ -328,8 +328,9 @@ namespace CasCap.Common.Extensions
                     yield return s;
         }
 
-        public static string GetDescription<T>(this T enumerationValue) where T : struct
+        public static string GetDescription<T>(this T enumerationValue) where T : notnull
         {
+            if (enumerationValue is null) throw new ArgumentNullException();
             var type = enumerationValue.GetType();
             if (!type.IsEnum)
                 throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
@@ -371,7 +372,7 @@ namespace CasCap.Common.Extensions
 
         public static T ParseEnum<T>(this string value) => (T)Enum.Parse(typeof(T), value, true);
 
-        public static V GetRandomDValue<T, V>(this Dictionary<T, V> d)
+        public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
         {
             var keyList = new List<T>(d.Keys);
             var rand = new Random();
@@ -421,13 +422,13 @@ namespace CasCap.Common.Extensions
         //}
         static int ParseInt(object input)
         {
-            int defaultInt = 0;
+            var defaultInt = 0;
             return input is null ? defaultInt : ParseInt(input.ToString(), 0);
         }
         static int ParseInt(string input) => ParseInt(input, 0);
         static int ParseInt(string input, int _def)
         {
-            int output = _def;
+            var output = _def;
             if (string.IsNullOrWhiteSpace(input))
                 output = _def;
             else
