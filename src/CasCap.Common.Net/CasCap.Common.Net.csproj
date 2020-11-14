@@ -17,6 +17,7 @@
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 

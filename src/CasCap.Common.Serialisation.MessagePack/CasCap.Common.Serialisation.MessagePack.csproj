@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <!--breaking changes in MessagePack v2, see https://github.com/neuecc/MessagePack-CSharp/issues/744 -->
     <!--<PackageReference Include="MessagePack" Version="2.0.323" />-->
