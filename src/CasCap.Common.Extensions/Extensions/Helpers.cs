@@ -48,7 +48,7 @@ namespace CasCap.Common.Extensions
             return batches;
         }
 
-        public static ConcurrentDictionary<T, V> ToConcurrentDictionary<T, V>(this Dictionary<T, V> d2)
+        public static ConcurrentDictionary<T, V> ToConcurrentDictionary<T, V>(this Dictionary<T, V> d2) where T : notnull
         {
             var d1 = new ConcurrentDictionary<T, V>();
             foreach (var z in d2)
@@ -59,7 +59,7 @@ namespace CasCap.Common.Extensions
             return d1;
         }
 
-        public static ConcurrentDictionary<T, V> AddRange<T, V>(this ConcurrentDictionary<T, V> d1, Dictionary<T, V> d2)
+        public static ConcurrentDictionary<T, V> AddRange<T, V>(this ConcurrentDictionary<T, V> d1, Dictionary<T, V> d2) where T : notnull
         {
             foreach (var z in d2)
             {
@@ -69,7 +69,7 @@ namespace CasCap.Common.Extensions
             return d1;
         }
 
-        public static Dictionary<T, V> AddRange<T, V>(this Dictionary<T, V> d1, Dictionary<T, V> d2)
+        public static Dictionary<T, V> AddRange<T, V>(this Dictionary<T, V> d1, Dictionary<T, V> d2) where T : notnull
         {
             foreach (var z in d2)
                 d1.Add(z.Key, z.Value);
@@ -328,13 +328,14 @@ namespace CasCap.Common.Extensions
                     yield return s;
         }
 
-        public static string GetDescription<T>(this T enumerationValue) where T : struct
+        public static string GetDescription<T>(this T enumerationValue)
         {
+            if (enumerationValue is null) throw new ArgumentNullException();
             var type = enumerationValue.GetType();
             if (!type.IsEnum)
                 throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
             //Tries to find a DescriptionAttribute for a potential friendly name for the enum
-            var memberInfo = type.GetMember(enumerationValue.ToString());
+            var memberInfo = type.GetMember(enumerationValue.ToString()!);
             if (memberInfo.IsAny())
             {
                 var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
@@ -345,7 +346,7 @@ namespace CasCap.Common.Extensions
                 }
             }
             //If we have no description attribute, just return the ToString of the enum
-            return enumerationValue.ToString();
+            return enumerationValue.ToString()!;
         }
 
         static Dictionary<string, object> dEnumLookup { get; set; } = new Dictionary<string, object>();
@@ -360,7 +361,7 @@ namespace CasCap.Common.Extensions
         {
             //todo: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
             //i.e. enum1.MyVal and enum2.MyVal
-            if (!dEnumLookup.TryGetValue(value, out object result))
+            if (!dEnumLookup.TryGetValue(value, out object? result))
             {
                 var val = (T)Enum.Parse(typeof(T), value, true);
                 dEnumLookup.Add(value, val);
@@ -371,7 +372,7 @@ namespace CasCap.Common.Extensions
 
         public static T ParseEnum<T>(this string value) => (T)Enum.Parse(typeof(T), value, true);
 
-        public static V GetRandomDValue<T, V>(this Dictionary<T, V> d)
+        public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
         {
             var keyList = new List<T>(d.Keys);
             var rand = new Random();
@@ -419,15 +420,12 @@ namespace CasCap.Common.Extensions
         //    result = ParseInt(input);
         //    return result;
         //}
-        static int ParseInt(object input)
-        {
-            int defaultInt = 0;
-            return input is null ? defaultInt : ParseInt(input.ToString(), 0);
-        }
+        static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
+
         static int ParseInt(string input) => ParseInt(input, 0);
         static int ParseInt(string input, int _def)
         {
-            int output = _def;
+            var output = _def;
             if (string.IsNullOrWhiteSpace(input))
                 output = _def;
             else
@@ -444,12 +442,10 @@ namespace CasCap.Common.Extensions
 
         public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
-        static DateTime ParseDateTime(object input) => ParseDateTime(input.ToString(), DateTime.MinValue);
+        static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
 
-        static DateTime ParseDateTime(string input)
-        {
-            return ParseDateTime(input, DateTime.MinValue);
-        }
+        static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
+
         static DateTime ParseDateTime(string input, DateTime _def)
         {
             DateTime output = _def;
@@ -508,39 +504,54 @@ namespace CasCap.Common.Extensions
 
         public static void WriteAllBytes(this string path, byte[] bytes)
         {
-            var dName = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dName)) Directory.CreateDirectory(dName);
-            File.WriteAllBytes(path, bytes);
+            var dir = Path.GetDirectoryName(path);
+            if (dir is object)
+            {
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllBytes(path, bytes);
+            }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static void WriteAllText(this string path, string str)
         {
-            var dName = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dName)) Directory.CreateDirectory(dName);
-            File.WriteAllText(path, str);
+            var dir = Path.GetDirectoryName(path);
+            if (dir is object)
+            {
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(path, str);
+            }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static void AppendTextFile(this string path, string content)
         {
             var dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            if (!File.Exists(path))
+            if (dir is object)
             {
-                using (var sw = File.CreateText(path))
-                    sw.WriteLine(content);
-            }
-            else
-            {
-                try
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!File.Exists(path))
                 {
-                    using (var sw = File.AppendText(path))
+                    using (var sw = File.CreateText(path))
                         sw.WriteLine(content);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Debug.WriteLine(ex.ToString());
+                    try
+                    {
+                        using (var sw = File.AppendText(path))
+                            sw.WriteLine(content);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.ToString());
+                    }
                 }
             }
+            else
+                throw new Exception($"GetDirectoryName not possible for path '{path}'");
         }
 
         public static List<string> ReadTextFile(this string path)

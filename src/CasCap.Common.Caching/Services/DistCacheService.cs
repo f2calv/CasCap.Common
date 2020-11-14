@@ -66,11 +66,11 @@ namespace CasCap.Services
             if (!_local.TryGetValue<T>(key, out T cacheEntry))
             {
                 var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
-                if (tpl != (null, null))
+                if (tpl != default)
                 {
                     _logger.LogTrace($"{key}\tretrieved cacheEntry object {typeof(T)} from redis cache");
-                    cacheEntry = tpl.Value.cacheEntry;
-                    SetLocal(key, cacheEntry, tpl.Value.expiry);
+                    cacheEntry = tpl.cacheEntry;
+                    SetLocal(key, cacheEntry, tpl.expiry);
                 }
                 else if (createItem != null)
                 {

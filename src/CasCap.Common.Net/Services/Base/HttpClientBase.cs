@@ -114,7 +114,7 @@ namespace CasCap.Services
                     tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
                 else
                     tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TError>();
-                _logger.LogError($"{response.StatusCode}\t{response.RequestMessage.RequestUri}");
+                _logger.LogError($"{response.StatusCode}\t{response.RequestMessage?.RequestUri}");
                 //var err = $"requestUri= fail";
                 //if (response.RequestMessage.Content.)
                 //if (req != null) err += $"{json}";

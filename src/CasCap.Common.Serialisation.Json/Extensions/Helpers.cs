@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
+
 namespace CasCap.Common.Extensions
 {
     public static class Helpers
@@ -38,7 +40,8 @@ namespace CasCap.Common.Extensions
             }
             catch (Exception ex)
             {
-                throw ex;
+                Debug.WriteLine(ex);
+                throw;
             }
         }
 
