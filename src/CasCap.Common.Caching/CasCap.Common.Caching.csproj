@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="StackExchange.Redis" Version="2.1.58" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <!--<PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />-->
