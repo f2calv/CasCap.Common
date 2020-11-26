@@ -33,8 +33,12 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <!-- tidy this later, see https://github.com/clairernovotny/DeterministicBuilds/issues/5 -->
-    <!-- <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" /> -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <!-- <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="4.0.0" PrivateAssets="All">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference> -->
+    <!-- <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" /> -->
+    <!-- <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.0.102" /> -->
   </ItemGroup>
 
   <PropertyGroup>
