@@ -53,7 +53,7 @@ namespace CasCap.Services
             });
         }
 
-        readonly AsyncDuplicateLock locker = new AsyncDuplicateLock();
+        readonly AsyncDuplicateLock locker = new();
 
         //todo:store a summary of all cached items in a local lookup dictionary?
         //public ConcurrentDictionary<string, object> dItems { get; set; } = new ConcurrentDictionary<string, object>();
@@ -101,7 +101,7 @@ namespace CasCap.Services
             var expiry = ttl.GetExpiry();
 
             var bytes = cacheEntry.ToMessagePack();
-            var result = await _redis.SetAsync(key, bytes, expiry);
+            _ = await _redis.SetAsync(key, bytes, expiry);
 
             SetLocal(key, cacheEntry, expiry);
         }
@@ -126,7 +126,7 @@ namespace CasCap.Services
         {
             await Task.Delay(0);
             _local.Remove(key);
-            var result = await _redis.RemoveAsync(key);
+            _ = await _redis.RemoveAsync(key);
             _logger.LogDebug($"removed key {key}");
         }
 

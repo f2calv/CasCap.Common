@@ -160,7 +160,7 @@ namespace CasCap.Common.Extensions
             return thisDateTime.ToString("yyyy-MM-dd");
         }
 
-        static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static DateTime FromUnixTime(this long seconds)
         {
@@ -330,7 +330,7 @@ namespace CasCap.Common.Extensions
 
         public static string GetDescription<T>(this T enumerationValue)
         {
-            if (enumerationValue is null) throw new ArgumentNullException();
+            if (enumerationValue is null) throw new ArgumentNullException($"{nameof(enumerationValue)} is null");
             var type = enumerationValue.GetType();
             if (!type.IsEnum)
                 throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
@@ -370,7 +370,16 @@ namespace CasCap.Common.Extensions
             return (T)result;
         }
 
-        public static T ParseEnum<T>(this string value) => (T)Enum.Parse(typeof(T), value, true);
+        public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
+
+        public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
+            where T : struct
+        {
+            T resultInputType;
+            if (Enum.TryParse<T>(value, ignoreCase, out resultInputType))
+                return resultInputType;
+            return null;
+        }
 
         public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
         {
@@ -392,8 +401,10 @@ namespace CasCap.Common.Extensions
         public static bool ToBoolean(this string input)
         {
             if (input == "1") input = "true";
-            bool.TryParse(input.Trim(), out var output);
-            return output;
+            if (bool.TryParse(input.Trim(), out var output))
+                return output;
+            else
+                return false;
         }
 
         #region ParseDecimal
@@ -534,15 +545,15 @@ namespace CasCap.Common.Extensions
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 if (!File.Exists(path))
                 {
-                    using (var sw = File.CreateText(path))
-                        sw.WriteLine(content);
+                    using var sw = File.CreateText(path);
+                    sw.WriteLine(content);
                 }
                 else
                 {
                     try
                     {
-                        using (var sw = File.AppendText(path))
-                            sw.WriteLine(content);
+                        using var sw = File.AppendText(path);
+                        sw.WriteLine(content);
                     }
                     catch (Exception ex)
                     {
@@ -611,13 +622,11 @@ namespace CasCap.Common.Extensions
         public static byte[] Compress(this byte[] data)
         {
             if (data.IsNullOrEmpty()) return data;
-            using (var compressedStream = new MemoryStream())
-            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
-            {
-                zipStream.Write(data, 0, data.Length);
-                zipStream.Close();
-                return compressedStream.ToArray();
-            }
+            using var compressedStream = new MemoryStream();
+            using var zipStream = new GZipStream(compressedStream, CompressionMode.Compress);
+            zipStream.Write(data, 0, data.Length);
+            zipStream.Close();
+            return compressedStream.ToArray();
         }
 
         /// <summary>
@@ -628,13 +637,11 @@ namespace CasCap.Common.Extensions
         public static byte[] Decompress(this byte[] data)
         {
             if (data.IsNullOrEmpty()) return data;
-            using (var compressedStream = new MemoryStream(data))
-            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-            using (var resultStream = new MemoryStream())
-            {
-                zipStream.CopyTo(resultStream);
-                return resultStream.ToArray();
-            }
+            using var compressedStream = new MemoryStream(data);
+            using var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
+            using var resultStream = new MemoryStream();
+            zipStream.CopyTo(resultStream);
+            return resultStream.ToArray();
         }
 
         public static string ToBase64(this string thisString)
@@ -659,9 +666,9 @@ namespace CasCap.Common.Extensions
 
         public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
 
-        static readonly Regex rgxSanitize = new Regex("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        static readonly Regex rgxMultipleSpaces = new Regex(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         const string singleSpace = " ";
 

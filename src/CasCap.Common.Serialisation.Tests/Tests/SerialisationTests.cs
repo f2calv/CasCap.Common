@@ -57,8 +57,7 @@ namespace CasCap.Common.Serialisation.Tests
         public void DateTimeKindSerialisation()
         {
             //todo: move this into a CasCap.Common.Serialisation.Tests lib
-            var obj = new MyTestClass();
-            obj.dtNowFixed = DateTime.Now;
+            var obj = new MyTestClass { dtNowFixed = DateTime.Now };
 
             Assert.True(obj.dtNow.Kind == DateTimeKind.Local);
             Assert.True(obj.dtNowFixed.Kind == DateTimeKind.Utc);//Local is changed to Utc on the property set

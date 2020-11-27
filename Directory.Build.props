@@ -32,9 +32,23 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
   
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <!-- IDE1006 - suppress roslyn naming convention messages -->
+    <!-- IDE0079 - Remove unnecessary suppression -->
+    <NoWarn>IDE1006;IDE0079</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <!-- suppress 'Unreachable code detected' -->
+    <NoWarn>CS0162</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
-    <!-- tidy this later, see https://github.com/clairernovotny/DeterministicBuilds/issues/5 -->
-    <!-- <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" /> -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <!-- <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="4.0.0" PrivateAssets="All">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference> -->
+    <!-- <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" /> -->
+    <!-- <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.0.102" /> -->
   </ItemGroup>
 
   <PropertyGroup>
