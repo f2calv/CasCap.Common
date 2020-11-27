@@ -41,7 +41,7 @@ namespace CasCap.Services
 
         static ConfigurationOptions _configurationOptions { get; set; } = new ConfigurationOptions();
 
-        static readonly Lazy<ConnectionMultiplexer> LazyConnection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(_configurationOptions));
+        static readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(_configurationOptions));
 
         static ConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 

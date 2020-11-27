@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void AddCasCapCaching(this IServiceCollection services)
             => services.AddCasCapCaching(_ => { });
 
-        static string sectionKey = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
+        static readonly string sectionKey = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
 
         public static void AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configure)
         {
