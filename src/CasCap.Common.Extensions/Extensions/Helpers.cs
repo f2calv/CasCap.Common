@@ -370,7 +370,16 @@ namespace CasCap.Common.Extensions
             return (T)result;
         }
 
-        public static T ParseEnum<T>(this string value) => (T)Enum.Parse(typeof(T), value, true);
+        public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
+
+        public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
+            where T : struct
+        {
+            T resultInputType;
+            if (Enum.TryParse<T>(value, ignoreCase, out resultInputType))
+                return resultInputType;
+            return null;
+        }
 
         public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
         {
