@@ -49,14 +49,14 @@ namespace CasCap.Common.Caching.Tests
                 Assert.NotEqual(default, result2a);
 
                 Assert.Equal(obj.ToJSON(), result2a.cacheEntry.ToJSON());
-                Assert.True(result2a.expiry.TotalSeconds < expiry.TotalSeconds);
+                Assert.True(result2a.expiry.Value.TotalSeconds < expiry.TotalSeconds);
             }
             {
                 var result2b = tasks[1];
                 Assert.NotEqual(default, result2b);
 
                 Assert.Equal(obj.ToJSON(), result2b.cacheEntry.ToJSON());
-                Assert.True(result2b.expiry.TotalSeconds < expiry.TotalSeconds);
+                Assert.True(result2b.expiry.Value.TotalSeconds < expiry.TotalSeconds);
             }
         }
 
