@@ -9,5 +9,21 @@ namespace CasCap.Common.Extensions
         {
             logger.LogError(ex, $"{caller} - {ex.Message}", ex.GetType().ToString());//3rd parameter to prevent infinite loop
         }
+
+        // public static ILoggerProvider AsLoggerProvider(this ILogger logger) => new ExistingLoggerProvider(logger);
+
+        // class ExistingLoggerProvider : ILoggerProvider
+        // {
+        //     readonly ILogger _logger;
+
+        //     public ExistingLoggerProvider(ILogger logger) => _logger = logger;
+
+        //     public ILogger CreateLogger(string categoryName) => _logger;
+
+        //     public void Dispose()
+        //     {
+        //         return;
+        //     }
+        // }
     }
 }
