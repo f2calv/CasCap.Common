@@ -40,7 +40,7 @@ namespace CasCap.Common.Extensions
             return subFolder;
         }
 
-        static HashSet<string> directories { get; set; } = new HashSet<string>();
+        static HashSet<string> directories { get; set; } = new();
 
         /// <summary>
         /// Handy to find originating method name when debugging.

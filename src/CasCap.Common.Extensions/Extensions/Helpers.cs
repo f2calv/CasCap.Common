@@ -330,7 +330,7 @@ namespace CasCap.Common.Extensions
 
         public static string GetDescription<T>(this T enumerationValue)
         {
-            if (enumerationValue is null) throw new ArgumentNullException($"{nameof(enumerationValue)} is null");
+            if (enumerationValue is null) throw new ArgumentNullException(nameof(enumerationValue));
             var type = enumerationValue.GetType();
             if (!type.IsEnum)
                 throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
@@ -349,7 +349,7 @@ namespace CasCap.Common.Extensions
             return enumerationValue.ToString()!;
         }
 
-        static Dictionary<string, object> dEnumLookup { get; set; } = new Dictionary<string, object>();
+        static Dictionary<string, object> dEnumLookup { get; set; } = new();
 
         /// <summary>
         /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?

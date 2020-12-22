@@ -29,7 +29,6 @@ namespace CasCap.Services
         {
             _logger = logger;
             _cachingConfig = cachingConfig.Value;
-            //_logger.LogInformation($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}\tconnecting to redis...");
             _configurationOptions = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
             _configurationOptions.ConnectRetry = 20;
             _configurationOptions.ClientName = Environment.MachineName;
@@ -39,7 +38,7 @@ namespace CasCap.Services
             LuaScripts = GetLuaScripts();
         }
 
-        static ConfigurationOptions _configurationOptions { get; set; } = new ConfigurationOptions();
+        static ConfigurationOptions _configurationOptions { get; set; } = new();
 
         static readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(_configurationOptions));
 
