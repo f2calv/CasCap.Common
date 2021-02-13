@@ -12,8 +12,8 @@ namespace CasCap.Services
 {
     public interface IRedisCacheService
     {
-        Task<(TimeSpan? expiry, T cacheEntry)?> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
-        Task<(TimeSpan? expiry, T cacheEntry)?> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "");
+        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
+        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "");
         Task<byte[]> GetAsync(string key);
         Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null);
         Task<bool> RemoveAsync(string key);
@@ -29,7 +29,6 @@ namespace CasCap.Services
         {
             _logger = logger;
             _cachingConfig = cachingConfig.Value;
-            //_logger.LogInformation($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}\tconnecting to redis...");
             _configurationOptions = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
             _configurationOptions.ConnectRetry = 20;
             _configurationOptions.ClientName = Environment.MachineName;
@@ -39,9 +38,9 @@ namespace CasCap.Services
             LuaScripts = GetLuaScripts();
         }
 
-        static ConfigurationOptions _configurationOptions { get; set; } = new ConfigurationOptions();
+        static ConfigurationOptions _configurationOptions { get; set; } = new();
 
-        static readonly Lazy<ConnectionMultiplexer> LazyConnection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(_configurationOptions));
+        static readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(_configurationOptions));
 
         static ConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 
@@ -54,48 +53,53 @@ namespace CasCap.Services
         public async Task<byte[]> GetAsync(string key) => await _redis.StringGetAsync(key);
 
         #region use custom LUA script to return cached object plus meta data i.e. object expiry information
-        public async Task<(TimeSpan? expiry, T cacheEntry)?> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "")
+        public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "")
         {
+            (TimeSpan? expiry, T cacheEntry) tpl = default;
             var o = await _redis.StringGetWithExpiryAsync(key);
-            if (o.Value.HasValue)
+            if (o.Expiry.HasValue && o.Value.HasValue)
             {
                 var requestedObject = ((byte[])o.Value).FromMessagePack<T>();
                 return (o.Expiry, requestedObject);
             }
             else
-                return (null, (T)(object?)null);//todo: fix me
+                return tpl;
         }
 
         [Obsolete("Superceded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
-        public async Task<(TimeSpan? expiry, T cacheEntry)?> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
+        public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
         {
-            (TimeSpan?, T)? res = null;
+            (TimeSpan?, T) res = default;
 
             //handle binary format
             var tpl = await luaGetBytes();
-            if (tpl != null)
+            if (tpl != default)
             {
-                var requestedObject = tpl.Value.bytes.FromMessagePack<T>();
-                var expiry = tpl.Value.ttl.GetExpiry();
+                var requestedObject = tpl.bytes.FromMessagePack<T>();
+                var expiry = tpl.ttl.GetExpiry();
                 res = (expiry, requestedObject);
             }
             return res;
 
-            async Task<(int ttl, byte[] bytes)?> luaGetBytes()
+            async Task<(int ttl, byte[] bytes)> luaGetBytes()
             {
-                (int, byte[])? output = null;
+                (int, byte[]) output = default;
                 var tpl = await luaGetCacheEntryWithTTL();
-                if (tpl != null)
-                    output = (tpl.Value.ttl, (byte[])tpl.Value.payload);
+                if (tpl != default)
+                    output = (tpl.ttl, (byte[])tpl.payload);
                 return output;
             }
 
-            async Task<(int ttl, string type, RedisResult payload)?> luaGetCacheEntryWithTTL()
+            async Task<(int ttl, string type, RedisResult payload)> luaGetCacheEntryWithTTL()
             {
-                (int, string, RedisResult)? tpl = null;
+                (int, string, RedisResult) tpl = default;
                 var retKeys = await GetCacheEntryWithTTL();
                 if (retKeys.Length == 3)
-                    tpl = (int.Parse(retKeys[0].ToString()), retKeys[1].ToString(), retKeys[2]);
+                {
+                    var ttl = retKeys[0] is object ? (int)retKeys[0] : -1;
+                    var type = retKeys[1] is object ? (string)retKeys[1] : string.Empty;
+                    tpl = (int.Parse(ttl.ToString()), type.ToString(), retKeys[2]);
+                }
                 return tpl;
             }
 
@@ -159,7 +163,7 @@ namespace CasCap.Services
             }
 
             var luaScript = LuaScript.Prepare(script);
-            _logger.LogDebug($"Connecting to redis: {_cachingConfig.redisConnectionString}");
+            _logger.LogDebug("Connecting to redis instance {connectionString}", _cachingConfig.redisConnectionString);
             var loadedLuaScript = luaScript.Load(server);
             return loadedLuaScript;
         }

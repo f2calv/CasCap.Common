@@ -53,10 +53,10 @@ namespace CasCap.Services
             });
         }
 
-        readonly AsyncDuplicateLock locker = new AsyncDuplicateLock();
+        readonly AsyncDuplicateLock locker = new();
 
         //todo:store a summary of all cached items in a local lookup dictionary?
-        //public ConcurrentDictionary<string, object> dItems { get; set; } = new ConcurrentDictionary<string, object>();
+        //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
         public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
             => Get<T>(key.CacheKey, createItem, ttl);
@@ -66,11 +66,11 @@ namespace CasCap.Services
             if (!_local.TryGetValue<T>(key, out T cacheEntry))
             {
                 var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
-                if (tpl != (null, null))
+                if (tpl != default)
                 {
-                    _logger.LogTrace($"{key}\tretrieved cacheEntry object {typeof(T)} from redis cache");
-                    cacheEntry = tpl.Value.cacheEntry;
-                    SetLocal(key, cacheEntry, tpl.Value.expiry);
+                    _logger.LogTrace("retrieved {key} object type {type} from redis cache", key, typeof(T));
+                    cacheEntry = tpl.cacheEntry;
+                    SetLocal(key, cacheEntry, tpl.expiry);
                 }
                 else if (createItem != null)
                 {
@@ -80,7 +80,7 @@ namespace CasCap.Services
                     {
                         // Key not in cache, so get data.
                         cacheEntry = await createItem();
-                        _logger.LogTrace($"{key}\tattempting to set a new cacheEntry object {typeof(T)}");
+                        _logger.LogTrace("attempting to set {key} object type {type} in local cache", key, typeof(T));
                         if (cacheEntry != null)
                         {
                             await Set(key, cacheEntry, ttl);
@@ -89,7 +89,7 @@ namespace CasCap.Services
                 }
             }
             else
-                _logger.LogTrace($"{key}\tretrieved cacheEntry object {typeof(T)} from local cache");
+                _logger.LogTrace("retrieved {key} object type {type} from local cache", key, typeof(T));
             return cacheEntry;
         }
 
@@ -101,7 +101,7 @@ namespace CasCap.Services
             var expiry = ttl.GetExpiry();
 
             var bytes = cacheEntry.ToMessagePack();
-            var result = await _redis.SetAsync(key, bytes, expiry);
+            _ = await _redis.SetAsync(key, bytes, expiry);
 
             SetLocal(key, cacheEntry, expiry);
         }
@@ -119,23 +119,22 @@ namespace CasCap.Services
             if (expiry.HasValue)
                 options.SetAbsoluteExpiration(expiry.Value);
             _local.Set<T>(key, cacheEntry, options);
-            _logger.LogTrace($"{key}\tset in local cache");
+            _logger.LogTrace("set {key} in local cache", key);
         }
 
         public async Task Remove(string key)
         {
             await Task.Delay(0);
             _local.Remove(key);
-            var result = await _redis.RemoveAsync(key);
-            _logger.LogDebug($"removed key {key}");
+            _ = await _redis.RemoveAsync(key);
+            _logger.LogTrace("removed {key} from local cache", key);
         }
 
         void EvictionCallback(object key, object value, EvictionReason reason, object state)
         {
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
-            var message = $"local cache entry {args.key} was evicted, reason: {args.reason}";
-            _logger.LogDebug(message);
+            _logger.LogTrace("evicted {key} from local cache, reason {reason}", args.key, args.reason);
         }
     }
 }

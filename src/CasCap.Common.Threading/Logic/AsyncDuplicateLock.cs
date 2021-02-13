@@ -21,11 +21,11 @@ namespace CasCap.Logic
             public T Value { get; private set; }
         }
 
-        static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = new Dictionary<object, RefCounted<SemaphoreSlim>>();
+        static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = new();
 
         SemaphoreSlim GetOrCreate(object key)
         {
-            RefCounted<SemaphoreSlim> item;
+            RefCounted<SemaphoreSlim>? item;
             lock (SemaphoreSlims)
             {
                 if (SemaphoreSlims.TryGetValue(key, out item))

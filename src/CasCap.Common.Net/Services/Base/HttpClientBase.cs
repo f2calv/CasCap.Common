@@ -37,8 +37,8 @@ namespace CasCap.Services
             {
                 request.Content = new StringContent(json, Encoding.UTF8, mediaType);
                 AddRequestHeaders(request, headers);
-                using (var response = await _client.SendAsync(request).ConfigureAwait(false))//need to create a new .NET Standard extension method to handle GetCT(timeout)
-                    tpl = await HandleResult<TResult, TError>(response);
+                using var response = await _client.SendAsync(request).ConfigureAwait(false);//need to create a new .NET Standard extension method to handle GetCT(timeout)
+                tpl = await HandleResult<TResult, TError>(response);
             }
             return tpl;
         }
@@ -64,8 +64,8 @@ namespace CasCap.Services
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
                 //request.Headers.Add("Content-Type", mediaType);
                 AddRequestHeaders(request, headers);
-                using (var response = await _client.SendAsync(request).ConfigureAwait(false))
-                    tpl = await HandleResult<TResult, TError>(response);
+                using var response = await _client.SendAsync(request).ConfigureAwait(false);
+                tpl = await HandleResult<TResult, TError>(response);
             }
             return tpl;
         }
@@ -85,8 +85,8 @@ namespace CasCap.Services
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
             //_logger.LogDebug($"{HttpMethod.Get}\t{url}");
             //todo: add in headers?
-            using (var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, GetCT(timeout)).ConfigureAwait(false))
-                return await HandleResult<TResult, TError>(response);
+            using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, GetCT(timeout)).ConfigureAwait(false);
+            return await HandleResult<TResult, TError>(response);
         }
 
         async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> HandleResult<TResult, TError>(HttpResponseMessage response)
@@ -104,7 +104,7 @@ namespace CasCap.Services
                     tpl.result = (TResult)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
                 else
                     tpl.result = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TResult>();
-                tpl.error = default(TError);
+                tpl.error = default;
             }
             else
             {
@@ -114,12 +114,12 @@ namespace CasCap.Services
                     tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
                 else
                     tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TError>();
-                _logger.LogError($"{response.StatusCode}\t{response.RequestMessage.RequestUri}");
+                _logger.LogError("StatusCode={StatusCode}, RequestUri={RequestUri}", response.StatusCode, response.RequestMessage?.RequestUri);
                 //var err = $"requestUri= fail";
                 //if (response.RequestMessage.Content.)
                 //if (req != null) err += $"{json}";
                 //throw new Exception(err);
-                tpl.result = default(TResult);
+                tpl.result = default;
             }
             return tpl;
         }
@@ -135,7 +135,7 @@ namespace CasCap.Services
         CancellationToken GetCT(TimeSpan? timeout = null)
         {
             var cts = new CancellationTokenSource();
-            cts.CancelAfter(timeout.HasValue ? timeout.Value : TimeSpan.FromSeconds(90));
+            cts.CancelAfter(timeout ?? TimeSpan.FromSeconds(90));
             return cts.Token;
         }
     }
