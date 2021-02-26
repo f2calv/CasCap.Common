@@ -44,6 +44,7 @@ pool:
 services:
   redis: redis
 
+#can't see to use services w/extends - needs more investigation...
 #extends:
 #  template: pipelines/dotnet-publish-nuget-v1.yml@sharedTemplates
 steps:
