@@ -47,4 +47,5 @@ extends:
     BuildConfiguration: ${{ parameters.BuildConfiguration }}
     CoverageInclude: '[CasCap.*]*'
     gitHubConnection: github.com_f2calv
-    serviceName: redis
+    services:
+      redis: redis
