@@ -44,11 +44,14 @@ pool:
 services:
   redis: redis
 
+#can't see to use services w/extends - needs more investigation...
 #extends:
-#  template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
+#  template: pipelines/dotnet-publish-nuget-v1.yml@sharedTemplates
 steps:
-- template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
+- template: pipelines/dotnet-publish-nuget-v1.yml@sharedTemplates
   parameters:
     BuildConfiguration: ${{ parameters.BuildConfiguration }}
     CoverageInclude: '[CasCap.*]*'
     gitHubConnection: github.com_f2calv
+    # services:
+    #   redis: redis
