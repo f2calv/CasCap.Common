@@ -26,6 +26,7 @@ resources:
     type: github
     name: f2calv/CasCap.YAMLTemplates
     endpoint: github.com_f2calv
+    ref: refs/heads/main
   containers:
   - container: redis
     image: redis
@@ -33,9 +34,9 @@ resources:
     - 6379:6379
 
 variables:
-- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   - group: nuget-prod
-- ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+- ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   - group: nuget-dev
 
 pool:
