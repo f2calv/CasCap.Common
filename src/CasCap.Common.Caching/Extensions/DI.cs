@@ -14,9 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configure)
         {
-            //services.AddMemoryCache();//now added inside RedisCacheService
+            //services.AddMemoryCache();//now added inside DistCacheService
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
             services.AddSingleton<IDistCacheService, DistCacheService>();
+            services.AddHostedService<LocalCacheInvalidationService>();
             services.AddSingleton<IConfigureOptions<CachingConfig>>(s =>
             {
                 var configuration = s.GetService<IConfiguration?>();

@@ -5,6 +5,7 @@ using CasCap.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using System;
 using System.Threading.Tasks;
 namespace CasCap.Services
@@ -20,11 +21,12 @@ namespace CasCap.Services
         Task Set<T>(string key, T cacheEntry, int ttl = -1) where T : class;
         Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class;
 
-        Task Remove(string key);
+        Task Delete(string key);
+        void DeleteLocal(string key, bool viaPubSub = false);
     }
 
     /// <summary>
-    /// Distributed cached service using a local in-memory cache AND remote Redis cache server.
+    /// Distributed cache service uses both a local in-memory cache AND a remote Redis cache.
     /// </summary>
     public class DistCacheService : IDistCacheService
     {
@@ -59,11 +61,11 @@ namespace CasCap.Services
         //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
         public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
-            => Get<T>(key.CacheKey, createItem, ttl);
+            => Get(key.CacheKey, createItem, ttl);
 
         public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
         {
-            if (!_local.TryGetValue<T>(key, out T cacheEntry))
+            if (!_local.TryGetValue(key, out T cacheEntry))
             {
                 var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
                 if (tpl != default)
@@ -118,16 +120,23 @@ namespace CasCap.Services
                 ;
             if (expiry.HasValue)
                 options.SetAbsoluteExpiration(expiry.Value);
-            _local.Set<T>(key, cacheEntry, options);
+            _ = _local.Set(key, cacheEntry, options);
             _logger.LogTrace("set {key} in local cache", key);
         }
 
-        public async Task Remove(string key)
+        public async Task Delete(string key)
         {
-            await Task.Delay(0);
+            DeleteLocal(key, false);
+            _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
+            _redis.subscriber.Publish(_cachingConfig.ChannelName, key, CommandFlags.FireAndForget);
+            _logger.LogDebug("removed {key} from local+remote cache and also from the local cache of any subscriber", key);
+        }
+
+        public void DeleteLocal(string key, bool viaPubSub)
+        {
             _local.Remove(key);
-            _ = await _redis.RemoveAsync(key);
-            _logger.LogTrace("removed {key} from local cache", key);
+            if (viaPubSub)
+                _logger.LogDebug("removed {key} from local cache via pub/sub", key);
         }
 
         void EvictionCallback(object key, object value, EvictionReason reason, object state)

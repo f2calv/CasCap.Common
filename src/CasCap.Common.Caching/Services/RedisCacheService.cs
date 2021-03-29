@@ -12,14 +12,21 @@ namespace CasCap.Services
 {
     public interface IRedisCacheService
     {
-        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
-        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "");
-        Task<byte[]> GetAsync(string key);
-        Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null);
-        Task<bool> RemoveAsync(string key);
         IDatabase db { get; }
         ISubscriber subscriber { get; }
         IServer server { get; }
+
+        byte[] Get(string key, CommandFlags flags = CommandFlags.None);
+        Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None);
+
+        bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
+        Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
+
+        bool Delete(string key, CommandFlags flags = CommandFlags.None);
+        Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None);
+
+        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key);
+        Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
     }
 
     //https://stackexchange.github.io/StackExchange.Redis/
@@ -53,12 +60,21 @@ namespace CasCap.Services
 
         public IServer server { get { return Connection.GetServer(configuration.EndPoints[0]); } }
 
-        public byte[] Get(string key) => db.StringGet(key);
+        public byte[] Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 
-        public async Task<byte[]> GetAsync(string key) => await db.StringGetAsync(key);
+        public async Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
 
-        #region use custom LUA script to return cached object plus meta data i.e. object expiry information
-        public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "")
+        public bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+            => db.StringSet(key, value, expiry, flags: flags);
+
+        public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+            => db.StringSetAsync(key, value, expiry, flags: flags);
+
+        public bool Delete(string key, CommandFlags flags = CommandFlags.None) => db.KeyDelete(key, flags);
+
+        public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None) => db.KeyDeleteAsync(key, flags);
+
+        public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key)
         {
             (TimeSpan? expiry, T cacheEntry) tpl = default;
             var o = await db.StringGetWithExpiryAsync(key);
@@ -71,6 +87,7 @@ namespace CasCap.Services
                 return tpl;
         }
 
+        #region use custom LUA script to return cached object plus meta data i.e. object expiry information
         [Obsolete("Superceded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
         public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
         {
@@ -174,9 +191,5 @@ namespace CasCap.Services
         }
         #endregion
         #endregion
-
-        public Task<bool> RemoveAsync(string key) => db.KeyDeleteAsync(key);
-
-        public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null) => db.StringSetAsync(key, value, expiry);
     }
 }
