@@ -25,7 +25,7 @@ namespace CasCap.Services
     //https://stackexchange.github.io/StackExchange.Redis/
     public class RedisCacheService : IRedisCacheService
     {
-        readonly ILogger _logger;// = ApplicationLogging.CreateLogger<RedisCacheService>();
+        readonly ILogger _logger;
         readonly CachingConfig _cachingConfig;
 
         public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingConfig> cachingConfig)
