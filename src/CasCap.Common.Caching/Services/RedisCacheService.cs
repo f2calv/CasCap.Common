@@ -17,6 +17,9 @@ namespace CasCap.Services
         Task<byte[]> GetAsync(string key);
         Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null);
         Task<bool> RemoveAsync(string key);
+        IDatabase db { get; }
+        ISubscriber subscriber { get; }
+        IServer server { get; }
     }
 
     //https://stackexchange.github.io/StackExchange.Redis/
@@ -29,34 +32,36 @@ namespace CasCap.Services
         {
             _logger = logger;
             _cachingConfig = cachingConfig.Value;
-            _configurationOptions = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
-            _configurationOptions.ConnectRetry = 20;
-            _configurationOptions.ClientName = Environment.MachineName;
+            configuration = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
+            configuration.ConnectRetry = 20;
+            configuration.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
             //Note: below for getting redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
-            _configurationOptions.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
+            configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
 
             LuaScripts = GetLuaScripts();
         }
 
-        static ConfigurationOptions _configurationOptions { get; set; } = new();
+        static ConfigurationOptions configuration { get; set; } = new();
 
-        static readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(_configurationOptions));
+        readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configuration));
 
-        static ConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
+        ConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 
-        static IDatabase _redis { get { return Connection.GetDatabase(); } }
+        public IDatabase db { get { return Connection.GetDatabase(); } }
 
-        static IServer server { get { return Connection.GetServer(_configurationOptions.EndPoints[0]); } }
+        public ISubscriber subscriber { get { return Connection.GetSubscriber(); } }
 
-        public byte[] Get(string key) => _redis.StringGet(key);
+        public IServer server { get { return Connection.GetServer(configuration.EndPoints[0]); } }
 
-        public async Task<byte[]> GetAsync(string key) => await _redis.StringGetAsync(key);
+        public byte[] Get(string key) => db.StringGet(key);
+
+        public async Task<byte[]> GetAsync(string key) => await db.StringGetAsync(key);
 
         #region use custom LUA script to return cached object plus meta data i.e. object expiry information
         public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key, [CallerMemberName] string caller = "")
         {
             (TimeSpan? expiry, T cacheEntry) tpl = default;
-            var o = await _redis.StringGetWithExpiryAsync(key);
+            var o = await db.StringGetWithExpiryAsync(key);
             if (o.Expiry.HasValue && o.Value.HasValue)
             {
                 var requestedObject = ((byte[])o.Value).FromMessagePack<T>();
@@ -109,7 +114,7 @@ namespace CasCap.Services
                 try
                 {
                     var luaScript = LuaScripts[keyGetCacheEntryWithTTL];
-                    var result = await luaScript.EvaluateAsync(_redis, new
+                    var result = await luaScript.EvaluateAsync(db, new
                     {
                         cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
                         trackKey = (RedisKey)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
@@ -170,8 +175,8 @@ namespace CasCap.Services
         #endregion
         #endregion
 
-        public Task<bool> RemoveAsync(string key) => _redis.KeyDeleteAsync(key);
+        public Task<bool> RemoveAsync(string key) => db.KeyDeleteAsync(key);
 
-        public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null) => _redis.StringSetAsync(key, value, expiry);
+        public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null) => db.StringSetAsync(key, value, expiry);
     }
 }
