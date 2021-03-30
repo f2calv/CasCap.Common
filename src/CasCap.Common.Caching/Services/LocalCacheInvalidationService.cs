@@ -22,24 +22,43 @@ namespace CasCap.Services
             _cachingConfig = cachingConfig.Value;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting {serviceName}...", nameof(LocalCacheInvalidationService));
-            await Task.Delay(0);
+            _logger.LogInformation("Starting {serviceName}", nameof(LocalCacheInvalidationService));
+            await Task.Delay(0, cancellationToken);
 
+            var count = 0L;
             // Synchronous handler
-            _redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(channelMessage =>
-            {
-                var key = (string)channelMessage.Message;
-                _distCacheSvc.DeleteLocal(key, true);
-            });
-
-            // Asynchronous handler
-            //_redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(async channelMessage =>
+            //_redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(channelMessage =>
             //{
             //    var key = (string)channelMessage.Message;
-            //    _distCacheSvc.RemoveLocal(key, true);
+            //    _distCacheSvc.DeleteLocal(key, true);
             //});
+
+            // Asynchronous handler
+            _redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(async channelMessage =>
+            {
+                await Task.Delay(0);
+                var key = (string)channelMessage.Message;
+                if (!key.StartsWith(_cachingConfig.pubSubPrefix))
+                {
+                    var finalIndex = key.Split('_')[2];
+                    _distCacheSvc.DeleteLocal(finalIndex, true);
+                    _ = Interlocked.Increment(ref count);
+                }
+            });
+
+            while (true)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingConfig.ChannelName);
+                    _redisCacheSvc.subscriber.Unsubscribe(_cachingConfig.ChannelName);
+                    break;
+                }
+                await Task.Delay(2_500, cancellationToken);
+            }
+            _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
         }
     }
 }

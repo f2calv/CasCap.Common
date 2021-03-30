@@ -26,7 +26,7 @@ namespace CasCap.Services
     }
 
     /// <summary>
-    /// Distributed cache service uses both a local in-memory cache AND a remote Redis cache.
+    /// Distributed cache service uses both an in-memory cache (local) AND a remote Redis cache (shared).
     /// </summary>
     public class DistCacheService : IDistCacheService
     {
@@ -70,7 +70,7 @@ namespace CasCap.Services
                 var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
                 if (tpl != default)
                 {
-                    _logger.LogTrace("retrieved {key} object type {type} from redis cache", key, typeof(T));
+                    _logger.LogTrace("retrieved {key} object type {type} from shared cache", key, typeof(T));
                     cacheEntry = tpl.cacheEntry;
                     SetLocal(key, cacheEntry, tpl.expiry);
                 }
@@ -82,7 +82,7 @@ namespace CasCap.Services
                     {
                         // Key not in cache, so get data.
                         cacheEntry = await createItem();
-                        _logger.LogTrace("attempting to set {key} object type {type} in local cache", key, typeof(T));
+                        _logger.LogTrace("setting {key} object type {type} in local cache", key, typeof(T));
                         if (cacheEntry != null)
                         {
                             await Set(key, cacheEntry, ttl);
@@ -122,14 +122,14 @@ namespace CasCap.Services
                 options.SetAbsoluteExpiration(expiry.Value);
             _ = _local.Set(key, cacheEntry, options);
             _logger.LogTrace("set {key} in local cache", key);
-        }
+        }        
 
         public async Task Delete(string key)
         {
             DeleteLocal(key, false);
             _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
-            _redis.subscriber.Publish(_cachingConfig.ChannelName, key, CommandFlags.FireAndForget);
-            _logger.LogDebug("removed {key} from local+remote cache and also from the local cache of any subscriber", key);
+            _redis.subscriber.Publish(_cachingConfig.ChannelName, $"{_cachingConfig.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+            _logger.LogDebug("removed {key} from local+shared cache, expiration message sent via pub/sub", key);
         }
 
         public void DeleteLocal(string key, bool viaPubSub)
