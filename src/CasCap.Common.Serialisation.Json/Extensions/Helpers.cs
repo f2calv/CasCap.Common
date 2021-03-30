@@ -31,7 +31,7 @@ namespace CasCap.Common.Extensions
         //    }
         //}
 
-        public static T FromJSON<T>(this string json)
+        public static T? FromJSON<T>(this string json)
         {
             try
             {
