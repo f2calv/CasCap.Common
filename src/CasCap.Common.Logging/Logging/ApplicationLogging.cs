@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-namespace CasCap.Common.Logging
+﻿namespace Microsoft.Extensions.Logging
 {
     //https://stackoverflow.com/questions/48676152/asp-net-core-web-api-logging-from-a-static-class
     public static class ApplicationLogging
