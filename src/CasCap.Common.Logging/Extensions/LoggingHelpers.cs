@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
-namespace CasCap.Common.Extensions
+namespace Microsoft.Extensions.Logging
 {
-    public static class Helpers
+    public static class LoggingHelpers
     {
         public static void LogError(this ILogger logger, Exception ex, [CallerMemberName] string caller = "")
         {

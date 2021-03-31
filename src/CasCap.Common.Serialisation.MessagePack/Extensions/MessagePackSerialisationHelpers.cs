@@ -1,7 +1,7 @@
 ﻿using MessagePack;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class MessagePackSerialisationHelpers
     {
         public static byte[] ToMessagePack<T>(this T data)
             => MessagePackSerializer.Serialize(data);

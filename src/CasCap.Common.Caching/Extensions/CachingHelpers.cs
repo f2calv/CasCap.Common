@@ -1,7 +1,7 @@
 ﻿using System;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class CachingHelpers
     {
         public static TimeSpan? GetExpiry(this int ttl)
         {
