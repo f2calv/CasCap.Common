@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Net.Tests", "src\CasCap.Common.Net.Tests\CasCap.Common.Net.Tests.csproj", "{E3D7C965-3B4D-4A2F-A16B-F014B3477347}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasCap.Common.Testing", "src\CasCap.Common.Testing\CasCap.Common.Testing.csproj", "{23A30C65-424B-4DCB-BD11-476FCC423422}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -167,6 +169,18 @@ Global
 		{E3D7C965-3B4D-4A2F-A16B-F014B3477347}.Release|x64.Build.0 = Release|Any CPU
 		{E3D7C965-3B4D-4A2F-A16B-F014B3477347}.Release|x86.ActiveCfg = Release|Any CPU
 		{E3D7C965-3B4D-4A2F-A16B-F014B3477347}.Release|x86.Build.0 = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|x64.Build.0 = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Debug|x86.Build.0 = Debug|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|x64.ActiveCfg = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|x64.Build.0 = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|x86.ActiveCfg = Release|Any CPU
+		{23A30C65-424B-4DCB-BD11-476FCC423422}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,6 +4,7 @@ using MessagePack;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Common.Caching.Tests
 {
     /// <summary>
@@ -13,7 +14,7 @@ namespace CasCap.Common.Caching.Tests
     {
         readonly APIService _apiSvc;
 
-        public CacheTests() : base()
+        public CacheTests(ITestOutputHelper output) : base(output)
         {
             _apiSvc = new APIService();
         }
