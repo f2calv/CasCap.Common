@@ -14,6 +14,7 @@ namespace CasCap.Common.Caching.Tests
         public TestBase(ITestOutputHelper output)
         {
             var configuration = new ConfigurationBuilder()
+                //.AddCasCapConfiguration()
                 .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
                 .Build();
 
@@ -23,12 +24,14 @@ namespace CasCap.Common.Caching.Tests
                 .AddLogging(logging =>
                 {
                     logging.AddProvider(new TestLogProvider(output));
+                    logging.SetMinimumLevel(LogLevel.Trace);
                     ApplicationLogging.LoggerFactory = logging.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
                 });
 
             //add services
             services.AddCasCapCaching();
 
+            //assign services to be tested
             var serviceProvider = services.BuildServiceProvider();
             _distCacheSvc = serviceProvider.GetRequiredService<IDistCacheService>();
             _redisSvc = serviceProvider.GetRequiredService<IRedisCacheService>();
