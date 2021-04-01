@@ -12,7 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class ExtensionHelpers
     {
         #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
         //https://github.com/dotnet/roslyn/issues/37995

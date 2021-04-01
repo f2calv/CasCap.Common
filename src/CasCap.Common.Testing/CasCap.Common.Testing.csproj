@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Helper library which encapsulates common testing requirements.</Description>
+    <PackageTags>extensions,helpers,testing</PackageTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="2.0.4" />
+  </ItemGroup>
+
+</Project>

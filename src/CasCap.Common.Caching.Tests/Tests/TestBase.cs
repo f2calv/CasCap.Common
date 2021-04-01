@@ -1,8 +1,7 @@
-﻿using CasCap.Common.Logging;
-using CasCap.Services;
+﻿using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Xunit.Abstractions;
 namespace CasCap.Common.Caching.Tests
 {
     public abstract class TestBase
@@ -10,24 +9,22 @@ namespace CasCap.Common.Caching.Tests
         protected IDistCacheService _distCacheSvc;
         protected IRedisCacheService _redisSvc;
 
-        public TestBase()
+        public TestBase(ITestOutputHelper output)
         {
             var configuration = new ConfigurationBuilder()
+                //.AddCasCapConfiguration()
                 .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
                 .Build();
 
             //initiate ServiceCollection w/logging
             var services = new ServiceCollection()
                 .AddSingleton<IConfiguration>(configuration)
-                .AddLogging(logging =>
-                {
-                    logging.AddDebug();
-                    ApplicationLogging.LoggerFactory = logging.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-                });
+                .AddXUnitLogging(output);
 
             //add services
             services.AddCasCapCaching();
 
+            //assign services to be tested
             var serviceProvider = services.BuildServiceProvider();
             _distCacheSvc = serviceProvider.GetRequiredService<IDistCacheService>();
             _redisSvc = serviceProvider.GetRequiredService<IRedisCacheService>();

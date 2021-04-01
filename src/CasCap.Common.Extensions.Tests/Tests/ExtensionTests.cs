@@ -1,9 +1,12 @@
 ﻿using System;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Common.Extensions.Tests
 {
-    public class ExtensionTests// : TestBase
+    public class ExtensionTests : TestBase
     {
+        public ExtensionTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void UnixTimeMS()
         {

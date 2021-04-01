@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class NetHelpers
     {
         public static string? TryGetValue(this HttpResponseHeaders headers, string name)
         {

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class ThreadingHelpers
     {
         public static Task<TimeSpan> ForEachAsyncSemaphore<T>(this IEnumerable<T> source, Func<T, Task> body) => source.ForEachAsyncSemaphore(body, Environment.ProcessorCount);
 

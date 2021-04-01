@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
     <ProjectReference Include="..\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj" />
     <ProjectReference Include="..\CasCap.Common.Serialisation.MessagePack\CasCap.Common.Serialisation.MessagePack.csproj" />
   </ItemGroup>

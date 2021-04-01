@@ -4,6 +4,7 @@ using MessagePack;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Common.Caching.Tests
 {
     /// <summary>
@@ -11,12 +12,9 @@ namespace CasCap.Common.Caching.Tests
     /// </summary>
     public class CacheTests : TestBase
     {
-        readonly APIService _apiSvc;
+        readonly APIService _apiSvc = new APIService();
 
-        public CacheTests() : base()
-        {
-            _apiSvc = new APIService();
-        }
+        public CacheTests(ITestOutputHelper output) : base(output) { }
 
         [Fact, Trait("Category", nameof(IRedisCacheService))]
         public async Task TestRedisTTLRetrievalWithLUAScript()

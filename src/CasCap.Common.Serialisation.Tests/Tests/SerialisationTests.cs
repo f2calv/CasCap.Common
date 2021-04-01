@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Common.Serialisation.Tests
 {
     public class SerialisationTests : TestBase
     {
-        public SerialisationTests() : base() { }
+        public SerialisationTests(ITestOutputHelper output) : base(output) { }
 
         [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
         public void TestMessagePack()

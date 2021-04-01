@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 namespace CasCap.Common.Extensions
 {
-    public static class Helpers
+    public static class JsonSerialisationHelpers
     {
         //https://stackoverflow.com/questions/24066400/checking-for-empty-or-null-jtoken-in-a-jobject/24067483#24067483
         public static bool IsNullOrEmpty(this JToken token)

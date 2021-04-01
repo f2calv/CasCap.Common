@@ -1,8 +1,11 @@
 ﻿using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Common.Net.Tests
 {
     public class NetTests : TestBase
     {
+        public NetTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void Placeholder()
         {
