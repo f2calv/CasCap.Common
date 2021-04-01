@@ -37,7 +37,7 @@ namespace CasCap.Common.Testing
 
         public IReadOnlyCollection<LogEntry> GetLogs() => this._entries.AsReadOnly();
 
-        public IDisposable BeginScope<TState>(TState state) => null;
+        public IDisposable BeginScope<TState>(TState state) => null!;
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
