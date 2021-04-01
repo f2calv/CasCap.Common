@@ -1,8 +1,6 @@
-﻿using CasCap.Common.Testing;
-using CasCap.Services;
+﻿using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 namespace CasCap.Common.Caching.Tests
 {
@@ -21,12 +19,7 @@ namespace CasCap.Common.Caching.Tests
             //initiate ServiceCollection w/logging
             var services = new ServiceCollection()
                 .AddSingleton<IConfiguration>(configuration)
-                .AddLogging(logging =>
-                {
-                    logging.AddProvider(new TestLogProvider(output));
-                    logging.SetMinimumLevel(LogLevel.Trace);
-                    ApplicationLogging.LoggerFactory = logging.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-                });
+                .AddXUnitLogging(output);
 
             //add services
             services.AddCasCapCaching();
