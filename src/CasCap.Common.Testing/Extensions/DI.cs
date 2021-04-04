@@ -10,9 +10,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddLogging(logging =>
             {
                 logging.AddProvider(new TestLogProvider(output));
-                logging.SetMinimumLevel(LogLevel.Trace);
-                ApplicationLogging.LoggerFactory = logging.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+                logging.SetMinimumLevel(LogLevel.Trace);                
             });
+            //assign to the static LoggerFactory instance before exiting!
+            ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             return services;
         }
     }
