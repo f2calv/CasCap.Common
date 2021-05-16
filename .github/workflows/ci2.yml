@@ -56,7 +56,7 @@ jobs:
     - name: .NET 5.x SDK
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 5.0.300 #5.0.x
   
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
