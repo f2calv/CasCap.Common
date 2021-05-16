@@ -1,7 +1,16 @@
-name: .NET
+name: ci
 
 on:
-  #workflow_dispatch: this only works when in default branch?
+  workflow_dispatch:
+    inputs:
+      BuildConfiguration:
+        description: Build Configuration     
+        required: true
+        default: Release
+      buildLogFile:
+        description: dotnet build logfile location
+        required: true
+        default: buildLog.log
   push:
     branches: [ main, 'feature/*' ]
     # paths-ignore:
@@ -26,14 +35,18 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    
-    - run: |
-        dotnet tool update -g GitVersion.Tool
-        $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /output buildserver /nofetch
-      shell: bash
-      #condition: eq(variables['Agent.OS'], 'Windows_NT')
-      #displayName: GitVersion (Windows)
-      continue-on-error: false
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: 5.x
+
+    #https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md
+    - name: Determine Version
+      id:   gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.7
+      with:
+        useConfigFile: true
 
     - name: .NET Core 3.1.x SDK
       uses: actions/setup-dotnet@v1
@@ -49,15 +62,43 @@ jobs:
       run: dotnet restore --verbosity minimal --configfile nuget.config
 
     - name: dotnet build
-      run: dotnet build --no-restore --nologo
+      run: dotnet build --no-restore --nologo -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }} -c ${{ github.event.inputs.BuildConfiguration }} /flp:v=q /flp:logfile=${{ github.event.inputs.buildLogFile }}
 
     - name: dotnet test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-restore --nologo --no-build -c ${{ github.event.inputs.BuildConfiguration }} -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura #-p:Include="${{ parameters.CoverageInclude}}"
 
-    - name: dotnet pack
-      if: ${{ success() && !github.base_ref }}
+    - name: ReportGenerator 1
+      run: |
+        dotnet tool update -g dotnet-reportgenerator-globaltool
+        cd $HOME/.dotnet/tools
+        ls -lsa
+        $HOME/.dotnet/tools/reportgenerator '-reports:${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml' -targetdir:${{ github.workspace }}/CodeCoverage '-reporttypes:HtmlInline_AzurePipelines;Cobertura'
+      shell: bash
+
+    #https://github.com/danielpalme/ReportGenerator/wiki/Integration#github-actions
+    - name: ReportGenerator 2
+      uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
+      if: false
+      with:
+        reports: 'coverage.xml' # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
+        targetdir: 'coveragereport' # REQUIRED # The directory where the generated report should be saved.
+        reporttypes: 'HtmlInline;Cobertura' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
+        # sourcedirs: '' # Optional directories which contain the corresponding source code (separated by semicolon). The source directories are used if coverage report contains classes without path information.
+        # historydir: '' # Optional directory for storing persistent coverage information. Can be used in future reports to show coverage evolution.
+        # plugins: '' # Optional plugin files for custom reports or custom history storage (separated by semicolon).
+        # assemblyfilters: '+*' # Optional list of assemblies that should be included or excluded in the report. Exclusion filters take precedence over inclusion filters. Wildcards are allowed.
+        # classfilters: '+*' # Optional list of classes that should be included or excluded in the report. Exclusion filters take precedence over inclusion filters. Wildcards are allowed.
+        # filefilters: '+*' # Optional list of files that should be included or excluded in the report. Exclusion filters take precedence over inclusion filters. Wildcards are allowed.
+        # verbosity: 'Info' # The verbosity level of the log messages. Values: Verbose, Info, Warning, Error, Off
+        # title: '' # Optional title.
+        # tag: '${{ github.run_number }}_${{ github.run_id }}' # Optional tag or build version.
+
+    #PublishCodeCoverageResults?
+
+    - name: dotnet pack --nologo -c ${{ github.event.inputs.BuildConfiguration }} --no-build --include-symbols -o dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
+      if: ${{ success() && github.base_ref }}
       run: dotnet pack
 
-    - name: dotnet push
-      if: ${{ success() && !github.base_ref }}
-      run: dotnet push
+    # - name: dotnet push
+    #   if: ${{ success() && github.base_ref }}
+    #   run: dotnet push
