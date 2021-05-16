@@ -23,7 +23,7 @@ on:
 
 jobs:
   build:
-
+    environment: dev
     runs-on: ubuntu-latest
     services:
       redis:
@@ -53,7 +53,7 @@ jobs:
       with:
         dotnet-version: 3.1.x
 
-    - name: .NET 5.x SDK
+    - name: .NET 6.x SDK
       uses: actions/setup-dotnet@v1
       with:
         #dotnet-version: 5.0.x
@@ -98,9 +98,17 @@ jobs:
     #PublishCodeCoverageResults?
 
     - name: dotnet pack --nologo -c Release --no-build --include-symbols -o dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
-      if: ${{ success() && github.base_ref }}
+      #if: ${{ success() && !github.base_ref }}
       run: dotnet pack
 
-    # - name: dotnet push
-    #   if: ${{ success() && github.base_ref }}
-    #   run: dotnet push
+    - name: dotnet push
+      run: dotnet nuget push dist/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetServerFeedUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      #if: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: git tag
+      run: |
+        git tag ${{ steps.gitversion.outputs.semVer }}
+        git push origin --tags
+      if: ${{ github.ref == 'refs/heads/main' }}
+
+      #Publish github release?
