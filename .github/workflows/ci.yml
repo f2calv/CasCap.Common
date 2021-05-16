@@ -1,13 +1,15 @@
 name: ci
 
 on:
+  workflow_dispatch:
   push:
-    #branches: [ main ]
     paths-ignore:
       - '.azure-pipelines/**'
       - '.github/**'
       - LICENSE
       - README.md
+  pull_request:
+    branches: [ main ]
 
 jobs:
 
@@ -46,3 +48,11 @@ jobs:
 
     - name: dotnet build
       run: dotnet build --no-restore --nologo
+
+    - name: dotnet pack
+      if: ${{ success() && !github.base_ref }}
+      run: dotnet pack
+
+    - name: dotnet push
+      if: ${{ success() && !github.base_ref }}
+      run: dotnet push
