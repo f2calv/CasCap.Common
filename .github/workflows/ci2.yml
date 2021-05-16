@@ -1,20 +1,23 @@
-name: ci
+name: .NET
 
-on: [push]
+on:
   #workflow_dispatch: this only works when in default branch?
-  # push:
-  #   branches: ['*']
+  push:
+    branches: [ main ]
     # paths-ignore:
     #   - ".azure-pipelines/**"
     #   #- '.github/**'
     #   - LICENSE
     #   - README.md
-  # pull_request:
-  #   branches: [main]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
+    steps:
 
     # services:
     #   redis:
@@ -22,37 +25,48 @@ jobs:
     #     ports:
     #       - 6379:6379
 
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
 
-      # - run: $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /output buildserver /nofetch
-      #   shell: bash
-      #   #condition: eq(variables['Agent.OS'], 'Windows_NT')
-      #   #displayName: GitVersion (Windows)
-      #   continue-on-error: false
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-      - name: .NET Core 3.1.x SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "3.1.x"
+    # - run: $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /output buildserver /nofetch
+    #   shell: bash
+    #   #condition: eq(variables['Agent.OS'], 'Windows_NT')
+    #   #displayName: GitVersion (Windows)
+    #   continue-on-error: false
 
-      - name: .NET 5.x SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "5.0.x"
+    - name: .NET Core 3.1.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: "3.1.x"
 
-      # - name: dotnet restore
-      #   run: dotnet restore --verbosity minimal --configfile nuget.config
+    - name: .NET 5.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: "5.0.x"
 
-      # - name: dotnet build
-      #   run: dotnet build --no-restore --nologo
+    # - name: dotnet restore
+    #   run: dotnet restore --verbosity minimal --configfile nuget.config
 
-      # - name: dotnet pack
-      #   if: ${{ success() && !github.base_ref }}
-      #   run: dotnet pack
+    # - name: dotnet build
+    #   run: dotnet build --no-restore --nologo
 
-      # - name: dotnet push
-      #   if: ${{ success() && !github.base_ref }}
-      #   run: dotnet push
+    # - name: dotnet pack
+    #   if: ${{ success() && !github.base_ref }}
+    #   run: dotnet pack
+
+    # - name: dotnet push
+    #   if: ${{ success() && !github.base_ref }}
+    #   run: dotnet push
