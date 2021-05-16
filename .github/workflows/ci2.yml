@@ -101,8 +101,12 @@ jobs:
       #if: ${{ success() && !github.base_ref }}
       run: dotnet pack
 
+    - name: dotnet debug
+      run: ls -lsa
+      shell: bash
+
     - name: dotnet push
-      run: dotnet nuget push dist/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetServerFeedUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      run: dotnet nuget push dist/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
       #if: ${{ github.ref == 'refs/heads/main' }}
 
     - name: git tag
