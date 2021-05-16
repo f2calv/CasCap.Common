@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+    #branches: [ main ]
+    paths-ignore:
+      - '.azure-pipelines/**'
+      - '.github/**'
+      - LICENSE
+      - README.md
+
+jobs:
+
+  test-job:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - run: $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /output buildserver /nofetch
+      shell: bash
+      #condition: eq(variables['Agent.OS'], 'Windows_NT')
+      #displayName: GitVersion (Windows)
+      continue-on-error: false
+
+    - name: .NET Core 3.1.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+  
+    - name: .NET 5.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+  
+    - name: dotnet restore
+      run: dotnet restore --verbosity minimal --configfile nuget.config
+
+    - name: dotnet build
+      run: dotnet build --no-restore --nologo
