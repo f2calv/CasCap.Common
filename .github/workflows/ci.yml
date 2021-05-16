@@ -5,7 +5,7 @@ on:
   push:
     paths-ignore:
       - '.azure-pipelines/**'
-      - '.github/**'
+      #- '.github/**'
       - LICENSE
       - README.md
   pull_request:
