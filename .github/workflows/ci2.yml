@@ -2,15 +2,15 @@ name: ci
 
 on:
   workflow_dispatch:
-    inputs:
-      BuildConfiguration:
-        description: Build Configuration     
-        required: true
-        default: Release
-      buildLogFile:
-        description: dotnet build logfile location
-        required: true
-        default: buildLog.log
+  #   inputs:
+  #     BuildConfiguration:
+  #       description: Build Configuration     
+  #       required: true
+  #       default: Release
+  #     buildLogFile:
+  #       description: dotnet build logfile location
+  #       required: true
+  #       default: buildLog.log
   push:
     branches: [ main, 'feature/*' ]
     # paths-ignore:
@@ -62,10 +62,10 @@ jobs:
       run: dotnet restore --verbosity minimal --configfile nuget.config
 
     - name: dotnet build
-      run: dotnet build --no-restore --nologo -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }} -c ${{ github.event.inputs.BuildConfiguration }} /flp:v=q /flp:logfile=${{ github.event.inputs.buildLogFile }}
+      run: dotnet build --no-restore --nologo -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }} -c Release /flp:v=q /flp:logfile=buildLog.log
 
     - name: dotnet test
-      run: dotnet test --no-restore --nologo --no-build -c ${{ github.event.inputs.BuildConfiguration }} -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura #-p:Include="${{ parameters.CoverageInclude}}"
+      run: dotnet test --no-restore --nologo --no-build -c Release -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura #-p:Include="${{ parameters.CoverageInclude}}"
 
     - name: ReportGenerator 1
       run: |
@@ -95,7 +95,7 @@ jobs:
 
     #PublishCodeCoverageResults?
 
-    - name: dotnet pack --nologo -c ${{ github.event.inputs.BuildConfiguration }} --no-build --include-symbols -o dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
+    - name: dotnet pack --nologo -c Release --no-build --include-symbols -o dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
       if: ${{ success() && github.base_ref }}
       run: dotnet pack
 
