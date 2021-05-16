@@ -3,7 +3,7 @@ name: .NET
 on:
   #workflow_dispatch: this only works when in default branch?
   push:
-    branches: [ main ]
+    branches: [ main, 'feature/*' ]
     # paths-ignore:
     #   - ".azure-pipelines/**"
     #   #- '.github/**'
