@@ -1,9 +1,9 @@
 name: ci
 
-on:
+on: [push]
   #workflow_dispatch: this only works when in default branch?
-  push:
-    branches: ['*']
+  # push:
+  #   branches: ['*']
     # paths-ignore:
     #   - ".azure-pipelines/**"
     #   #- '.github/**'
