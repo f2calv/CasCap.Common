@@ -31,11 +31,11 @@ namespace CasCap.Common.Extensions
         //    }
         //}
 
-        public static T? FromJSON<T>(this string json)
+        public static T? FromJSON<T>(this string json, JsonSerializerSettings? settings = null)
         {
             try
             {
-                return JsonConvert.DeserializeObject<T>(json);
+                return JsonConvert.DeserializeObject<T>(json, settings);
             }
             catch (Exception ex)
             {

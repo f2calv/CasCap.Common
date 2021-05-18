@@ -1,0 +1,108 @@
+name: ci
+
+on:
+  workflow_dispatch:
+    inputs:
+      BuildConfiguration:
+        description: Build Configuration
+        required: true
+        default: Release
+  push:
+    # paths-ignore:
+    # - '.azure-pipelines/**'
+    # - '.github/**'
+    # - LICENSE
+    # - README.md
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    #no point using matrix build as "Container operations are only supported on Linux runners"
+    # strategy:
+    #   matrix:
+    #     os: [ubuntu-latest,windows-latest]
+    # runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+      CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
+    services:
+      redis:
+        image: redis
+        ports:
+        - 6379:6379
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: gitversion install
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: 5.x
+
+    #https://gitversion.net/docs/usage/
+    - name: gitversion determine version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.7
+      with:
+        useConfigFile: true
+
+    - name: .NET Core 3.1.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: .NET 5.x SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+
+    - name: dotnet restore
+      run: dotnet restore --verbosity minimal --configfile nuget.config
+
+    - name: dotnet build
+      run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
+
+    - name: dotnet test
+      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura
+
+    - name: code coverage report generator
+      uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
+      if: runner.OS == 'Linux'
+      with:
+        reports: '${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml'
+        targetdir: ${{ github.workspace }}/coveragereport
+        reporttypes: HtmlInline;Cobertura
+        tag: ${{ github.run_number }}_${{ github.run_id }}
+
+    - name: upload-artifact code coverage report
+      uses: actions/upload-artifact@v2
+      if: runner.OS == 'Linux'
+      with:
+        name: CoverageReport
+        path: coveragereport
+
+    - name: dotnet pack
+      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
+      if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
+
+    - name: dotnet push (nuget)
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+
+    - name: dotnet push (github)
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+
+    - name: create-release ${{ needs.build.outputs.semVer }}
+      uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      with:
+        tag_name: ${{ needs.build.outputs.semVer }}
+        release_name: Release ${{ needs.build.outputs.semVer }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

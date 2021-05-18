@@ -17,6 +17,7 @@ trigger:
   paths:
     exclude:
     - .azure-pipelines
+    - .github
     - LICENSE
     - README.md
 

@@ -86,7 +86,7 @@ namespace CasCap.Models
         }
 
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
-            => throw new NotImplementedException();
+            => throw new NotImplementedException($"{nameof(ColumnCleaner)}.{nameof(WriteJson)} not implemented");
     }
     //todo: Uri convertor
 

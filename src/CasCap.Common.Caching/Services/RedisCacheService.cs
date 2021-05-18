@@ -12,7 +12,7 @@ namespace CasCap.Services
 {
     public interface IRedisCacheService
     {
-        ConnectionMultiplexer Connection { get; }
+        IConnectionMultiplexer Connection { get; }
         IDatabase db { get; }
         ISubscriber subscriber { get; }
         IServer server { get; }
@@ -53,7 +53,7 @@ namespace CasCap.Services
 
         readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configuration));
 
-        public ConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
+        public IConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 
         public IDatabase db { get { return Connection.GetDatabase(); } }
 
