@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{matrix.os}}
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
-      CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }} 
+      CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
     services:
       redis:
         image: redis
@@ -95,42 +95,40 @@ jobs:
 
     - name: dotnet pack
       run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
-      if: runner.OS == 'Linux'
-
-    #https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
-    - name: dotnet push
-      #run: dotnet nuget add source "https://nuget.pkg.github.com/digitalcoyote/index.json" --name github --username digitalcoyote --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
-      run: |
-        dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://nuget.pkg.github.com/${{ github.event.schedule.user.login }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
-      if: github.ref != 'refs/heads/main'
+      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'
 
     - name: upload-artifact packages
       uses: actions/upload-artifact@v2
-      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'  
+      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'
       with:
         name: packages
         path: |
           src/**/*.nupkg
           src/**/*.snupkg
 
-  deploy:
+  deploy: #doesn't strictly need to be a second job... consider merging?
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'      
+    if: github.ref == 'refs/heads/main'
     steps:
 
     - name: download-artifact packages
       uses: actions/download-artifact@v2
       with:
-        name: packages  
+        name: packages
 
-    - name: dotnet push
+    - name: dotnet push (nuget)
       run: dotnet nuget push ${{ github.workspace }}/packages/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
-      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only publish a NuGet package if there has been a commit/version change
+      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+
+    #https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
+    - name: dotnet push (github)
+      run: dotnet nuget push ${{ github.workspace }}/packages/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
+      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
 
     - name: create-release ${{ needs.build.outputs.semVer }}
-      uses: actions/create-release@v1 #deprecated, do we use a different action?
-      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only create a release if there has been a commit/version change
+      uses: actions/create-release@v1 #todo: this is deprecated, do we use a different action?
+      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
       with:
         tag_name: ${{ needs.build.outputs.semVer }}
         release_name: Release ${{ needs.build.outputs.semVer }}
