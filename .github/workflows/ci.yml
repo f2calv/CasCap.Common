@@ -18,10 +18,12 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest] #can't use windows-latest due to "Container operations are only supported on Linux runners"
-    runs-on: ${{matrix.os}}
+    #no point using matrix build as "Container operations are only supported on Linux runners"
+    # strategy:
+    #   matrix:
+    #     os: [ubuntu-latest,windows-latest]
+    # runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
       CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
