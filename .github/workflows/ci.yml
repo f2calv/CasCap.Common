@@ -8,11 +8,11 @@ on:
   #       required: true
   #       default: Release
   push:
-    paths-ignore:
-    - '.azure-pipelines/**'
-    - '.github/**'
-    - LICENSE
-    - README.md
+    # paths-ignore:
+    # - '.azure-pipelines/**'
+    # - '.github/**'
+    # - LICENSE
+    # - README.md
   pull_request:
     branches: [main]
 
