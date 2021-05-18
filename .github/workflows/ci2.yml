@@ -45,6 +45,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        path: s
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.7
@@ -85,6 +86,7 @@ jobs:
         cd $HOME/.dotnet/tools
         ls -lsa
         $HOME/.dotnet/tools/reportgenerator '-reports:${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml' -targetdir:${{ github.workspace }}/CodeCoverage '-reporttypes:HtmlInline_AzurePipelines;Cobertura'
+        cd ${{ github.workspace }}
         ls -lsa
       shell: bash
 
