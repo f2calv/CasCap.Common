@@ -79,16 +79,16 @@ jobs:
     - name: dotnet test
       run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura
 
-    - name: ReportGenerator 1
-      run: |
-        dotnet tool update -g dotnet-reportgenerator-globaltool
-        cd $HOME/.dotnet/tools
-        ls -lsa
-        $HOME/.dotnet/tools/reportgenerator -targetdir: '-reporttypes:HtmlInline_AzurePipelines;Cobertura'
-        cd ${{ github.workspace }}
-        ls -lsa
-      shell: bash
-      if: false
+    # - name: ReportGenerator 1
+    #   run: |
+    #     dotnet tool update -g dotnet-reportgenerator-globaltool
+    #     cd $HOME/.dotnet/tools
+    #     ls -lsa
+    #     $HOME/.dotnet/tools/reportgenerator -targetdir: '-reporttypes:HtmlInline_AzurePipelines;Cobertura'
+    #     cd ${{ github.workspace }}
+    #     ls -lsa
+    #   shell: bash
+    #   if: false
 
     - name: coverage report generator
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
@@ -104,7 +104,7 @@ jobs:
         name: CoverageReport
         path: coveragereport
 
-    - name: dotnet pack -c Release --nologo --no-build --include-symbols -o ${{ github.workspace }} -p:PackageVersion='${{ steps.gitversion.outputs.semVer }}'
+    - name: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
       #if: ${{ success() && !github.base_ref }}
       run: dotnet pack
 
