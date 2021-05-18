@@ -26,7 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
-      CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
     services:
       redis:
         image: redis
@@ -92,15 +91,15 @@ jobs:
 
     - name: dotnet push (nuget)
       run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
-      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      if: github.ref == 'refs/heads/main'
 
     - name: dotnet push (github)
       run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
-      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      if: github.ref == 'refs/heads/main'
 
     - name: create-release ${{ needs.build.outputs.semVer }}
       uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
-      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      if: github.ref == 'refs/heads/main'
       with:
         tag_name: ${{ needs.build.outputs.semVer }}
         release_name: Release ${{ needs.build.outputs.semVer }}
