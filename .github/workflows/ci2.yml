@@ -104,7 +104,7 @@ jobs:
         name: CoverageReport
         path: coveragereport
 
-    - name: dotnet pack -c Release --nologo --no-build --include-symbols -o ${{ github.workspace }} -p:Version='${{ steps.gitversion.outputs.semVer }}'
+    - name: dotnet pack -c Release --nologo --no-build --include-symbols -o ${{ github.workspace }} -p:PackageVersion='${{ steps.gitversion.outputs.semVer }}'
       #if: ${{ success() && !github.base_ref }}
       run: dotnet pack
 
