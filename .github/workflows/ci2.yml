@@ -32,6 +32,16 @@ jobs:
           - 6379:6379
     steps:
 
+    - name: Print github workspace
+      run: |
+        echo "GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
+        echo "github.workspace = ${{ github.workspace }}"
+        echo "pr.ref = ${{github.event.pull_request.head.ref}}"
+        echo "github.ref = ${{ github.ref }}"
+        echo "$GITHUB_CONTEXT"
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -97,7 +107,7 @@ jobs:
 
     #PublishCodeCoverageResults?
 
-    - name: dotnet pack --nologo -c Release --no-build --include-symbols -o dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
+    - name: dotnet pack --nologo -c Release --no-build --include-symbols -o ${{ github.workspace }}/dist -p:Version='${{ steps.gitversion.outputs.semVer }}'
       #if: ${{ success() && !github.base_ref }}
       run: dotnet pack
 
@@ -106,7 +116,7 @@ jobs:
       shell: bash
 
     - name: dotnet push
-      run: dotnet nuget push dist/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      run: dotnet nuget push ${{ github.workspace }}/dist/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
       #if: ${{ github.ref == 'refs/heads/main' }}
 
     - name: git tag
