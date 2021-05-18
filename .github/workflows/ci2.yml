@@ -118,7 +118,7 @@ jobs:
       shell: bash
 
     - name: dotnet push
-      run: dotnet nuget push ${{ github.workspace }}/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
       #if: ${{ github.ref == 'refs/heads/main' }}
 
     - name: git tag
