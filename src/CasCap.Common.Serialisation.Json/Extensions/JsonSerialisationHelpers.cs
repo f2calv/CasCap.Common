@@ -31,7 +31,7 @@ namespace CasCap.Common.Extensions
         //    }
         //}
 
-        public static T? FromJSON<T>(this string json, JsonSerializerSettings? settings = null) where T : class
+        public static T? FromJSON<T>(this string json, JsonSerializerSettings? settings = null)
         {
             try
             {

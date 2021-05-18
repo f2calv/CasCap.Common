@@ -25,7 +25,7 @@ namespace CasCap.Common.Extensions
             return "?" + string.Join("&", array);
         }
 
-        public static async Task<T?> ReadAsJsonAsync<T>(this HttpContent content) where T : class
+        public static async Task<T?> ReadAsJsonAsync<T>(this HttpContent content)
         {
             var json = await content.ReadAsStringAsync().ConfigureAwait(false);
             T? value = json.FromJSON<T>();
