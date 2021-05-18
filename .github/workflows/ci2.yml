@@ -95,9 +95,14 @@ jobs:
       run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
       if: runner.OS == 'Linux'
 
+    - name: dotnet push
+      #run: dotnet nuget add source "https://nuget.pkg.github.com/digitalcoyote/index.json" --name github --username digitalcoyote --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://nuget.pkg.github.com/f2calv/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref != 'refs/heads/main'
+
     - name: upload-artifact packages
       uses: actions/upload-artifact@v2
-      if: runner.OS == 'Linux'
+      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'  
       with:
         name: packages
         path: |
@@ -116,7 +121,7 @@ jobs:
         name: packages  
 
     - name: dotnet push
-      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      run: dotnet nuget push ${{ github.workspace }}/packages/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
       if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only publish a NuGet package if there has been a commit/version change
 
     - name: create-release ${{ needs.build.outputs.semVer }}
