@@ -36,6 +36,8 @@ jobs:
         image: redis
         ports:
         - 6379:6379
+    permissions:
+      packages: write
     steps:
 
     - uses: actions/checkout@v2
@@ -97,7 +99,8 @@ jobs:
 
     - name: dotnet push
       #run: dotnet nuget add source "https://nuget.pkg.github.com/digitalcoyote/index.json" --name github --username digitalcoyote --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
-      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://nuget.pkg.github.com/f2calv/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://nuget.pkg.github.com/${{ github.event.schedule.user.login }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
       if: github.ref != 'refs/heads/main'
 
     - name: upload-artifact packages
