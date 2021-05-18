@@ -97,11 +97,11 @@ jobs:
       run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
       if: github.ref == 'refs/heads/main'
 
-    - name: create-release ${{ needs.build.outputs.semVer }}
+    - name: create-release ${{ steps.gitversion.outputs.semVer }}
       uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
       if: github.ref == 'refs/heads/main'
       with:
-        tag_name: ${{ needs.build.outputs.semVer }}
-        release_name: Release ${{ needs.build.outputs.semVer }}
+        tag_name: ${{ steps.gitversion.outputs.semVer }}
+        release_name: Release ${{ steps.gitversion.outputs.semVer }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
