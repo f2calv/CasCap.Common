@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   #   inputs:
   #     BuildConfiguration:
-  #       description: Build Configuration     
+  #       description: Build Configuration
   #       required: true
   #       default: Release
   #     buildLogFile:
@@ -12,14 +12,14 @@ on:
   #       required: true
   #       default: buildLog.log
   push:
-    branches: [ main, 'feature/*' ]
+    branches: [main, 'feature/*']
     # paths-ignore:
     #   - ".azure-pipelines/**"
     #   #- '.github/**'
     #   - LICENSE
     #   - README.md
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -53,7 +53,7 @@ jobs:
 
     #https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md
     - name: Determine Version
-      id:   gitversion
+      id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.7
       with:
         useConfigFile: true
@@ -69,7 +69,7 @@ jobs:
         dotnet-version: 5.0.x
         #dotnet-version: 6.0.x # note: 5.0 lacks msbuild for simple reproducible-builds
         #include-prerelease: true
-  
+
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
 
@@ -95,8 +95,8 @@ jobs:
       with:
         reports: '${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml' # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
         targetdir: ${{ github.workspace }}/coveragereport # REQUIRED # The directory where the generated report should be saved.
-        reporttypes: 'HtmlInline;Cobertura' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
-        tag: '${{ github.run_number }}_${{ github.run_id }}'
+        reporttypes: HtmlInline;Cobertura # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
+        tag: ${{ github.run_number }}_${{ github.run_id }}
 
     - name: upload coverage report artifact
       uses: actions/upload-artifact@v2
@@ -104,9 +104,9 @@ jobs:
         name: CoverageReport
         path: coveragereport
 
-    - name: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
+    - name: dotnet pack
       #if: ${{ success() && !github.base_ref }}
-      run: dotnet pack
+      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
 
     - name: debug path/dir
       run: |
