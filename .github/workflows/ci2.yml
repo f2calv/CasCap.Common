@@ -26,15 +26,16 @@ jobs:
     environment: dev
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest] #can't use windows-latest due to "Container operations are only supported on Linux runners"
     runs-on: ${{matrix.os}}
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
+      CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }} 
     services:
       redis:
         image: redis
         ports:
-          - 6379:6379
+        - 6379:6379
     steps:
 
     - uses: actions/checkout@v2
@@ -94,7 +95,7 @@ jobs:
       run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
       if: runner.OS == 'Linux'
 
-    - name: upload packages
+    - name: upload-artifact packages
       uses: actions/upload-artifact@v2
       if: runner.OS == 'Linux'
       with:
@@ -103,14 +104,26 @@ jobs:
           src/**/*.nupkg
           src/**/*.snupkg
 
-    # - name: dotnet push
-    #   run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
-    #   #if: ${{ github.ref == 'refs/heads/main' }}
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'      
+    steps:
 
-    # - name: git tag
-    #   run: |
-    #     git tag ${{ steps.gitversion.outputs.semVer }}
-    #     git push origin --tags
-    #   if: ${{ github.ref == 'refs/heads/main' }}
+    - name: download-artifact packages
+      uses: actions/download-artifact@v2
+      with:
+        name: packages  
 
-      #Publish github release?
+    - name: dotnet push
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
+      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only publish a NuGet package if there has been a commit/version change
+
+    - name: create-release ${{ needs.build.outputs.semVer }}
+      uses: actions/create-release@v1 #deprecated, do we use a different action?
+      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only create a release if there has been a commit/version change
+      with:
+        tag_name: ${{ needs.build.outputs.semVer }}
+        release_name: Release ${{ needs.build.outputs.semVer }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
