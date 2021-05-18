@@ -2,28 +2,22 @@ name: ci
 
 on:
   workflow_dispatch:
-  #   inputs:
-  #     BuildConfiguration:
-  #       description: Build Configuration
-  #       required: true
-  #       default: Release
-  #     buildLogFile:
-  #       description: dotnet build logfile location
-  #       required: true
-  #       default: buildLog.log
+    inputs:
+      BuildConfiguration:
+        description: Build Configuration
+        required: true
+        default: Release
   push:
-    branches: [main, 'feature/*']
-    # paths-ignore:
-    #   - ".azure-pipelines/**"
-    #   #- '.github/**'
-    #   - LICENSE
-    #   - README.md
+    paths-ignore:
+    - ".azure-pipelines/**"
+    - '.github/**'
+    - LICENSE
+    - README.md
   pull_request:
     branches: [main]
 
 jobs:
   build:
-    environment: dev
     strategy:
       matrix:
         os: [ubuntu-latest] #can't use windows-latest due to "Container operations are only supported on Linux runners"
@@ -36,8 +30,7 @@ jobs:
         image: redis
         ports:
         - 6379:6379
-    # permissions:
-    #   packages: write
+
     steps:
 
     - uses: actions/checkout@v2
@@ -49,7 +42,7 @@ jobs:
       with:
         versionSpec: 5.x
 
-    #https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md
+    #https://gitversion.net/docs/usage/
     - name: gitversion determine version
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.7
@@ -65,8 +58,6 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-        #dotnet-version: 6.0.x # note: 5.0 lacks msbuild for simple reproducible-builds
-        #include-prerelease: true
 
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
@@ -81,9 +72,9 @@ jobs:
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
       if: runner.OS == 'Linux'
       with:
-        reports: '${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml' # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
-        targetdir: ${{ github.workspace }}/coveragereport # REQUIRED # The directory where the generated report should be saved.
-        reporttypes: HtmlInline;Cobertura # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
+        reports: '${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml'
+        targetdir: ${{ github.workspace }}/coveragereport
+        reporttypes: HtmlInline;Cobertura
         tag: ${{ github.run_number }}_${{ github.run_id }}
 
     - name: upload-artifact code coverage report
@@ -95,40 +86,19 @@ jobs:
 
     - name: dotnet pack
       run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
-      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'
-
-    - name: upload-artifact packages
-      uses: actions/upload-artifact@v2
-      if: runner.OS == 'Linux' && github.ref == 'refs/heads/main'
-      with:
-        name: packages
-        path: |
-          src/**/*.nupkg
-          src/**/*.snupkg
-
-  deploy: #doesn't strictly need to be a second job... consider merging to simplify?
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-
-    - name: download-artifact packages
-      uses: actions/download-artifact@v2
-      with:
-        name: packages
+      if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
 
     - name: dotnet push (nuget)
-      run: dotnet nuget push ${{ github.workspace }}/packages/**/*.nupkg --skip-duplicate -s ${{ secrets.NuGetSourceUrl }} --api-key ${{ secrets.NuGetServerApiKey }}
-      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
 
-    #https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
     - name: dotnet push (github)
-      run: dotnet nuget push ${{ github.workspace }}/packages/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
-      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
 
     - name: create-release ${{ needs.build.outputs.semVer }}
-      uses: actions/create-release@v1 #todo: this is deprecated, do we use a different action?
-      if: needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
+      uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
+      if: github.ref == 'refs/heads/main' && needs.build.outputs.CommitsSinceVersionSource > 0 #Fail safe to ensure we only attempt to publish a NuGet package if there has been a commit/version change
       with:
         tag_name: ${{ needs.build.outputs.semVer }}
         release_name: Release ${{ needs.build.outputs.semVer }}
