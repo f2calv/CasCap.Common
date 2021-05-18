@@ -9,7 +9,7 @@ on:
         default: Release
   push:
     paths-ignore:
-    - ".azure-pipelines/**"
+    - '.azure-pipelines/**'
     - '.github/**'
     - LICENSE
     - README.md
