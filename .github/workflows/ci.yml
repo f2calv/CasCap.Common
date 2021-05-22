@@ -67,19 +67,29 @@ jobs:
       run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
-      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov # -p:CoverletOutput=./coverage/
+      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=./coverage/
 
-    #https://github.com/coverallsapp/github-action/issues/36
-    - name: code coverage - coveralls get path to lcov file(s)
-      id: get_lcov_path
-      run: printf '::set-output name=lcov_path::%s\n' coverage/*/lcov.*.info
-
-    - name: code coverage - coveralls
+    - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        #path-to-lcov: ./coverage/lcov.net5.0.info #Note: only .NET 5.0 code coverage
-        path-to-lcov: ${{ steps.get_lcov_path.outputs.lcov_path }}
+        github-token: ${{ secrets.github_token }}
+        path-to-lcov: ./coverage/lcov.netcoreapp3.1.info
+        flag-name: run-netcoreapp3.1
+        parallel: true
+
+    - name: code coverage - coveralls (2 of 3) - .NET 5.x SDK
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        path-to-lcov: ./coverage/lcov.net5.0.info
+        flag-name: run-net5.0
+        parallel: true
+
+    - name: code coverage - coveralls (3 of 3)
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
 
     - name: code coverage - report generator
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
