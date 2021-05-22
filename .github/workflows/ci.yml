@@ -98,7 +98,7 @@ jobs:
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
       if: runner.OS == 'Linux'
       with:
-        reports: ./coverage/lcov.*.info
+        reports: ./coverage/coverage.*.info
         targetdir: ./coveragereport
         reporttypes: lcov
         tag: ${{ github.run_number }}_${{ github.run_id }}
