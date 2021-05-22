@@ -18,7 +18,9 @@
 [cascap.common.threading-badge]: https://img.shields.io/nuget/v/CasCap.Common.Threading?color=blue
 [cascap.common.threading-url]: https://nuget.org/packages/CasCap.Common.Threading
 
-[![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url]
+<!-- [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url] -->
+
+![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url]
 
 A range of .NET Standard 2.0 libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
 
