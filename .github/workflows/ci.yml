@@ -67,22 +67,27 @@ jobs:
       run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
-      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=cobertura
+      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=./coverage/lcov.info
 
-    - name: code coverage report generator
+    - name: code coverage - coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: code coverage - report generator
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
       if: runner.OS == 'Linux'
       with:
-        reports: '${{ github.workspace }}/src/*.Tests/coverage.*.cobertura.xml'
-        targetdir: ${{ github.workspace }}/coveragereport
-        reporttypes: HtmlInline;Cobertura
+        reports: ./coverage/lcov.info
+        targetdir: ./coveragereport
+        reporttypes: lcov
         tag: ${{ github.run_number }}_${{ github.run_id }}
 
-    - name: upload-artifact code coverage report
+    - name: code coverage - upload-artifact
       uses: actions/upload-artifact@v2
       if: runner.OS == 'Linux'
       with:
-        name: CoverageReport
+        name: coveragereport
         path: coveragereport
 
     - name: dotnet pack
@@ -90,11 +95,11 @@ jobs:
       if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
 
     - name: dotnet push (nuget)
-      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
       if: github.ref == 'refs/heads/main'
 
     - name: dotnet push (github)
-      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -s "https://nuget.pkg.github.com/${{ github.actor }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/${{ github.actor }}/index.json
       if: github.ref == 'refs/heads/main'
 
     - name: create-release ${{ steps.gitversion.outputs.semVer }}
