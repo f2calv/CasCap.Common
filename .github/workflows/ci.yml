@@ -67,19 +67,13 @@ jobs:
       run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
-      run: |
-        echo "${{ github.workspace }}/coverage"
-        dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput='${{ github.workspace }}/coverage/'
-        ls -lsa
-        cd ./coverage/
-        pwd
-        ls -lsa
+      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
 
     - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
-        path-to-lcov: ./coverage/lcov.netcoreapp3.1.info
+        path-to-lcov: ${{ github.workspace }}/coverage/lcov.netcoreapp3.1.info
         flag-name: run-netcoreapp3.1
         parallel: true
 
@@ -87,7 +81,7 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
-        path-to-lcov: ./coverage/lcov.net5.0.info
+        path-to-lcov: ${{ github.workspace }}/coverage/lcov.net5.0.info
         flag-name: run-net5.0
         parallel: true
 
