@@ -73,12 +73,13 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./coverage/lcov.net5.0.info #only .NET 5.0 code coverage
 
     - name: code coverage - report generator
       uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
       if: runner.OS == 'Linux'
       with:
-        reports: ./coverage/lcov.info
+        reports: ./coverage/lcov.*.info
         targetdir: ./coveragereport
         reporttypes: lcov
         tag: ${{ github.run_number }}_${{ github.run_id }}
