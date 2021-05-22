@@ -20,7 +20,7 @@
 
 <!-- [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url] -->
 
-![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url]
+![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main)
 
 A range of .NET Standard 2.0 libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
 
