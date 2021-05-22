@@ -67,7 +67,11 @@ jobs:
       run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
-      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=./coverage/
+      run: |
+        dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=./coverage/
+        cd ./coverage/
+        pwd
+        ls -lsa
 
     - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
       uses: coverallsapp/github-action@master
