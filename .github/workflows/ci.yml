@@ -76,7 +76,7 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
-        path-to-lcov: ${{ github.workspace }}/coverage/lcov.netcoreapp3.1.info
+        path-to-lcov: ${{ github.workspace }}/coverage/coverage.netcoreapp3.1.info
         flag-name: run-netcoreapp3.1
         parallel: true
 
@@ -84,7 +84,7 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
-        path-to-lcov: ${{ github.workspace }}/coverage/lcov.net5.0.info
+        path-to-lcov: ${{ github.workspace }}/coverage/coverage.net5.0.info
         flag-name: run-net5.0
         parallel: true
 
