@@ -69,7 +69,7 @@ jobs:
     - name: dotnet test
       run: |
         echo "${{ github.workspace }}/coverage"
-        dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage
+        dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput='${{ github.workspace }}/coverage/'
         ls -lsa
         cd ./coverage/
         pwd
