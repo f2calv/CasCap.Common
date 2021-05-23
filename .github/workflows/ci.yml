@@ -130,6 +130,11 @@ jobs:
   SonarQube:
     runs-on: windows-latest
     steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     - uses: ./.github/actions/sonarqube
       with:
         SonarToken: ${{ secrets.SONAR_TOKEN }}
