@@ -8,11 +8,10 @@ on:
         required: true
         default: Release
   push:
-    # paths-ignore:
-    # - '.azure-pipelines/**'
-    # - '.github/**'
-    # - LICENSE
-    # - README.md
+    paths-ignore:
+    - '.azure-pipelines/**'
+    - LICENSE
+    - README.md
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -68,11 +67,7 @@ jobs:
       run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
-      run: |
-        dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
-        ls -lsa
-        cd coverage
-        ls -lsa
+      run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
     - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
       uses: coverallsapp/github-action@master
       with:
