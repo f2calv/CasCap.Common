@@ -20,7 +20,9 @@
 
 <!-- [![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url] -->
 
-![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main)
+![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
+
+<!-- other types of SonarQube badges; bugs, code_smells, coverage, duplicated_lines_density, ncloc, sqale_rating, alert_status, reliability_rating, security_rating, sqale_index, vulnerabilities -->
 
 A range of .NET Standard 2.0 libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
 
