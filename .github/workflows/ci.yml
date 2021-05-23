@@ -133,7 +133,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   SonarQube:
-    name: Build
     runs-on: windows-latest
     steps:
       - name: Set up JDK 11
