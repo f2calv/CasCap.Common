@@ -56,7 +56,7 @@ jobs:
 
     #https://gitversion.net/docs/usage/
     - name: gitversion determine version
-      id: gitversion
+      id: gitversionOLD
       uses: gittools/actions/gitversion/execute@v0.9.7
       with:
         useConfigFile: true
