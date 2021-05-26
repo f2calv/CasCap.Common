@@ -25,7 +25,7 @@ jobs:
     # runs-on: ${{matrix.os}}
     runs-on: ubuntu-latest
     outputs:
-      semVer: ${{ steps.gitversion.outputs.semVer }}
+      SemVer: ${{ steps.gitversion.outputs.SemVer }}
     services:
       redis:
         image: redis
@@ -38,18 +38,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: gitversion install
-      uses: gittools/actions/gitversion/setup@v0.9.7
-      with:
-        versionSpec: 5.x
-
-    #https://gitversion.net/docs/usage/
-    - name: gitversion determine version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.7
-      with:
-        useConfigFile: true
-
     - name: .NET Core 3.1.x SDK
       uses: actions/setup-dotnet@v1
       with:
@@ -60,11 +48,32 @@ jobs:
       with:
         dotnet-version: 5.0.x
 
+    - name: gitversion install
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: 5.x
+      if: false #manually install
+
+    #https://gitversion.net/docs/usage/
+    - name: gitversion determine version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.7
+      with:
+        useConfigFile: true
+      if: false #manually determine version
+
+    - name: gitversion
+      id: gitversion
+      run: |
+        dotnet tool update -g GitVersion.Tool
+        $GitVersion = $HOME/.dotnet/tools/dotnet-gitversion $(Build.SourcesDirectory) /nofetch | ConvertFrom-Json
+        echo "::set-output name=SemVer::$($GitVersion.SemVer)"
+
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
 
     - name: dotnet build
-      run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.semVer }}' -p:SourceRevisionId=${{ github.sha }}
+      run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.SemVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
       run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
@@ -107,23 +116,29 @@ jobs:
         path: coveragereport
 
     - name: dotnet pack
-      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.semVer }}'
-      if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
+      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}'
+      #if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
+
+    - name: dotnet push (github)
+      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/${{ github.actor }}/index.json
+      if: false #github.ref == 'refs/heads/main'
+
+    - name: dotnet push (github)
+      run: |
+        dotnet tool update -g gpr
+        $HOME/.dotnet/tools/gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
+      #if: github.ref == 'refs/heads/main'
 
     - name: dotnet push (nuget)
       run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
       if: github.ref == 'refs/heads/main'
 
-    - name: dotnet push (github)
-      run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/${{ github.actor }}/index.json
-      if: github.ref == 'refs/heads/main'
-
-    - name: create-release ${{ steps.gitversion.outputs.semVer }}
+    - name: create-release ${{ steps.gitversion.outputs.SemVer }}
       uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
       if: github.ref == 'refs/heads/main'
       with:
-        tag_name: ${{ steps.gitversion.outputs.semVer }}
-        release_name: Release ${{ steps.gitversion.outputs.semVer }}
+        tag_name: ${{ steps.gitversion.outputs.SemVer }}
+        release_name: Release ${{ steps.gitversion.outputs.SemVer }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
