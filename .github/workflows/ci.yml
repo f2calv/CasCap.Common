@@ -66,7 +66,8 @@ jobs:
       id: gitversion
       run: |
         dotnet tool update -g GitVersion.Tool
-        $GitVersion = "$HOME/.dotnet/tools/dotnet-gitversion" ${{ github.workspace }} /nofetch | ConvertFrom-Json
+        #$GitVersion = "$HOME/.dotnet/tools/dotnet-gitversion" ${{ github.workspace }} /nofetch | ConvertFrom-Json
+        $GitVersion = dotnet-gitversion ${{ github.workspace }} /nofetch | ConvertFrom-Json
         echo "::set-output name=SemVer::$($GitVersion.SemVer)"
       shell: pwsh
 
