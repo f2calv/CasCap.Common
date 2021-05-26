@@ -68,6 +68,7 @@ jobs:
         dotnet tool update -g GitVersion.Tool
         $GitVersion = $HOME/.dotnet/tools/dotnet-gitversion $(Build.SourcesDirectory) /nofetch | ConvertFrom-Json
         echo "::set-output name=SemVer::$($GitVersion.SemVer)"
+      shell: pwsh
 
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
