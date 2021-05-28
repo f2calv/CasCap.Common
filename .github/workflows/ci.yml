@@ -77,6 +77,7 @@ jobs:
 
     - name: dotnet test
       run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
+
     - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
       uses: coverallsapp/github-action@master
       with:
