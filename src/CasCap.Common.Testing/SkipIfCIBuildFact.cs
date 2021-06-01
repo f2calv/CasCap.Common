@@ -11,6 +11,6 @@ namespace CasCap.Common.Testing
         }
 
         static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
-            || Environment.GetEnvironmentVariable("TF_BUILD") is not null;
+            || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
     }
 }
