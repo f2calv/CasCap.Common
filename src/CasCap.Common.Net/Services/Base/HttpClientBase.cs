@@ -117,7 +117,7 @@ namespace CasCap.Services
                 _logger.LogError("StatusCode={StatusCode}, RequestUri={RequestUri}", response.StatusCode, response.RequestMessage?.RequestUri);
                 //var err = $"requestUri= fail";
                 //if (response.RequestMessage.Content.)
-                //if (req != null) err += $"{json}";
+                //if (req is not null) err += $"{json}";
                 //throw new Exception(err);
                 tpl.result = default;
             }
