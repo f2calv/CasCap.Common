@@ -394,9 +394,9 @@ namespace CasCap.Common.Extensions
         public static bool IsNullOrEmpty<T>(this List<T>? data) => data is null || data.Count == 0;
         public static bool IsNullOrEmpty<T>(this T[]? data) => data is null || data.Length == 0;
 
-        public static bool IsAny<T>(this IEnumerable<T> data) => data != null && data.Any();
-        public static bool IsAny<T>(this List<T> data) => data != null && data.Count > 0;
-        public static bool IsAny<T>(this T[] data) => data != null && data.Length > 0;
+        public static bool IsAny<T>(this IEnumerable<T> data) => data is not null && data.Any();
+        public static bool IsAny<T>(this List<T> data) => data is not null && data.Count > 0;
+        public static bool IsAny<T>(this T[] data) => data is not null && data.Length > 0;
 
         public static bool ToBoolean(this string input)
         {
@@ -481,7 +481,7 @@ namespace CasCap.Common.Extensions
 
         public static string SubstringSafe(this string thisString, int maxLength, bool includeTrailingDots = false)
         {
-            if (thisString != null && maxLength > 0)
+            if (thisString is not null && maxLength > 0)
             {
                 var original = thisString;
                 if (includeTrailingDots && maxLength > 3)
@@ -607,7 +607,7 @@ namespace CasCap.Common.Extensions
         public static bool IsEmail(this string thisString)
         {
             //same as new aspNetEmail.EmailMessage().ValidateRegEx
-            return thisString != null && rgxEmail.IsMatch(thisString);
+            return thisString is not null && rgxEmail.IsMatch(thisString);
         }
 
         static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }

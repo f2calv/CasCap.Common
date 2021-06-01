@@ -74,7 +74,7 @@ namespace CasCap.Services
                     cacheEntry = tpl.cacheEntry;
                     SetLocal(key, cacheEntry, tpl.expiry);
                 }
-                else if (createItem != null)
+                else if (createItem is not null)
                 {
                     //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
                     //https://www.hanselman.com/blog/EyesWideOpenCorrectCachingIsAlwaysHard.aspx
@@ -83,7 +83,7 @@ namespace CasCap.Services
                         // Key not in cache, so get data.
                         cacheEntry = await createItem();
                         _logger.LogTrace("setting {key} object type {type} in local cache", key, typeof(T));
-                        if (cacheEntry != null)
+                        if (cacheEntry is not null)
                         {
                             await Set(key, cacheEntry, ttl);
                         }
