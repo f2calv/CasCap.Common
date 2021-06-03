@@ -1,9 +1,9 @@
 ﻿using System;
 namespace CasCap.Models
 {
-    public class CachingConfig
+    public class CachingOptions
     {
-        public static string sectionKey = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
+        public static string sectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
         /// <summary>
         /// prefix all keys sent via pub/sub with a unique identifier so that when an app is connected
