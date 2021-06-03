@@ -34,13 +34,13 @@ namespace CasCap.Services
     public class RedisCacheService : IRedisCacheService
     {
         readonly ILogger _logger;
-        readonly CachingConfig _cachingConfig;
+        readonly CachingOptions _cachingOptions;
 
-        public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingConfig> cachingConfig)
+        public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingOptions> cachingOptions)
         {
             _logger = logger;
-            _cachingConfig = cachingConfig.Value;
-            configuration = ConfigurationOptions.Parse(_cachingConfig.redisConnectionString);
+            _cachingOptions = cachingOptions.Value;
+            configuration = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
             configuration.ConnectRetry = 20;
             configuration.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
             //Note: below for getting redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
@@ -186,7 +186,7 @@ namespace CasCap.Services
             }
 
             var luaScript = LuaScript.Prepare(script);
-            _logger.LogDebug("Connecting to redis instance {connectionString}", _cachingConfig.redisConnectionString);
+            _logger.LogDebug("Connecting to redis instance {connectionString}", _cachingOptions.redisConnectionString);
             var loadedLuaScript = luaScript.Load(server);
             return loadedLuaScript;
         }

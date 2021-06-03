@@ -11,15 +11,15 @@ namespace CasCap.Services
         readonly ILogger<LocalCacheInvalidationService> _logger;
         readonly IRedisCacheService _redisCacheSvc;
         readonly IDistCacheService _distCacheSvc;
-        readonly CachingConfig _cachingConfig;
+        readonly CachingOptions _cachingOptions;
 
         public LocalCacheInvalidationService(ILogger<LocalCacheInvalidationService> logger,
-            IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingConfig> cachingConfig)
+            IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
         {
             _logger = logger;
             _redisCacheSvc = redisCacheSvc;
             _distCacheSvc = distCacheSvc;
-            _cachingConfig = cachingConfig.Value;
+            _cachingOptions = cachingOptions.Value;
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -29,18 +29,18 @@ namespace CasCap.Services
 
             var count = 0L;
             // Synchronous handler
-            //_redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(channelMessage =>
+            //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
             //{
             //    var key = (string)channelMessage.Message;
             //    _distCacheSvc.DeleteLocal(key, true);
             //});
 
             // Asynchronous handler
-            _redisCacheSvc.subscriber.Subscribe(_cachingConfig.ChannelName).OnMessage(async channelMessage =>
+            _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
             {
                 await Task.Delay(0);
                 var key = (string)channelMessage.Message;
-                if (!key.StartsWith(_cachingConfig.pubSubPrefix))
+                if (!key.StartsWith(_cachingOptions.pubSubPrefix))
                 {
                     var finalIndex = key.Split('_')[2];
                     _distCacheSvc.DeleteLocal(finalIndex, true);
@@ -52,8 +52,8 @@ namespace CasCap.Services
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingConfig.ChannelName);
-                    _redisCacheSvc.subscriber.Unsubscribe(_cachingConfig.ChannelName);
+                    _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingOptions.ChannelName);
+                    _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
                     break;
                 }
                 await Task.Delay(2_500, cancellationToken);

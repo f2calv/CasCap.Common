@@ -31,7 +31,7 @@ namespace CasCap.Services
     public class DistCacheService : IDistCacheService
     {
         readonly ILogger _logger;
-        readonly CachingConfig _cachingConfig;
+        readonly CachingOptions _cachingOptions;
         readonly IRedisCacheService _redis;
         readonly IMemoryCache _local;
 
@@ -39,19 +39,19 @@ namespace CasCap.Services
         protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
         public DistCacheService(ILogger<DistCacheService> logger,
-            IOptions<CachingConfig> cachingConfig,
+            IOptions<CachingOptions> cachingOptions,
             IRedisCacheService redis//,
                                     //IMemoryCache local
             )
         {
             _logger = logger;
-            _cachingConfig = cachingConfig.Value;
+            _cachingOptions = cachingOptions.Value;
             _redis = redis;
             //_local = local;
             //todo:consider a Flags to disable use of local/shared memory in (console) applications that don't need it?
             _local = new MemoryCache(new MemoryCacheOptions
             {
-                SizeLimit = _cachingConfig.MemoryCacheSizeLimit,
+                SizeLimit = _cachingOptions.MemoryCacheSizeLimit,
             });
         }
 
@@ -128,7 +128,7 @@ namespace CasCap.Services
         {
             DeleteLocal(key, false);
             _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
-            _redis.subscriber.Publish(_cachingConfig.ChannelName, $"{_cachingConfig.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+            _redis.subscriber.Publish(_cachingOptions.ChannelName, $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
             _logger.LogDebug("removed {key} from local+shared cache, expiration message sent via pub/sub", key);
         }
 
