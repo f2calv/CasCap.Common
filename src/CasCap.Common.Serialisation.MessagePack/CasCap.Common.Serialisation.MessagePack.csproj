@@ -17,8 +17,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
     <!--breaking changes in MessagePack v2, see https://github.com/neuecc/MessagePack-CSharp/issues/744 -->
-    <PackageReference Include="MessagePack" Version="2.2.113" />
-    <PackageReference Include="MessagePackAnalyzer" Version="2.2.113" />
+    <PackageReference Include="MessagePack" Version="2.3.75" />
+    <PackageReference Include="MessagePackAnalyzer" Version="2.3.75" />
   </ItemGroup>
 
 </Project>
