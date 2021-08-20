@@ -375,8 +375,7 @@ public static class ExtensionHelpers
     public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
         where T : struct
     {
-        T resultInputType;
-        if (Enum.TryParse<T>(value, ignoreCase, out resultInputType))
+        if (Enum.TryParse<T>(value, ignoreCase, out T resultInputType))
             return resultInputType;
         return null;
     }

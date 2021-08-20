@@ -12,7 +12,7 @@ namespace CasCap.Common.Caching.Tests;
 /// </summary>
 public class CacheTests : TestBase
 {
-    readonly APIService _apiSvc = new APIService();
+    readonly APIService _apiSvc = new();
 
     public CacheTests(ITestOutputHelper output) : base(output) { }
 

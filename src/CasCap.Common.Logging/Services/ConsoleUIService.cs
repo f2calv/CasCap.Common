@@ -80,10 +80,7 @@ public class ConsoleUIService : IConsoleUIService
             OnUIKeyPress(key);//send it
         }
         else if (_env.IsDevelopment())
-        {
-            var msg = $"Render time {sw.ElapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)";
-            _logger.LogDebug(msg);
-        }
+            _logger.LogDebug("Render time {elapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)", sw.ElapsedMilliseconds, iWrite, iWriteLine);
         isScreenRefreshing = false;
     }
 
