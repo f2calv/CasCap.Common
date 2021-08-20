@@ -17,9 +17,9 @@ namespace CasCap.Common.Extensions
         #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
         //https://github.com/dotnet/roslyn/issues/37995
         //https://github.com/JamesNK/Newtonsoft.Json/pull/2163/commits/fba64bcf9b8f41500da1c1dd75825f3db99cd3b4
-        public static bool IsNullOrWhiteSpace(this string? value)
+        public static bool IsNullOrWhiteSpace(this string? val)
         {
-            return value is null || value.Trim() == string.Empty;
+            return val is null || val.Trim() == string.Empty;
             //return string.IsNullOrWhiteSpace(value);
         }
 
@@ -516,7 +516,7 @@ namespace CasCap.Common.Extensions
         public static void WriteAllBytes(this string path, byte[] bytes)
         {
             var dir = Path.GetDirectoryName(path);
-            if (dir is object)
+            if (dir is not null)
             {
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllBytes(path, bytes);
@@ -528,7 +528,7 @@ namespace CasCap.Common.Extensions
         public static void WriteAllText(this string path, string str)
         {
             var dir = Path.GetDirectoryName(path);
-            if (dir is object)
+            if (dir is not null)
             {
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(path, str);
@@ -540,7 +540,7 @@ namespace CasCap.Common.Extensions
         public static void AppendTextFile(this string path, string content)
         {
             var dir = Path.GetDirectoryName(path);
-            if (dir is object)
+            if (dir is not null)
             {
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 if (!File.Exists(path))

@@ -31,7 +31,7 @@ namespace CasCap.Services
         {
             (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-            //_logger.LogDebug($"{HttpMethod.Post}\t{url}");
+            //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
             var json = req!.ToJSON();
             using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
             {
@@ -57,7 +57,7 @@ namespace CasCap.Services
         {
             (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-            //_logger.LogDebug($"{HttpMethod.Post}\t{url}");
+            //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
             using (var request = new HttpRequestMessage(HttpMethod.Post, url))
             {
                 request.Content = new ByteArrayContent(bytes);
@@ -83,7 +83,7 @@ namespace CasCap.Services
             where TError : class
         {
             var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-            //_logger.LogDebug($"{HttpMethod.Get}\t{url}");
+            //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
             //todo: add in headers?
             using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, GetCT(timeout)).ConfigureAwait(false);
             return await HandleResult<TResult, TError>(response);

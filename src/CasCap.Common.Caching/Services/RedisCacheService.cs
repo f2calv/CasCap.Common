@@ -119,8 +119,8 @@ namespace CasCap.Services
                 var retKeys = await GetCacheEntryWithTTL();
                 if (retKeys.Length == 3)
                 {
-                    var ttl = retKeys[0] is object ? (int)retKeys[0] : -1;
-                    var type = retKeys[1] is object ? (string)retKeys[1] : string.Empty;
+                    var ttl = retKeys[0] is not null ? (int)retKeys[0] : -1;
+                    var type = retKeys[1] is not null ? (string)retKeys[1] : string.Empty;
                     tpl = (int.Parse(ttl.ToString()), type.ToString(), retKeys[2]);
                 }
                 return tpl;
@@ -178,7 +178,7 @@ namespace CasCap.Services
             //var resources = assembly.GetManifestResourceNames();
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                if (stream is object)
+                if (stream is not null)
                 {
                     using var reader = new StreamReader(stream);
                     script = reader.ReadToEnd();

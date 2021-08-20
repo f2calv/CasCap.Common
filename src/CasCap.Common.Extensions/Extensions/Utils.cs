@@ -31,7 +31,7 @@ namespace CasCap.Common.Extensions
         {
             subFolder = Path.Combine(localPath, subFolder);
             var dir = Path.GetDirectoryName(subFolder);
-            if (dir is object && !directories.Contains(dir) && !Directory.Exists(dir))
+            if (dir is not null && !directories.Contains(dir) && !Directory.Exists(dir))
             {
                 //Debugger.Break();
                 Directory.CreateDirectory(dir);

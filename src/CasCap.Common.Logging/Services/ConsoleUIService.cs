@@ -100,13 +100,13 @@ namespace CasCap.Services
 
         public void WriteLine() => WriteLine(string.Empty);
 
-        public void WriteLine(string value) => WriteLine(value, null);
+        public void WriteLine(string val) => WriteLine(val, null);
 
-        public void WriteLine(string value, ConsoleColor? colour, bool enablePaging = false)
+        public void WriteLine(string val, ConsoleColor? colour, bool enablePaging = false)
         {
             iWriteLine++;
             if (SkipRestOfScreen) return;
-            lineWidth += value.Length;
+            lineWidth += val.Length;
 
             var newWidth = Math.Min(Math.Max(Console.WindowWidth, lineWidth + 2), Console.LargestWindowWidth - 1);
             if (newWidth > Console.WindowWidth)
@@ -128,11 +128,11 @@ namespace CasCap.Services
             {
                 var current = Console.ForegroundColor;
                 Console.ForegroundColor = colour.Value;
-                Console.WriteLine(value);
+                Console.WriteLine(val);
                 Console.ForegroundColor = current;
             }
             else
-                Console.WriteLine(value);
+                Console.WriteLine(val);
 
             rowCount++;
 
@@ -174,31 +174,31 @@ namespace CasCap.Services
 
         ConsoleKeyInfo nextKey { get; set; }
 
-        public void Write(char value, bool AutoWrap = false) => Write(value.ToString(), AutoWrap);
+        public void Write(char val, bool AutoWrap = false) => Write(val.ToString(), AutoWrap);
 
-        public void Write(string value, bool AutoWrap = false) => Write(value, null, AutoWrap);
+        public void Write(string val, bool AutoWrap = false) => Write(val, null, AutoWrap);
 
         //string wBuffer = string.Empty;
 
-        public void Write(string value, ConsoleColor? colour, bool AutoWrap = false)
+        public void Write(string val, ConsoleColor? colour, bool AutoWrap = false)
         {
-            if (AutoWrap && lineWidth + value.Length > Console.WindowWidth)
+            if (AutoWrap && lineWidth + val.Length > Console.WindowWidth)
                 WriteLine();
 
             if (SkipRestOfScreen) return;
-            lineWidth += value.Length;
+            lineWidth += val.Length;
             //Console.WindowWidth = Math.Min(Math.Max(Console.WindowWidth, lineWidth + 2), Console.LargestWindowWidth - 1);
 
             if (colour.HasValue)
             {
                 var current = Console.ForegroundColor;
                 Console.ForegroundColor = colour.Value;
-                Console.Write(value);
+                Console.Write(val);
                 Console.ForegroundColor = current;
             }
             else
             {
-                Console.Write(value);
+                Console.Write(val);
                 //wBuffer = string.Empty;//todo: all in an automatic buffer for simple Write calls, to only output at end of buffer
             }
         }
