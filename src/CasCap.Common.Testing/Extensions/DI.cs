@@ -1,20 +1,19 @@
 ﻿using CasCap.Common.Testing;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class DI
 {
-    public static class DI
+    public static IServiceCollection AddXUnitLogging(this IServiceCollection services, ITestOutputHelper output)
     {
-        public static IServiceCollection AddXUnitLogging(this IServiceCollection services, ITestOutputHelper output)
+        services.AddLogging(logging =>
         {
-            services.AddLogging(logging =>
-            {
-                logging.AddProvider(new TestLogProvider(output));
-                logging.SetMinimumLevel(LogLevel.Trace);                
-            });
-            //assign to the static LoggerFactory instance before exiting!
-            ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            return services;
-        }
+            logging.AddProvider(new TestLogProvider(output));
+            logging.SetMinimumLevel(LogLevel.Trace);
+        });
+        //assign to the static LoggerFactory instance before exiting!
+        ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+        return services;
     }
 }

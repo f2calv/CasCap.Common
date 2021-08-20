@@ -1,7 +1,6 @@
-﻿namespace CasCap.Interfaces
+﻿namespace CasCap.Interfaces;
+
+public interface ICacheKey<T>
 {
-    public interface ICacheKey<T>
-    {
-        string CacheKey { get; }
-    }
+    string CacheKey { get; }
 }
