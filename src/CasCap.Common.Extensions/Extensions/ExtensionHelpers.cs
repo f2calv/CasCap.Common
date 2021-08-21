@@ -125,7 +125,7 @@ public static class ExtensionHelpers
     }
     public static int SecondsTillMidnight(this DateTime dt, DateTime now)
     {
-        var ts = DateTime.UtcNow.Date.AddDays(1) - now;
+        var ts = dt.Date.AddDays(1) - now;
         return (int)ts.TotalSeconds;//does this round-up?
     }
 
