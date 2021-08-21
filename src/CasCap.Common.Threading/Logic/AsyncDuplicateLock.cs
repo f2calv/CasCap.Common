@@ -45,7 +45,7 @@ public sealed class AsyncDuplicateLock
         return new Releaser { Key = key };
     }
 
-    public async Task<IDisposable> LockAsync(object key)
+    public static async Task<IDisposable> LockAsync(object key)
     {
         await GetOrCreate(key).WaitAsync().ConfigureAwait(false);
         return new Releaser { Key = key };

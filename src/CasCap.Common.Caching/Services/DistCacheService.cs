@@ -55,8 +55,6 @@ public class DistCacheService : IDistCacheService
         });
     }
 
-    readonly AsyncDuplicateLock locker = new();
-
     //todo:store a summary of all cached items in a local lookup dictionary?
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
@@ -78,7 +76,7 @@ public class DistCacheService : IDistCacheService
             {
                 //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
                 //https://www.hanselman.com/blog/EyesWideOpenCorrectCachingIsAlwaysHard.aspx
-                using (await locker.LockAsync(key))
+                using (await AsyncDuplicateLock.LockAsync(key))
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();

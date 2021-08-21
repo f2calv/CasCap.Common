@@ -12,8 +12,6 @@ namespace CasCap.Common.Caching.Tests;
 /// </summary>
 public class CacheTests : TestBase
 {
-    readonly APIService _apiSvc = new();
-
     public CacheTests(ITestOutputHelper output) : base(output) { }
 
     [Fact, Trait("Category", nameof(IRedisCacheService))]
@@ -98,15 +96,15 @@ public class CacheTests : TestBase
         var key = $"{nameof(CacheAsidePattern_Auto)}";
         var ttl = 60;
 
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return _apiSvc.GetAsync());
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, _apiSvc.GetAsync()));
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { return await _apiSvc.GetAsync(); }));
+        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
+        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
+        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
 
         //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
-        var cacheEntry = await _distCacheSvc.Get(key, () => _apiSvc.GetAsync(), ttl);
+        var cacheEntry = await _distCacheSvc.Get(key, () => APIService.GetAsync(), ttl);
         Assert.NotNull(cacheEntry);
 
-        var cacheEntry2 = await _distCacheSvc.Get(key, () => _apiSvc.GetAsync());
+        var cacheEntry2 = await _distCacheSvc.Get(key, () => APIService.GetAsync());
         Assert.NotNull(cacheEntry2);
 
         //todo: need to override object Equals() for this to work?
@@ -119,7 +117,7 @@ public class APIService
 {
     static MyTestClass obj = null;
 
-    public async Task<MyTestClass> GetAsync()
+    public static async Task<MyTestClass> GetAsync()
     {
         await Task.Delay(0);
         await Task.Delay(0);
