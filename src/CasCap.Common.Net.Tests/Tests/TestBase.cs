@@ -22,7 +22,7 @@ public abstract class TestBase
         //services.Add???();
 
         //assign services to be tested
-        var serviceProvider = services.BuildServiceProvider();
+        _ = services.BuildServiceProvider();
         //_???Svc = serviceProvider.GetRequiredService<I???Service>();
     }
 }

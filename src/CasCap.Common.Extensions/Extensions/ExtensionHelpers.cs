@@ -413,7 +413,9 @@ public static class ExtensionHelpers
     #region ParseDecimal
     public static decimal ToDecimal(this string input) => ParseDecimal(input);
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public static decimal? ToDecimal(this string input, bool nullable) => ParseDecimal(input);
+#pragma warning restore IDE0060 // Remove unused parameter
 
     static decimal ParseDecimal(string input)
     {
@@ -434,7 +436,7 @@ public static class ExtensionHelpers
     //    result = ParseInt(input);
     //    return result;
     //}
-    static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
+    //static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
 
     static int ParseInt(string input) => ParseInt(input, 0);
     static int ParseInt(string input, int _def)
