@@ -21,7 +21,11 @@ public class TestLogProvider : ILoggerProvider
         return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_output));
     }
 
-    public void Dispose() => _loggers.Clear();
+    public void Dispose()
+    {
+        _loggers.Clear();
+        GC.SuppressFinalize(this);
+    }
 }
 
 class TestLogger : ILogger
@@ -41,7 +45,11 @@ class TestLogger : ILogger
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
+#if NET6_0
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+#else
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+#endif
     {
         var entry = new LogEntry(logLevel, formatter(state, exception));
         _entries.Add(entry);
