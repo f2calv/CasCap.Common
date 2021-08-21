@@ -23,7 +23,7 @@ public sealed class AsyncDuplicateLock
 
     static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = new();
 
-    SemaphoreSlim GetOrCreate(object key)
+    static SemaphoreSlim GetOrCreate(object key)
     {
         RefCounted<SemaphoreSlim>? item;
         lock (SemaphoreSlims)
@@ -39,7 +39,7 @@ public sealed class AsyncDuplicateLock
         return item.Value;
     }
 
-    public IDisposable Lock(object key)
+    public static IDisposable Lock(object key)
     {
         GetOrCreate(key).Wait();
         return new Releaser { Key = key };

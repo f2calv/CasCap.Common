@@ -118,6 +118,7 @@ public class CacheTests : TestBase
 public class APIService
 {
     static MyTestClass obj = null;
+
     public async Task<MyTestClass> GetAsync()
     {
         await Task.Delay(0);
