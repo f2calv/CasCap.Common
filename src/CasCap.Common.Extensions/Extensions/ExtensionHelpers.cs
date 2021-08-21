@@ -357,6 +357,7 @@ public static class ExtensionHelpers
     /// <typeparam name="T"></typeparam>
     /// <param name="value"></param>
     /// <returns></returns>
+#pragma warning disable IDE0060 // Remove unused parameter
     public static T ParseEnumFAST<T>(this string value, [CallerMemberName] string caller = "")
     {
         //todo: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
@@ -369,9 +370,11 @@ public static class ExtensionHelpers
         }
         return (T)result;
     }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
         where T : struct
     {
@@ -379,6 +382,7 @@ public static class ExtensionHelpers
             return resultInputType;
         return null;
     }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
     {
