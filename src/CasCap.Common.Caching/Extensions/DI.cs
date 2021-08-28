@@ -15,7 +15,7 @@ public static class DI
         services.AddSingleton<IConfigureOptions<CachingOptions>>(s =>
         {
             var configuration = s.GetService<IConfiguration?>();
-            return new ConfigureOptions<CachingOptions>(options => configuration?.Bind(CachingOptions.sectionKey, options));
+            return new ConfigureOptions<CachingOptions>(options => configuration?.Bind(CachingOptions.SectionKey, options));
         });
     }
 }

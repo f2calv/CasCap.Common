@@ -3,7 +3,7 @@ namespace CasCap.Models;
 
 public class CachingOptions
 {
-    public static readonly string sectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
+    public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
     /// prefix all keys sent via pub/sub with a unique identifier so that when an app is connected
