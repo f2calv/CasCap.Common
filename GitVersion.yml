@@ -9,7 +9,8 @@ branches:
   preview:
     regex: ^preview$
     tag: preview
-    mode: ContinuousDeployment
+    #mode: ContinuousDeployment
+    source-branches: ['main']
 ignore:
   sha: []
 merge-message-formats: {}
