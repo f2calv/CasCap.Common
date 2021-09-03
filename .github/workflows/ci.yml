@@ -7,6 +7,10 @@ on:
         description: Build Configuration
         required: true
         default: Release
+      PublishPreview:
+        description: Publish preview branch?
+        required: true
+        default: false
   push:
     branches-ignore:
       - 'preview/**'
@@ -118,7 +122,7 @@ jobs:
     #     tag: ${{ github.run_number }}_${{ github.run_id }}
 
     - name: reportgenerator
-      if: runner.OS == 'Linux'
+      #if: runner.OS == 'Linux'
       run: |
         dotnet tool update -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:./coverage/coverage.*.info \
@@ -128,28 +132,28 @@ jobs:
 
     - name: code coverage - upload-artifact
       uses: actions/upload-artifact@v2
-      if: runner.OS == 'Linux'
+      #if: runner.OS == 'Linux'
       with:
         name: coveragereport
         path: coveragereport
 
     - name: dotnet pack
       run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.FullSemVer }}'
-      if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
+      if: (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
 
     - name: dotnet push (nuget)
       run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
 
     - name: dotnet push (github)
       run: |
         dotnet tool update -g gpr
         gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
 
     - name: create-release ${{ steps.gitversion.outputs.FullSemVer }}
       uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
       with:
         tag_name: ${{ steps.gitversion.outputs.FullSemVer }}
         release_name: Release ${{ steps.gitversion.outputs.FullSemVer }}
