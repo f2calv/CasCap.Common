@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 namespace CasCap.Services;
@@ -25,6 +26,23 @@ public class LocalCacheInvalidationService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting {serviceName}", nameof(LocalCacheInvalidationService));
+        try
+        {
+            await RunServiceAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) { }
+        //catch (Exception ex) when (ex is not OperationCanceledException) //not working, why?
+        //catch (Exception ex) when (!(ex is OperationCanceledException)) //not working, why?
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Fatal error");
+            throw;
+        }
+        _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
+    }
+
+    async Task RunServiceAsync(CancellationToken cancellationToken)
+    {
         await Task.Delay(0, cancellationToken);
 
         var count = 0L;
@@ -58,6 +76,5 @@ public class LocalCacheInvalidationService : BackgroundService
             }
             await Task.Delay(2_500, cancellationToken);
         }
-        _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
     }
 }
