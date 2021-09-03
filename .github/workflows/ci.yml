@@ -157,6 +157,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   SonarQube:
+    if: ${{ false }} #disable SQ while .NET 6 is prerelease
     runs-on: windows-latest
     steps:
     # below composite action does not work, github doesn't support actions inside composite actions :/
