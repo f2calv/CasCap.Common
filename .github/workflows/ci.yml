@@ -8,6 +8,8 @@ on:
         required: true
         default: Release
   push:
+    branches-ignore:
+      - 'preview/**'
     paths-ignore:
     - '.azure-pipelines/**'
     - LICENSE
