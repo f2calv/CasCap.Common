@@ -27,7 +27,7 @@ jobs:
     # runs-on: ${{matrix.os}}
     runs-on: ubuntu-latest
     outputs:
-      SemVer: ${{ steps.gitversion.outputs.SemVer }}
+      FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
     services:
       redis:
         image: redis
@@ -73,15 +73,15 @@ jobs:
       run: |
         dotnet tool update -g GitVersion.Tool
         $GitVersion = dotnet-gitversion ${{ github.workspace }} /nofetch | ConvertFrom-Json
-        echo "SemVer=$($GitVersion.SemVer)"
-        echo "::set-output name=SemVer::$($GitVersion.SemVer)"
+        echo "FullSemVer=$($GitVersion.FullSemVer)"
+        echo "::set-output name=FullSemVer::$($GitVersion.FullSemVer)"
       shell: pwsh
 
     - name: dotnet restore
       run: dotnet restore --verbosity minimal --configfile nuget.config
 
     - name: dotnet build
-      run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.SemVer }}' -p:SourceRevisionId=${{ github.sha }}
+      run: dotnet build -c Release --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.FullSemVer }}' -p:SourceRevisionId=${{ github.sha }}
 
     - name: dotnet test
       run: dotnet test -c Release --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
@@ -134,7 +134,7 @@ jobs:
         path: coveragereport
 
     - name: dotnet pack
-      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}'
+      run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.FullSemVer }}'
       if: github.ref == 'refs/heads/main' && runner.OS == 'Linux'
 
     - name: dotnet push (nuget)
@@ -147,12 +147,12 @@ jobs:
         gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
       if: github.ref == 'refs/heads/main'
 
-    - name: create-release ${{ steps.gitversion.outputs.SemVer }}
+    - name: create-release ${{ steps.gitversion.outputs.FullSemVer }}
       uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
       if: github.ref == 'refs/heads/main'
       with:
-        tag_name: ${{ steps.gitversion.outputs.SemVer }}
-        release_name: Release ${{ steps.gitversion.outputs.SemVer }}
+        tag_name: ${{ steps.gitversion.outputs.FullSemVer }}
+        release_name: Release ${{ steps.gitversion.outputs.FullSemVer }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
