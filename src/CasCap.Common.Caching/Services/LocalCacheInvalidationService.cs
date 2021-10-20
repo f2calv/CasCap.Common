@@ -43,7 +43,7 @@ public class LocalCacheInvalidationService : BackgroundService
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(0, cancellationToken);
+        await Task.Delay(0, CancellationToken.None);
 
         var count = 0L;
         // Synchronous handler
@@ -74,7 +74,7 @@ public class LocalCacheInvalidationService : BackgroundService
                 _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
                 break;
             }
-            await Task.Delay(2_500, cancellationToken);
+            await Task.Delay(2_500, CancellationToken.None);
         }
     }
 }
