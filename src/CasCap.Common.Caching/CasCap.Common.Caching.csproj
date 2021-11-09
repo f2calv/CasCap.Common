@@ -40,5 +40,4 @@
     <EmbeddedResource Include="Resources\GetCacheEntryWithTTL.lua" />
   </ItemGroup>
 
-
 </Project>
