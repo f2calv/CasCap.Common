@@ -137,7 +137,7 @@ jobs:
 
       - name: dotnet pack
         run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.FullSemVer }}'
-        if: (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
+        if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
 
       - name: dotnet push (nuget)
         run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
@@ -159,7 +159,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   SonarQube:
-    if: ${{ false }} #disable SQ while .NET 6 is prerelease
+    #if: ${{ false }} #disable SQ while .NET 6 is pre-release
     runs-on: windows-latest
     steps:
       # below composite action does not work, github doesn't support actions inside composite actions :/
