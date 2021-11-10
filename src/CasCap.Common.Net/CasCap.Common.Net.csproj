@@ -16,10 +16,7 @@
     <ProjectReference Include="..\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'net6.0'">
+  <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
