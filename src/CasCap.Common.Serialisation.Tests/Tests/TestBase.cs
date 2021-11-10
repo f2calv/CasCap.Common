@@ -1,29 +1,28 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
-namespace CasCap.Common.Serialisation.Tests
+namespace CasCap.Common.Serialisation.Tests;
+
+public abstract class TestBase
 {
-    public abstract class TestBase
+    //protected I???Service _???Svc;
+
+    public TestBase(ITestOutputHelper output)
     {
-        //protected I???Service _???Svc;
+        var configuration = new ConfigurationBuilder()
+            //.AddCasCapConfiguration()
+            .Build();
 
-        public TestBase(ITestOutputHelper output)
-        {
-            var configuration = new ConfigurationBuilder()
-                //.AddCasCapConfiguration()
-                .Build();
+        //initiate ServiceCollection w/logging
+        var services = new ServiceCollection()
+            .AddSingleton<IConfiguration>(configuration)
+            .AddXUnitLogging(output);
 
-            //initiate ServiceCollection w/logging
-            var services = new ServiceCollection()
-                .AddSingleton<IConfiguration>(configuration)
-                .AddXUnitLogging(output);
+        //add services
+        //services.Add???();
 
-            //add services
-            //services.Add???();
-
-            //assign services to be tested
-            var serviceProvider = services.BuildServiceProvider();
-            //_???Svc = serviceProvider.GetRequiredService<I???Service>();
-        }
+        //assign services to be tested
+        _ = services.BuildServiceProvider();
+        //_???Svc = serviceProvider.GetRequiredService<I???Service>();
     }
 }

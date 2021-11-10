@@ -24,7 +24,7 @@
 
 <!-- other types of SonarQube badges; bugs, code_smells, coverage, duplicated_lines_density, ncloc, sqale_rating, alert_status, reliability_rating, security_rating, sqale_index, vulnerabilities -->
 
-A range of .NET Standard 2.0 libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
+A range of multi-targetted .NET libraries full of helper functions, extensions, utilities and 'kickstarter' abstract classes.
 
 | Library                                 | Package                                                                                                |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |

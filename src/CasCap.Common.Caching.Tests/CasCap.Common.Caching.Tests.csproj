@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0;net6.0</TargetFrameworks>
     <RootNamespace>CasCap.Common.Caching</RootNamespace>
   </PropertyGroup>
 
@@ -16,7 +16,7 @@
     <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -32,10 +32,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.15" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.21" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0;net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -18,15 +18,19 @@
     <ProjectReference Include="..\CasCap.Common.Threading\CasCap.Common.Threading.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.2.62" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.79" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.15" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.15" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.21" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.21" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

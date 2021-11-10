@@ -2,63 +2,79 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-namespace CasCap.Services
+namespace CasCap.Services;
+
+public class LocalCacheInvalidationService : BackgroundService
 {
-    public class LocalCacheInvalidationService : BackgroundService
+    readonly ILogger<LocalCacheInvalidationService> _logger;
+    readonly IRedisCacheService _redisCacheSvc;
+    readonly IDistCacheService _distCacheSvc;
+    readonly CachingOptions _cachingOptions;
+
+    public LocalCacheInvalidationService(ILogger<LocalCacheInvalidationService> logger,
+        IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
-        readonly ILogger<LocalCacheInvalidationService> _logger;
-        readonly IRedisCacheService _redisCacheSvc;
-        readonly IDistCacheService _distCacheSvc;
-        readonly CachingOptions _cachingOptions;
+        _logger = logger;
+        _redisCacheSvc = redisCacheSvc;
+        _distCacheSvc = distCacheSvc;
+        _cachingOptions = cachingOptions.Value;
+    }
 
-        public LocalCacheInvalidationService(ILogger<LocalCacheInvalidationService> logger,
-            IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting {serviceName}", nameof(LocalCacheInvalidationService));
+        try
         {
-            _logger = logger;
-            _redisCacheSvc = redisCacheSvc;
-            _distCacheSvc = distCacheSvc;
-            _cachingOptions = cachingOptions.Value;
+            await RunServiceAsync(cancellationToken);
         }
-
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        catch (OperationCanceledException) { }
+        //catch (Exception ex) when (ex is not OperationCanceledException) //not working, why?
+        //catch (Exception ex) when (!(ex is OperationCanceledException)) //not working, why?
+        catch (Exception ex)
         {
-            _logger.LogInformation("Starting {serviceName}", nameof(LocalCacheInvalidationService));
-            await Task.Delay(0, cancellationToken);
+            _logger.LogCritical(ex, "Fatal error");
+            throw;
+        }
+        _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
+    }
 
-            var count = 0L;
-            // Synchronous handler
-            //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
-            //{
-            //    var key = (string)channelMessage.Message;
-            //    _distCacheSvc.DeleteLocal(key, true);
-            //});
+    async Task RunServiceAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(0, CancellationToken.None);
 
-            // Asynchronous handler
-            _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
+        var count = 0L;
+        // Synchronous handler
+        //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
+        //{
+        //    var key = (string)channelMessage.Message;
+        //    _distCacheSvc.DeleteLocal(key, true);
+        //});
+
+        // Asynchronous handler
+        _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
+        {
+            await Task.Delay(0);
+            var key = (string)channelMessage.Message;
+            if (!key.StartsWith(_cachingOptions.pubSubPrefix))
             {
-                await Task.Delay(0);
-                var key = (string)channelMessage.Message;
-                if (!key.StartsWith(_cachingOptions.pubSubPrefix))
-                {
-                    var finalIndex = key.Split('_')[2];
-                    _distCacheSvc.DeleteLocal(finalIndex, true);
-                    _ = Interlocked.Increment(ref count);
-                }
-            });
-
-            while (true)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingOptions.ChannelName);
-                    _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
-                    break;
-                }
-                await Task.Delay(2_500, cancellationToken);
+                var finalIndex = key.Split('_')[2];
+                _distCacheSvc.DeleteLocal(finalIndex, true);
+                _ = Interlocked.Increment(ref count);
             }
-            _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
+        });
+
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingOptions.ChannelName);
+                _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
+                break;
+            }
+            await Task.Delay(2_500, CancellationToken.None);
         }
     }
 }
