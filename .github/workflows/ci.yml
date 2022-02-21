@@ -48,11 +48,6 @@ jobs:
         with:
           dotnet-version: 3.1.x
 
-      - name: .NET 5.x SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.x
-
       - name: .NET 6.x SDK
         uses: actions/setup-dotnet@v1
         with:
@@ -96,12 +91,12 @@ jobs:
           flag-name: run-netcoreapp3.1
           parallel: true
 
-      - name: code coverage - coveralls (2 of 3) - .NET 5.x SDK
+      - name: code coverage - coveralls (2 of 3) - .NET 6.x SDK
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.github_token }}
-          path-to-lcov: ${{ github.workspace }}/coverage/coverage.net5.0.info
-          flag-name: run-net5.0
+          path-to-lcov: ${{ github.workspace }}/coverage/coverage.net6.0.info
+          flag-name: run-net6.0
           parallel: true
 
       - name: code coverage - coveralls (3 of 3)
