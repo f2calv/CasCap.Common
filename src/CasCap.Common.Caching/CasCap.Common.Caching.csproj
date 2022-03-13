@@ -18,7 +18,7 @@
     <ProjectReference Include="..\CasCap.Common.Threading\CasCap.Common.Threading.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+    <PackageReference Include="StackExchange.Redis" Version="2.5.43" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
   </ItemGroup>
