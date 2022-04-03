@@ -134,11 +134,14 @@ jobs:
         run: dotnet pack -c Release --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.FullSemVer }}'
         if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
 
-      - name: dotnet push (nuget)
+      - name: dotnet push (api.nuget.org)
         run: dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
-        if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
+        if: github.ref == 'refs/heads/main' && secrets.NUGET_API_KEY != ''
 
-      - name: dotnet push (github)
+      - name: dotnet push (api.nuget.org)
+        run: echo "::warning title=NUGET_API_KEY Missing!::NUGET_API_KEY Missing from secrets."
+
+      - name: dotnet push (nuget.pkg.github.com)
         run: |
           dotnet tool update -g gpr
           gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
