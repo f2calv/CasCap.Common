@@ -1,7 +1,7 @@
 mode: MainLine
 branches:
   main:
-    regex: ^master$|^main$
+    regex: ^main$
     tag: ''
   feature:
     regex: ^features?[/-]
