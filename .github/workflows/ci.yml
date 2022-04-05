@@ -11,7 +11,7 @@ on:
       PublishPreview:
         type: boolean
         description: Publish preview branch?
-        required: true
+        required: false
         default: false
   push:
     branches-ignore:
