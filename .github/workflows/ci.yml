@@ -38,8 +38,8 @@ jobs:
         ports:
           - 6379:6379
     outputs:
-      # SemVer: ${{ steps.gitversion.outputs.SemVer }}
-      # FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
+      # SemVer: ${{ steps.dotnet.outputs.SemVer }}
+      # FullSemVer: ${{ steps.dotnet.outputs.FullSemVer }}
       BuildConfiguration: ${{ steps.dotnet.outputs.BuildConfiguration }}
     # env:
     #   PublishPreview: ${{ inputs.PublishPreview }}
