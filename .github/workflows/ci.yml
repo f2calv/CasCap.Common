@@ -61,5 +61,7 @@ jobs:
     steps:
       - uses: f2calv/gha-sonarqube@main
         with:
-          BuildConfiguration: ${{ needs.build.outputs.BuildConfiguration }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          BuildConfiguration: ${{ needs.build.outputs.BuildConfiguration }}
+          
