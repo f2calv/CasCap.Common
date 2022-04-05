@@ -38,154 +38,19 @@ jobs:
         ports:
           - 6379:6379
     outputs:
-      SemVer: ${{ steps.gitversion.outputs.SemVer }}
-      FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
+      # SemVer: ${{ steps.gitversion.outputs.SemVer }}
+      # FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
       BuildConfiguration: ${{ steps.setvars.outputs.BuildConfiguration }}
-    env:
-      PublishPreview: ${{ inputs.PublishPreview }}
+    # env:
+    #   PublishPreview: ${{ inputs.PublishPreview }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: f2calv/gha-dotnet-nuget@main
+        id: dotnet
         with:
-          fetch-depth: 0
-
-      - name: set vars
-        id: setvars
-        run: |
-          BuildConfiguration=${{ github.event.inputs.BuildConfiguration }}
-          echo "::set-output name=BuildConfiguration::${BuildConfiguration:-"Release"}"
-
-      - name: .NET Core 3.1.x SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 3.1.x
-
-      - name: .NET 6.x SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
-
-      # - name: gitversion install
-      #   uses: gittools/actions/gitversion/setup@v0.9.7
-      #   with:
-      #     versionSpec: 5.x
-
-      # #https://gitversion.net/docs/usage/
-      # - name: gitversion determine version
-      #   id: gitversionOLD
-      #   uses: gittools/actions/gitversion/execute@v0.9.7
-      #   with:
-      #     useConfigFile: true
-
-      - name: gitversion
-        id: gitversion
-        run: |
-          dotnet tool update -g GitVersion.Tool
-          $GitVersion = dotnet-gitversion ${{ github.workspace }} /nofetch | ConvertFrom-Json
-          echo "SemVer=$($GitVersion.SemVer)"
-          echo "::set-output name=SemVer::$($GitVersion.SemVer)"
-          echo "FullSemVer=$($GitVersion.FullSemVer)"
-          echo "::set-output name=FullSemVer::$($GitVersion.FullSemVer)"
-        shell: pwsh
-
-      - name: gh release view
-        run: |
-          $latest = (gh release list --limit 1)
-          Write-Host "$latest"
-          $release = (gh release view ${{ steps.gitversion.outputs.SemVer }} --json id,name) | ConvertFrom-Json
-          if ($null -eq $release) {
-            Write-Host "Release not found, we are ok to push the new package..."
-            Write-Host "::set-output name=DoPush::true"
-          }
-          else {
-            Write-Host "Release already exists, skipping push."
-            Write-Host "::set-output name=DoPush::false"
-          }
-        shell: pwsh
-        id: check_exists
-        continue-on-error: true #Don't like this but it handles 'release not found'
-        env:
+          BuildConfiguration: ${{ github.event.inputs.BuildConfiguration }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: dotnet restore
-        run: dotnet restore --verbosity minimal --configfile nuget.config
-
-      - name: dotnet build
-        run: dotnet build -c ${{ steps.setvars.outputs.BuildConfiguration }} --nologo --no-restore -p:Version='${{ steps.gitversion.outputs.SemVer }}' -p:SourceRevisionId=${{ github.sha }}
-
-      - name: dotnet test
-        run: dotnet test -c ${{ steps.setvars.outputs.BuildConfiguration }} --nologo --no-restore --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=${{ github.workspace }}/coverage/
-
-      - name: code coverage - coveralls (1 of 3) - .NET Core 3.1.x
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: ${{ github.workspace }}/coverage/coverage.netcoreapp3.1.info
-          flag-name: run-netcoreapp3.1
-          parallel: true
-
-      - name: code coverage - coveralls (2 of 3) - .NET 6.x SDK
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: ${{ github.workspace }}/coverage/coverage.net6.0.info
-          flag-name: run-net6.0
-          parallel: true
-
-      - name: code coverage - coveralls (3 of 3)
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          parallel-finished: true
-
-      # - name: code coverage - report generator
-      #   uses: danielpalme/ReportGenerator-GitHub-Action@4.5.8
-      #   if: runner.OS == 'Linux'
-      #   with:
-      #     reports: ./coverage/coverage.*.info
-      #     targetdir: ./coveragereport
-      #     reporttypes: lcov
-      #     tag: ${{ github.run_number }}_${{ github.run_id }}
-
-      - name: reportgenerator
-        run: |
-          dotnet tool update -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:./coverage/coverage.*.info \
-            -targetdir:./coveragereport \
-            -reporttypes:lcov \
-            -tag:${{ github.run_number }}_${{ github.run_id }}
-
-      - name: code coverage - upload-artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: coveragereport
-          path: coveragereport
-
-      - name: dotnet pack
-        run: dotnet pack -c ${{ steps.setvars.outputs.BuildConfiguration }} --nologo --no-build --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}'
-        if: github.ref == 'refs/heads/main'
-
-      - name: dotnet push (api.nuget.org)
-        run: |
-         if [[ "${{ secrets.NUGET_API_KEY }}" != "" ]]; \
-         then
-           dotnet nuget push ${{ github.workspace }}/src/**/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
-         else
-           echo "::warning title=NUGET_API_KEY::NUGET_API_KEY is missing from secrets, skipping push to api.nuget.org."
-         fi
-        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
-
-      - name: dotnet push (nuget.pkg.github.com)
-        run: |
-          dotnet tool update -g gpr
-          gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
-        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
-
-      - name: create release ${{ steps.gitversion.outputs.FullSemVer }}
-        uses: softprops/action-gh-release@v1
-        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
-        with:
-          tag_name: ${{ steps.gitversion.outputs.FullSemVer }}
-          name: ${{ steps.gitversion.outputs.FullSemVer }}
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          PublishPreview: ${{ inputs.PublishPreview }}
 
   SonarQube:
     runs-on: windows-latest
