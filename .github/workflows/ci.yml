@@ -40,7 +40,7 @@ jobs:
     outputs:
       # SemVer: ${{ steps.gitversion.outputs.SemVer }}
       # FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
-      BuildConfiguration: ${{ steps.setvars.outputs.BuildConfiguration }}
+      BuildConfiguration: ${{ steps.dotnet.outputs.BuildConfiguration }}
     # env:
     #   PublishPreview: ${{ inputs.PublishPreview }}
     steps:
