@@ -32,16 +32,17 @@ jobs:
     #     os: [ubuntu-latest,windows-latest]
     # runs-on: ${{matrix.os}}
     runs-on: ubuntu-latest
-    outputs:
-      SemVer: ${{ steps.gitversion.outputs.SemVer }}
-      FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
-      BuildConfiguration: ${{ steps.setvars.outputs.BuildConfiguration }}
     services:
       redis:
         image: redis
         ports:
           - 6379:6379
-
+    outputs:
+      SemVer: ${{ steps.gitversion.outputs.SemVer }}
+      FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
+      BuildConfiguration: ${{ steps.setvars.outputs.BuildConfiguration }}
+    env:
+      PublishPreview: ${{ inputs.PublishPreview }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -85,6 +86,25 @@ jobs:
           echo "FullSemVer=$($GitVersion.FullSemVer)"
           echo "::set-output name=FullSemVer::$($GitVersion.FullSemVer)"
         shell: pwsh
+
+      - name: gh release view
+        run: |
+          $latest = (gh release list --limit 1)
+          Write-Host "$latest"
+          $release = (gh release view ${{ steps.gitversion.outputs.SemVer }} --json id,name) | ConvertFrom-Json
+          if ($null -eq $release) {
+            Write-Host "Release not found, we are ok to push the new package..."
+            Write-Host "::set-output name=DoPush::true"
+          }
+          else {
+            Write-Host "Release already exists, skipping push."
+            Write-Host "::set-output name=DoPush::false"
+          }
+        shell: pwsh
+        id: check_exists
+        continue-on-error: true #Don't like this but it handles 'release not found'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: dotnet restore
         run: dotnet restore --verbosity minimal --configfile nuget.config
@@ -152,20 +172,20 @@ jobs:
          else
            echo "::warning title=NUGET_API_KEY::NUGET_API_KEY is missing from secrets, skipping push to api.nuget.org."
          fi
-        if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
+        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
 
       - name: dotnet push (nuget.pkg.github.com)
         run: |
           dotnet tool update -g gpr
           gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
-        if: github.ref == 'refs/heads/main'
+        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
 
       - name: create release ${{ steps.gitversion.outputs.FullSemVer }}
         uses: softprops/action-gh-release@v1
-        if: github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true'
+        if: steps.check_exists.outputs.DoPush == 'true' && (github.ref == 'refs/heads/main' || github.event.inputs.PublishPreview == 'true')
         with:
           tag_name: ${{ steps.gitversion.outputs.FullSemVer }}
-          name: Release ${{ steps.gitversion.outputs.FullSemVer }}
+          name: ${{ steps.gitversion.outputs.FullSemVer }}
 
   SonarQube:
     runs-on: windows-latest
