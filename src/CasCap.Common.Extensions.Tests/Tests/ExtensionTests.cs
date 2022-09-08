@@ -1,7 +1,4 @@
-﻿using System;
-using Xunit;
-using Xunit.Abstractions;
-namespace CasCap.Common.Extensions.Tests;
+﻿namespace CasCap.Common.Extensions.Tests;
 
 public class ExtensionTests : TestBase
 {
