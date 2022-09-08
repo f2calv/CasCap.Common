@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29009.5
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Logging", "src\CasCap.Common.Logging\CasCap.Common.Logging.csproj", "{68D3D345-BCD3-4956-BD3C-5B41C611FC2B}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Net.Tests", "src\CasCap.Common.Net.Tests\CasCap.Common.Net.Tests.csproj", "{E3D7C965-3B4D-4A2F-A16B-F014B3477347}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasCap.Common.Testing", "src\CasCap.Common.Testing\CasCap.Common.Testing.csproj", "{23A30C65-424B-4DCB-BD11-476FCC423422}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Testing", "src\CasCap.Common.Testing\CasCap.Common.Testing.csproj", "{23A30C65-424B-4DCB-BD11-476FCC423422}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

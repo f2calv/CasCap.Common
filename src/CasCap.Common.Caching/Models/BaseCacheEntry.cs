@@ -1,5 +1,4 @@
 ﻿//using MessagePack;
-//using System;
 //namespace CasCap.Models;
 //
 //[MessagePackObject(true)]

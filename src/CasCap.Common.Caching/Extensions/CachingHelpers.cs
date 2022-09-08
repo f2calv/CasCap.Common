@@ -1,5 +1,4 @@
-﻿using System;
-namespace CasCap.Common.Extensions;
+﻿namespace CasCap.Common.Extensions;
 
 public static class CachingHelpers
 {
