@@ -1,13 +1,7 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using StackExchange.Redis;
-using System;
+﻿using StackExchange.Redis;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 namespace CasCap.Services;
 
 public interface IRedisCacheService

@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
-namespace CasCap.Common.Serialisation.Tests;
+﻿namespace CasCap.Common.Serialisation.Tests;
 
 public abstract class TestBase
 {

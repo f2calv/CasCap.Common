@@ -1,10 +1,4 @@
-﻿using CasCap.Common.Extensions;
-using MessagePack;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Xunit;
-using Xunit.Abstractions;
+﻿using MessagePack;
 namespace CasCap.Common.Serialisation.Tests;
 
 public class SerialisationTests : TestBase

@@ -1,11 +1,4 @@
-﻿using CasCap.Models;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public class LocalCacheInvalidationService : BackgroundService
 {

@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Diagnostics;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public interface IConsoleUIService
 {

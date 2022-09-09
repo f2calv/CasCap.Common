@@ -1,10 +1,4 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Services;
-using MessagePack;
-using System;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
+﻿using MessagePack;
 namespace CasCap.Common.Caching.Tests;
 
 /// <summary>

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using System;
 namespace CasCap.Models;
 
 public class PostEvictionEventArgs : EventArgs

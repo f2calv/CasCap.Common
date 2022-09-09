@@ -1,6 +1,4 @@
-﻿using Xunit;
-using Xunit.Abstractions;
-namespace CasCap.Common.Net.Tests;
+﻿namespace CasCap.Common.Net.Tests;
 
 public class NetTests : TestBase
 {

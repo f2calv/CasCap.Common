@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-namespace CasCap.Logic;
+﻿namespace CasCap.Logic;
 
 /// <summary>
 /// asynchronous locking based on a key

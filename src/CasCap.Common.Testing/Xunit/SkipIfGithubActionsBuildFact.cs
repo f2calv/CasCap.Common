@@ -1,10 +1,8 @@
-﻿using System;
-using Xunit;
-namespace CasCap.Common.Testing;
+﻿namespace CasCap.Xunit;
 
-public sealed class SkipIfGithubActionsBuildTheory : TheoryAttribute
+public sealed class SkipIfGitHubActionsBuildFact : FactAttribute
 {
-    public SkipIfGithubActionsBuildTheory()
+    public SkipIfGitHubActionsBuildFact()
     {
         if (IsGitHubActions())
             Skip = "Ignore test when running a Github Actions build";

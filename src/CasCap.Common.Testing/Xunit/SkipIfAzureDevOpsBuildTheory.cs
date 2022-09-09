@@ -1,6 +1,4 @@
-﻿using System;
-using Xunit;
-namespace CasCap.Common.Testing;
+﻿namespace CasCap.Xunit;
 
 public sealed class SkipIfAzureDevOpsBuildTheory : TheoryAttribute
 {

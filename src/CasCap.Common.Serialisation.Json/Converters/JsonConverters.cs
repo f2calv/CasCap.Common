@@ -1,7 +1,4 @@
-﻿using CasCap.Common.Extensions;
-using Newtonsoft.Json;
-using System;
-namespace CasCap.Models;
+﻿namespace CasCap.Models;
 
 //https://stackoverflow.com/questions/10302902/can-you-tell-json-net-to-serialize-datetime-as-utc-even-if-unspecified/10305908
 /*

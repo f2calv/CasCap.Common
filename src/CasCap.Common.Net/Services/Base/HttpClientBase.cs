@@ -1,14 +1,4 @@
-﻿using CasCap.Common.Extensions;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public abstract class HttpClientBase
 {

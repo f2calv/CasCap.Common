@@ -1,7 +1,4 @@
-﻿using CasCap.Common.Testing;
-using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
-namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
 {

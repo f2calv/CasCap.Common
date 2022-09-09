@@ -1,8 +1,4 @@
-﻿using CasCap.Models;
-using CasCap.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
 {

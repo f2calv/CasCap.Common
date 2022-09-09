@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using Xunit.Abstractions;
-namespace CasCap.Common.Testing;
+﻿namespace Microsoft.Extensions.Logging;
 
 public class TestLogProvider : ILoggerProvider
 {
@@ -39,7 +34,7 @@ class TestLogger : ILogger
         _entries = new List<LogEntry>();
     }
 
-    public IReadOnlyCollection<LogEntry> GetLogs() => this._entries.AsReadOnly();
+    public IReadOnlyCollection<LogEntry> GetLogs() => _entries.AsReadOnly();
 
     public IDisposable BeginScope<TState>(TState state) => null!;
 
@@ -57,9 +52,9 @@ class LogEntry
 {
     public LogEntry(LogLevel level, string message)
     {
-        this.LogLevel = level;
-        this.Message = message;
-        this.Timestamp = DateTime.Now;
+        LogLevel = level;
+        Message = message;
+        Timestamp = DateTime.Now;
     }
 
     public DateTime Timestamp { get; }
@@ -70,6 +65,6 @@ class LogEntry
 
     public override string ToString()
     {
-        return $"{this.Timestamp:o}: {this.Message}";
+        return $"{Timestamp:o}: {Message}";
     }
 }

@@ -1,13 +1,6 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Interfaces;
-using CasCap.Logic;
-using CasCap.Models;
+﻿using CasCap.Logic;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using System;
-using System.Threading.Tasks;
 namespace CasCap.Services;
 
 public interface IDistCacheService

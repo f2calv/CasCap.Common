@@ -1,8 +1,4 @@
-﻿using CasCap.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
-namespace CasCap.Common.Caching.Tests;
+﻿namespace CasCap.Common.Caching.Tests;
 
 public abstract class TestBase
 {
