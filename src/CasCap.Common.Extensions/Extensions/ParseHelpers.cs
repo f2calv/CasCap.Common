@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-namespace CasCap.Common.Extensions;
+﻿namespace CasCap.Common.Extensions;
 
 public static class ParseHelpers
 {
