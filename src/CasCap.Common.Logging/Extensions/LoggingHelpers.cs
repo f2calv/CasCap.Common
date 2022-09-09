@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-namespace Microsoft.Extensions.Logging;
+﻿namespace Microsoft.Extensions.Logging;
 
 public static class LoggingHelpers
 {
