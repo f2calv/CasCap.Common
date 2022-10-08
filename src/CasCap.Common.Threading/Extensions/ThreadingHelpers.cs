@@ -2,13 +2,17 @@
 
 public static class ThreadingHelpers
 {
+#if NET6_0_OR_GREATER
     [Obsolete("Use Parallel.ForEachAsync instead")]
+#endif
     public static Task<TimeSpan> ForEachAsyncSemaphore<T>(this IEnumerable<T> source, Func<T, Task> body) => source.ForEachAsyncSemaphore(body, Environment.ProcessorCount);
 
     /// <summary>
     /// throttling asynchronous methods
     /// </summary>
+#if NET6_0_OR_GREATER
     [Obsolete("Use Parallel.ForEachAsync instead")]
+#endif
     public static async Task<TimeSpan> ForEachAsyncSemaphore<T>(this IEnumerable<T> source, Func<T, Task> body, int degreeOfParallelism)
     {
         var sw = Stopwatch.StartNew();
@@ -41,7 +45,9 @@ public static class ThreadingHelpers
         return sw.Elapsed;
     }
 
+#if NET6_0_OR_GREATER
     [Obsolete("Use Parallel.ForEachAsync instead")]
+#endif
     public static async Task<TimeSpan> ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body)
     {
         var sw = Stopwatch.StartNew();
