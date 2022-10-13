@@ -50,10 +50,10 @@ jobs:
       - uses: f2calv/gha-dotnet-nuget@main
         id: dotnet
         with:
+          BuildConfiguration: ${{ github.event.inputs.BuildConfiguration }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          BuildConfiguration: ${{ inputs.BuildConfiguration }}
-          PublishPreview: ${{ inputs.PublishPreview }}
+          PublishPreview: ${{ github.event.inputs..PublishPreview }}
 
   SonarQube:
     runs-on: windows-latest
