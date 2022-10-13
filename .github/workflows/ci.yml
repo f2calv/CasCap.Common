@@ -53,7 +53,7 @@ jobs:
           BuildConfiguration: ${{ github.event.inputs.BuildConfiguration }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          PublishPreview: ${{ github.event.inputs..PublishPreview }}
+          PublishPreview: ${{ github.event.inputs.PublishPreview }}
 
   SonarQube:
     runs-on: windows-latest
