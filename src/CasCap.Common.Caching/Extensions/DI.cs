@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+﻿using AsyncKeyedLock;
+
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
 {
@@ -7,6 +9,7 @@ public static class DI
         //services.AddMemoryCache();//now added inside DistCacheService
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
         services.AddSingleton<IDistCacheService, DistCacheService>();
+        services.AddSingleton<AsyncKeyedLocker<string>>();
         services.AddHostedService<LocalCacheInvalidationService>();
         services.AddSingleton<IConfigureOptions<CachingOptions>>(s =>
         {
