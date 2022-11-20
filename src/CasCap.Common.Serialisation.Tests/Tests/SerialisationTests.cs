@@ -43,7 +43,7 @@ public class SerialisationTests : TestBase
         Assert.Equal(str1, str2);
     }
 
-    //https://docs.microsoft.com/en-us/aspnet/core/signalr/messagepackhubprotocol?view=aspnetcore-2.2#messagepack-quirks
+    //https://learn.microsoft.com/en-us/aspnet/core/signalr/messagepackhubprotocol?view=aspnetcore-7.0#messagepack-quirks
     /// <summary>
     /// DateTime.Kind is not preserved when serializing/deserializing - lets confirm that and implement a workaround.
     /// </summary>

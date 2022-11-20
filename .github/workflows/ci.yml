@@ -47,7 +47,7 @@ jobs:
     # env:
     #   PublishPreview: ${{ inputs.PublishPreview }}
     steps:
-      - uses: f2calv/gha-dotnet-nuget@main
+      - uses: f2calv/gha-dotnet-nuget@v1
         id: dotnet
         with:
           BuildConfiguration: ${{ github.event.inputs.BuildConfiguration }}
@@ -56,10 +56,11 @@ jobs:
           PublishPreview: ${{ github.event.inputs.PublishPreview }}
 
   SonarQube:
+    if: false #Note: disabled as SonarQube not yet available for .NET 7.0
     runs-on: windows-latest
     needs: build
     steps:
-      - uses: f2calv/gha-sonarqube@main
+      - uses: f2calv/gha-sonarqube@v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

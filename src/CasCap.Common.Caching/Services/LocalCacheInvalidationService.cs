@@ -50,8 +50,8 @@ public class LocalCacheInvalidationService : BackgroundService
         _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
         {
             await Task.Delay(0);
-            var key = (string)channelMessage.Message;
-            if (!key.StartsWith(_cachingOptions.pubSubPrefix))
+            var key = (string?)channelMessage.Message;
+            if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
                 _distCacheSvc.DeleteLocal(finalIndex, true);
