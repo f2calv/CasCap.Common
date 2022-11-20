@@ -116,7 +116,7 @@ public class APIService
         await Task.Delay(0);
         await Task.Delay(0);
         //lets go fake getting some data
-        if (obj is null) obj = new MyTestClass();
+        obj ??= new MyTestClass();
         return obj;
     }
 }
