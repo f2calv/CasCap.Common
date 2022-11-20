@@ -1,6 +1,6 @@
 {
 	"name": "C# (.NET)",
-	"image": "mcr.microsoft.com/devcontainers/dotnet:0-6.0-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:0-7.0-bullseye",
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "lts"
