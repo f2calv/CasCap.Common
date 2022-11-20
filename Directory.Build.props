@@ -43,8 +43,11 @@
     <NoWarn>CS0162</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+  <PropertyGroup>
     <CollectCoverage>true</CollectCoverage>
+    <!-- <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+    <Exclude>[*]*.Migrations.*</Exclude>
+    <ExcludeByFile>**/MyFile.cs</ExcludeByFile> -->
     <CoverletOutputFormat>lcov</CoverletOutputFormat>
   </PropertyGroup>
 
