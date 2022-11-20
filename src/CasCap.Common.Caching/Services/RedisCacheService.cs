@@ -11,7 +11,7 @@ public interface IRedisCacheService
     ISubscriber subscriber { get; }
     IServer server { get; }
 
-    byte[] Get(string key, CommandFlags flags = CommandFlags.None);
+    byte[]? Get(string key, CommandFlags flags = CommandFlags.None);
     Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None);
 
     bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
@@ -55,7 +55,7 @@ public class RedisCacheService : IRedisCacheService
 
     public IServer server { get { return Connection.GetServer(configuration.EndPoints[0]); } }
 
-    public byte[] Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
+    public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 
     public async Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
 
@@ -90,7 +90,7 @@ public class RedisCacheService : IRedisCacheService
 
         //handle binary format
         var tpl = await luaGetBytes();
-        if (tpl != default)
+        if (tpl != default && tpl.bytes is not null)
         {
             var requestedObject = tpl.bytes.FromMessagePack<T>();
             var expiry = tpl.ttl.GetExpiry();
@@ -98,12 +98,12 @@ public class RedisCacheService : IRedisCacheService
         }
         return res;
 
-        async Task<(int ttl, byte[] bytes)> luaGetBytes()
+        async Task<(int ttl, byte[]? bytes)> luaGetBytes()
         {
-            (int, byte[]) output = default;
+            (int, byte[]?) output = default;
             var tpl = await luaGetCacheEntryWithTTL();
             if (tpl != default)
-                output = (tpl.ttl, (byte[])tpl.payload);
+                output = (tpl.ttl, (byte[]?)tpl.payload);
             return output;
         }
 
@@ -121,7 +121,7 @@ public class RedisCacheService : IRedisCacheService
         }
 
         //Retrieves both the TTL and the cached item from Redis in one network call.
-        async Task<RedisResult[]> GetCacheEntryWithTTL()
+        async Task<RedisResult[]?> GetCacheEntryWithTTL()
         {
             try
             {
@@ -132,7 +132,7 @@ public class RedisCacheService : IRedisCacheService
                     trackKey = (RedisKey)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
                     trackCaller = (RedisKey)caller//the method which instigated this particular access attempt
                 });
-                var retKeys = (RedisResult[])result;
+                var retKeys = (RedisResult[]?)result;
                 return retKeys;
             }
             catch (Exception ex)
