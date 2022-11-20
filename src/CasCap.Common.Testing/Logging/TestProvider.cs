@@ -36,7 +36,7 @@ class TestLogger : ILogger
 
     public IReadOnlyCollection<LogEntry> GetLogs() => _entries.AsReadOnly();
 
-    public IDisposable BeginScope<TState>(TState state) => null!;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null!;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
