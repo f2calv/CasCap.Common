@@ -71,8 +71,7 @@ public class DistCacheService : IDistCacheService
             else if (createItem is not null)
             {
                 //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
-                //https://www.hanselman.com/blog/EyesWideOpenCorrectCachingIsAlwaysHard.aspx
-                using (await _asyncKeyedLocker.LockAsync(key))
+                using (await _asyncKeyedLocker.LockAsync(key).ConfigureAwait(false))
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
