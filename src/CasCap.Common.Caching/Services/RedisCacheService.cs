@@ -12,7 +12,7 @@ public interface IRedisCacheService
     IServer server { get; }
 
     byte[]? Get(string key, CommandFlags flags = CommandFlags.None);
-    Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None);
+    Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None);
 
     bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
     Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
@@ -57,7 +57,7 @@ public class RedisCacheService : IRedisCacheService
 
     public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 
-    public async Task<byte[]> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
+    public async Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
 
     public bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSet(key, value, expiry, flags: flags);
@@ -75,7 +75,7 @@ public class RedisCacheService : IRedisCacheService
         var o = await db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
-            var requestedObject = ((byte[])o.Value).FromMessagePack<T>();
+            var requestedObject = ((byte[]?)o.Value).FromMessagePack<T>();
             return (o.Expiry, requestedObject);
         }
         else
