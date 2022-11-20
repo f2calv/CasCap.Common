@@ -43,7 +43,7 @@
     <NoWarn>CS0162</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests.'))">
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>lcov</CoverletOutputFormat>
   </PropertyGroup>
