@@ -111,7 +111,7 @@ public class RedisCacheService : IRedisCacheService
         {
             (int, string, RedisResult) tpl = default;
             var retKeys = await GetCacheEntryWithTTL();
-            if (retKeys.Length == 3)
+            if (retKeys is not null && retKeys.Length == 3)
             {
                 var ttl = retKeys[0] is not null ? (int)retKeys[0] : -1;
                 var type = retKeys[1] is not null ? (string)retKeys[1] : string.Empty;
