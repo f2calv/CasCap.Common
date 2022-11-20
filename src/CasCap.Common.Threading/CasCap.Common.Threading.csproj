@@ -12,8 +12,4 @@
     <PackageTags>extensions,helpers,threading</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AsyncKeyedLock" Version="5.0.1" />
-  </ItemGroup>
-
 </Project>

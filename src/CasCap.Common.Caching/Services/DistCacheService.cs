@@ -23,8 +23,8 @@ public interface IDistCacheService
 /// </summary>
 public class DistCacheService : IDistCacheService
 {
-    readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
     readonly ILogger _logger;
+    readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
     readonly CachingOptions _cachingOptions;
     readonly IRedisCacheService _redis;
     readonly IMemoryCache _local;
