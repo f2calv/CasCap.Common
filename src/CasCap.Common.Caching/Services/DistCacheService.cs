@@ -33,8 +33,8 @@ public class DistCacheService : IDistCacheService
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     public DistCacheService(ILogger<DistCacheService> logger,
-        IOptions<CachingOptions> cachingOptions,
         AsyncKeyedLocker<string> asyncKeyedLocker,
+        IOptions<CachingOptions> cachingOptions,
         IRedisCacheService redis//,
                                 //IMemoryCache local
         )
