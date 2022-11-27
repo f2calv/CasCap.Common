@@ -1,4 +1,4 @@
-﻿using CasCap.Logic;
+﻿using AsyncKeyedLock;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 namespace CasCap.Services;
@@ -24,6 +24,7 @@ public interface IDistCacheService
 public class DistCacheService : IDistCacheService
 {
     readonly ILogger _logger;
+    readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
     readonly CachingOptions _cachingOptions;
     readonly IRedisCacheService _redis;
     readonly IMemoryCache _local;
@@ -32,12 +33,14 @@ public class DistCacheService : IDistCacheService
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     public DistCacheService(ILogger<DistCacheService> logger,
+        AsyncKeyedLocker<string> asyncKeyedLocker,
         IOptions<CachingOptions> cachingOptions,
         IRedisCacheService redis//,
                                 //IMemoryCache local
         )
     {
         _logger = logger;
+        _asyncKeyedLocker = asyncKeyedLocker;
         _cachingOptions = cachingOptions.Value;
         _redis = redis;
         //_local = local;
@@ -68,8 +71,7 @@ public class DistCacheService : IDistCacheService
             else if (createItem is not null)
             {
                 //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
-                //https://www.hanselman.com/blog/EyesWideOpenCorrectCachingIsAlwaysHard.aspx
-                using (await AsyncDuplicateLock.LockAsync(key))
+                using (await _asyncKeyedLocker.LockAsync(key).ConfigureAwait(false))
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();

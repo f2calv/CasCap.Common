@@ -3,6 +3,7 @@
 /// <summary>
 /// asynchronous locking based on a key
 /// </summary>
+[Obsolete("Deprecated via use of AsyncKeyedLock, https://www.nuget.org/packages/AsyncKeyedLock")]
 public sealed class AsyncDuplicateLock
 {
     sealed class RefCounted<T>
