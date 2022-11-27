@@ -16,7 +16,7 @@
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <!--<PackageReference Include="System.Text.Json" Version="4.7.0" />-->
   </ItemGroup>
 
