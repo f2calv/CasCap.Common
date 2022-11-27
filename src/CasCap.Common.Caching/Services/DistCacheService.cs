@@ -56,7 +56,7 @@ public class DistCacheService : IDistCacheService
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
-        if (!_local.TryGetValue(key, out T cacheEntry))
+        if (!_local.TryGetValue(key, out T? cacheEntry))
         {
             var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
