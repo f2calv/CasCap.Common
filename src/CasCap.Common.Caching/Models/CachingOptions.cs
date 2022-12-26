@@ -15,4 +15,6 @@ public class CachingOptions
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     public string ChannelName { get; set; } = "expiration";
     public int MemoryCacheSizeLimit { get; set; }
+    public int KeyedLockPoolSize { get; set; } = 10;
+    public int KeyedLockPoolInitialFill { get; set; } = 1;
 }
