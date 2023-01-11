@@ -43,15 +43,6 @@
     <NoWarn>CS0162</NoWarn>
   </PropertyGroup>
 
-  <!-- Note: remove below PropertyGroup when .NET 7.0 > 7.0.100 it's a temporary workaround, https://github.com/coverlet-coverage/coverlet/issues/1391#issuecomment-1313581269 -->
-  <PropertyGroup>
-    <CollectCoverage>true</CollectCoverage>
-    <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
-    <Exclude>[*]*.Migrations.*</Exclude>
-    <ExcludeByFile>**/MyFile.cs</ExcludeByFile>
-    <CoverletOutputFormat>lcov</CoverletOutputFormat>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <!-- <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All"/> -->
