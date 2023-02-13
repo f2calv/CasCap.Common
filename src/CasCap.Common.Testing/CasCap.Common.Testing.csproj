@@ -16,7 +16,7 @@
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.3" />
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
   </ItemGroup>
 
 </Project>
