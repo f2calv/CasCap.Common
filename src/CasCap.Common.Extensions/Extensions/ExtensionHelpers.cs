@@ -5,6 +5,8 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+
 namespace CasCap.Common.Extensions;
 
 public static class ExtensionHelpers
@@ -29,6 +31,18 @@ public static class ExtensionHelpers
     //    //return input?.Length > 0;
     //}
     #endregion
+
+    public static T? FromXML<T>(this string input) where T : class {
+        var ser = new XmlSerializer(typeof(T));
+        using var sr = new StringReader(input);
+        return (T?)ser.Deserialize(sr);
+    }
+
+    public static T? FromBytes<T>(this byte[] bytes) where T : class {
+        var ser = new XmlSerializer(typeof(T));
+        using var ms = new MemoryStream(bytes);
+        return (T?)ser.Deserialize(ms);
+    }
 
     public static Dictionary<int, List<T>> GetBatches<T>(this List<T> objects, int batchSize)
     {
