@@ -316,8 +316,7 @@ public static class ExtensionHelpers
     public static string UrlCombine(this string baseUrl, string relativeUrl)
     {
         baseUrl = baseUrl.TrimEnd(new char[] { '/' });
-        if (relativeUrl is null)
-            relativeUrl = string.Empty;
+        relativeUrl ??= string.Empty;
         relativeUrl = relativeUrl.TrimStart(new char[] { '~' });
         relativeUrl = relativeUrl.TrimStart(new char[] { '/' });
         return baseUrl + "/" + relativeUrl;
