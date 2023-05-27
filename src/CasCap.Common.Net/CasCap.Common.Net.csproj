@@ -16,8 +16,5 @@
     <ProjectReference Include="..\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-  </ItemGroup>
 
 </Project>
