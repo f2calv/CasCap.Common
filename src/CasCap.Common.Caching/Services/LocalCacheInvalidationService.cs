@@ -18,7 +18,7 @@ public class LocalCacheInvalidationService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting {serviceName}", nameof(LocalCacheInvalidationService));
+        _logger.LogInformation("{type}: {serviceName} starting", nameof(BackgroundService), nameof(LocalCacheInvalidationService));
         try
         {
             await RunServiceAsync(cancellationToken);
@@ -31,12 +31,12 @@ public class LocalCacheInvalidationService : BackgroundService
             _logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        _logger.LogInformation("Exiting {serviceName}", nameof(LocalCacheInvalidationService));
+        _logger.LogInformation("{type}: {serviceName} exiting", nameof(BackgroundService), nameof(LocalCacheInvalidationService));
     }
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(0, CancellationToken.None);
+        await Task.Delay(0, cancellationToken);
 
         var count = 0L;
         // Synchronous handler
@@ -49,7 +49,7 @@ public class LocalCacheInvalidationService : BackgroundService
         // Asynchronous handler
         _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
         {
-            await Task.Delay(0);
+            await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
@@ -67,7 +67,7 @@ public class LocalCacheInvalidationService : BackgroundService
                 _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
                 break;
             }
-            await Task.Delay(2_500, CancellationToken.None);
+            await Task.Delay(2_500, cancellationToken);
         }
     }
 }
