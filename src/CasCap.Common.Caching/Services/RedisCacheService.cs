@@ -75,7 +75,7 @@ public class RedisCacheService : IRedisCacheService
         var o = await db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
-            var requestedObject = ((byte[]?)o.Value).FromMessagePack<T>();
+            var requestedObject = ((byte[])o.Value)!.FromMessagePack<T>();
             return (o.Expiry, requestedObject);
         }
         else
@@ -114,7 +114,7 @@ public class RedisCacheService : IRedisCacheService
             if (retKeys is not null && retKeys.Length == 3)
             {
                 var ttl = retKeys[0] is not null ? (int)retKeys[0] : -1;
-                var type = retKeys[1] is not null ? (string)retKeys[1] : string.Empty;
+                var type = retKeys[1] is not null ? (string)retKeys[1]! : string.Empty;
                 tpl = (int.Parse(ttl.ToString()), type.ToString(), retKeys[2]);
             }
             return tpl;
