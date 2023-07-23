@@ -83,7 +83,7 @@ public class RedisCacheService : IRedisCacheService
     }
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information
-    [Obsolete("Superceded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
+    [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
     public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
     {
         (TimeSpan?, T) res = default;
