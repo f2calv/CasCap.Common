@@ -162,7 +162,7 @@ public class RedisCacheService : IRedisCacheService
     void LoadDefaultLuaScripts()
     {
         //add additional default LUA scripts into this array...
-        var scriptNames = new[] { $"CasCap.Resources.{keyGetCacheEntryWithTTL}.lua" };
+        var scriptNames = new[] { keyGetCacheEntryWithTTL };
         foreach (var scriptName in scriptNames)
             LoadLuaScript(this.GetType().Assembly, scriptName);
     }
