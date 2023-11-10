@@ -1,4 +1,6 @@
-﻿namespace CasCap.Services;
+﻿using StackExchange.Redis;
+
+namespace CasCap.Services;
 
 public class LocalCacheInvalidationService : BackgroundService
 {
@@ -47,7 +49,7 @@ public class LocalCacheInvalidationService : BackgroundService
         //});
 
         // Asynchronous handler
-        _redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(async channelMessage =>
+        _redisCacheSvc.subscriber.Subscribe(RedisChannel.Literal(_cachingOptions.ChannelName)).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
@@ -64,7 +66,7 @@ public class LocalCacheInvalidationService : BackgroundService
             if (cancellationToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingOptions.ChannelName);
-                _redisCacheSvc.subscriber.Unsubscribe(_cachingOptions.ChannelName);
+                await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
                 break;
             }
             await Task.Delay(2_500, cancellationToken);
