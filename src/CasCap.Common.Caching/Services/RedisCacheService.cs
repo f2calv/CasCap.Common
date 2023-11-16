@@ -38,18 +38,18 @@ public class RedisCacheService : IRedisCacheService
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        configuration = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
-        configuration.ConnectRetry = 20;
-        configuration.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
+        configurationOptions = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
+        //configurationOptions.ConnectRetry = 20;
+        configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
-        configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
+        //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
 
         LoadDefaultLuaScripts();
     }
 
-    static ConfigurationOptions configuration { get; set; } = new();
+    static ConfigurationOptions configurationOptions { get; set; } = new();
 
-    readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configuration));
+    readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configurationOptions));
 
     public IConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 
@@ -57,7 +57,7 @@ public class RedisCacheService : IRedisCacheService
 
     public ISubscriber subscriber { get { return Connection.GetSubscriber(); } }
 
-    public IServer server { get { return Connection.GetServer(configuration.EndPoints[0]); } }
+    public IServer server { get { return Connection.GetServer(configurationOptions.EndPoints[0]); } }
 
     public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 
@@ -183,7 +183,7 @@ public class RedisCacheService : IRedisCacheService
         }
 
         var luaScript = LuaScript.Prepare(script);
-        _logger.LogDebug("Connecting to Redis instance {connectionString}", _cachingOptions.redisConnectionString);
+        _logger.LogDebug("{serviceName}: loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
         var loadedLuaScript = luaScript.Load(server);
 
         return LuaScripts.TryAdd(scriptName, loadedLuaScript);
