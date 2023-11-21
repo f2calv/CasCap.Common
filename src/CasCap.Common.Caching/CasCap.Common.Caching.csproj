@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 17.3.0">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -20,8 +19,8 @@
   <ItemGroup>
     <PackageReference Include="AsyncKeyedLock" Version="6.2.2" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +28,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\GetCacheEntryWithTTL.lua" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
