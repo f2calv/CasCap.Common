@@ -29,9 +29,9 @@ public static class ThreadingHelpers
                     try
                     {
 #pragma warning disable CAC001 // ConfigureAwaitChecker
-                            await body(element);
+                        await body(element);
 #pragma warning restore CAC001 // ConfigureAwaitChecker
-                        }
+                    }
                     finally
                     {
                         throttler.Release();

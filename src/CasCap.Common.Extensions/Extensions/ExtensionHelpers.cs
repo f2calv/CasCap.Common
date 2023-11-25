@@ -32,13 +32,15 @@ public static class ExtensionHelpers
     //}
     #endregion
 
-    public static T? FromXML<T>(this string input) where T : class {
+    public static T? FromXML<T>(this string input) where T : class
+    {
         var ser = new XmlSerializer(typeof(T));
         using var sr = new StringReader(input);
         return (T?)ser.Deserialize(sr);
     }
 
-    public static T? FromBytes<T>(this byte[] bytes) where T : class {
+    public static T? FromBytes<T>(this byte[] bytes) where T : class
+    {
         var ser = new XmlSerializer(typeof(T));
         using var ms = new MemoryStream(bytes);
         return (T?)ser.Deserialize(ms);
