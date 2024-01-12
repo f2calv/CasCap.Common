@@ -17,7 +17,7 @@
     <ProjectReference Include="..\CasCap.Common.Threading\CasCap.Common.Threading.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AsyncKeyedLock" Version="6.2.4" />
+    <PackageReference Include="AsyncKeyedLock" Version="6.2.6" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
