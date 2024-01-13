@@ -1,6 +1,7 @@
 ﻿using StackExchange.Redis;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 namespace CasCap.Services;
 
@@ -22,6 +23,9 @@ public interface IRedisCacheService
 
     Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key);
     Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
+
+    Dictionary<string, LoadedLuaScript> LuaScripts { get; set; }
+    bool LoadLuaScript(Assembly assembly, string scriptName);
 }
 
 //https://stackexchange.github.io/StackExchange.Redis/
@@ -34,18 +38,18 @@ public class RedisCacheService : IRedisCacheService
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        configuration = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
-        configuration.ConnectRetry = 20;
-        configuration.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
-        //Note: below for getting redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
-        configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
+        configurationOptions = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
+        //configurationOptions.ConnectRetry = 20;
+        configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
+        //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
+        //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
 
-        LuaScripts = GetLuaScripts();
+        LoadDefaultLuaScripts();
     }
 
-    static ConfigurationOptions configuration { get; set; } = new();
+    static ConfigurationOptions configurationOptions { get; set; } = new();
 
-    readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configuration));
+    readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configurationOptions));
 
     public IConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
 
@@ -53,7 +57,7 @@ public class RedisCacheService : IRedisCacheService
 
     public ISubscriber subscriber { get { return Connection.GetSubscriber(); } }
 
-    public IServer server { get { return Connection.GetServer(configuration.EndPoints[0]); } }
+    public IServer server { get { return Connection.GetServer(configurationOptions.EndPoints[0]); } }
 
     public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 
@@ -75,7 +79,7 @@ public class RedisCacheService : IRedisCacheService
         var o = await db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
-            var requestedObject = ((byte[]?)o.Value).FromMessagePack<T>();
+            var requestedObject = ((byte[])o.Value)!.FromMessagePack<T>();
             return (o.Expiry, requestedObject);
         }
         else
@@ -83,7 +87,7 @@ public class RedisCacheService : IRedisCacheService
     }
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information
-    [Obsolete("Superceded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
+    [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
     public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
     {
         (TimeSpan?, T) res = default;
@@ -114,7 +118,7 @@ public class RedisCacheService : IRedisCacheService
             if (retKeys is not null && retKeys.Length == 3)
             {
                 var ttl = retKeys[0] is not null ? (int)retKeys[0] : -1;
-                var type = retKeys[1] is not null ? (string)retKeys[1] : string.Empty;
+                var type = retKeys[1] is not null ? (string)retKeys[1]! : string.Empty;
                 tpl = (int.Parse(ttl.ToString()), type.ToString(), retKeys[2]);
             }
             return tpl;
@@ -152,24 +156,23 @@ public class RedisCacheService : IRedisCacheService
         }
     }
 
-    #region load lua scripts into dictionary
-    readonly ConcurrentDictionary<string, LoadedLuaScript> LuaScripts;
+    #region
+    public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = new();
 
-    ConcurrentDictionary<string, LoadedLuaScript> GetLuaScripts()
+    void LoadDefaultLuaScripts()
     {
-        var d = new ConcurrentDictionary<string, LoadedLuaScript>();
-        d.TryAdd(keyGetCacheEntryWithTTL, GetScriptFromLocalResources($"CasCap.Resources.{keyGetCacheEntryWithTTL}.lua"));
-        //add new LUA scripts in here...
-        return d;
+        //add additional default LUA scripts into this array...
+        var scriptNames = new[] { keyGetCacheEntryWithTTL };
+        foreach (var scriptName in scriptNames)
+            LoadLuaScript(this.GetType().Assembly, scriptName);
     }
 
-    const string keyGetCacheEntryWithTTL = "GetCacheEntryWithTTL";
+    const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithTTL);
 
-    LoadedLuaScript GetScriptFromLocalResources(string resourceName)
+    public bool LoadLuaScript(Assembly assembly, string scriptName)
     {
+        var resourceName = scriptName.EndsWith(".lua") ? scriptName : $"CasCap.Resources.{scriptName}.lua";
         var script = string.Empty;
-        var assembly = this.GetType().Assembly;
-        //var resources = assembly.GetManifestResourceNames();
         using (var stream = assembly.GetManifestResourceStream(resourceName))
         {
             if (stream is not null)
@@ -180,9 +183,10 @@ public class RedisCacheService : IRedisCacheService
         }
 
         var luaScript = LuaScript.Prepare(script);
-        _logger.LogDebug("Connecting to redis instance {connectionString}", _cachingOptions.redisConnectionString);
+        _logger.LogDebug("{serviceName}: loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
         var loadedLuaScript = luaScript.Load(server);
-        return loadedLuaScript;
+
+        return LuaScripts.TryAdd(scriptName, loadedLuaScript);
     }
     #endregion
     #endregion

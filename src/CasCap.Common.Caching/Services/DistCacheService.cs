@@ -121,7 +121,7 @@ public class DistCacheService : IDistCacheService
     {
         DeleteLocal(key, false);
         _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
-        _redis.subscriber.Publish(_cachingOptions.ChannelName, $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+        _ = await _redis.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
         _logger.LogDebug("removed {key} from local+shared cache, expiration message sent via pub/sub", key);
     }
 
