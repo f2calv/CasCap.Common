@@ -19,7 +19,7 @@ public static class ThreadingHelpers
     {
         var sw = Stopwatch.StartNew();
         var tasks = new List<Task>();
-        using var throttler = new AsyncNonKeyedLocker();
+        using var throttler = new AsyncNonKeyedLocker(degreeOfParallelism);
         foreach (var element in source)
         {
             tasks.Add(Task.Run(async () =>
