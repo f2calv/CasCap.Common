@@ -1,4 +1,6 @@
-﻿namespace CasCap.Common.Extensions;
+﻿using AsyncKeyedLock;
+
+namespace CasCap.Common.Extensions;
 
 public static class ThreadingHelpers
 {
@@ -17,25 +19,18 @@ public static class ThreadingHelpers
     {
         var sw = Stopwatch.StartNew();
         var tasks = new List<Task>();
-        using (var throttler = new SemaphoreSlim(degreeOfParallelism))
+        using var throttler = new AsyncNonKeyedLocker();
+        foreach (var element in source)
         {
-            foreach (var element in source)
-            {
 #pragma warning disable CAC001 // ConfigureAwaitChecker
-                await throttler.WaitAsync();
+            using (await throttler.LockAsync())
 #pragma warning restore CAC001 // ConfigureAwaitChecker
+            {
                 tasks.Add(Task.Run(async () =>
                 {
-                    try
-                    {
 #pragma warning disable CAC001 // ConfigureAwaitChecker
-                            await body(element);
+                    await body(element);
 #pragma warning restore CAC001 // ConfigureAwaitChecker
-                        }
-                    finally
-                    {
-                        throttler.Release();
-                    }
                 }));
             }
 #pragma warning disable CAC001 // ConfigureAwaitChecker
@@ -48,13 +43,13 @@ public static class ThreadingHelpers
 #if NET6_0_OR_GREATER
     [Obsolete("Use Parallel.ForEachAsync instead")]
 #endif
-    public static async Task<TimeSpan> ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body)
-    {
-        var sw = Stopwatch.StartNew();
-        foreach (var element in source)
+        public static async Task<TimeSpan> ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body)
+        {
+            var sw = Stopwatch.StartNew();
+            foreach (var element in source)
 #pragma warning disable CAC001 // ConfigureAwaitChecker
-            await body(element);
+                await body(element);
 #pragma warning restore CAC001 // ConfigureAwaitChecker
-        return sw.Elapsed;
+            return sw.Elapsed;
+        }
     }
-}
