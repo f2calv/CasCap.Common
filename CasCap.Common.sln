@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Caching", "src\CasCap.Common.Caching\CasCap.Common.Caching.csproj", "{478286C7-9771-4A9A-8366-5DA5AE333A12}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Threading", "src\CasCap.Common.Threading\CasCap.Common.Threading.csproj", "{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Caching.Tests", "src\CasCap.Common.Caching.Tests\CasCap.Common.Caching.Tests.csproj", "{A96CA107-3C35-418D-98F6-50ADA1027A88}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Extensions.Tests", "src\CasCap.Common.Extensions.Tests\CasCap.Common.Extensions.Tests.csproj", "{2B2ED821-FECE-4EFD-AC76-A4D55267D501}"
@@ -111,18 +109,6 @@ Global
 		{478286C7-9771-4A9A-8366-5DA5AE333A12}.Release|x64.Build.0 = Release|Any CPU
 		{478286C7-9771-4A9A-8366-5DA5AE333A12}.Release|x86.ActiveCfg = Release|Any CPU
 		{478286C7-9771-4A9A-8366-5DA5AE333A12}.Release|x86.Build.0 = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|x64.Build.0 = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Debug|x86.Build.0 = Debug|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|x64.ActiveCfg = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|x64.Build.0 = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|x86.ActiveCfg = Release|Any CPU
-		{E7EEF1FB-8A95-4A9D-8904-48CC58F045DE}.Release|x86.Build.0 = Release|Any CPU
 		{A96CA107-3C35-418D-98F6-50ADA1027A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A96CA107-3C35-418D-98F6-50ADA1027A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A96CA107-3C35-418D-98F6-50ADA1027A88}.Debug|x64.ActiveCfg = Debug|Any CPU
