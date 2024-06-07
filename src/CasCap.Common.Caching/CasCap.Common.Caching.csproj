@@ -28,8 +28,5 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\GetCacheEntryWithTTL.lua" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-  </ItemGroup>
 
 </Project>
