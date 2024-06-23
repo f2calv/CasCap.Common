@@ -1,8 +1,5 @@
 # CasCap.Common
 
-[azdo-badge]: https://dev.azure.com/f2calv/github/_apis/build/status/f2calv.CasCap.Common?branchName=master
-[azdo-url]: https://dev.azure.com/f2calv/github/_build/latest?definitionId=6&branchName=master
-[azdo-coverage-url]: https://img.shields.io/azure-devops/coverage/f2calv/github/6
 [cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
 [cascap.common.caching-url]: https://nuget.org/packages/CasCap.Common.Caching
 [cascap.common.extensions-badge]: https://img.shields.io/nuget/v/CasCap.Common.Extensions?color=blue
