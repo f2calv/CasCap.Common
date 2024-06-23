@@ -14,7 +14,7 @@ updates:
       time: "04:00"
 
   - package-ecosystem: nuget
-    directory: "/"
+    directory: /
     schedule:
       interval: weekly
       time: "04:00"
