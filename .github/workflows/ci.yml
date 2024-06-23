@@ -63,7 +63,7 @@ jobs:
     runs-on: windows-latest
     needs: build
     steps:
-      - uses: f2calv/gha-sonarqube@v1
+      - uses: f2calv/gha-sonarqube-dotnet@v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
