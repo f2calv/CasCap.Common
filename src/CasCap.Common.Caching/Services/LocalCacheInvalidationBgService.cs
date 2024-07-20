@@ -2,14 +2,14 @@
 
 namespace CasCap.Services;
 
-public class LocalCacheInvalidationService : BackgroundService
+public class LocalCacheInvalidationBgService : BackgroundService
 {
-    readonly ILogger<LocalCacheInvalidationService> _logger;
+    readonly ILogger<LocalCacheInvalidationBgService> _logger;
     readonly IRedisCacheService _redisCacheSvc;
     readonly IDistCacheService _distCacheSvc;
     readonly CachingOptions _cachingOptions;
 
-    public LocalCacheInvalidationService(ILogger<LocalCacheInvalidationService> logger,
+    public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
         IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -20,7 +20,7 @@ public class LocalCacheInvalidationService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("{type}: {serviceName} starting", nameof(BackgroundService), nameof(LocalCacheInvalidationService));
+        _logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
         try
         {
             await RunServiceAsync(cancellationToken);
@@ -33,7 +33,7 @@ public class LocalCacheInvalidationService : BackgroundService
             _logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        _logger.LogInformation("{type}: {serviceName} exiting", nameof(BackgroundService), nameof(LocalCacheInvalidationService));
+        _logger.LogInformation("{serviceName} exiting", nameof(LocalCacheInvalidationBgService));
     }
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
