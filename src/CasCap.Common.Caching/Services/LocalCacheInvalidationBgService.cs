@@ -65,7 +65,8 @@ public class LocalCacheInvalidationBgService : BackgroundService
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Unsubscribing from redis {channelName}", _cachingOptions.ChannelName);
+                _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
+                    nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
                 await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
                 break;
             }

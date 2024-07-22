@@ -183,7 +183,7 @@ public class RedisCacheService : IRedisCacheService
         }
 
         var luaScript = LuaScript.Prepare(script);
-        _logger.LogDebug("{serviceName}: loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogDebug("{serviceName} loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
         var loadedLuaScript = luaScript.Load(server);
 
         return LuaScripts.TryAdd(scriptName, loadedLuaScript);
