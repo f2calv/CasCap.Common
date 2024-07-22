@@ -61,16 +61,10 @@ public class LocalCacheInvalidationBgService : BackgroundService
             }
         });
 
-        while (true)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
-                    nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-                await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
-                break;
-            }
+        while (!cancellationToken.IsCancellationRequested)
             await Task.Delay(2_500, cancellationToken);
-        }
+        _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
+            nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
+        await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
     }
 }
