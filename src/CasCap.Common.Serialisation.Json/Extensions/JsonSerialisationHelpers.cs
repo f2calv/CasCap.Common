@@ -16,6 +16,10 @@ public static class JsonSerialisationHelpers
 
     public static string ToJSON(this object obj, Formatting formatting) => JsonConvert.SerializeObject(obj, formatting);
 
+    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, settings);
+
+    public static string ToJSON(this object obj, Formatting formatting, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, formatting, settings);
+
     //public static void ToJSON(this object value, Stream s)
     //{
     //    using (var writer = new StreamWriter(s))

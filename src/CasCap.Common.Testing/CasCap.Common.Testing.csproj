@@ -10,15 +10,12 @@
     <Description>Helper library which encapsulates common testing requirements.</Description>
     <PackageTags>extensions,helpers,testing</PackageTags>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
