@@ -10,7 +10,7 @@ public static class DI
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
         services.AddSingleton<IDistCacheService, DistCacheService>();
         services.AddSingleton<AsyncKeyedLocker<string>>();
-        services.AddHostedService<LocalCacheInvalidationService>();
+        services.AddHostedService<LocalCacheInvalidationBgService>();
         services.AddSingleton<IConfigureOptions<CachingOptions>>(s =>
         {
             var configuration = s.GetService<IConfiguration?>();

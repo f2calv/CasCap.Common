@@ -64,7 +64,8 @@ public class DistCacheService : IDistCacheService
             var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
             {
-                _logger.LogTrace("retrieved {key} object type {type} from shared cache", key, typeof(T));
+                _logger.LogTrace("{serviceName} retrieved {key} object type {type} from shared cache",
+                    nameof(DistCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
                 SetLocal(key, cacheEntry, tpl.expiry);
             }
@@ -75,7 +76,8 @@ public class DistCacheService : IDistCacheService
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
-                    _logger.LogTrace("setting {key} object type {type} in local cache", key, typeof(T));
+                    _logger.LogTrace("{serviceName} setting {key} object type {type} in local cache",
+                        nameof(DistCacheService), key, typeof(T));
                     if (cacheEntry is not null)
                     {
                         await Set(key, cacheEntry, ttl);
@@ -84,7 +86,8 @@ public class DistCacheService : IDistCacheService
             }
         }
         else
-            _logger.LogTrace("retrieved {key} object type {type} from local cache", key, typeof(T));
+            _logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
+                nameof(DistCacheService), key, typeof(T));
         return cacheEntry;
     }
 
@@ -114,7 +117,7 @@ public class DistCacheService : IDistCacheService
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _local.Set(key, cacheEntry, options);
-        _logger.LogTrace("set {key} in local cache", key);
+        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(DistCacheService), key);
     }
 
     public async Task Delete(string key)
@@ -122,20 +125,22 @@ public class DistCacheService : IDistCacheService
         DeleteLocal(key, false);
         _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
         _ = await _redis.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
-        _logger.LogDebug("removed {key} from local+shared cache, expiration message sent via pub/sub", key);
+        _logger.LogDebug("{serviceName} removed {key} from local+shared cache, expiration message sent via pub/sub",
+            nameof(DistCacheService), key);
     }
 
     public void DeleteLocal(string key, bool viaPubSub)
     {
         _local.Remove(key);
         if (viaPubSub)
-            _logger.LogDebug("removed {key} from local cache via pub/sub", key);
+            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(DistCacheService), key);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
     {
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
-        _logger.LogTrace("evicted {key} from local cache, reason {reason}", args.key, args.reason);
+        _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
+            nameof(DistCacheService), args.key, args.reason);
     }
 }
