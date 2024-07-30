@@ -32,32 +32,26 @@ public interface IRedisCacheService
 public class RedisCacheService : IRedisCacheService
 {
     readonly ILogger _logger;
+    readonly IConnectionMultiplexer _connectionMultiplexer;
     readonly CachingOptions _cachingOptions;
 
-    public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingOptions> cachingOptions)
+    public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
+        _connectionMultiplexer = connectionMultiplexer;
         _cachingOptions = cachingOptions.Value;
-        configurationOptions = ConfigurationOptions.Parse(_cachingOptions.redisConnectionString);
-        //configurationOptions.ConnectRetry = 20;
-        configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-
         LoadDefaultLuaScripts();
     }
 
-    static ConfigurationOptions configurationOptions { get; set; } = new();
-
-    readonly Lazy<ConnectionMultiplexer> LazyConnection = new(() => ConnectionMultiplexer.Connect(configurationOptions));
-
-    public IConnectionMultiplexer Connection { get { return LazyConnection.Value; } }
+    public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
 
     public IDatabase db { get { return Connection.GetDatabase(); } }
 
     public ISubscriber subscriber { get { return Connection.GetSubscriber(); } }
 
-    public IServer server { get { return Connection.GetServer(configurationOptions.EndPoints[0]); } }
+    public IServer server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
 
     public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
 

@@ -18,7 +18,7 @@ public abstract class TestBase
             .AddXUnitLogging(output);
 
         //add services
-        services.AddCasCapCaching();
+        _ = services.AddCasCapCaching("localhost:6379");
 
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
