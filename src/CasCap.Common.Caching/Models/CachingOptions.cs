@@ -10,9 +10,7 @@ public class CachingOptions
     /// </summary>
     public string pubSubPrefix { get; } = $"{Environment.MachineName}_{AppDomain.CurrentDomain.FriendlyName}_";
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-    public string redisConnectionString { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     public string ChannelName { get; set; } = "expiration";
+
     public int MemoryCacheSizeLimit { get; set; }
 }
