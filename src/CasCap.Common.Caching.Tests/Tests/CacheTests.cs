@@ -62,7 +62,7 @@ public class CacheTests : TestBase
 
         //simple retrieve from cache
         var result = await _distCacheSvc.Get<MyTestClass>(key);
-        Assert.Equal(obj, result);
+        Assert.Equal(obj.ToJSON(), result.ToJSON());
     }
 
     [Fact, Trait("Category", nameof(IDistCacheService))]
