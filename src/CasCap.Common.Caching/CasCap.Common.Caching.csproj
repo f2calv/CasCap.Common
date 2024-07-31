@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for object caching with Redis.</Description>
+    <Description>Helper library for local and remote object caching.</Description>
     <PackageTags>extensions,helpers,caching,redis</PackageTags>
   </PropertyGroup>
 
@@ -16,7 +16,6 @@
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AsyncKeyedLock" Version="6.4.2" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />

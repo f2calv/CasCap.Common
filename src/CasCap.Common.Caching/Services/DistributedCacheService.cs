@@ -1,5 +1,4 @@
-﻿using AsyncKeyedLock;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 namespace CasCap.Services;
 
 public interface IDistributedCacheService
@@ -23,7 +22,6 @@ public interface IDistributedCacheService
 public class DistributedCacheService : IDistributedCacheService
 {
     readonly ILogger _logger;
-    readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
     readonly CachingOptions _cachingOptions;
     readonly IRemoteCacheService _remoteCacheSvc;
     readonly IMemoryCache _localCache;
@@ -32,12 +30,10 @@ public class DistributedCacheService : IDistributedCacheService
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
-        AsyncKeyedLocker<string> asyncKeyedLocker,
         IOptions<CachingOptions> cachingOptions,
         IRemoteCacheService remoteCacheSvc)
     {
         _logger = logger;
-        _asyncKeyedLocker = asyncKeyedLocker;
         _cachingOptions = cachingOptions.Value;
         _remoteCacheSvc = remoteCacheSvc;
         //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
@@ -73,7 +69,7 @@ public class DistributedCacheService : IDistributedCacheService
             else if (createItem is not null)
             {
                 //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
-                using (await _asyncKeyedLocker.LockAsync(key).ConfigureAwait(false))
+                using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();

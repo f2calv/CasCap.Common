@@ -1,5 +1,4 @@
-﻿using AsyncKeyedLock;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
@@ -21,7 +20,6 @@ public static class DI
         //services.AddMemoryCache();//now added inside DistributedCacheService
         services.AddSingleton<IRemoteCacheService, RedisCacheService>();
         services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
-        services.AddSingleton<AsyncKeyedLocker<string>>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
 
         var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);
