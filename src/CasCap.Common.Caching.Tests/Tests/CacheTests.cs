@@ -50,7 +50,7 @@ public class CacheTests : TestBase
         }
     }
 
-    [Fact, Trait("Category", nameof(IDistCacheService))]
+    [Fact, Trait("Category", nameof(IDistributedCacheService))]
     public async Task CacheTest()
     {
         var key = $"{nameof(CacheTest)}";
@@ -65,7 +65,7 @@ public class CacheTests : TestBase
         Assert.Equal(obj.ToJSON(), result.ToJSON());
     }
 
-    [Fact, Trait("Category", nameof(IDistCacheService))]
+    [Fact, Trait("Category", nameof(IDistributedCacheService))]
     public async Task CacheAsidePattern_Manual()
     {
         var key = $"{nameof(CacheAsidePattern_Manual)}";
@@ -84,7 +84,7 @@ public class CacheTests : TestBase
         Assert.Equal(cacheEntry.ToJSON(), cacheEntry2.ToJSON());
     }
 
-    [Fact, Trait("Category", nameof(IDistCacheService))]
+    [Fact, Trait("Category", nameof(IDistributedCacheService))]
     public async Task CacheAsidePattern_Auto()
     {
         var key = $"{nameof(CacheAsidePattern_Auto)}";

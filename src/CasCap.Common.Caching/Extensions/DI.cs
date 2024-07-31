@@ -18,9 +18,9 @@ public static class DI
             services.AddSingleton(options);
         }
 
-        //services.AddMemoryCache();//now added inside DistCacheService
+        //services.AddMemoryCache();//now added inside DistributedCacheService
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
-        services.AddSingleton<IDistCacheService, DistCacheService>();
+        services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
         services.AddSingleton<AsyncKeyedLocker<string>>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
 

@@ -6,11 +6,11 @@ public class LocalCacheInvalidationBgService : BackgroundService
 {
     readonly ILogger<LocalCacheInvalidationBgService> _logger;
     readonly IRedisCacheService _redisCacheSvc;
-    readonly IDistCacheService _distCacheSvc;
+    readonly IDistributedCacheService _distCacheSvc;
     readonly CachingOptions _cachingOptions;
 
     public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-        IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
+        IRedisCacheService redisCacheSvc, IDistributedCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _redisCacheSvc = redisCacheSvc;

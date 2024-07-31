@@ -2,7 +2,7 @@
 
 public abstract class TestBase
 {
-    protected IDistCacheService _distCacheSvc;
+    protected IDistributedCacheService _distCacheSvc;
     protected IRedisCacheService _redisSvc;
 
     public TestBase(ITestOutputHelper output)
@@ -22,7 +22,7 @@ public abstract class TestBase
 
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
-        _distCacheSvc = serviceProvider.GetRequiredService<IDistCacheService>();
+        _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
         _redisSvc = serviceProvider.GetRequiredService<IRedisCacheService>();
     }
 }

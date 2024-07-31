@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 namespace CasCap.Services;
 
-public interface IDistCacheService
+public interface IDistributedCacheService
 {
     event EventHandler<PostEvictionEventArgs> PostEvictionEvent;
 
@@ -21,7 +21,7 @@ public interface IDistCacheService
 /// <summary>
 /// Distributed cache service uses both an in-memory cache (local) AND a remote Redis cache (shared).
 /// </summary>
-public class DistCacheService : IDistCacheService
+public class DistributedCacheService : IDistributedCacheService
 {
     readonly ILogger _logger;
     readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
@@ -32,7 +32,7 @@ public class DistCacheService : IDistCacheService
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    public DistCacheService(ILogger<DistCacheService> logger,
+    public DistributedCacheService(ILogger<DistributedCacheService> logger,
         AsyncKeyedLocker<string> asyncKeyedLocker,
         IOptions<CachingOptions> cachingOptions,
         IRedisCacheService redis//,
@@ -65,7 +65,7 @@ public class DistCacheService : IDistCacheService
             if (tpl != default)
             {
                 _logger.LogTrace("{serviceName} retrieved {key} object type {type} from shared cache",
-                    nameof(DistCacheService), key, typeof(T));
+                    nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
                 SetLocal(key, cacheEntry, tpl.expiry);
             }
@@ -77,7 +77,7 @@ public class DistCacheService : IDistCacheService
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
                     _logger.LogTrace("{serviceName} setting {key} object type {type} in local cache",
-                        nameof(DistCacheService), key, typeof(T));
+                        nameof(DistributedCacheService), key, typeof(T));
                     if (cacheEntry is not null)
                     {
                         await Set(key, cacheEntry, ttl);
@@ -87,7 +87,7 @@ public class DistCacheService : IDistCacheService
         }
         else
             _logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
-                nameof(DistCacheService), key, typeof(T));
+                nameof(DistributedCacheService), key, typeof(T));
         return cacheEntry;
     }
 
@@ -117,7 +117,7 @@ public class DistCacheService : IDistCacheService
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _local.Set(key, cacheEntry, options);
-        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(DistCacheService), key);
+        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(DistributedCacheService), key);
     }
 
     public async Task Delete(string key)
@@ -126,14 +126,14 @@ public class DistCacheService : IDistCacheService
         _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
         _ = await _redis.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
         _logger.LogDebug("{serviceName} removed {key} from local+shared cache, expiration message sent via pub/sub",
-            nameof(DistCacheService), key);
+            nameof(DistributedCacheService), key);
     }
 
     public void DeleteLocal(string key, bool viaPubSub)
     {
         _local.Remove(key);
         if (viaPubSub)
-            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(DistCacheService), key);
+            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(DistributedCacheService), key);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -141,6 +141,6 @@ public class DistCacheService : IDistCacheService
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
         _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
-            nameof(DistCacheService), args.key, args.reason);
+            nameof(DistributedCacheService), args.key, args.reason);
     }
 }
