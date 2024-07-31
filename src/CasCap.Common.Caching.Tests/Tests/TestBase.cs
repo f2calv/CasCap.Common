@@ -7,15 +7,16 @@ public abstract class TestBase
 
     public TestBase(ITestOutputHelper output)
     {
-        var configuration = new ConfigurationBuilder()
-            //.AddCasCapConfiguration()
-            .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
-            .Build();
+        var cachingOptions = Options.Create(new CachingOptions
+        {
+            MemoryCacheSizeLimit = 100,
+            LoadBuiltInLuaScripts = true,
+        });
 
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()
-            .AddSingleton<IConfiguration>(configuration)
-            .AddXUnitLogging(output);
+            .AddXUnitLogging(output)
+            .AddSingleton(cachingOptions);
 
         //add services
         _ = services.AddCasCapCaching("localhost:6379");

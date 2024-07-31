@@ -21,4 +21,6 @@ public class CachingOptions
     /// Specifies how items are prioritized for preservation during a local memory pressure triggered cleanup.
     /// </summary>
     public CacheItemPriority MemoryCacheItemPriority { get; set; } = CacheItemPriority.Normal;
+
+    public bool LoadBuiltInLuaScripts { get; set; } = false;
 }

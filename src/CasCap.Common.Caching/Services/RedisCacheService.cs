@@ -19,7 +19,7 @@ public class RedisCacheService : IRemoteCacheService
         _cachingOptions = cachingOptions.Value;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-        LoadDefaultLuaScripts();
+        if (_cachingOptions.LoadBuiltInLuaScripts) LoadBuiltInLuaScripts();
     }
 
     public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
@@ -61,6 +61,8 @@ public class RedisCacheService : IRemoteCacheService
     [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
     public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
     {
+        if (!_cachingOptions.LoadBuiltInLuaScripts)
+            throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
         (TimeSpan?, T) res = default;
 
         //handle binary format
@@ -130,7 +132,7 @@ public class RedisCacheService : IRemoteCacheService
     #region
     public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = new();
 
-    void LoadDefaultLuaScripts()
+    void LoadBuiltInLuaScripts()
     {
         //add additional default LUA scripts into this array...
         var scriptNames = new[] { keyGetCacheEntryWithTTL };
