@@ -1,4 +1,5 @@
-﻿global using CasCap.Common.Extensions;
+﻿global using CasCap.Abstractions;
+global using CasCap.Common.Extensions;
 global using CasCap.Services;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;

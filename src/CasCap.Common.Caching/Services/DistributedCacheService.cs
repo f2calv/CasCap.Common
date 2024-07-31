@@ -65,7 +65,7 @@ public class DistributedCacheService : IDistributedCacheService
             var tpl = await _remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
             {
-                _logger.LogTrace("{serviceName} retrieved {key} object type {type} from shared cache",
+                _logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
                 SetLocal(key, cacheEntry, tpl.expiry);
@@ -126,7 +126,7 @@ public class DistributedCacheService : IDistributedCacheService
         DeleteLocal(key, false);
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
         _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
-        _logger.LogDebug("{serviceName} removed {key} from local+shared cache, expiration message sent via pub/sub",
+        _logger.LogDebug("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
             nameof(DistributedCacheService), key);
     }
 
