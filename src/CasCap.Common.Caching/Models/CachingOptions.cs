@@ -23,4 +23,12 @@ public class CachingOptions
     public CacheItemPriority MemoryCacheItemPriority { get; set; } = CacheItemPriority.Normal;
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
+
+    public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
+}
+
+public enum LocalCacheType
+{
+    Memory,
+    Disk
 }

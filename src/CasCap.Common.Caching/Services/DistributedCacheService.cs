@@ -13,7 +13,6 @@ public interface IDistributedCacheService
     Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class;
 
     Task Delete(string key);
-    void DeleteLocal(string key, bool viaPubSub = false);
 }
 
 /// <summary>
@@ -24,28 +23,21 @@ public class DistributedCacheService : IDistributedCacheService
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;
     readonly IRemoteCacheService _remoteCacheSvc;
-    readonly IMemoryCache _localCache;
+    readonly ILocalCacheService _localCacheSvc;
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
         IOptions<CachingOptions> cachingOptions,
-        IRemoteCacheService remoteCacheSvc)
+        IRemoteCacheService remoteCacheSvc,
+        ILocalCacheService localCacheSvc)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        _remoteCacheSvc = remoteCacheSvc;
         //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
-        _localCache = new MemoryCache(new MemoryCacheOptions
-        {
-            //Clock,
-            //CompactionPercentage
-            //ExpirationScanFrequency
-            SizeLimit = _cachingOptions.MemoryCacheSizeLimit,
-            //TrackLinkedCacheEntries
-            //TrackStatistics
-        });
+        _remoteCacheSvc = remoteCacheSvc;
+        _localCacheSvc = localCacheSvc;
     }
 
     //todo:store a summary of all cached items in a local lookup dictionary?
@@ -56,7 +48,8 @@ public class DistributedCacheService : IDistributedCacheService
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
-        if (!_localCache.TryGetValue(key, out T? cacheEntry))
+        var cacheEntry = _localCacheSvc.Get<T>(key);
+        if (cacheEntry is null)
         {
             var tpl = await _remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
@@ -64,7 +57,7 @@ public class DistributedCacheService : IDistributedCacheService
                 _logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
-                SetLocal(key, cacheEntry, tpl.expiry);
+                _localCacheSvc.SetLocal(key, cacheEntry, tpl.expiry);
             }
             else if (createItem is not null)
             {
@@ -98,46 +91,15 @@ public class DistributedCacheService : IDistributedCacheService
         var bytes = cacheEntry.ToMessagePack();
         _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
 
-        SetLocal(key, cacheEntry, expiry);
-    }
-
-    void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry) where T : class
-    {
-        var options = new MemoryCacheEntryOptions()
-            // Pin to cache.
-            .SetPriority(_cachingOptions.MemoryCacheItemPriority)
-            // Set cache entry size by extension method.
-            .SetSize(1)
-            // Add eviction callback
-            .RegisterPostEvictionCallback(EvictionCallback/*, this or cacheEntry.GetType()*/)
-            ;
-        if (expiry.HasValue)
-            options.SetAbsoluteExpiration(expiry.Value);
-        _ = _localCache.Set(key, cacheEntry, options);
-        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(DistributedCacheService), key);
+        _localCacheSvc.SetLocal(key, cacheEntry, expiry);
     }
 
     public async Task Delete(string key)
     {
-        DeleteLocal(key, false);
+        _localCacheSvc.DeleteLocal(key, false);
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
         _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
         _logger.LogDebug("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
             nameof(DistributedCacheService), key);
-    }
-
-    public void DeleteLocal(string key, bool viaPubSub)
-    {
-        _localCache.Remove(key);
-        if (viaPubSub)
-            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(DistributedCacheService), key);
-    }
-
-    void EvictionCallback(object key, object value, EvictionReason reason, object state)
-    {
-        var args = new PostEvictionEventArgs(key, value, reason, state);
-        OnRaisePostEvictionEvent(args);
-        _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
-            nameof(DistributedCacheService), args.key, args.reason);
     }
 }

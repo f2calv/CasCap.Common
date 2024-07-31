@@ -6,15 +6,15 @@ public class LocalCacheInvalidationBgService : BackgroundService
 {
     readonly ILogger<LocalCacheInvalidationBgService> _logger;
     readonly IRemoteCacheService _remoteCacheSvc;
-    readonly IDistributedCacheService _distCacheSvc;
+    readonly ILocalCacheService _localCacheSvc;
     readonly CachingOptions _cachingOptions;
 
     public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-        IRemoteCacheService remoteCacheSvc, IDistributedCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
+        IRemoteCacheService remoteCacheSvc, ILocalCacheService localCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _remoteCacheSvc = remoteCacheSvc;
-        _distCacheSvc = distCacheSvc;
+        _localCacheSvc = localCacheSvc;
         _cachingOptions = cachingOptions.Value;
     }
 
@@ -45,7 +45,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
         //{
         //    var key = (string)channelMessage.Message;
-        //    _distCacheSvc.DeleteLocal(key, true);
+        //    _localCacheSvc.DeleteLocal(key, true);
         //});
 
         // Asynchronous handler
@@ -56,7 +56,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
-                _distCacheSvc.DeleteLocal(finalIndex, true);
+                _localCacheSvc.DeleteLocal(finalIndex, true);
                 _ = Interlocked.Increment(ref count);
             }
         });

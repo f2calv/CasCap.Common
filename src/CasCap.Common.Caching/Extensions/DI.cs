@@ -17,7 +17,9 @@ public static class DI
             services.AddSingleton(options);
         }
 
-        //services.AddMemoryCache();//now added inside DistributedCacheService
+        //services.AddMemoryCache();//now added via ILocalCacheService
+        //TODO: allow either memory or disk local cache
+        services.AddSingleton<ILocalCacheService, LocalCacheService>();
         services.AddSingleton<IRemoteCacheService, RedisCacheService>();
         services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
