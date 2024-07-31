@@ -2,6 +2,7 @@
 global using CasCap.Interfaces;
 global using CasCap.Models;
 global using CasCap.Services;
+global using Microsoft.Extensions.Caching.Memory;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;

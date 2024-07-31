@@ -1,5 +1,4 @@
 ﻿using AsyncKeyedLock;
-using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 namespace CasCap.Services;
 
@@ -47,7 +46,12 @@ public class DistributedCacheService : IDistributedCacheService
         //todo:consider a Flags to disable use of local/shared memory in (console) applications that don't need it?
         _local = new MemoryCache(new MemoryCacheOptions
         {
+            //Clock,
+            //CompactionPercentage
+            //ExpirationScanFrequency
             SizeLimit = _cachingOptions.MemoryCacheSizeLimit,
+            //TrackLinkedCacheEntries
+            //TrackStatistics
         });
     }
 
@@ -108,7 +112,7 @@ public class DistributedCacheService : IDistributedCacheService
     {
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
-            .SetPriority(CacheItemPriority.Normal)
+            .SetPriority(_cachingOptions.MemoryCacheItemPriority)
             // Set cache entry size by extension method.
             .SetSize(1)
             // Add eviction callback
