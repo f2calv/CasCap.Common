@@ -5,15 +5,15 @@ namespace CasCap.Services;
 public class LocalCacheInvalidationBgService : BackgroundService
 {
     readonly ILogger<LocalCacheInvalidationBgService> _logger;
-    readonly IRedisCacheService _redisCacheSvc;
+    readonly IRemoteCacheService _remoteCacheSvc;
     readonly IDistributedCacheService _distCacheSvc;
     readonly CachingOptions _cachingOptions;
 
     public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-        IRedisCacheService redisCacheSvc, IDistributedCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
+        IRemoteCacheService remoteCacheSvc, IDistributedCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
-        _redisCacheSvc = redisCacheSvc;
+        _remoteCacheSvc = remoteCacheSvc;
         _distCacheSvc = distCacheSvc;
         _cachingOptions = cachingOptions.Value;
     }
@@ -49,7 +49,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //});
 
         // Asynchronous handler
-        _redisCacheSvc.subscriber.Subscribe(RedisChannel.Literal(_cachingOptions.ChannelName)).OnMessage(async channelMessage =>
+        _remoteCacheSvc.subscriber.Subscribe(RedisChannel.Literal(_cachingOptions.ChannelName)).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
@@ -65,6 +65,6 @@ public class LocalCacheInvalidationBgService : BackgroundService
             await Task.Delay(2_500, cancellationToken);
         _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
+        await _remoteCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
     }
 }

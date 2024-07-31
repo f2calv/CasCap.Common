@@ -3,7 +3,7 @@
 public abstract class TestBase
 {
     protected IDistributedCacheService _distCacheSvc;
-    protected IRedisCacheService _redisSvc;
+    protected IRemoteCacheService _remoteCacheSvc;
 
     public TestBase(ITestOutputHelper output)
     {
@@ -23,6 +23,6 @@ public abstract class TestBase
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
         _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
-        _redisSvc = serviceProvider.GetRequiredService<IRedisCacheService>();
+        _remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
     }
 }

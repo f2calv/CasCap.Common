@@ -18,15 +18,15 @@ public interface IDistributedCacheService
 }
 
 /// <summary>
-/// Distributed cache service uses both an in-memory cache (local) AND a remote Redis cache (shared).
+/// Distributed cache service uses both local cache (dotnet in-memory) and remote (Redis) caches.
 /// </summary>
 public class DistributedCacheService : IDistributedCacheService
 {
     readonly ILogger _logger;
     readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
     readonly CachingOptions _cachingOptions;
-    readonly IRedisCacheService _redis;
-    readonly IMemoryCache _local;
+    readonly IRemoteCacheService _remoteCacheSvc;
+    readonly IMemoryCache _localCache;
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
@@ -34,17 +34,14 @@ public class DistributedCacheService : IDistributedCacheService
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
         AsyncKeyedLocker<string> asyncKeyedLocker,
         IOptions<CachingOptions> cachingOptions,
-        IRedisCacheService redis//,
-                                //IMemoryCache local
-        )
+        IRemoteCacheService remoteCacheSvc)
     {
         _logger = logger;
         _asyncKeyedLocker = asyncKeyedLocker;
         _cachingOptions = cachingOptions.Value;
-        _redis = redis;
-        //_local = local;
-        //todo:consider a Flags to disable use of local/shared memory in (console) applications that don't need it?
-        _local = new MemoryCache(new MemoryCacheOptions
+        _remoteCacheSvc = remoteCacheSvc;
+        //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
+        _localCache = new MemoryCache(new MemoryCacheOptions
         {
             //Clock,
             //CompactionPercentage
@@ -63,9 +60,9 @@ public class DistributedCacheService : IDistributedCacheService
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
-        if (!_local.TryGetValue(key, out T? cacheEntry))
+        if (!_localCache.TryGetValue(key, out T? cacheEntry))
         {
-            var tpl = await _redis.GetCacheEntryWithTTL<T>(key);
+            var tpl = await _remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
             {
                 _logger.LogTrace("{serviceName} retrieved {key} object type {type} from shared cache",
@@ -103,7 +100,7 @@ public class DistributedCacheService : IDistributedCacheService
         var expiry = ttl.GetExpiry();
 
         var bytes = cacheEntry.ToMessagePack();
-        _ = await _redis.SetAsync(key, bytes, expiry);
+        _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
 
         SetLocal(key, cacheEntry, expiry);
     }
@@ -120,22 +117,22 @@ public class DistributedCacheService : IDistributedCacheService
             ;
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
-        _ = _local.Set(key, cacheEntry, options);
+        _ = _localCache.Set(key, cacheEntry, options);
         _logger.LogTrace("{serviceName} set {key} in local cache", nameof(DistributedCacheService), key);
     }
 
     public async Task Delete(string key)
     {
         DeleteLocal(key, false);
-        _ = await _redis.DeleteAsync(key, CommandFlags.FireAndForget);
-        _ = await _redis.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+        _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
+        _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
         _logger.LogDebug("{serviceName} removed {key} from local+shared cache, expiration message sent via pub/sub",
             nameof(DistributedCacheService), key);
     }
 
     public void DeleteLocal(string key, bool viaPubSub)
     {
-        _local.Remove(key);
+        _localCache.Remove(key);
         if (viaPubSub)
             _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(DistributedCacheService), key);
     }

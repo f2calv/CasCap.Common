@@ -8,7 +8,7 @@ public class CacheTests : TestBase
 {
     public CacheTests(ITestOutputHelper output) : base(output) { }
 
-    [Fact, Trait("Category", nameof(IRedisCacheService))]
+    [Fact, Trait("Category", nameof(IRemoteCacheService))]
     public async Task TestRedisTTLRetrievalWithLUAScript()
     {
         //todo: test alongside newly discovered Redis method which returns TTL
@@ -18,10 +18,10 @@ public class CacheTests : TestBase
 
         //insert into cache
         var bytes = obj.ToMessagePack();
-        var result = await _redisSvc.SetAsync(key, bytes, expiry);
+        var result = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
 
         //simple retrieve from cache
-        var result1 = await _redisSvc.GetAsync(key);
+        var result1 = await _remoteCacheSvc.GetAsync(key);
         Assert.NotNull(result1);
         var fromCache = result1.FromMessagePack<MyTestClass>();
         Assert.Equal(obj.ToJSON(), fromCache.ToJSON());//when bytes re-serialised they will never be the same object, so check the contents via json
@@ -29,8 +29,8 @@ public class CacheTests : TestBase
         //sleep 1 second
         await Task.Delay(1_000);
 
-        var t1 = _redisSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
-        var t2 = _redisSvc.GetCacheEntryWithTTL<MyTestClass>(key);
+        var t1 = _remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
+        var t2 = _remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
         var tasks = await Task.WhenAll(t1, t2);
 
         //retrieve object from cache + ttl info

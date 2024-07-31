@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 namespace CasCap.Services;
 
-public interface IRedisCacheService
+public interface IRemoteCacheService
 {
     IConnectionMultiplexer Connection { get; }
     IDatabase db { get; }
@@ -29,7 +29,7 @@ public interface IRedisCacheService
 }
 
 //https://stackexchange.github.io/StackExchange.Redis/
-public class RedisCacheService : IRedisCacheService
+public class RedisCacheService : IRemoteCacheService
 {
     readonly ILogger _logger;
     readonly IConnectionMultiplexer _connectionMultiplexer;
