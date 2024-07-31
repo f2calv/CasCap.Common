@@ -1,13 +1,6 @@
 ﻿namespace CasCap.Services;
 
-public interface ILocalCacheService
-{
-    void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry);
-    T? Get<T>(string key);
-    void DeleteLocal(string key, bool viaPubSub);
-}
-
-public class LocalCacheService : ILocalCacheService
+public class MemoryCacheService : ILocalCacheService
 {
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;
@@ -16,7 +9,7 @@ public class LocalCacheService : ILocalCacheService
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    public LocalCacheService(ILogger<LocalCacheService> logger, IOptions<CachingOptions> cachingOptions)
+    public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
@@ -51,7 +44,7 @@ public class LocalCacheService : ILocalCacheService
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
-        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(LocalCacheService), key);
+        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(MemoryCacheService), key);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -59,13 +52,13 @@ public class LocalCacheService : ILocalCacheService
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
         _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
-            nameof(LocalCacheService), args.key, args.reason);
+            nameof(MemoryCacheService), args.key, args.reason);
     }
 
     public void DeleteLocal(string key, bool viaPubSub)
     {
         _localCache.Remove(key);
         if (viaPubSub)
-            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(LocalCacheService), key);
+            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(MemoryCacheService), key);
     }
 }

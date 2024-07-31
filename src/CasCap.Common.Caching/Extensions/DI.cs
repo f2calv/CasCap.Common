@@ -18,8 +18,9 @@ public static class DI
         }
 
         //services.AddMemoryCache();//now added via ILocalCacheService
-        //TODO: allow either memory or disk local cache
-        services.AddSingleton<ILocalCacheService, LocalCacheService>();
+        //TODO: add feature flag to switch between either memory or disk local cache
+        services.AddSingleton<ILocalCacheService, MemoryCacheService>();
+        //services.AddSingleton<ILocalCacheService, DiskCacheService>();
         services.AddSingleton<IRemoteCacheService, RedisCacheService>();
         services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
