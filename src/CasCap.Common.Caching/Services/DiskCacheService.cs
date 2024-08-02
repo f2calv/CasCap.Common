@@ -116,7 +116,7 @@ public class DiskCacheService : ILocalCacheService
         else if (createItem is not null)
         {
             //we lock here to prevent multiple creations at the same time
-            using (await AsyncDuplicateLock.LockAsync(key))
+            using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
             {
                 // Key not in cache, so populate
                 cacheEntry = await createItem();

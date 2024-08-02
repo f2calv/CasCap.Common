@@ -11,10 +11,13 @@ public interface IRemoteCacheService
     ISubscriber subscriber { get; }
     IServer server { get; }
 
-    byte[]? Get(string key, CommandFlags flags = CommandFlags.None);
-    Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None);
+    string? Get(string key, CommandFlags flags = CommandFlags.None);
+    byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None);
+    Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None);
+    Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None);
 
     bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
+    bool Set(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
     Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
     Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
 

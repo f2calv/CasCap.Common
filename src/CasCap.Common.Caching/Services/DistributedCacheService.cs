@@ -70,7 +70,8 @@ public class DistributedCacheService : IDistributedCacheService
             }
             else if (createItem is not null)
             {
-                //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations occurring at the same time
+                //we lock here to prevent multiple creations occurring at the same time
+                //TODO: integrate Redlock here
                 using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
                 {
                     // Key not in cache, so get data.

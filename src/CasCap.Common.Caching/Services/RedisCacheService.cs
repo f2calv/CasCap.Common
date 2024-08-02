@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -30,9 +29,17 @@ public class RedisCacheService : IRemoteCacheService
 
     public IServer server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
 
-    public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
+    public string? Get(string key, CommandFlags flags = CommandFlags.None)
+        => db.StringGet(key, flags);
 
-    public async Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
+    public byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None)
+        => db.StringGet(key, flags);
+
+    public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
+        => await db.StringGetAsync(key, flags);
+
+    public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
+        => await db.StringGetAsync(key, flags);
 
     public bool Set(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSet(key, value, expiry, flags: flags);
@@ -79,24 +86,35 @@ public class RedisCacheService : IRemoteCacheService
     {
         if (!_cachingOptions.LoadBuiltInLuaScripts)
             throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
-        (TimeSpan?, T) res = default;
 
-        //handle binary format
-        var tpl = await luaGetBytes();
-        if (tpl != default && tpl.bytes is not null)
+        (TimeSpan? expiry, T cacheEntry) tpl = default;
+
+        var res = await luaGet();
+        if (res != default && res.payload is not null)
         {
-            var requestedObject = tpl.bytes.FromMessagePack<T>();
-            var expiry = tpl.ttl.GetExpiry();
-            res = (expiry, requestedObject);
+            tpl.expiry = res.ttl.GetExpiry();
+            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = (string?)res.payload;
+                tpl.cacheEntry = json.FromJSON<T>();
+            }
+            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = (byte[]?)res.payload;
+                tpl.cacheEntry = bytes.FromMessagePack<T>();
+            }
+            else
+                throw new NotSupportedException();
         }
-        return res;
 
-        async Task<(int ttl, byte[]? bytes)> luaGetBytes()
+        return tpl;
+
+        async Task<(int ttl, RedisResult payload)> luaGet()
         {
-            (int, byte[]?) output = default;
+            (int, RedisResult) output = default;
             var tpl = await luaGetCacheEntryWithTTL();
             if (tpl != default)
-                output = (tpl.ttl, (byte[]?)tpl.payload);
+                output = (tpl.ttl, tpl.payload);
             return output;
         }
 
