@@ -15,7 +15,7 @@ public class DiskCacheService : ILocalCacheService
 
     public string CacheSize()
     {
-        var size = Utils.CalculateFolderSize(_cachingOptions.CacheRoot);
+        var size = Utils.CalculateFolderSize(_cachingOptions.DiskCacheFolder);
         if (size > 1024)
         {
             var s = size / 1024;
@@ -27,7 +27,7 @@ public class DiskCacheService : ILocalCacheService
 
     public (int files, int directories) CacheClear()
     {
-        var di = new DirectoryInfo(_cachingOptions.CacheRoot);
+        var di = new DirectoryInfo(_cachingOptions.DiskCacheFolder);
         var files = 0;
         foreach (var file in di.GetFiles())
         {
@@ -60,7 +60,7 @@ public class DiskCacheService : ILocalCacheService
     public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
     {
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
-        _logger.LogDebug("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+        _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
             var json = cacheEntry.ToJSON();
@@ -70,9 +70,9 @@ public class DiskCacheService : ILocalCacheService
 
     string GetKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(_cachingOptions.CacheRoot))
-            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.CacheRoot)}");
-        return Path.Combine(_cachingOptions.CacheRoot, key);
+        if (string.IsNullOrWhiteSpace(_cachingOptions.DiskCacheFolder))
+            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
+        return Path.Combine(_cachingOptions.DiskCacheFolder, key);
     }
 
     public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
@@ -92,7 +92,7 @@ public class DiskCacheService : ILocalCacheService
                 Debug.WriteLine(ex);
                 Debugger.Break();
             }
-            _logger.LogDebug("{serviceName} retrieved cacheEntry {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{serviceName} retrieved cacheEntry {key} from local cache", nameof(DiskCacheService), key);
         }
         else if (createItem is not null)
         {
@@ -101,7 +101,7 @@ public class DiskCacheService : ILocalCacheService
             {
                 // Key not in cache, so get data.
                 cacheEntry = await createItem();
-                _logger.LogDebug("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+                _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
                 if (cacheEntry != null)
                     File.WriteAllText(key, cacheEntry.ToJSON());
             }

@@ -59,6 +59,6 @@ public class MemoryCacheService : ILocalCacheService
     {
         _localCache.Remove(key);
         if (viaPubSub)
-            _logger.LogDebug("{serviceName} removed {key} from local cache via pub/sub", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{serviceName} removed {key} from local cache via pub/sub", nameof(MemoryCacheService), key);
     }
 }

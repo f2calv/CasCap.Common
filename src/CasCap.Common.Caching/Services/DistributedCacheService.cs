@@ -45,7 +45,7 @@ public class DistributedCacheService : IDistributedCacheService
                 _localCacheSvc = localCache;
             if (_localCacheSvc is not null) break;
         }
-        if (_localCacheSvc is null) throw new NotSupportedException();
+        if (_localCacheSvc is null) throw new NotSupportedException($"{nameof(ILocalCacheService)} not assigned!");
     }
 
     //todo:store a summary of all cached items in a local lookup dictionary?
@@ -56,7 +56,7 @@ public class DistributedCacheService : IDistributedCacheService
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
-        var cacheEntry = _localCacheSvc.Get<T>(key);
+        T? cacheEntry = _localCacheSvc.Get<T>(key);
         if (cacheEntry is null)
         {
             var tpl = await _remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
@@ -83,7 +83,7 @@ public class DistributedCacheService : IDistributedCacheService
                 }
             }
         }
-        else
+        else if (cacheEntry is not null)
             _logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
         return cacheEntry;
@@ -105,9 +105,10 @@ public class DistributedCacheService : IDistributedCacheService
     public async Task Delete(string key)
     {
         _localCacheSvc.DeleteLocal(key, false);
+
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
         _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
-        _logger.LogDebug("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
+        _logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
             nameof(DistributedCacheService), key);
     }
 }

@@ -26,7 +26,10 @@ public class CachingOptions
 
     public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
 
-    public string CacheRoot { get; set; } = null!;
+    /// <summary>
+    /// Specifies the root folder where the local disk cache will store serialised files.
+    /// </summary>
+    public string DiskCacheFolder { get; set; } = null!;
 }
 
 public enum LocalCacheType

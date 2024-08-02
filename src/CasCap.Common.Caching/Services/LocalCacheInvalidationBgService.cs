@@ -36,20 +36,21 @@ public class LocalCacheInvalidationBgService : BackgroundService
         _logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
     }
 
+    long count = 0;
+
     async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(0, cancellationToken);
+        var channel = RedisChannel.Literal(_cachingOptions.ChannelName);
 
-        var count = 0L;
         // Synchronous handler
-        //_remoteCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
-        //{
-        //    var key = (string)channelMessage.Message;
-        //    _localCacheSvc.DeleteLocal(key, true);
-        //});
+        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(channelMessage =>
+        {
+            var key = (string)channelMessage.Message;
+            _localCacheSvc.DeleteLocal(key, true);
+        });
 
         // Asynchronous handler
-        _remoteCacheSvc.subscriber.Subscribe(RedisChannel.Literal(_cachingOptions.ChannelName)).OnMessage(async channelMessage =>
+        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
@@ -62,9 +63,11 @@ public class LocalCacheInvalidationBgService : BackgroundService
         });
 
         while (!cancellationToken.IsCancellationRequested)
+        {
             await Task.Delay(2_500, cancellationToken);
-        _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
-            nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _remoteCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
+        }
+        _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
+        nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
+        await _remoteCacheSvc.subscriber.UnsubscribeAsync(channel);
     }
 }
