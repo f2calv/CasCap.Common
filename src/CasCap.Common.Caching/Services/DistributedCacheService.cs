@@ -1,4 +1,6 @@
 ﻿using StackExchange.Redis;
+using System.IO;
+
 namespace CasCap.Services;
 
 public interface IDistributedCacheService
@@ -16,7 +18,7 @@ public interface IDistributedCacheService
 }
 
 /// <summary>
-/// Distributed cache service uses both local cache (dotnet in-memory) and remote (Redis) caches.
+/// Distributed cache service uses both a local cache (dotnet in-memory or disk) and a remote (Redis) cache.
 /// </summary>
 public class DistributedCacheService : IDistributedCacheService
 {
@@ -35,7 +37,6 @@ public class DistributedCacheService : IDistributedCacheService
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
         _remoteCacheSvc = remoteCacheSvc;
         foreach (var localCache in localCacheSvcs)
         {
@@ -96,8 +97,18 @@ public class DistributedCacheService : IDistributedCacheService
     {
         var expiry = ttl.GetExpiry();
 
-        var bytes = cacheEntry.ToMessagePack();
-        _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
+        if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+        {
+            var json = cacheEntry.ToJSON();
+            _ = await _remoteCacheSvc.SetAsync(key, json, expiry);
+        }
+        else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        {
+            var bytes = cacheEntry.ToMessagePack();
+            _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
+        }
+        else
+            throw new NotSupportedException();
 
         _localCacheSvc.SetLocal(key, cacheEntry, expiry);
     }
@@ -107,8 +118,12 @@ public class DistributedCacheService : IDistributedCacheService
         _localCacheSvc.DeleteLocal(key, false);
 
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
-        _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
-        _logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
-            nameof(DistributedCacheService), key);
+
+        if (_cachingOptions.LocalCacheInvalidationEnabled)
+        {
+            _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+            _logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
+                nameof(DistributedCacheService), key);
+        }
     }
 }

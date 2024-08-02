@@ -13,7 +13,7 @@ public class CacheTests : TestBase
     {
         //todo: test alongside newly discovered Redis method which returns TTL
         var key = $"{nameof(TestRedisTTLRetrievalWithLUAScript)}";
-        var expiry = TimeSpan.FromSeconds(60);
+        var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
 
         //insert into cache

@@ -1,5 +1,4 @@
 ﻿using StackExchange.Redis;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -17,6 +16,7 @@ public interface IRemoteCacheService
 
     bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
     Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
+    Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
 
     bool Delete(string key, CommandFlags flags = CommandFlags.None);
     Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None);

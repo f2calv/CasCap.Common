@@ -20,6 +20,8 @@ public class LocalCacheInvalidationBgService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        if (!_cachingOptions.LocalCacheInvalidationEnabled) return;
+
         _logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
         try
         {
@@ -42,12 +44,12 @@ public class LocalCacheInvalidationBgService : BackgroundService
     {
         var channel = RedisChannel.Literal(_cachingOptions.ChannelName);
 
-        // Synchronous handler
-        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(channelMessage =>
-        {
-            var key = (string)channelMessage.Message;
-            _localCacheSvc.DeleteLocal(key, true);
-        });
+        //// Synchronous handler
+        //_remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(channelMessage =>
+        //{
+        //    var key = (string)channelMessage.Message;
+        //    _localCacheSvc.DeleteLocal(key, true);
+        //});
 
         // Asynchronous handler
         _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(async channelMessage =>
@@ -57,17 +59,19 @@ public class LocalCacheInvalidationBgService : BackgroundService
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
-                _localCacheSvc.DeleteLocal(finalIndex, true);
+                _localCacheSvc.DeleteLocal(finalIndex, true); //TODO: replace with async call
                 _ = Interlocked.Increment(ref count);
             }
         });
 
+        //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(2_500, cancellationToken);
+            await Task.Delay(500, cancellationToken);
         }
+
         _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
-        nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
+            nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
         await _remoteCacheSvc.subscriber.UnsubscribeAsync(channel);
     }
 }

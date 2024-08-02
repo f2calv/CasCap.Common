@@ -34,6 +34,8 @@ public class CachingOptions
     /// Specifies the root folder where the local disk cache will store serialised files.
     /// </summary>
     public string DiskCacheFolder { get; set; } = null!;
+
+    public bool LocalCacheInvalidationEnabled { get; set; } = true;
 }
 
 public enum LocalCacheType

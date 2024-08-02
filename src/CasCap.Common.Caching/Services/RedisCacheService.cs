@@ -1,5 +1,5 @@
-﻿using StackExchange.Redis;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -34,8 +34,14 @@ public class RedisCacheService : IRemoteCacheService
 
     public async Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
 
+    public bool Set(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+        => db.StringSet(key, value, expiry, flags: flags);
+
     public bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSet(key, value, expiry, flags: flags);
+
+    public Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+        => db.StringSetAsync(key, value, expiry, flags: flags);
 
     public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSetAsync(key, value, expiry, flags: flags);
@@ -50,11 +56,21 @@ public class RedisCacheService : IRemoteCacheService
         var o = await db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
-            var requestedObject = ((byte[])o.Value)!.FromMessagePack<T>();
-            return (o.Expiry, requestedObject);
+            tpl.expiry = o.Expiry;
+            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = o.Value.ToString();
+                tpl.cacheEntry = json.FromJSON<T>();
+            }
+            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = (byte[])o.Value!;
+                tpl.cacheEntry = bytes.FromMessagePack<T>();
+            }
+            else
+                throw new NotSupportedException();
         }
-        else
-            return tpl;
+        return tpl;
     }
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information

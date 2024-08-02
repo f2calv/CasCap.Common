@@ -11,6 +11,7 @@ public abstract class TestBase
         {
             MemoryCacheSizeLimit = 100,
             LoadBuiltInLuaScripts = true,
+            RemoteCacheSerialisationType = SerialisationType.Json,
         });
 
         //initiate ServiceCollection w/logging
