@@ -5,21 +5,23 @@ namespace CasCap.Services;
 public class LocalCacheInvalidationBgService : BackgroundService
 {
     readonly ILogger<LocalCacheInvalidationBgService> _logger;
-    readonly IRedisCacheService _redisCacheSvc;
-    readonly IDistCacheService _distCacheSvc;
+    readonly IRemoteCacheService _remoteCacheSvc;
+    readonly ILocalCacheService _localCacheSvc;
     readonly CachingOptions _cachingOptions;
 
     public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-        IRedisCacheService redisCacheSvc, IDistCacheService distCacheSvc, IOptions<CachingOptions> cachingOptions)
+        IRemoteCacheService remoteCacheSvc, ILocalCacheService localCacheSvc, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
-        _redisCacheSvc = redisCacheSvc;
-        _distCacheSvc = distCacheSvc;
+        _remoteCacheSvc = remoteCacheSvc;
+        _localCacheSvc = localCacheSvc;
         _cachingOptions = cachingOptions.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        if (!_cachingOptions.LocalCacheInvalidationEnabled) return;
+
         _logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
         try
         {
@@ -33,38 +35,43 @@ public class LocalCacheInvalidationBgService : BackgroundService
             _logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        _logger.LogInformation("{serviceName} exiting", nameof(LocalCacheInvalidationBgService));
+        _logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
     }
+
+    long count = 0;
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        await Task.Delay(0, cancellationToken);
+        var channel = RedisChannel.Literal(_cachingOptions.ChannelName);
 
-        var count = 0L;
-        // Synchronous handler
-        //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
+        //// Synchronous handler
+        //_remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(channelMessage =>
         //{
         //    var key = (string)channelMessage.Message;
-        //    _distCacheSvc.DeleteLocal(key, true);
+        //    _localCacheSvc.DeleteLocal(key, true);
         //});
 
         // Asynchronous handler
-        _redisCacheSvc.subscriber.Subscribe(RedisChannel.Literal(_cachingOptions.ChannelName)).OnMessage(async channelMessage =>
+        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
-                _distCacheSvc.DeleteLocal(finalIndex, true);
+                _localCacheSvc.DeleteLocal(finalIndex, true); //TODO: replace with async call
                 _ = Interlocked.Increment(ref count);
             }
         });
 
+        //keep alive
         while (!cancellationToken.IsCancellationRequested)
-            await Task.Delay(2_500, cancellationToken);
-        _logger.LogInformation("{serviceName} unsubscribing from redis {channelName}",
+        {
+            await Task.Delay(500, cancellationToken);
+        }
+
+        _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _redisCacheSvc.subscriber.UnsubscribeAsync(RedisChannel.Literal(_cachingOptions.ChannelName));
+        await _remoteCacheSvc.subscriber.UnsubscribeAsync(channel);
     }
 }

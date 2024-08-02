@@ -1,5 +1,4 @@
-﻿using AsyncKeyedLock;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
@@ -18,10 +17,12 @@ public static class DI
             services.AddSingleton(options);
         }
 
-        //services.AddMemoryCache();//now added inside DistCacheService
-        services.AddSingleton<IRedisCacheService, RedisCacheService>();
-        services.AddSingleton<IDistCacheService, DistCacheService>();
-        services.AddSingleton<AsyncKeyedLocker<string>>();
+        //services.AddMemoryCache();//now added via MemoryCacheService
+        services.AddSingleton<ILocalCacheService, MemoryCacheService>();
+        services.AddSingleton<ILocalCacheService, DiskCacheService>();
+        services.AddSingleton<IRemoteCacheService, RedisCacheService>();
+        //TODO: add additional IRemoteCacheService here, Postgres?
+        services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
 
         var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);

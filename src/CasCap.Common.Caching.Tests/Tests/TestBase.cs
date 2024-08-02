@@ -2,27 +2,31 @@
 
 public abstract class TestBase
 {
-    protected IDistCacheService _distCacheSvc;
-    protected IRedisCacheService _redisSvc;
+    protected CachingOptions _cachingOptions;
+    protected IDistributedCacheService _distCacheSvc;
+    protected IRemoteCacheService _remoteCacheSvc;
 
     public TestBase(ITestOutputHelper output)
     {
-        var configuration = new ConfigurationBuilder()
-            //.AddCasCapConfiguration()
-            .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
-            .Build();
+        _cachingOptions = new CachingOptions
+        {
+            MemoryCacheSizeLimit = 100,
+            LoadBuiltInLuaScripts = true,
+            //RemoteCacheSerialisationType = SerialisationType.Json,
+        };
+        var cachingOptions = Options.Create(_cachingOptions);
 
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()
-            .AddSingleton<IConfiguration>(configuration)
-            .AddXUnitLogging(output);
+            .AddXUnitLogging(output)
+            .AddSingleton(cachingOptions);
 
         //add services
         _ = services.AddCasCapCaching("localhost:6379");
 
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
-        _distCacheSvc = serviceProvider.GetRequiredService<IDistCacheService>();
-        _redisSvc = serviceProvider.GetRequiredService<IRedisCacheService>();
+        _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
+        _remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
     }
 }

@@ -1,35 +1,11 @@
 ﻿using StackExchange.Redis;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 namespace CasCap.Services;
 
-public interface IRedisCacheService
-{
-    IConnectionMultiplexer Connection { get; }
-    IDatabase db { get; }
-    ISubscriber subscriber { get; }
-    IServer server { get; }
-
-    byte[]? Get(string key, CommandFlags flags = CommandFlags.None);
-    Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None);
-
-    bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
-    Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None);
-
-    bool Delete(string key, CommandFlags flags = CommandFlags.None);
-    Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None);
-
-    Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key);
-    Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
-
-    Dictionary<string, LoadedLuaScript> LuaScripts { get; set; }
-    bool LoadLuaScript(Assembly assembly, string scriptName);
-}
-
 //https://stackexchange.github.io/StackExchange.Redis/
-public class RedisCacheService : IRedisCacheService
+public class RedisCacheService : IRemoteCacheService
 {
     readonly ILogger _logger;
     readonly IConnectionMultiplexer _connectionMultiplexer;
@@ -42,7 +18,7 @@ public class RedisCacheService : IRedisCacheService
         _cachingOptions = cachingOptions.Value;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-        LoadDefaultLuaScripts();
+        if (_cachingOptions.LoadBuiltInLuaScripts) LoadBuiltInLuaScripts();
     }
 
     public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
@@ -53,12 +29,26 @@ public class RedisCacheService : IRedisCacheService
 
     public IServer server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
 
-    public byte[]? Get(string key, CommandFlags flags = CommandFlags.None) => db.StringGet(key, flags);
+    public string? Get(string key, CommandFlags flags = CommandFlags.None)
+        => db.StringGet(key, flags);
 
-    public async Task<byte[]?> GetAsync(string key, CommandFlags flags = CommandFlags.None) => await db.StringGetAsync(key, flags);
+    public byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None)
+        => db.StringGet(key, flags);
+
+    public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
+        => await db.StringGetAsync(key, flags);
+
+    public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
+        => await db.StringGetAsync(key, flags);
+
+    public bool Set(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+        => db.StringSet(key, value, expiry, flags: flags);
 
     public bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSet(key, value, expiry, flags: flags);
+
+    public Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
+        => db.StringSetAsync(key, value, expiry, flags: flags);
 
     public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
         => db.StringSetAsync(key, value, expiry, flags: flags);
@@ -73,35 +63,58 @@ public class RedisCacheService : IRedisCacheService
         var o = await db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
-            var requestedObject = ((byte[])o.Value)!.FromMessagePack<T>();
-            return (o.Expiry, requestedObject);
+            tpl.expiry = o.Expiry;
+            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = o.Value.ToString();
+                tpl.cacheEntry = json.FromJSON<T>();
+            }
+            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = (byte[])o.Value!;
+                tpl.cacheEntry = bytes.FromMessagePack<T>();
+            }
+            else
+                throw new NotSupportedException();
         }
-        else
-            return tpl;
+        return tpl;
     }
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information
     [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
     public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
     {
-        (TimeSpan?, T) res = default;
+        if (!_cachingOptions.LoadBuiltInLuaScripts)
+            throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
 
-        //handle binary format
-        var tpl = await luaGetBytes();
-        if (tpl != default && tpl.bytes is not null)
+        (TimeSpan? expiry, T cacheEntry) tpl = default;
+
+        var res = await luaGet();
+        if (res != default && res.payload is not null)
         {
-            var requestedObject = tpl.bytes.FromMessagePack<T>();
-            var expiry = tpl.ttl.GetExpiry();
-            res = (expiry, requestedObject);
+            tpl.expiry = res.ttl.GetExpiry();
+            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = (string?)res.payload;
+                tpl.cacheEntry = json.FromJSON<T>();
+            }
+            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = (byte[]?)res.payload;
+                tpl.cacheEntry = bytes.FromMessagePack<T>();
+            }
+            else
+                throw new NotSupportedException();
         }
-        return res;
 
-        async Task<(int ttl, byte[]? bytes)> luaGetBytes()
+        return tpl;
+
+        async Task<(int ttl, RedisResult payload)> luaGet()
         {
-            (int, byte[]?) output = default;
+            (int, RedisResult) output = default;
             var tpl = await luaGetCacheEntryWithTTL();
             if (tpl != default)
-                output = (tpl.ttl, (byte[]?)tpl.payload);
+                output = (tpl.ttl, tpl.payload);
             return output;
         }
 
@@ -153,7 +166,7 @@ public class RedisCacheService : IRedisCacheService
     #region
     public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = new();
 
-    void LoadDefaultLuaScripts()
+    void LoadBuiltInLuaScripts()
     {
         //add additional default LUA scripts into this array...
         var scriptNames = new[] { keyGetCacheEntryWithTTL };
@@ -177,7 +190,7 @@ public class RedisCacheService : IRedisCacheService
         }
 
         var luaScript = LuaScript.Prepare(script);
-        _logger.LogDebug("{serviceName} loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogTrace("{serviceName} loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
         var loadedLuaScript = luaScript.Load(server);
 
         return LuaScripts.TryAdd(scriptName, loadedLuaScript);

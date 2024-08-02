@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="appsettings.Test.json" CopyToOutputDirectory="Always" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Caching\CasCap.Common.Caching.csproj" />
     <ProjectReference Include="..\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj" />
     <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
