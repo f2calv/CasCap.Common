@@ -17,11 +17,11 @@ public static class DI
             services.AddSingleton(options);
         }
 
-        //services.AddMemoryCache();//now added via ILocalCacheService
-        //TODO: add feature flag to switch between either memory or disk local cache
+        //services.AddMemoryCache();//now added via MemoryCacheService
         services.AddSingleton<ILocalCacheService, MemoryCacheService>();
-        //services.AddSingleton<ILocalCacheService, DiskCacheService>();
+        services.AddSingleton<ILocalCacheService, DiskCacheService>();
         services.AddSingleton<IRemoteCacheService, RedisCacheService>();
+        //TODO: add additional IRemoteCacheService here, Postgres?
         services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
         services.AddHostedService<LocalCacheInvalidationBgService>();
 

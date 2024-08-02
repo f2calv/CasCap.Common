@@ -2,24 +2,20 @@
 using System.IO;
 namespace CasCap.Services;
 
-public class DiskCacheService
+public class DiskCacheService : ILocalCacheService
 {
     readonly ILogger _logger;
+    readonly CachingOptions _cachingOptions;
 
-    public DiskCacheService(ILogger<DiskCacheService> logger)
+    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
+        _cachingOptions = cachingOptions.Value;
     }
-
-    readonly AsyncDuplicateLock locker = new();
-
-    public string CacheRoot { get; set; } = string.Empty;
-
-    public bool IsEnabled { get; set; } = true;
 
     public string CacheSize()
     {
-        var size = Utils.CalculateFolderSize(CacheRoot);
+        var size = Utils.CalculateFolderSize(_cachingOptions.CacheRoot);
         if (size > 1024)
         {
             var s = size / 1024;
@@ -31,7 +27,7 @@ public class DiskCacheService
 
     public (int files, int directories) CacheClear()
     {
-        var di = new DirectoryInfo(CacheRoot);
+        var di = new DirectoryInfo(_cachingOptions.CacheRoot);
         var files = 0;
         foreach (var file in di.GetFiles())
         {
@@ -47,23 +43,46 @@ public class DiskCacheService
         return (files, directories);
     }
 
-    public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, bool skipCache = false, CancellationToken token = default) where T : class
+    public T? Get<T>(string key)
     {
-        //Debug.WriteLine(key);
-        var (output, fromCache) = await GetAsyncV2(key, createItem, skipCache, token);
-        return output;
-    }
-
-    //V2 returns a boolean indicating the source of the data
-    public async Task<(T output, bool fromCache)> GetAsyncV2<T>(string key, Func<Task<T>> createItem = null, bool skipCache = false, CancellationToken token = default) where T : class
-    {
-        var fromCache = false;
-        key = $"{CacheRoot}/{key}";
+        key = GetKey(key);
         T cacheEntry;
-        if (IsEnabled && File.Exists(key) && !skipCache)
+        if (File.Exists(key))
         {
             var json = File.ReadAllText(key);
-            cacheEntry = null;
+            cacheEntry = json.FromJSON<T>();
+        }
+        else
+            cacheEntry = default;
+        return cacheEntry;
+    }
+
+    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
+    {
+        //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
+        _logger.LogDebug("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+        if (cacheEntry != null)
+        {
+            var json = cacheEntry.ToJSON();
+            File.WriteAllText(key, cacheEntry.ToJSON());
+        }
+    }
+
+    string GetKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(_cachingOptions.CacheRoot))
+            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.CacheRoot)}");
+        return Path.Combine(_cachingOptions.CacheRoot, key);
+    }
+
+    public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
+    {
+        key = GetKey(key);
+        T cacheEntry = default;
+        if (File.Exists(key))
+        {
+            var json = File.ReadAllText(key);
+            cacheEntry = default;
             try
             {
                 cacheEntry = json.FromJSON<T>();
@@ -73,28 +92,27 @@ public class DiskCacheService
                 Debug.WriteLine(ex);
                 Debugger.Break();
             }
-            _logger.LogDebug($"{key}\tretrieved cacheEntry from local cache");
-            fromCache = true;
+            _logger.LogDebug("{serviceName} retrieved cacheEntry {key} from local cache", nameof(DiskCacheService), key);
         }
-        else
+        else if (createItem is not null)
         {
-            //if we use Func and go create the cacheEntry, then we lock here to prevent multiple going at the same time
+            //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations at the same time
             using (await AsyncDuplicateLock.LockAsync(key))
             {
                 // Key not in cache, so get data.
                 cacheEntry = await createItem();
-                _logger.LogDebug($"{key}\tattempted to populate a new cacheEntry object");
-                if (cacheEntry != null && IsEnabled)
+                _logger.LogDebug("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+                if (cacheEntry != null)
                     File.WriteAllText(key, cacheEntry.ToJSON());
             }
         }
-        return (cacheEntry, fromCache);
+        return cacheEntry;
     }
 
-    public void Delete(string key)
+    public void DeleteLocal(string key, bool viaPubSub)
     {
-        var path = Path.Combine(CacheRoot, key);
-        if (File.Exists(path))
-            File.Delete(path);
+        key = GetKey(key);
+        if (File.Exists(key))
+            File.Delete(key);
     }
 }

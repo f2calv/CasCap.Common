@@ -33,7 +33,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
             _logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        _logger.LogInformation("{serviceName} exiting", nameof(LocalCacheInvalidationBgService));
+        _logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
     }
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
 
         var count = 0L;
         // Synchronous handler
-        //_redisCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
+        //_remoteCacheSvc.subscriber.Subscribe(_cachingOptions.ChannelName).OnMessage(channelMessage =>
         //{
         //    var key = (string)channelMessage.Message;
         //    _localCacheSvc.DeleteLocal(key, true);

@@ -25,6 +25,8 @@ public class CachingOptions
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
     public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
+
+    public string CacheRoot { get; set; } = null!;
 }
 
 public enum LocalCacheType

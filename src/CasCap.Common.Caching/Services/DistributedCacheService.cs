@@ -31,13 +31,21 @@ public class DistributedCacheService : IDistributedCacheService
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
         IOptions<CachingOptions> cachingOptions,
         IRemoteCacheService remoteCacheSvc,
-        ILocalCacheService localCacheSvc)
+        IEnumerable<ILocalCacheService> localCacheSvcs)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
         //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
         _remoteCacheSvc = remoteCacheSvc;
-        _localCacheSvc = localCacheSvc;
+        foreach (var localCache in localCacheSvcs)
+        {
+            if (_cachingOptions.LocalCacheType == LocalCacheType.Disk && localCache.GetType() == typeof(DiskCacheService))
+                _localCacheSvc = localCache;
+            else if (_cachingOptions.LocalCacheType == LocalCacheType.Memory && localCache.GetType() == typeof(MemoryCacheService))
+                _localCacheSvc = localCache;
+            if (_localCacheSvc is not null) break;
+        }
+        if (_localCacheSvc is null) throw new NotSupportedException();
     }
 
     //todo:store a summary of all cached items in a local lookup dictionary?
