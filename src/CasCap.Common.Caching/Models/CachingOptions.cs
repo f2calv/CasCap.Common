@@ -26,6 +26,10 @@ public class CachingOptions
 
     public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
 
+    public SerialisationType DiskCacheSerialisationType { get; set; } = SerialisationType.Json;
+
+    public SerialisationType RemoteCacheSerialisationType { get; set; } = SerialisationType.MessagePack;
+
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialised files.
     /// </summary>
@@ -36,4 +40,10 @@ public enum LocalCacheType
 {
     Memory,
     Disk
+}
+
+public enum SerialisationType
+{
+    Json,
+    MessagePack
 }

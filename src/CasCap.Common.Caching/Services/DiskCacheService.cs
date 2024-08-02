@@ -49,8 +49,18 @@ public class DiskCacheService : ILocalCacheService
         T cacheEntry;
         if (File.Exists(key))
         {
-            var json = File.ReadAllText(key);
-            cacheEntry = json.FromJSON<T>();
+            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = File.ReadAllText(key);
+                cacheEntry = json.FromJSON<T>();
+            }
+            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = File.ReadAllBytes(key);
+                cacheEntry = bytes.FromMessagePack<T>();
+            }
+            else
+                throw new NotSupportedException();
         }
         else
             cacheEntry = default;
@@ -63,8 +73,18 @@ public class DiskCacheService : ILocalCacheService
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
-            var json = cacheEntry.ToJSON();
-            File.WriteAllText(key, cacheEntry.ToJSON());
+            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            {
+                var json = cacheEntry.ToJSON();
+                File.WriteAllText(key, json);
+            }
+            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            {
+                var bytes = cacheEntry.ToMessagePack();
+                File.WriteAllBytes(key, bytes);
+            }
+            else
+                throw new NotSupportedException();
         }
     }
 
@@ -82,28 +102,27 @@ public class DiskCacheService : ILocalCacheService
         if (File.Exists(key))
         {
             var json = File.ReadAllText(key);
-            cacheEntry = default;
             try
             {
                 cacheEntry = json.FromJSON<T>();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex);
+                _logger.LogError(ex, "{serviceName} deserialisation error for {key}", nameof(DiskCacheService), key);
                 Debugger.Break();
             }
-            _logger.LogTrace("{serviceName} retrieved cacheEntry {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{serviceName} retrieved cacheEntry {key}", nameof(DiskCacheService), key);
         }
         else if (createItem is not null)
         {
-            //if we use Func and go create the cacheEntry, then we lock here to prevent multiple creations at the same time
+            //we lock here to prevent multiple creations at the same time
             using (await AsyncDuplicateLock.LockAsync(key))
             {
-                // Key not in cache, so get data.
+                // Key not in cache, so populate
                 cacheEntry = await createItem();
                 _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
                 if (cacheEntry != null)
-                    File.WriteAllText(key, cacheEntry.ToJSON());
+                    SetLocal(key, cacheEntry, null);
             }
         }
         return cacheEntry;
