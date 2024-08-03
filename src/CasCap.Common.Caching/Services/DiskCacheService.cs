@@ -7,15 +7,18 @@ public class DiskCacheService : ILocalCacheService
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;
 
+    public string DiskCacheFolder { get; set; } = string.Empty;
+
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
+        DiskCacheFolder = _cachingOptions.DiskCacheFolder;
     }
 
     public string CacheSize()
     {
-        var size = Utils.CalculateFolderSize(_cachingOptions.DiskCacheFolder);
+        var size = Utils.CalculateFolderSize(DiskCacheFolder);
         if (size > 1024)
         {
             var s = size / 1024;
@@ -27,7 +30,7 @@ public class DiskCacheService : ILocalCacheService
 
     public (int files, int directories) CacheClear()
     {
-        var di = new DirectoryInfo(_cachingOptions.DiskCacheFolder);
+        var di = new DirectoryInfo(DiskCacheFolder);
         var files = 0;
         foreach (var file in di.GetFiles())
         {
@@ -90,9 +93,9 @@ public class DiskCacheService : ILocalCacheService
 
     string GetKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(_cachingOptions.DiskCacheFolder))
+        if (string.IsNullOrWhiteSpace(DiskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
-        return Path.Combine(_cachingOptions.DiskCacheFolder, key);
+        return Path.Combine(DiskCacheFolder, key);
     }
 
     public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
