@@ -70,7 +70,7 @@ public class DiskCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
+    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);

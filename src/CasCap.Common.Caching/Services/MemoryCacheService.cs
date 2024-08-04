@@ -31,7 +31,7 @@ public class MemoryCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
+    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
