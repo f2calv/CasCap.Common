@@ -24,8 +24,6 @@ public class CachingOptions
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
-    public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
-
     public SerialisationType DiskCacheSerialisationType { get; set; } = SerialisationType.Json;
 
     public SerialisationType RemoteCacheSerialisationType { get; set; } = SerialisationType.MessagePack;

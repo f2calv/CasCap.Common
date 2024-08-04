@@ -1,5 +1,4 @@
 ﻿using StackExchange.Redis;
-using System.IO;
 
 namespace CasCap.Services;
 
@@ -33,20 +32,12 @@ public class DistributedCacheService : IDistributedCacheService
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
         IOptions<CachingOptions> cachingOptions,
         IRemoteCacheService remoteCacheSvc,
-        IEnumerable<ILocalCacheService> localCacheSvcs)
+        ILocalCacheService localCacheSvc)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
         _remoteCacheSvc = remoteCacheSvc;
-        foreach (var localCache in localCacheSvcs)
-        {
-            if (_cachingOptions.LocalCacheType == LocalCacheType.Disk && localCache.GetType() == typeof(DiskCacheService))
-                _localCacheSvc = localCache;
-            else if (_cachingOptions.LocalCacheType == LocalCacheType.Memory && localCache.GetType() == typeof(MemoryCacheService))
-                _localCacheSvc = localCache;
-            if (_localCacheSvc is not null) break;
-        }
-        if (_localCacheSvc is null) throw new NotSupportedException($"{nameof(ILocalCacheService)} not assigned!");
+        _localCacheSvc = localCacheSvc;
     }
 
     //todo:store a summary of all cached items in a local lookup dictionary?
