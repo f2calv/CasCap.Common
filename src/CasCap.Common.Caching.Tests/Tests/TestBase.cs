@@ -2,31 +2,33 @@
 
 public abstract class TestBase
 {
-    protected CachingOptions _cachingOptions;
+    protected ITestOutputHelper _testOutputHelper;
     protected IDistributedCacheService _distCacheSvc;
-    protected IRemoteCacheService _remoteCacheSvc;
 
-    public TestBase(ITestOutputHelper output)
+    protected const string remoteCacheConnectionString = "localhost:6379";
+
+    public TestBase(ITestOutputHelper testOutputHelper)
     {
-        _cachingOptions = new CachingOptions
-        {
-            MemoryCacheSizeLimit = 100,
-            LoadBuiltInLuaScripts = true,
-            //RemoteCacheSerialisationType = SerialisationType.Json,
-        };
-        var cachingOptions = Options.Create(_cachingOptions);
+        _testOutputHelper = testOutputHelper;
+
+        //var cachingOptions = Options.Create(new CachingOptions
+        //{
+        //    MemoryCacheSizeLimit = 100,
+        //    //LoadBuiltInLuaScripts = true,
+        //    //RemoteCache = new CacheOptions() { SerialisationType = SerialisationType.Json },
+        //});
 
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()
-            .AddXUnitLogging(output)
-            .AddSingleton(cachingOptions);
+            .AddXUnitLogging(testOutputHelper)
+            //.AddSingleton(cachingOptions)
+            ;
 
         //add services
-        _ = services.AddCasCapCaching("localhost:6379");
+        _ = services.AddCasCapCaching(remoteCacheConnectionString);
 
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
         _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
-        _remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
     }
 }

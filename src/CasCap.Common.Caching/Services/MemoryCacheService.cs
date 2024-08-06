@@ -39,7 +39,7 @@ public class MemoryCacheService : ILocalCacheService
             // Set cache entry size by extension method.
             .SetSize(1)
             // Add eviction callback
-            .RegisterPostEvictionCallback(EvictionCallback/*, this or cacheEntry.GetType()*/)
+            .RegisterPostEvictionCallback(EvictionCallback!/*, this or cacheEntry.GetType()*/)
             ;
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);

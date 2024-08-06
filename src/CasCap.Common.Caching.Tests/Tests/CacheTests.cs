@@ -1,5 +1,4 @@
-﻿using MessagePack;
-namespace CasCap.Common.Caching.Tests;
+﻿namespace CasCap.Common.Caching.Tests;
 
 /// <summary>
 /// Integration tests with a dependency on a running Redis instance.
@@ -11,48 +10,56 @@ public class CacheTests : TestBase
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json)]
     [InlineData(SerialisationType.MessagePack)]
-    public async Task TestRedisTTLRetrievalWithLUAScript(SerialisationType RemoteCacheSerialisationType)
+    public async Task TestRemoteCacheTTLRetrievalWithLUAScript(SerialisationType RemoteCacheSerialisationType)
     {
-        //todo: test alongside newly discovered Redis method which returns TTL
-        var key = $"{RemoteCacheSerialisationType}:{nameof(TestRedisTTLRetrievalWithLUAScript)}";
+        var key = $"{nameof(TestRemoteCacheTTLRetrievalWithLUAScript)}:{RemoteCacheSerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
+
+        var cachingOptions = new CachingOptions
+        {
+            LoadBuiltInLuaScripts = true,
+            RemoteCache = new CacheOptions { SerialisationType = RemoteCacheSerialisationType }
+        };
+        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        var serviceProvider = services.BuildServiceProvider();
+        var remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
 
         MyTestClass fromCache;
         if (RemoteCacheSerialisationType == SerialisationType.Json)
         {
             //insert into cache
             var json = obj.ToJSON();
-            var result = await _remoteCacheSvc.SetAsync(key, json, expiry);
+            var result = await remoteCacheSvc.SetAsync(key, json, expiry);
 
-            //simple retrieve from cache
-            var result1 = await _remoteCacheSvc.GetAsync(key);
-            Assert.NotNull(result1);
-            fromCache = result1.FromJSON<MyTestClass>();
+            //retrieve from cache
+            var resultString = await remoteCacheSvc.GetAsync(key);
+            Assert.NotNull(resultString);
+            Assert.Equal(json, resultString);
+            fromCache = resultString.FromJSON<MyTestClass>();
         }
         else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
         {
             //insert into cache
             var bytes = obj.ToMessagePack();
-            var result = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
+            var result = await remoteCacheSvc.SetAsync(key, bytes, expiry);
 
-            //simple retrieve from cache
-            var result1 = await _remoteCacheSvc.GetBytesAsync(key);
-            Assert.NotNull(result1);
-            fromCache = result1.FromMessagePack<MyTestClass>();
+            //retrieve from cache
+            var resultBytes = await remoteCacheSvc.GetBytesAsync(key);
+            Assert.NotNull(resultBytes);
+            Assert.Equal(bytes, resultBytes);
+            fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
             throw new NotSupportedException();
-        Assert.Equal(obj.ToJSON(), fromCache.ToJSON());//when bytes re-serialised they will never be the same object, so check the contents via json
+        Assert.Equal(obj, fromCache);
 
-        //TODO: exit tests early, need to refactor these
-        return;
-        /*
         //sleep 1 second
         await Task.Delay(1_000);
 
-        var t1 = _remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
-        var t2 = _remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
+        var t1 = remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
+        var t2 = remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
         var tasks = await Task.WhenAll(t1, t2);
 
         //retrieve object from cache + ttl info
@@ -60,30 +67,34 @@ public class CacheTests : TestBase
             var result2a = tasks[0];
             Assert.NotEqual(default, result2a);
 
-            Assert.Equal(obj.ToJSON(), result2a.cacheEntry.ToJSON());
+            Assert.Equal(obj, result2a.cacheEntry);
             Assert.True(result2a.expiry.Value.TotalSeconds < expiry.TotalSeconds);
         }
         {
             var result2b = tasks[1];
             Assert.NotEqual(default, result2b);
 
-            Assert.Equal(obj.ToJSON(), result2b.cacheEntry.ToJSON());
-        */
+            Assert.Equal(obj, result2b.cacheEntry);
+        }
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]
     public async Task CacheTest()
     {
+        //Arrange
         var key = $"{nameof(CacheTest)}";
-        var ttl = 60;
-
-        //insert into cache
+        var ttl = 5;
         var obj = new MyTestClass();
+
+        //Act
+        //insert into cache
         await _distCacheSvc.Set(key, obj, ttl);
 
-        //simple retrieve from cache
+        //retrieve from cache
         var result = await _distCacheSvc.Get<MyTestClass>(key);
-        Assert.Equal(obj.ToJSON(), result.ToJSON());
+
+        //Assert
+        Assert.Equal(obj, result);
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]
@@ -102,7 +113,7 @@ public class CacheTests : TestBase
         var cacheEntry2 = await _distCacheSvc.Get<MyTestClass>(key);
         Assert.NotNull(cacheEntry2);
 
-        Assert.Equal(cacheEntry.ToJSON(), cacheEntry2.ToJSON());
+        Assert.Equal(cacheEntry, cacheEntry2);
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]
@@ -123,7 +134,71 @@ public class CacheTests : TestBase
         Assert.NotNull(cacheEntry2);
 
         //todo: need to override object Equals() for this to work?
-        Assert.Equal(cacheEntry.ToJSON(), cacheEntry2.ToJSON());
+        Assert.Equal(cacheEntry, cacheEntry2);
+    }
+
+    [Theory, Trait("Category", "ExtensionMethods")]
+    [InlineData(CacheType.Memory, 1)]
+    [InlineData(CacheType.Memory, 2)]
+    [InlineData(CacheType.Memory, 3)]
+    [InlineData(CacheType.Memory, 4)]
+    [InlineData(CacheType.Disk, 1)]
+    [InlineData(CacheType.Disk, 2)]
+    [InlineData(CacheType.Disk, 3)]
+    [InlineData(CacheType.Disk, 4)]
+    public void ExtensionMethodsTest1(CacheType LocalCacheType, int extensionType)
+    {
+        //Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var key = $"{nameof(CacheTests)}:{nameof(ExtensionMethodsTest1)}";
+        var cacheEntry = new MyTestClass();
+
+        //Act
+        if (extensionType == 1)
+            services.AddCasCapCaching(LocalCacheType: LocalCacheType);
+        else if (extensionType == 2)
+        {
+            var configuration = new ConfigurationBuilder()
+                //.AddCasCapConfiguration()
+                .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
+                .Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddCasCapCaching(configuration, LocalCacheType: LocalCacheType);
+        }
+        else if (extensionType == 3)
+        {
+            var cachingOptions = new CachingOptions
+            {
+
+            };
+            services.AddCasCapCaching(cachingOptions);
+        }
+        else if (extensionType == 4)
+        {
+            services.AddCasCapCaching(options =>
+            {
+                // Specify default option values
+                //options.DiskCacheFolder = "testing123";
+            }, LocalCacheType: LocalCacheType);
+        }
+
+        var serviceProvider = services.BuildServiceProvider();
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+
+        var localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
+        //var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
+        //var remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
+
+        localCacheSvc.SetLocal(key, cacheEntry);
+        var cacheResult = localCacheSvc.Get<MyTestClass>(key);
+
+        //Assert
+        Assert.NotNull(loggerFactory);
+        Assert.NotNull(localCacheSvc);
+        Assert.NotNull(cacheResult);
+        Assert.Equal(cacheResult, cacheEntry);
     }
 }
 
@@ -147,4 +222,16 @@ public class MyTestClass
 {
     public int ID { get; set; } = 1337;
     public DateTime utcNow { get; set; } = DateTime.UtcNow;
+
+    public override bool Equals(object obj)
+    {
+        return obj is MyTestClass @class &&
+               ID == @class.ID &&
+               utcNow == @class.utcNow;
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }

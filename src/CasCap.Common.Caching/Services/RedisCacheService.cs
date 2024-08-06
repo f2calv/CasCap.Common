@@ -64,12 +64,12 @@ public class RedisCacheService : IRemoteCacheService
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
             tpl.expiry = o.Expiry;
-            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
             {
                 var json = o.Value.ToString();
                 tpl.cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = (byte[])o.Value!;
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
@@ -93,12 +93,12 @@ public class RedisCacheService : IRemoteCacheService
         if (res != default && res.payload is not null)
         {
             tpl.expiry = res.ttl.GetExpiry();
-            if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
             {
                 var json = (string?)res.payload;
                 tpl.cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = (byte[]?)res.payload;
                 tpl.cacheEntry = bytes.FromMessagePack<T>();

@@ -2,6 +2,9 @@
 
 public class CachingOptions
 {
+    /// <summary>
+    /// Configuration sub-section locator key.
+    /// </summary>
     public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
@@ -24,26 +27,37 @@ public class CachingOptions
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
-    public SerialisationType DiskCacheSerialisationType { get; set; } = SerialisationType.Json;
+    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.Json };
 
-    public SerialisationType RemoteCacheSerialisationType { get; set; } = SerialisationType.MessagePack;
+    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.MessagePack };
 
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialised files.
     /// </summary>
-    public string DiskCacheFolder { get; set; } = null!;
+    public string DiskCacheFolder { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
 
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 }
 
-public enum LocalCacheType
+public class CacheOptions
 {
-    Memory,
-    Disk
+    public bool ClearOnStartup { get; set; } = false;
+    public SerialisationType SerialisationType { get; set; } = SerialisationType.MessagePack;
+}
+
+public enum CacheType
+{
+    None = 0,
+    Memory = 1,
+    Disk = 2,
+    Redis = 4,
+    //ValKey
+    //Postgres
 }
 
 public enum SerialisationType
 {
-    Json,
-    MessagePack
+    None = 0,
+    Json = 1,
+    MessagePack = 2
 }

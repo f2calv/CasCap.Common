@@ -89,12 +89,12 @@ public class DistributedCacheService : IDistributedCacheService
     {
         var expiry = ttl.GetExpiry();
 
-        if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+        if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
         {
             var json = cacheEntry.ToJSON();
             _ = await _remoteCacheSvc.SetAsync(key, json, expiry);
         }
-        else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
         {
             var bytes = cacheEntry.ToMessagePack();
             _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);

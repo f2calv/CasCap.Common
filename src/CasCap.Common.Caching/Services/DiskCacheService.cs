@@ -52,12 +52,12 @@ public class DiskCacheService : ILocalCacheService
         T cacheEntry;
         if (File.Exists(key))
         {
-            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
             {
                 var json = File.ReadAllText(key);
                 cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = File.ReadAllBytes(key);
                 cacheEntry = bytes.FromMessagePack<T>();
@@ -76,12 +76,12 @@ public class DiskCacheService : ILocalCacheService
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
-            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
             {
                 var json = cacheEntry.ToJSON();
                 File.WriteAllText(key, json);
             }
-            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 File.WriteAllBytes(key, bytes);
