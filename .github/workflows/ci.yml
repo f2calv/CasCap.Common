@@ -32,11 +32,6 @@ jobs:
     uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1
 
   build:
-    #no point using matrix build as "Container operations are only supported on Linux runners"
-    # strategy:
-    #   matrix:
-    #     os: [ubuntu-latest,windows-latest]
-    # runs-on: ${{matrix.os}}
     runs-on: ubuntu-latest
     services:
       redis:
@@ -44,11 +39,7 @@ jobs:
         ports:
           - 6379:6379
     outputs:
-      # SemVer: ${{ steps.dotnet.outputs.SemVer }}
-      # FullSemVer: ${{ steps.dotnet.outputs.FullSemVer }}
       BuildConfiguration: ${{ steps.dotnet.outputs.BuildConfiguration }}
-    # env:
-    #   PublishPreview: ${{ inputs.PublishPreview }}
     steps:
       - #uses: f2calv/gha-dotnet-nuget@v1
         uses: f2calv/gha-dotnet-nuget@f2calv/2024-08-codecoverage
