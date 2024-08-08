@@ -14,6 +14,7 @@ public class DiskCacheService : ILocalCacheService
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
         DiskCacheFolder = _cachingOptions.DiskCacheFolder;
+        if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
     }
 
     public string CacheSize()
@@ -28,7 +29,7 @@ public class DiskCacheService : ILocalCacheService
             return $"0kb";
     }
 
-    public (int files, int directories) CacheClear()
+    public (int files, int directories) DeleteAll()
     {
         var di = new DirectoryInfo(DiskCacheFolder);
         var files = 0;

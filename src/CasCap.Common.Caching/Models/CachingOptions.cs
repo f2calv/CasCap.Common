@@ -27,6 +27,8 @@ public class CachingOptions
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
+    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.None };
+
     public CacheOptions DiskCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.Json };
 
     public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.MessagePack };

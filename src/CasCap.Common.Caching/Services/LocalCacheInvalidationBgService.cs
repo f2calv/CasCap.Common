@@ -52,7 +52,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //});
 
         // Asynchronous handler
-        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(async channelMessage =>
+        _remoteCacheSvc.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
@@ -73,6 +73,6 @@ public class LocalCacheInvalidationBgService : BackgroundService
 
         _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _remoteCacheSvc.subscriber.UnsubscribeAsync(channel);
+        await _remoteCacheSvc.Subscriber.UnsubscribeAsync(channel);
     }
 }

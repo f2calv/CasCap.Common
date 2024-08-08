@@ -8,9 +8,11 @@ public class CacheTests : TestBase
     public CacheTests(ITestOutputHelper output) : base(output) { }
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json)]
-    [InlineData(SerialisationType.MessagePack)]
-    public async Task TestRemoteCacheTTLRetrievalWithLUAScript(SerialisationType RemoteCacheSerialisationType)
+    [InlineData(SerialisationType.Json, true)]
+    [InlineData(SerialisationType.Json, false)]
+    [InlineData(SerialisationType.MessagePack, true)]
+    [InlineData(SerialisationType.MessagePack, false)]
+    public async Task TestRemoteCacheTTLRetrievalWithLUAScript(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
     {
         var key = $"{nameof(TestRemoteCacheTTLRetrievalWithLUAScript)}:{RemoteCacheSerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
@@ -19,7 +21,11 @@ public class CacheTests : TestBase
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { SerialisationType = RemoteCacheSerialisationType }
+            RemoteCache = new CacheOptions
+            {
+                SerialisationType = RemoteCacheSerialisationType,
+                ClearOnStartup = ClearOnStartup
+            },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);

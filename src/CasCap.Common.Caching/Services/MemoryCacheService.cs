@@ -6,6 +6,8 @@ public class MemoryCacheService : ILocalCacheService
     readonly CachingOptions _cachingOptions;
     readonly IMemoryCache _localCache;
 
+    HashSet<string> _cacheKeys = new();
+
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
@@ -13,7 +15,6 @@ public class MemoryCacheService : ILocalCacheService
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
         _localCache = new MemoryCache(new MemoryCacheOptions
         {
             //Clock,
@@ -23,6 +24,7 @@ public class MemoryCacheService : ILocalCacheService
             //TrackLinkedCacheEntries
             //TrackStatistics
         });
+        if (_cachingOptions.MemoryCache.ClearOnStartup) DeleteAll();
     }
 
     public T? Get<T>(string key)
@@ -44,11 +46,13 @@ public class MemoryCacheService : ILocalCacheService
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
+        _cacheKeys.Add(key);
         _logger.LogTrace("{serviceName} set {key} in local cache", nameof(MemoryCacheService), key);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
     {
+        _cacheKeys.Remove((string)key);
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
         _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
@@ -61,8 +65,15 @@ public class MemoryCacheService : ILocalCacheService
         if (cacheEntry is not null)
         {
             _localCache.Remove(key);
+            _cacheKeys.Remove(key);
             return true;
         }
         return false;
+    }
+
+    public void DeleteAll()
+    {
+        foreach (var cacheKey in _cacheKeys)
+            DeleteLocal(cacheKey);
     }
 }

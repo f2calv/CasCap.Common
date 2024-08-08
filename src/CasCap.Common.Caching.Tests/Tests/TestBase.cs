@@ -5,7 +5,7 @@ public abstract class TestBase
     protected ITestOutputHelper _testOutputHelper;
     protected IDistributedCacheService _distCacheSvc;
 
-    protected const string remoteCacheConnectionString = "localhost:6379";
+    protected const string remoteCacheConnectionString = "localhost:6379,allowAdmin=true";
 
     public TestBase(ITestOutputHelper testOutputHelper)
     {
