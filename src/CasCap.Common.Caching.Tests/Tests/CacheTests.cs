@@ -1,6 +1,4 @@
-﻿using CasCap.Models;
-
-namespace CasCap.Common.Caching.Tests;
+﻿namespace CasCap.Common.Caching.Tests;
 
 /// <summary>
 /// Integration tests with a dependency on a running Redis instance.
@@ -9,17 +7,19 @@ public class CacheTests : TestBase
 {
     public CacheTests(ITestOutputHelper output) : base(output) { }
 
+    //TODO: create TestRemoteCacheAsync test method
+
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json, true)]
     [InlineData(SerialisationType.Json, false)]
     [InlineData(SerialisationType.MessagePack, true)]
     [InlineData(SerialisationType.MessagePack, false)]
-    public async Task TestRemoteCacheTTLRetrievalWithLUAScript(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
+    public async Task TestRemoteCache(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
     {
-        var key = $"{nameof(TestRemoteCacheTTLRetrievalWithLUAScript)}:{RemoteCacheSerialisationType}";
+        //Arrange
+        var key = $"{nameof(TestRemoteCache)}:{RemoteCacheSerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
-
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
@@ -39,7 +39,7 @@ public class CacheTests : TestBase
         {
             //insert into cache
             var json = obj.ToJSON();
-            var result = await remoteCacheSvc.SetAsync(key, json, expiry);
+            var result = remoteCacheSvc.Set(key, json, expiry);
 
             //retrieve from cache
             var resultString = await remoteCacheSvc.GetAsync(key);
@@ -51,10 +51,10 @@ public class CacheTests : TestBase
         {
             //insert into cache
             var bytes = obj.ToMessagePack();
-            var result = await remoteCacheSvc.SetAsync(key, bytes, expiry);
+            var result = remoteCacheSvc.Set(key, bytes, expiry);
 
             //retrieve from cache
-            var resultBytes = await remoteCacheSvc.GetBytesAsync(key);
+            var resultBytes = remoteCacheSvc.GetBytes(key);
             Assert.NotNull(resultBytes);
             Assert.Equal(bytes, resultBytes);
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
@@ -64,7 +64,7 @@ public class CacheTests : TestBase
         Assert.Equal(obj, fromCache);
 
         //sleep 1 second
-        await Task.Delay(1_000);
+        System.Threading.Thread.Sleep(1_000);
 
         var t1 = remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
         var t2 = remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
@@ -84,6 +84,10 @@ public class CacheTests : TestBase
 
             Assert.Equal(obj, result2b.cacheEntry);
         }
+        var outcome = remoteCacheSvc.Delete(key);
+        Assert.True(outcome);
+        var res = remoteCacheSvc.Get(key);
+        Assert.Null(res);
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]
