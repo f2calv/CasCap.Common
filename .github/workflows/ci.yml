@@ -53,7 +53,7 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ github.event.inputs.configuration }}
           publish-preview: ${{ github.event.inputs.publish-preview }}
-          semVer: ${{ needs.versioning.outputs.semVer }}
+          version: ${{ needs.versioning.outputs.semVer }}
 
   release:
     needs: [versioning, build]
