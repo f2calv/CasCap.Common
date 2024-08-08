@@ -96,7 +96,7 @@ public class DiskCacheService : ILocalCacheService
     {
         if (string.IsNullOrWhiteSpace(DiskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
-        return Path.Combine(DiskCacheFolder, key);
+        return Path.Combine(DiskCacheFolder, key.Replace(":", "_"));
     }
 
     public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
