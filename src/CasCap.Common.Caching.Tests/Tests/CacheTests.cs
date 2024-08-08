@@ -8,6 +8,7 @@ public class CacheTests : TestBase
     public CacheTests(ITestOutputHelper output) : base(output) { }
 
     //TODO: create TestRemoteCacheAsync test method
+    //TODO: split test methods into single responsibility
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json, true, CacheType.Memory)]
