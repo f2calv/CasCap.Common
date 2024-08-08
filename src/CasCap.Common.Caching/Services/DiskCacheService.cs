@@ -131,10 +131,14 @@ public class DiskCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void DeleteLocal(string key, bool viaPubSub)
+    public bool DeleteLocal(string key)
     {
         key = GetKey(key);
         if (File.Exists(key))
+        {
             File.Delete(key);
+            return true;
+        }
+        return false;
     }
 }

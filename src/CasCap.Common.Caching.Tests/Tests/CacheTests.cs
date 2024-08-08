@@ -193,12 +193,16 @@ public class CacheTests : TestBase
 
         localCacheSvc.SetLocal(key, cacheEntry);
         var cacheResult = localCacheSvc.Get<MyTestClass>(key);
+        var deleteSuccess = localCacheSvc.DeleteLocal(key);
+        var deleteFailure = localCacheSvc.DeleteLocal(Guid.NewGuid().ToString());
 
         //Assert
         Assert.NotNull(loggerFactory);
         Assert.NotNull(localCacheSvc);
         Assert.NotNull(cacheResult);
         Assert.Equal(cacheResult, cacheEntry);
+        Assert.True(deleteSuccess);
+        Assert.False(deleteFailure);
     }
 }
 

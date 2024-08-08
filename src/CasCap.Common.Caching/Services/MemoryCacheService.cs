@@ -55,10 +55,14 @@ public class MemoryCacheService : ILocalCacheService
             nameof(MemoryCacheService), args.key, args.reason);
     }
 
-    public void DeleteLocal(string key, bool viaPubSub)
+    public bool DeleteLocal(string key)
     {
-        _localCache.Remove(key);
-        if (viaPubSub)
-            _logger.LogTrace("{serviceName} removed {key} from local cache via pub/sub", nameof(MemoryCacheService), key);
+        _localCache.TryGetValue(key, out object? cacheEntry);
+        if (cacheEntry is not null)
+        {
+            _localCache.Remove(key);
+            return true;
+        }
+        return false;
     }
 }

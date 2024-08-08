@@ -59,7 +59,8 @@ public class LocalCacheInvalidationBgService : BackgroundService
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
-                _localCacheSvc.DeleteLocal(finalIndex, true); //TODO: replace with async call
+                if (_localCacheSvc.DeleteLocal(finalIndex))
+                    _logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), key);
                 _ = Interlocked.Increment(ref count);
             }
         });

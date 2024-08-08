@@ -107,7 +107,7 @@ public class DistributedCacheService : IDistributedCacheService
 
     public async Task Delete(string key)
     {
-        _localCacheSvc.DeleteLocal(key, false);
+        _localCacheSvc.DeleteLocal(key);
 
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
 
