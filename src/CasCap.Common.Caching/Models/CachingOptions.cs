@@ -1,4 +1,6 @@
-﻿namespace CasCap.Models;
+﻿using System.IO;
+
+namespace CasCap.Models;
 
 public class CachingOptions
 {
@@ -36,7 +38,7 @@ public class CachingOptions
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialised files.
     /// </summary>
-    public string DiskCacheFolder { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+    public string DiskCacheFolder { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 }

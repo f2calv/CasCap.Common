@@ -14,6 +14,7 @@ public class DiskCacheService : ILocalCacheService
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
         DiskCacheFolder = _cachingOptions.DiskCacheFolder;
+        if (!Directory.Exists(DiskCacheFolder)) Directory.CreateDirectory(DiskCacheFolder);
         if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
     }
 
@@ -73,6 +74,7 @@ public class DiskCacheService : ILocalCacheService
 
     public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
+        key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
