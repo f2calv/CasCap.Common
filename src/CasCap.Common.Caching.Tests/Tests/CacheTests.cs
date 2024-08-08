@@ -207,6 +207,7 @@ public class CacheTests : TestBase
         var cacheResult = localCacheSvc.Get<MyTestClass>(key);
         var deleteSuccess = localCacheSvc.DeleteLocal(key);
         var deleteFailure = localCacheSvc.DeleteLocal(Guid.NewGuid().ToString());
+        _ = localCacheSvc.DeleteAll();
 
         //Assert
         Assert.NotNull(loggerFactory);

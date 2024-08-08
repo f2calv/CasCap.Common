@@ -71,9 +71,13 @@ public class MemoryCacheService : ILocalCacheService
         return false;
     }
 
-    public void DeleteAll()
+    public long DeleteAll()
     {
+        var i = 0L;
         foreach (var cacheKey in _cacheKeys)
-            DeleteLocal(cacheKey);
+        {
+            if (DeleteLocal(cacheKey)) i++;
+        }
+        return i;
     }
 }

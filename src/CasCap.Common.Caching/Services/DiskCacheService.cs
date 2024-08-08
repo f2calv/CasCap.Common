@@ -29,22 +29,22 @@ public class DiskCacheService : ILocalCacheService
             return $"0kb";
     }
 
-    public (int files, int directories) DeleteAll()
+    public long DeleteAll()
     {
         var di = new DirectoryInfo(DiskCacheFolder);
-        var files = 0;
+        var files = 0L;
         foreach (var file in di.GetFiles())
         {
             file.Delete();
             files++;
         }
-        var directories = 0;
+        var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
             dir.Delete(true);
             directories++;
         }
-        return (files, directories);
+        return files;
     }
 
     public T? Get<T>(string key)
