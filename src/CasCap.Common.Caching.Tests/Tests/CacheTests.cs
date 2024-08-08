@@ -10,14 +10,18 @@ public class CacheTests : TestBase
     //TODO: create TestRemoteCacheAsync test method
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json, true)]
-    [InlineData(SerialisationType.Json, false)]
-    [InlineData(SerialisationType.MessagePack, true)]
-    [InlineData(SerialisationType.MessagePack, false)]
-    public async Task TestRemoteCache(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
+    [InlineData(SerialisationType.Json, true, CacheType.Memory)]
+    [InlineData(SerialisationType.Json, false, CacheType.Memory)]
+    [InlineData(SerialisationType.Json, true, CacheType.Disk)]
+    [InlineData(SerialisationType.Json, false, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, true, CacheType.Memory)]
+    [InlineData(SerialisationType.MessagePack, false, CacheType.Memory)]
+    [InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
+    public async Task TestRemoteCache(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(TestRemoteCache)}:{RemoteCacheSerialisationType}";
+        var key = $"{nameof(TestRemoteCache)}:{RemoteCacheSerialisationType}:{LocalCacheType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -30,7 +34,7 @@ public class CacheTests : TestBase
             },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
         var serviceProvider = services.BuildServiceProvider();
         var remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
 
@@ -149,7 +153,7 @@ public class CacheTests : TestBase
         Assert.Equal(cacheEntry, cacheEntry2);
     }
 
-    [Theory, Trait("Category", "ExtensionMethods")]
+    [Theory, Trait("Category", "ServiceCollection")]
     [InlineData(CacheType.Memory, 1)]
     [InlineData(CacheType.Memory, 2)]
     [InlineData(CacheType.Memory, 3)]
@@ -158,12 +162,12 @@ public class CacheTests : TestBase
     [InlineData(CacheType.Disk, 2)]
     [InlineData(CacheType.Disk, 3)]
     [InlineData(CacheType.Disk, 4)]
-    public void ExtensionMethodsTest1(CacheType LocalCacheType, int extensionType)
+    public void ServiceCollectionSetupTests(CacheType LocalCacheType, int extensionType)
     {
         //Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        var key = $"{nameof(CacheTests)}:{nameof(ExtensionMethodsTest1)}";
+        var key = $"{nameof(CacheTests)}:{nameof(ServiceCollectionSetupTests)}";
         var cacheEntry = new MyTestClass();
 
         //Act
