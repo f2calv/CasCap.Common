@@ -64,7 +64,7 @@ public class DiskCacheService : ILocalCacheService
                 cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
         }
         else
             cacheEntry = default;
@@ -88,7 +88,7 @@ public class DiskCacheService : ILocalCacheService
                 File.WriteAllBytes(key, bytes);
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
         }
     }
 

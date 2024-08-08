@@ -100,7 +100,7 @@ public class DistributedCacheService : IDistributedCacheService
             _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
         }
         else
-            throw new NotSupportedException();
+            throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
 
         _localCacheSvc.SetLocal(key, cacheEntry, expiry);
     }

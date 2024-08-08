@@ -1,4 +1,6 @@
-﻿namespace CasCap.Common.Caching.Tests;
+﻿using CasCap.Models;
+
+namespace CasCap.Common.Caching.Tests;
 
 /// <summary>
 /// Integration tests with a dependency on a running Redis instance.
@@ -58,7 +60,7 @@ public class CacheTests : TestBase
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
-            throw new NotSupportedException();
+            throw new NotSupportedException($"{nameof(RemoteCacheSerialisationType)} {RemoteCacheSerialisationType} is not supported!");
         Assert.Equal(obj, fromCache);
 
         //sleep 1 second

@@ -81,7 +81,7 @@ public class RedisCacheService : IRemoteCacheService
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
         }
         return tpl;
     }
@@ -110,7 +110,7 @@ public class RedisCacheService : IRemoteCacheService
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
         }
 
         return tpl;
