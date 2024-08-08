@@ -149,7 +149,6 @@ public class CacheTests : TestBase
         var cacheEntry2 = await _distCacheSvc.Get(key, () => APIService.GetAsync());
         Assert.NotNull(cacheEntry2);
 
-        //todo: need to override object Equals() for this to work?
         Assert.Equal(cacheEntry, cacheEntry2);
     }
 
@@ -186,7 +185,7 @@ public class CacheTests : TestBase
         {
             var cachingOptions = new CachingOptions
             {
-
+                //DiskCacheFolder = "testing123"
             };
             services.AddCasCapCaching(cachingOptions);
         }
