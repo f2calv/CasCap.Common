@@ -12,12 +12,12 @@ public class CacheTests : TestBase
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json, true, CacheType.Memory)]
     [InlineData(SerialisationType.Json, false, CacheType.Memory)]
-    //[InlineData(SerialisationType.Json, true, CacheType.Disk)]
-    //[InlineData(SerialisationType.Json, false, CacheType.Disk)]
+    [InlineData(SerialisationType.Json, true, CacheType.Disk)]
+    [InlineData(SerialisationType.Json, false, CacheType.Disk)]
     [InlineData(SerialisationType.MessagePack, true, CacheType.Memory)]
     [InlineData(SerialisationType.MessagePack, false, CacheType.Memory)]
-    //[InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
-    //[InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
     public async Task TestRemoteCache(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
