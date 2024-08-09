@@ -7,9 +7,10 @@ namespace CasCap.Abstractions;
 public interface IRemoteCacheService
 {
     IConnectionMultiplexer Connection { get; }
-    IDatabase db { get; }
-    ISubscriber subscriber { get; }
-    IServer server { get; }
+    IDatabase Db { get; }
+    ISubscriber Subscriber { get; }
+    IServer Server { get; }
+    int DatabaseId { get; }
 
     string? Get(string key, CommandFlags flags = CommandFlags.None);
     byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None);

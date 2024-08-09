@@ -1,5 +1,4 @@
 ﻿using StackExchange.Redis;
-using System.IO;
 
 namespace CasCap.Services;
 
@@ -33,20 +32,12 @@ public class DistributedCacheService : IDistributedCacheService
     public DistributedCacheService(ILogger<DistributedCacheService> logger,
         IOptions<CachingOptions> cachingOptions,
         IRemoteCacheService remoteCacheSvc,
-        IEnumerable<ILocalCacheService> localCacheSvcs)
+        ILocalCacheService localCacheSvc)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
         _remoteCacheSvc = remoteCacheSvc;
-        foreach (var localCache in localCacheSvcs)
-        {
-            if (_cachingOptions.LocalCacheType == LocalCacheType.Disk && localCache.GetType() == typeof(DiskCacheService))
-                _localCacheSvc = localCache;
-            else if (_cachingOptions.LocalCacheType == LocalCacheType.Memory && localCache.GetType() == typeof(MemoryCacheService))
-                _localCacheSvc = localCache;
-            if (_localCacheSvc is not null) break;
-        }
-        if (_localCacheSvc is null) throw new NotSupportedException($"{nameof(ILocalCacheService)} not assigned!");
+        _localCacheSvc = localCacheSvc;
     }
 
     //todo:store a summary of all cached items in a local lookup dictionary?
@@ -98,31 +89,31 @@ public class DistributedCacheService : IDistributedCacheService
     {
         var expiry = ttl.GetExpiry();
 
-        if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.Json)
+        if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
         {
             var json = cacheEntry.ToJSON();
             _ = await _remoteCacheSvc.SetAsync(key, json, expiry);
         }
-        else if (_cachingOptions.RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
         {
             var bytes = cacheEntry.ToMessagePack();
             _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
         }
         else
-            throw new NotSupportedException();
+            throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
 
         _localCacheSvc.SetLocal(key, cacheEntry, expiry);
     }
 
     public async Task Delete(string key)
     {
-        _localCacheSvc.DeleteLocal(key, false);
+        _localCacheSvc.DeleteLocal(key);
 
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
 
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await _remoteCacheSvc.subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
+            _ = await _remoteCacheSvc.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}{key}", CommandFlags.FireAndForget);
             _logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
                 nameof(DistributedCacheService), key);
         }

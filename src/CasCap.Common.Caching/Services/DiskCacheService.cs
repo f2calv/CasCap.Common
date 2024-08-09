@@ -7,15 +7,20 @@ public class DiskCacheService : ILocalCacheService
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;
 
+    public string DiskCacheFolder { get; set; } = string.Empty;
+
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
+        DiskCacheFolder = _cachingOptions.DiskCacheFolder;
+        if (!Directory.Exists(DiskCacheFolder)) Directory.CreateDirectory(DiskCacheFolder);
+        if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
     }
 
     public string CacheSize()
     {
-        var size = Utils.CalculateFolderSize(_cachingOptions.DiskCacheFolder);
+        var size = Utils.CalculateFolderSize(DiskCacheFolder);
         if (size > 1024)
         {
             var s = size / 1024;
@@ -25,22 +30,22 @@ public class DiskCacheService : ILocalCacheService
             return $"0kb";
     }
 
-    public (int files, int directories) CacheClear()
+    public long DeleteAll()
     {
-        var di = new DirectoryInfo(_cachingOptions.DiskCacheFolder);
-        var files = 0;
+        var di = new DirectoryInfo(DiskCacheFolder);
+        var files = 0L;
         foreach (var file in di.GetFiles())
         {
             file.Delete();
             files++;
         }
-        var directories = 0;
+        var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
             dir.Delete(true);
             directories++;
         }
-        return (files, directories);
+        return files;
     }
 
     public T? Get<T>(string key)
@@ -49,50 +54,51 @@ public class DiskCacheService : ILocalCacheService
         T cacheEntry;
         if (File.Exists(key))
         {
-            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
             {
                 var json = File.ReadAllText(key);
                 cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = File.ReadAllBytes(key);
                 cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
         }
         else
             cacheEntry = default;
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
+    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
+        key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
-            if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
             {
                 var json = cacheEntry.ToJSON();
                 File.WriteAllText(key, json);
             }
-            else if (_cachingOptions.DiskCacheSerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 File.WriteAllBytes(key, bytes);
             }
             else
-                throw new NotSupportedException();
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
         }
     }
 
     string GetKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(_cachingOptions.DiskCacheFolder))
+        if (string.IsNullOrWhiteSpace(DiskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
-        return Path.Combine(_cachingOptions.DiskCacheFolder, key);
+        return Path.Combine(DiskCacheFolder, key.Replace(":", "_"));
     }
 
     public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
@@ -128,10 +134,14 @@ public class DiskCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void DeleteLocal(string key, bool viaPubSub)
+    public bool DeleteLocal(string key)
     {
         key = GetKey(key);
         if (File.Exists(key))
+        {
             File.Delete(key);
+            return true;
+        }
+        return false;
     }
 }

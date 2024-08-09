@@ -1,7 +1,11 @@
-﻿namespace CasCap.Common.Extensions;
+﻿using Microsoft.Extensions.Logging;
+
+namespace CasCap.Common.Extensions;
 
 public static class JsonSerialisationHelpers
 {
+    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerialisationHelpers));
+
     //https://stackoverflow.com/questions/24066400/checking-for-empty-or-null-jtoken-in-a-jobject/24067483#24067483
     public static bool IsNullOrEmpty(this JToken token)
     {
@@ -12,13 +16,24 @@ public static class JsonSerialisationHelpers
                token.Type == JTokenType.Null;
     }
 
-    public static string ToJSON(this object obj) => JsonConvert.SerializeObject(obj, Formatting.None);
+    public static string ToJSON(this object obj) => obj.ToJSON(formatting: Formatting.None, settings: null);
 
-    public static string ToJSON(this object obj, Formatting formatting) => JsonConvert.SerializeObject(obj, formatting);
+    public static string ToJSON(this object obj, Formatting formatting) => obj.ToJSON(formatting, settings: null);
 
-    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, settings);
+    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => obj.ToJSON(Formatting.None, settings);
 
-    public static string ToJSON(this object obj, Formatting formatting, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, formatting, settings);
+    public static string ToJSON(this object obj, Formatting formatting = Formatting.None, JsonSerializerSettings? settings = null)
+    {
+        try
+        {
+            return JsonConvert.SerializeObject(obj, formatting, settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"{nameof(JsonConvert.SerializeObject)} failed");
+            throw;
+        }
+    }
 
     //public static void ToJSON(this object value, Stream s)
     //{
@@ -39,7 +54,7 @@ public static class JsonSerialisationHelpers
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            _logger.LogError(ex, $"{nameof(JsonConvert.DeserializeObject)} failed");
             throw;
         }
     }

@@ -17,6 +17,7 @@
     <ProjectReference Include="..\CasCap.Common.Serialisation.MessagePack\CasCap.Common.Serialisation.MessagePack.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />

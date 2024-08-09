@@ -7,12 +7,14 @@ public class ExtensionTests : TestBase
     [Fact]
     public void UnixTimeMS()
     {
+        //Arrange
         var dt = DateTime.UtcNow;
 
+        //Act
         var unixMS = dt.ToUnixTimeMS();
-
         var utcNow = unixMS.FromUnixTimeMS();
-        //another Equals() issue...
-        Assert.True(dt.ToString() == utcNow.ToString());
+        
+        //Assert
+        Assert.Equal(dt.ToString(), utcNow.ToString());
     }
 }

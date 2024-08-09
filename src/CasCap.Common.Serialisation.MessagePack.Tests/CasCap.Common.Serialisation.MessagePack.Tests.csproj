@@ -2,15 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>CasCap.Common.Caching</RootNamespace>
+    <RootNamespace>CasCap.Common.Serialisation.Json.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="appsettings.Test.json" CopyToOutputDirectory="Always" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CasCap.Common.Caching\CasCap.Common.Caching.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Serialisation.MessagePack\CasCap.Common.Serialisation.MessagePack.csproj" />
     <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>

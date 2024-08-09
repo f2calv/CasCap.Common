@@ -52,14 +52,15 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //});
 
         // Asynchronous handler
-        _remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(async channelMessage =>
+        _remoteCacheSvc.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             await Task.Delay(0, cancellationToken);
             var key = (string?)channelMessage.Message;
             if (key is not null && !key.StartsWith(_cachingOptions.pubSubPrefix))
             {
                 var finalIndex = key.Split('_')[2];
-                _localCacheSvc.DeleteLocal(finalIndex, true); //TODO: replace with async call
+                if (_localCacheSvc.DeleteLocal(finalIndex))
+                    _logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), key);
                 _ = Interlocked.Increment(ref count);
             }
         });
@@ -72,6 +73,6 @@ public class LocalCacheInvalidationBgService : BackgroundService
 
         _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _remoteCacheSvc.subscriber.UnsubscribeAsync(channel);
+        await _remoteCacheSvc.Subscriber.UnsubscribeAsync(channel);
     }
 }

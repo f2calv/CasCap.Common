@@ -6,6 +6,8 @@ public class MemoryCacheService : ILocalCacheService
     readonly CachingOptions _cachingOptions;
     readonly IMemoryCache _localCache;
 
+    HashSet<string> _cacheKeys = new();
+
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
@@ -13,7 +15,6 @@ public class MemoryCacheService : ILocalCacheService
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        //todo:consider a Flags to disable use of local and/or remote caches in (console?) applications that don't need either
         _localCache = new MemoryCache(new MemoryCacheOptions
         {
             //Clock,
@@ -23,6 +24,7 @@ public class MemoryCacheService : ILocalCacheService
             //TrackLinkedCacheEntries
             //TrackStatistics
         });
+        if (_cachingOptions.MemoryCache.ClearOnStartup) DeleteAll();
     }
 
     public T? Get<T>(string key)
@@ -31,7 +33,7 @@ public class MemoryCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry)
+    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
@@ -39,26 +41,43 @@ public class MemoryCacheService : ILocalCacheService
             // Set cache entry size by extension method.
             .SetSize(1)
             // Add eviction callback
-            .RegisterPostEvictionCallback(EvictionCallback/*, this or cacheEntry.GetType()*/)
+            .RegisterPostEvictionCallback(EvictionCallback!/*, this or cacheEntry.GetType()*/)
             ;
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
+        _cacheKeys.Add(key);
         _logger.LogTrace("{serviceName} set {key} in local cache", nameof(MemoryCacheService), key);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
     {
+        _cacheKeys.Remove((string)key);
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
         _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
             nameof(MemoryCacheService), args.key, args.reason);
     }
 
-    public void DeleteLocal(string key, bool viaPubSub)
+    public bool DeleteLocal(string key)
     {
-        _localCache.Remove(key);
-        if (viaPubSub)
-            _logger.LogTrace("{serviceName} removed {key} from local cache via pub/sub", nameof(MemoryCacheService), key);
+        _localCache.TryGetValue(key, out object? cacheEntry);
+        if (cacheEntry is not null)
+        {
+            _localCache.Remove(key);
+            _cacheKeys.Remove(key);
+            return true;
+        }
+        return false;
+    }
+
+    public long DeleteAll()
+    {
+        var i = 0L;
+        foreach (var cacheKey in _cacheKeys)
+        {
+            if (DeleteLocal(cacheKey)) i++;
+        }
+        return i;
     }
 }
