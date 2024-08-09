@@ -16,13 +16,24 @@ public static class JsonSerialisationHelpers
                token.Type == JTokenType.Null;
     }
 
-    public static string ToJSON(this object obj) => JsonConvert.SerializeObject(obj, Formatting.None);
+    public static string ToJSON(this object obj) => ToJSON(obj, Formatting.None);
 
-    public static string ToJSON(this object obj, Formatting formatting) => JsonConvert.SerializeObject(obj, formatting);
+    public static string ToJSON(this object obj, Formatting formatting) => ToJSON(obj, formatting);
 
-    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, settings);
+    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => ToJSON(obj, settings);
 
-    public static string ToJSON(this object obj, Formatting formatting, JsonSerializerSettings? settings) => JsonConvert.SerializeObject(obj, formatting, settings);
+    public static string ToJSON(this object obj, Formatting formatting, JsonSerializerSettings? settings)
+    {
+        try
+        {
+            return JsonConvert.SerializeObject(obj, formatting, settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"{nameof(JsonConvert.SerializeObject)} failed");
+            throw;
+        }
+    }
 
     //public static void ToJSON(this object value, Stream s)
     //{

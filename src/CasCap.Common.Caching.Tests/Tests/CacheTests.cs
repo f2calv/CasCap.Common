@@ -250,4 +250,9 @@ public class MyTestClass
                ID == @class.ID &&
                utcNow == @class.utcNow;
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
