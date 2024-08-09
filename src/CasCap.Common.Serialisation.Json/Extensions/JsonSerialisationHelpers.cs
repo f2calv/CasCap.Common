@@ -16,13 +16,13 @@ public static class JsonSerialisationHelpers
                token.Type == JTokenType.Null;
     }
 
-    public static string ToJSON(this object obj) => ToJSON(obj, Formatting.None);
+    public static string ToJSON(this object obj) => obj.ToJSON(formatting: Formatting.None, settings: null);
 
-    public static string ToJSON(this object obj, Formatting formatting) => ToJSON(obj, formatting);
+    public static string ToJSON(this object obj, Formatting formatting) => obj.ToJSON(formatting, settings: null);
 
-    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => ToJSON(obj, settings);
+    public static string ToJSON(this object obj, JsonSerializerSettings? settings) => obj.ToJSON(Formatting.None, settings);
 
-    public static string ToJSON(this object obj, Formatting formatting, JsonSerializerSettings? settings)
+    public static string ToJSON(this object obj, Formatting formatting = Formatting.None, JsonSerializerSettings? settings = null)
     {
         try
         {
