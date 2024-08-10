@@ -5,7 +5,7 @@
 /// </summary>
 public class CacheTests : TestBase
 {
-    public CacheTests(ITestOutputHelper output) : base(output) { }
+    public CacheTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     //TODO: create TestRemoteCacheAsync test method
     //TODO: split test methods into single responsibility

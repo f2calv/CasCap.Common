@@ -1,11 +1,8 @@
-﻿using CasCap.Common.Extensions;
-using MessagePack;
+﻿namespace CasCap.Common.Serialisation.Tests;
 
-namespace CasCap.Common.Serialisation.MessagePack.Tests;
-
-public class ExtensionTests : TestBase
+public class MessagePackTests : TestBase
 {
-    public ExtensionTests(ITestOutputHelper output) : base(output) { }
+    public MessagePackTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     [Fact]
     public void TestExtensions()

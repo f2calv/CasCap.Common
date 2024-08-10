@@ -2,24 +2,15 @@
 
 public abstract class TestBase
 {
-    //protected I???Service _???Svc;
-
-    public TestBase(ITestOutputHelper output)
+    public TestBase(ITestOutputHelper testOutputHelper)
     {
-        var configuration = new ConfigurationBuilder()
-            //.AddCasCapConfiguration()
-            .Build();
-
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()
-            .AddSingleton<IConfiguration>(configuration)
-            .AddXUnitLogging(output);
-
-        //add services
-        //services.Add???();
+            .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
-        _ = services.BuildServiceProvider();
-        //_???Svc = serviceProvider.GetRequiredService<I???Service>();
+        var serviceProvider = services.BuildServiceProvider();
+
+        ApplicationLogging.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
     }
 }

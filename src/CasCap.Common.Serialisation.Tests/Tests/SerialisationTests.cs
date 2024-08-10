@@ -1,9 +1,8 @@
-﻿using MessagePack;
-namespace CasCap.Common.Serialisation.Tests;
+﻿namespace CasCap.Common.Serialisation.Tests;
 
 public class SerialisationTests : TestBase
 {
-    public SerialisationTests(ITestOutputHelper output) : base(output) { }
+    public SerialisationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
     public void TestMessagePack()
@@ -95,7 +94,7 @@ public class MyTestClass
     public DateTime dtNow { get; set; } = DateTime.Now.Date;
     DateTime _dtNowFixed;
     /// <summary>
-    /// We send in a normal datetime, which when deserialised by messagepack gets converted to Utc.
+    /// We send in a normal datetime, which when deserialised by MessagePack gets converted to Utc.
     /// </summary>
     public DateTime dtNowFixed
     {

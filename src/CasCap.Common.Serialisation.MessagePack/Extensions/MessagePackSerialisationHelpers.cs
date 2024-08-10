@@ -12,8 +12,8 @@ public static class MessagePackSerialisationHelpers
         try
         {
             var bytes = MessagePackSerializer.Serialize(data);
-            _logger.LogTrace("{serviceName} serialised object {typeof} into {count} bytes",
-                nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
+            //_logger.LogTrace("{serviceName} serialised object {typeof} into {count} bytes",
+            //    nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
             return bytes;
         }
         catch (Exception ex)
@@ -34,8 +34,8 @@ public static class MessagePackSerialisationHelpers
         try
         {
             T obj =  MessagePackSerializer.Deserialize<T>(bytes);
-            _logger.LogTrace("{serviceName} deserialised object {typeof} from {count} bytes",
-                nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
+            //_logger.LogTrace("{serviceName} deserialised object {typeof} from {count} bytes",
+            //    nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
             return obj;
         }
         catch (Exception ex)

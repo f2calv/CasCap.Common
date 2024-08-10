@@ -2,11 +2,11 @@
 
 public abstract class TestBase
 {
-    public TestBase(ITestOutputHelper output)
+    public TestBase(ITestOutputHelper testOutputHelper)
     {
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()
-            .AddXUnitLogging(output);
+            .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
         _ = services.BuildServiceProvider();

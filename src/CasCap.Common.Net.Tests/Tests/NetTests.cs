@@ -2,7 +2,7 @@
 
 public class NetTests : TestBase
 {
-    public NetTests(ITestOutputHelper output) : base(output) { }
+    public NetTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     [Fact]
     public void Placeholder()

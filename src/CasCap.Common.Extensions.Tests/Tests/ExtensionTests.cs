@@ -2,7 +2,7 @@
 
 public class ExtensionTests : TestBase
 {
-    public ExtensionTests(ITestOutputHelper output) : base(output) { }
+    public ExtensionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     [Fact]
     public void UnixTimeMS()

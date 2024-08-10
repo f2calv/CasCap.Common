@@ -1,8 +1,8 @@
-﻿namespace CasCap.Common.Serialisation.Json.Tests;
+﻿namespace CasCap.Common.Serialisation.Tests;
 
 public class JsonTests : TestBase
 {
-    public JsonTests(ITestOutputHelper output) : base(output) { }
+    public JsonTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
     [Fact]
     public void TestExtensions()

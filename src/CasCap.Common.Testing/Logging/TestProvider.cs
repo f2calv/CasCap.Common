@@ -2,18 +2,18 @@
 
 public class TestLogProvider : ILoggerProvider
 {
-    readonly ITestOutputHelper _output;
+    readonly ITestOutputHelper _testOutputHelper;
     readonly ConcurrentDictionary<string, TestLogger> _loggers;
 
-    public TestLogProvider(ITestOutputHelper output)
+    public TestLogProvider(ITestOutputHelper testOutputHelper)
     {
-        _output = output ?? throw new ArgumentNullException(nameof(output));
+        _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
         _loggers = new ConcurrentDictionary<string, TestLogger>(StringComparer.OrdinalIgnoreCase);
     }
 
     public ILogger CreateLogger(string categoryName)
     {
-        return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_output));
+        return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_testOutputHelper));
     }
 
     public void Dispose()
