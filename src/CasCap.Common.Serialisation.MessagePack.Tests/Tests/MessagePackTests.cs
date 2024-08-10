@@ -21,6 +21,7 @@ public class ExtensionTests : TestBase
         Assert.NotNull(obj2);
         Assert.Equal(obj, obj2);
         Assert.ThrowsAny<Exception>(() => new MyTestClass2().ToMessagePack());
+        Assert.ThrowsAny<Exception>(() => (new byte[0]).FromMessagePack<MyTestClass>());
     }
 
     [MessagePackObject(true)]
