@@ -79,6 +79,79 @@ public class CacheTests : TestBase
         Assert.Equal(obj, fromCache);
     }
 
+
+    [Theory, Trait("Category", nameof(IRemoteCacheService))]
+    [InlineData(SerialisationType.Json, true, CacheType.Memory)]
+    [InlineData(SerialisationType.Json, false, CacheType.Memory)]
+    [InlineData(SerialisationType.Json, true, CacheType.Disk)]
+    [InlineData(SerialisationType.Json, false, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, true, CacheType.Memory)]
+    [InlineData(SerialisationType.MessagePack, false, CacheType.Memory)]
+    [InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
+    public async Task RemoteCacheSvc_Async(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup, CacheType LocalCacheType)
+    {
+        //Arrange
+        var key = $"{nameof(RemoteCacheSvc_Async)}:{RemoteCacheSerialisationType}:{LocalCacheType}";
+        var expiry = TimeSpan.FromSeconds(10);
+        var obj = new MyTestClass();
+        var cachingOptions = new CachingOptions
+        {
+            LoadBuiltInLuaScripts = true,
+            RemoteCache = new CacheOptions
+            {
+                SerialisationType = RemoteCacheSerialisationType,
+                ClearOnStartup = ClearOnStartup
+            },
+        };
+        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        var remoteCacheSvc = services.BuildServiceProvider().GetRequiredService<IRemoteCacheService>();
+
+        //Act
+        var result = false;
+        string json = null, resultJson = null;
+        byte[] bytes = null, resultBytes = null;
+        MyTestClass fromCache;
+        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        {
+            //serialise
+            json = obj.ToJSON();
+            //insert into cache
+            result = await remoteCacheSvc.SetAsync(key, json, expiry);
+            //retrieve from cache
+            resultJson = await remoteCacheSvc.GetAsync(key);
+            //deserialise
+            fromCache = resultJson.FromJSON<MyTestClass>();
+        }
+        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        {
+            //serialise
+            bytes = obj.ToMessagePack();
+            //insert into cache
+            result = await remoteCacheSvc.SetAsync(key, bytes, expiry);
+            //retrieve from cache
+            resultBytes = await remoteCacheSvc.GetBytesAsync(key);
+            //deserialise
+            fromCache = resultBytes.FromMessagePack<MyTestClass>();
+        }
+        else
+            throw new NotSupportedException($"{nameof(RemoteCacheSerialisationType)} {RemoteCacheSerialisationType} is not supported!");
+
+        //Assert
+        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        {
+            Assert.NotNull(resultJson);
+            Assert.Equal(json, resultJson);
+        }
+        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        {
+            Assert.NotNull(resultBytes);
+            Assert.Equal(bytes, resultBytes);
+        }
+        Assert.Equal(obj, fromCache);
+    }
+
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json)]
     [InlineData(SerialisationType.MessagePack)]
@@ -134,10 +207,10 @@ public class CacheTests : TestBase
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]
-    public async Task DistCacheSvcTest()
+    public async Task DistCacheSvc_Test()
     {
         //Arrange
-        var key = $"{nameof(DistCacheSvcTest)}";
+        var key = $"{nameof(DistCacheSvc_Test)}";
         var ttl = 5;
         var obj = new MyTestClass();
 
