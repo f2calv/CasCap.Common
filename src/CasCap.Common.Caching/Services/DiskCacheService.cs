@@ -72,7 +72,7 @@ public class DiskCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
+    public void Set<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
         key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
@@ -128,13 +128,13 @@ public class DiskCacheService : ILocalCacheService
                 cacheEntry = await createItem();
                 _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
                 if (cacheEntry != null)
-                    SetLocal(key, cacheEntry, null);
+                    Set(key, cacheEntry, null);
             }
         }
         return cacheEntry;
     }
 
-    public bool DeleteLocal(string key)
+    public bool Delete(string key)
     {
         key = GetKey(key);
         if (File.Exists(key))

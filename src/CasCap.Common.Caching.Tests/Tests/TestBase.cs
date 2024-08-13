@@ -3,15 +3,15 @@
 public abstract class TestBase
 {
     protected ITestOutputHelper _testOutputHelper;
-    protected IDistributedCacheService _distCacheSvc;
-    protected ILocalCacheService _localCacheSvc;
+    //protected IDistributedCacheService _distCacheSvc;
+    //protected ILocalCacheService _localCacheSvc;
 
     protected const string remoteCacheConnectionString = "localhost:6379,allowAdmin=true";
 
     public TestBase(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-
+        /*
         //var cachingOptions = Options.Create(new CachingOptions
         //{
         //    MemoryCacheSizeLimit = 100,
@@ -32,5 +32,6 @@ public abstract class TestBase
         var serviceProvider = services.BuildServiceProvider();
         _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
         _localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
+        */
     }
 }

@@ -33,7 +33,7 @@ public class MemoryCacheService : ILocalCacheService
         return cacheEntry;
     }
 
-    public void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry = null)
+    public void Set<T>(string key, T cacheEntry, TimeSpan? expiry = null)
     {
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
@@ -59,7 +59,7 @@ public class MemoryCacheService : ILocalCacheService
             nameof(MemoryCacheService), args.key, args.reason);
     }
 
-    public bool DeleteLocal(string key)
+    public bool Delete(string key)
     {
         _localCache.TryGetValue(key, out object? cacheEntry);
         if (cacheEntry is not null)
@@ -76,7 +76,7 @@ public class MemoryCacheService : ILocalCacheService
         var i = 0L;
         foreach (var cacheKey in _cacheKeys)
         {
-            if (DeleteLocal(cacheKey)) i++;
+            if (Delete(cacheKey)) i++;
         }
         return i;
     }

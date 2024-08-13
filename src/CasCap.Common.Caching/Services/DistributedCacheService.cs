@@ -57,7 +57,7 @@ public class DistributedCacheService : IDistributedCacheService
                 _logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
-                _localCacheSvc.SetLocal(key, cacheEntry, tpl.expiry);
+                _localCacheSvc.Set(key, cacheEntry, tpl.expiry);
             }
             else if (createItem is not null)
             {
@@ -102,12 +102,12 @@ public class DistributedCacheService : IDistributedCacheService
         else
             throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
 
-        _localCacheSvc.SetLocal(key, cacheEntry, expiry);
+        _localCacheSvc.Set(key, cacheEntry, expiry);
     }
 
     public async Task Delete(string key)
     {
-        _localCacheSvc.DeleteLocal(key);
+        _localCacheSvc.Delete(key);
 
         _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
 
