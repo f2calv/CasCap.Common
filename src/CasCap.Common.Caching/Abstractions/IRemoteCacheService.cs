@@ -25,8 +25,8 @@ public interface IRemoteCacheService
     bool Delete(string key, CommandFlags flags = CommandFlags.None);
     Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None);
 
-    Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key);
-    Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
+    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key);
+    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "");
 
     Dictionary<string, LoadedLuaScript> LuaScripts { get; set; }
     bool LoadLuaScript(Assembly assembly, string scriptName);

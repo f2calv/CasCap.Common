@@ -51,7 +51,7 @@ public class DiskCacheService : ILocalCacheService
     public T? Get<T>(string key)
     {
         key = GetKey(key);
-        T cacheEntry;
+        T? cacheEntry;
         if (File.Exists(key))
         {
             if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
@@ -101,13 +101,13 @@ public class DiskCacheService : ILocalCacheService
         return Path.Combine(DiskCacheFolder, key.Replace(":", "_"));
     }
 
-    public async Task<T> GetAsync<T>(string key, Func<Task<T>> createItem = null, CancellationToken token = default) where T : class
+    public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken token = default) where T : class
     {
         key = GetKey(key);
-        T cacheEntry = default;
+        T? cacheEntry = default;
         if (File.Exists(key))
         {
-            var json = File.ReadAllText(key);
+            var json = await File.ReadAllTextAsync(key, token);
             try
             {
                 cacheEntry = json.FromJSON<T>();

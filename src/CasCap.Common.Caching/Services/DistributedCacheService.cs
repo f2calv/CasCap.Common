@@ -8,10 +8,10 @@ public interface IDistributedCacheService
 
     //todo:create 2x overload options to accept ttl(expiry) of a utc datetime
     Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class;
-    Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class;
+    //Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class;
 
     Task Set<T>(string key, T cacheEntry, int ttl = -1) where T : class;
-    Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class;
+    //Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class;
 
     Task Delete(string key);
 }
@@ -43,8 +43,8 @@ public class DistributedCacheService : IDistributedCacheService
     //todo:store a summary of all cached items in a local lookup dictionary?
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
-    public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
-        => Get(key.CacheKey, createItem, ttl);
+    //public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
+    //    => Get(key.CacheKey, createItem, ttl);
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
@@ -82,8 +82,8 @@ public class DistributedCacheService : IDistributedCacheService
         return cacheEntry;
     }
 
-    public Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class
-        => Set(key.CacheKey, cacheEntry, ttl);
+    //public Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class
+    //    => Set(key.CacheKey, cacheEntry, ttl);
 
     public async Task Set<T>(string key, T cacheEntry, int ttl = -1) where T : class
     {

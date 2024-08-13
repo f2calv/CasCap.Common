@@ -3,10 +3,8 @@
 /// <summary>
 /// Integration tests with a dependency on a running Redis instance.
 /// </summary>
-public class CacheTests : TestBase
+public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public CacheTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json, true, CacheType.Memory)]
     [InlineData(SerialisationType.Json, false, CacheType.Memory)]

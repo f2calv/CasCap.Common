@@ -63,9 +63,9 @@ public class RedisCacheService : IRemoteCacheService
 
     public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDeleteAsync(key, flags);
 
-    public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL<T>(string key)
+    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key)
     {
-        (TimeSpan? expiry, T cacheEntry) tpl = default;
+        (TimeSpan? expiry, T? cacheEntry) tpl = default;
         var o = await Db.StringGetWithExpiryAsync(key);
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
@@ -88,12 +88,12 @@ public class RedisCacheService : IRemoteCacheService
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information
     [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
-    public async Task<(TimeSpan? expiry, T cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
+    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
     {
         if (!_cachingOptions.LoadBuiltInLuaScripts)
             throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
 
-        (TimeSpan? expiry, T cacheEntry) tpl = default;
+        (TimeSpan? expiry, T? cacheEntry) tpl = default;
 
         var res = await luaGet();
         if (res != default && res.payload is not null)
@@ -102,12 +102,14 @@ public class RedisCacheService : IRemoteCacheService
             if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
             {
                 var json = (string?)res.payload;
-                tpl.cacheEntry = json.FromJSON<T>();
+                if (json is not null)
+                    tpl.cacheEntry = json.FromJSON<T>();
             }
             else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
             {
                 var bytes = (byte[]?)res.payload;
-                tpl.cacheEntry = bytes.FromMessagePack<T>();
+                if (bytes is not null)
+                    tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
@@ -161,8 +163,8 @@ public class RedisCacheService : IRemoteCacheService
             //edits the item cacheKey by appending the date.
             string GetTrackKey()
             {
-                if (key.LastIndexOf(":") > -1)
-                    key = key.Substring(0, key.LastIndexOf(":"));
+                var lIndex = key.LastIndexOf(':');
+                if (lIndex > -1) key = key.Substring(0, lIndex);
                 key = $"{key}:{DateTime.UtcNow:yyyy-MM-dd}";
                 return key;
             }
@@ -170,7 +172,7 @@ public class RedisCacheService : IRemoteCacheService
     }
 
     #region
-    public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = new();
+    public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = [];
 
     void LoadBuiltInLuaScripts()
     {
