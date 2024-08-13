@@ -191,7 +191,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
 
         //Assert
         Assert.True(inserted);
-        
+
         Assert.NotEqual(default, result1);
         Assert.Equal(obj, result1.cacheEntry);
         Assert.True(result1.expiry.Value.TotalSeconds <= expiry.TotalSeconds);
@@ -213,18 +213,27 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var obj = new MyTestClass();
 
         //Act
-        //insert into cache
+        //insert into both local and remote cache
         await _distCacheSvc.Set(key, obj, ttl);
-        //retrieve from cache
-        var result = await _distCacheSvc.Get<MyTestClass>(key);
-        //delete from cache
+        //retrieve from dist cache (i.e. get from local)
+        var result1 = await _distCacheSvc.Get<MyTestClass>(key);
+        //delete from localCache
+        var isDeleted = _localCacheSvc.DeleteLocal(key);
+        //retrieve from dist cache (i.e. now need to get from remote)
+        var result2 = await _distCacheSvc.Get<MyTestClass>(key);
+        //retrieve from dist cache (i.e. get from local again)
+        var result3 = await _distCacheSvc.Get<MyTestClass>(key);
+        //delete from both caches
         await _distCacheSvc.Delete(key);
         //re-retrieve from cache
-        var result2 = await _distCacheSvc.Get<MyTestClass>(key);
+        var result4 = await _distCacheSvc.Get<MyTestClass>(key);
 
         //Assert
-        Assert.Equal(obj, result);
-        Assert.Null(result2);
+        Assert.Equal(obj, result1);
+        Assert.Equal(obj, result2);
+        Assert.Equal(obj, result3);
+        Assert.Null(result4);
+        Assert.True(isDeleted);
     }
 
     [Fact, Trait("Category", nameof(IDistributedCacheService))]

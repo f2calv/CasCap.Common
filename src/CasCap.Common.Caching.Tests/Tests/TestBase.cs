@@ -4,6 +4,7 @@ public abstract class TestBase
 {
     protected ITestOutputHelper _testOutputHelper;
     protected IDistributedCacheService _distCacheSvc;
+    protected ILocalCacheService _localCacheSvc;
 
     protected const string remoteCacheConnectionString = "localhost:6379,allowAdmin=true";
 
@@ -30,5 +31,6 @@ public abstract class TestBase
         //assign services to be tested
         var serviceProvider = services.BuildServiceProvider();
         _distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
+        _localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
     }
 }
