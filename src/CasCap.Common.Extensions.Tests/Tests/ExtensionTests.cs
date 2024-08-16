@@ -13,7 +13,7 @@ public class ExtensionTests : TestBase
         //Act
         var unixMS = dt.ToUnixTimeMS();
         var utcNow = unixMS.FromUnixTimeMS();
-        
+
         //Assert
         Assert.Equal(dt.ToString(), utcNow.ToString());
     }
