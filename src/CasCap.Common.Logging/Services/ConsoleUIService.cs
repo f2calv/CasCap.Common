@@ -1,4 +1,6 @@
-﻿namespace CasCap.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CasCap.Services;
 
 public interface IConsoleUIService
 {
@@ -19,6 +21,7 @@ public interface IConsoleUIService
 /// <summary>
 /// Console UI functions
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "soon to be deprecated")]
 public class ConsoleUIService : IConsoleUIService
 {
     readonly ILogger _logger;
