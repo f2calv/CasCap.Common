@@ -267,7 +267,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
 
         //stop bg service
         await source.CancelAsync();
-        await Task.Delay(500);//short pause for the cancellation token to take effect
+        await Task.Delay(1_000);//short pause for the cancellation token to take effect
         //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
