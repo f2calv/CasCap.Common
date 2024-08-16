@@ -228,12 +228,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var serviceProvider = services.BuildServiceProvider();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
         var localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
-
         var localCacheInvalidationBgSvc = serviceProvider.GetRequiredService<IHostedService>() as LocalCacheInvalidationBgService;
+        var source = new CancellationTokenSource();
+        var cancellationToken = source.Token;
 
         //Act
         //start bg service
-        await localCacheInvalidationBgSvc.StartAsync(CancellationToken.None);
+        await localCacheInvalidationBgSvc.StartAsync(cancellationToken);
         //check if object exists
         var cacheEntry = await distCacheSvc.Get<MyTestClass>(key);
         if (cacheEntry is null)
@@ -265,7 +266,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cacheEntryB = await distCacheSvc.Get(key, () => APIService.GetAsync());
 
         //stop bg service
-        await localCacheInvalidationBgSvc.StopAsync(CancellationToken.None);
+        await source.CancelAsync();
+        //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
         Assert.Equal(cacheEntry, result1);
