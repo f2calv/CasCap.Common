@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
+using System.Threading;
 
 namespace CasCap.Common.Caching.Tests;
 
@@ -227,7 +229,11 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
         var localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
 
+        var localCacheInvalidationBgSvc = serviceProvider.GetRequiredService<IHostedService>() as LocalCacheInvalidationBgService;
+
         //Act
+        //start bg service
+        await localCacheInvalidationBgSvc.StartAsync(CancellationToken.None);
         //check if object exists
         var cacheEntry = await distCacheSvc.Get<MyTestClass>(key);
         if (cacheEntry is null)
@@ -257,6 +263,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
         var cacheEntryA = await distCacheSvc.Get(key, () => APIService.GetAsync(), ttl);
         var cacheEntryB = await distCacheSvc.Get(key, () => APIService.GetAsync());
+
+        //stop bg service
+        await localCacheInvalidationBgSvc.StopAsync(CancellationToken.None);
 
         //Assert
         Assert.Equal(cacheEntry, result1);

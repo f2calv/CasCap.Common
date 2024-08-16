@@ -13,7 +13,7 @@ public class CachingOptions
     /// Prefix all keys sent via pub/sub with a unique identifier so that when a single client is connected
     /// as both pub+sub it doesn't duplicate handling of it's own expiration messages.
     /// </summary>
-    public string pubSubPrefix { get; } = $"{Environment.MachineName}_{AppDomain.CurrentDomain.FriendlyName}_";
+    public string pubSubPrefix { get; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
 
     public string ChannelName { get; set; } = "expiration";
 
