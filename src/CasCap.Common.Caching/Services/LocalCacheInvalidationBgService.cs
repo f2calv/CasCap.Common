@@ -65,7 +65,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(500, cancellationToken);
+            await Task.Delay(100, cancellationToken);
         }
 
         _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
