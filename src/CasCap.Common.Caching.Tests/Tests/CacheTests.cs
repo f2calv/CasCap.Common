@@ -82,18 +82,14 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     }
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json, true, CacheType.Memory)]
-    [InlineData(SerialisationType.Json, false, CacheType.Memory)]
-    [InlineData(SerialisationType.Json, true, CacheType.Disk)]
-    [InlineData(SerialisationType.Json, false, CacheType.Disk)]
-    [InlineData(SerialisationType.MessagePack, true, CacheType.Memory)]
-    [InlineData(SerialisationType.MessagePack, false, CacheType.Memory)]
-    [InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
-    [InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
-    public async Task RemoteCacheSvc_Async(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup, CacheType LocalCacheType)
+    [InlineData(SerialisationType.Json, true)]
+    [InlineData(SerialisationType.Json, false)]
+    [InlineData(SerialisationType.MessagePack, true)]
+    [InlineData(SerialisationType.MessagePack, false)]
+    public async Task RemoteCacheSvc_Async(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Async)}:{RemoteCacheSerialisationType}:{LocalCacheType}";
+        var key = $"{nameof(RemoteCacheSvc_Async)}:{RemoteCacheSerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -106,7 +102,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
         var remoteCacheSvc = services.BuildServiceProvider().GetRequiredService<IRemoteCacheService>();
 
         //Act
@@ -208,9 +204,11 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     }
 
     [Theory, Trait("Category", nameof(IDistributedCacheService))]
-    [InlineData(SerialisationType.Json)]
-    [InlineData(SerialisationType.MessagePack)]
-    public async Task DistCacheSvc_Test(SerialisationType RemoteCacheSerialisationType)
+    [InlineData(SerialisationType.Json, CacheType.Memory)]
+    [InlineData(SerialisationType.Json, CacheType.Disk)]
+    [InlineData(SerialisationType.MessagePack, CacheType.Memory)]
+    [InlineData(SerialisationType.MessagePack, CacheType.Disk)]
+    public async Task DistCacheSvc_Test(SerialisationType RemoteCacheSerialisationType, CacheType LocalCacheType)
     {
         //Arrange
         var key = $"{nameof(DistCacheSvc_Test)}:{RemoteCacheSerialisationType}";
@@ -224,7 +222,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
                 ClearOnStartup = true
             },
         };
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
         var serviceProvider = services.BuildServiceProvider();
         serviceProvider.AddStaticLogging();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
