@@ -226,6 +226,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
         var serviceProvider = services.BuildServiceProvider();
+        serviceProvider.AddStaticLogging();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
         var localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
         var localCacheInvalidationBgSvc = serviceProvider.GetRequiredService<IHostedService>() as LocalCacheInvalidationBgService;
@@ -339,7 +340,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cacheResult = localCacheSvc.Get<MyTestClass>(key);
         var deleteSuccess = localCacheSvc.Delete(key);
         var deleteFailure = localCacheSvc.Delete(Guid.NewGuid().ToString());
-        _ = localCacheSvc.DeleteAll();
+        localCacheSvc.Set("test123", new MyTestClass());
+        var countDeleted = localCacheSvc.DeleteAll();
 
         //Assert
         Assert.NotNull(loggerFactory);
@@ -348,6 +350,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Equal(cacheResult, cacheEntry);
         Assert.True(deleteSuccess);
         Assert.False(deleteFailure);
+        Assert.Equal(1, countDeleted);
     }
 }
 
