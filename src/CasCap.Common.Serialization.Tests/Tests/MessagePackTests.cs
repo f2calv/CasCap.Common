@@ -1,9 +1,7 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
-public class MessagePackTests : TestBase
+public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public MessagePackTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
     [Fact]
     public void TestExtensions()
     {
@@ -18,7 +16,7 @@ public class MessagePackTests : TestBase
         Assert.NotNull(obj2);
         Assert.Equal(obj, obj2);
         Assert.ThrowsAny<Exception>(() => new MyTestClass5().ToMessagePack());
-        Assert.ThrowsAny<Exception>(() => (new byte[0]).FromMessagePack<MyTestClass4>());
+        Assert.ThrowsAny<Exception>(() => (Array.Empty<byte>()).FromMessagePack<MyTestClass4>());
     }
 
     [MessagePackObject(true)]

@@ -1,19 +1,8 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+﻿namespace CasCap.Services;
 
-namespace CasCap.Services;
-public abstract class HttpEndpointCheck
+public abstract class HttpEndpointCheck(ILogger logger, HttpClient client)
 {
-    protected /*readonly */ILogger _logger;
-    readonly HttpClient _client;
-
-    public HttpEndpointCheck(ILogger logger, HttpClient client)
-    {
-        _logger = logger;
-        _client = client;
-    }
+    protected /*readonly */ILogger _logger = logger;
 
     protected async Task<bool> IsAccessible(string requestUri, int HealthCheckExpectedHttpStatusCode = 0, CancellationToken cancellationToken = default)
     {
@@ -22,7 +11,7 @@ public abstract class HttpEndpointCheck
         HttpResponseMessage? result = null;
         try
         {
-            result = await _client.GetAsync(requestUri, cancellationToken);
+            result = await client.GetAsync(requestUri, cancellationToken);
         }
         catch (HttpRequestException ex)
         {

@@ -6,7 +6,7 @@ public class MemoryCacheService : ILocalCacheService
     readonly CachingOptions _cachingOptions;
     readonly MemoryCache _localCache;
 
-    HashSet<string> _cacheKeys = new();
+    readonly HashSet<string> _cacheKeys = [];
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }

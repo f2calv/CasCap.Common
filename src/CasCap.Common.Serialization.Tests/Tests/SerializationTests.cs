@@ -1,9 +1,7 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
-public class SerializationTests : TestBase
+public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public SerializationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
     public void TestMessagePack()
     {
@@ -53,9 +51,9 @@ public class SerializationTests : TestBase
         //todo: move this into a CasCap.Common.Serialization.Tests lib
         var obj = new MyTestClass { dtNowFixed = DateTime.Now };
 
-        Assert.True(obj.dtNow.Kind == DateTimeKind.Local);
-        Assert.True(obj.dtNowFixed.Kind == DateTimeKind.Utc);//Local is changed to Utc on the property set
-        Assert.True(obj.utcNow.Kind == DateTimeKind.Utc);
+        Assert.Equal(DateTimeKind.Local, obj.dtNow.Kind);
+        Assert.Equal(DateTimeKind.Utc, obj.dtNowFixed.Kind);//Local is changed to Utc on the property set
+        Assert.Equal(DateTimeKind.Utc, obj.utcNow.Kind);
         //obj.d.Keys.
         //myDt = DateTime.SpecifyKind(saveNow, DateTimeKind.Utc);
 
@@ -63,9 +61,9 @@ public class SerializationTests : TestBase
 
         var o = bytes.FromMessagePack<MyTestClass>();
 
-        Assert.True(o.dtNow.Kind == DateTimeKind.Utc);//broken
-        Assert.True(o.dtNowFixed.Kind == DateTimeKind.Utc);//fixed
-        Assert.True(o.utcNow.Kind == DateTimeKind.Utc);//no change
+        Assert.Equal(DateTimeKind.Utc, o.dtNow.Kind);//broken
+        Assert.Equal(DateTimeKind.Utc, o.dtNowFixed.Kind);//fixed
+        Assert.Equal(DateTimeKind.Utc, o.utcNow.Kind);//no change
 
         Assert.Equal(obj.dtNow, o.dtNow);
     }

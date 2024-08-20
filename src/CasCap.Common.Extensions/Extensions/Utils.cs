@@ -35,7 +35,7 @@ public class Utils
         return subFolder;
     }
 
-    static HashSet<string> directories { get; set; } = new();
+    static HashSet<string> directories { get; set; } = [];
 
     /// <summary>
     /// Handy to find originating method name when debugging.

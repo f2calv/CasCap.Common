@@ -1,9 +1,7 @@
 ﻿namespace CasCap.Common.Extensions.Tests;
 
-public class ExtensionTests : TestBase
+public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public ExtensionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
     [Fact]
     public void UnixTimeMS()
     {

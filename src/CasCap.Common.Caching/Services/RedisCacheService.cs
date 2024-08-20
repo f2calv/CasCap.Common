@@ -1,8 +1,4 @@
-﻿using StackExchange.Redis;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 //https://stackexchange.github.io/StackExchange.Redis/
 public class RedisCacheService : IRemoteCacheService

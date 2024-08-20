@@ -1,8 +1,4 @@
-﻿using StackExchange.Redis;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-
-namespace CasCap.Abstractions;
+﻿namespace CasCap.Abstractions;
 
 public interface IRemoteCacheService
 {

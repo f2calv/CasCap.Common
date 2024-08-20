@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public class DiskCacheService : ILocalCacheService
 {
@@ -116,8 +114,7 @@ public class DiskCacheService : ILocalCacheService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{serviceName} deSerialization error for {key}", nameof(DiskCacheService), key);
-                Debugger.Break();
+                _logger.LogError(ex, "{serviceName} deserialization error for {key}", nameof(DiskCacheService), key);
             }
             _logger.LogTrace("{serviceName} retrieved cacheEntry {key}", nameof(DiskCacheService), key);
         }

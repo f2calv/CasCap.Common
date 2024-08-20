@@ -1,31 +1,15 @@
-﻿using StackExchange.Redis;
-using System;
-using System.Diagnostics;
-using System.Threading;
+﻿namespace CasCap.Services;
 
-namespace CasCap.Services;
-
-public class LocalCacheInvalidationBgService : BackgroundService
+public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
+    IRemoteCacheService remoteCacheSvc, ILocalCacheService localCacheSvc, IOptions<CachingOptions> cachingOptions) : BackgroundService
 {
-    readonly ILogger<LocalCacheInvalidationBgService> _logger;
-    readonly IRemoteCacheService _remoteCacheSvc;
-    readonly ILocalCacheService _localCacheSvc;
-    readonly CachingOptions _cachingOptions;
-
-    public LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-        IRemoteCacheService remoteCacheSvc, ILocalCacheService localCacheSvc, IOptions<CachingOptions> cachingOptions)
-    {
-        _logger = logger;
-        _remoteCacheSvc = remoteCacheSvc;
-        _localCacheSvc = localCacheSvc;
-        _cachingOptions = cachingOptions.Value;
-    }
+    readonly CachingOptions _cachingOptions = cachingOptions.Value;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         if (!_cachingOptions.LocalCacheInvalidationEnabled) return;
 
-        _logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
+        logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
         try
         {
             await RunServiceAsync(cancellationToken);
@@ -35,10 +19,10 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //catch (Exception ex) when (!(ex is OperationCanceledException)) //not working, why?
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "Fatal error");
+            logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        _logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
+        logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
     }
 
     long count = 0;
@@ -55,7 +39,7 @@ public class LocalCacheInvalidationBgService : BackgroundService
         //});
 
         // Asynchronous handler
-        _remoteCacheSvc.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
+        remoteCacheSvc.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             var key = (string?)channelMessage.Message;
             if (key is not null)
@@ -68,9 +52,9 @@ public class LocalCacheInvalidationBgService : BackgroundService
             await Task.Delay(100, cancellationToken);
         }
 
-        _logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
+        logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await _remoteCacheSvc.Subscriber.UnsubscribeAsync(channel);
+        await remoteCacheSvc.Subscriber.UnsubscribeAsync(channel);
     }
 
     async Task ExpireByKey(string key, CancellationToken cancellationToken)
@@ -81,8 +65,8 @@ public class LocalCacheInvalidationBgService : BackgroundService
         var keySuffix = key.Substring(firstIndex);
         if (!keyPrefix.Equals(_cachingOptions.pubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            if (_localCacheSvc.Delete(keySuffix))
-                _logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);
+            if (localCacheSvc.Delete(keySuffix))
+                logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);
             _ = Interlocked.Increment(ref count);
         }
     }

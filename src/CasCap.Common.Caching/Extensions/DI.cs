@@ -1,5 +1,4 @@
-﻿using StackExchange.Redis;
-namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods to setup local/remote/distributed Caching services.
@@ -86,7 +85,7 @@ public static class DI
             services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
             services.AddHostedService<LocalCacheInvalidationBgService>();
 
-            var multiplexer = GetMultiplexer(services, remoteCacheConnectionString);
+            var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
             //We return the ConnectionMultiplexer so it can be reused by other services requiring a Redis connection.
@@ -96,7 +95,7 @@ public static class DI
             return null;
     }
 
-    static ConnectionMultiplexer GetMultiplexer(IServiceCollection services, string remoteCacheConnectionString)
+    static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
     {
         var configurationOptions = ConfigurationOptions.Parse(remoteCacheConnectionString);
         configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
