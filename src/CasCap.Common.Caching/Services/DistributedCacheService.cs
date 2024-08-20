@@ -13,7 +13,9 @@ public interface IDistributedCacheService
     Task Set<T>(string key, T cacheEntry, int ttl = -1) where T : class;
     //Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class;
 
-    Task Delete(string key);
+    Task<bool> Delete(string key);
+
+    Task<long> DeleteAll(CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -105,11 +107,10 @@ public class DistributedCacheService : IDistributedCacheService
         _localCacheSvc.Set(key, cacheEntry, expiry);
     }
 
-    public async Task Delete(string key)
+    public async Task<bool> Delete(string key)
     {
-        _localCacheSvc.Delete(key);
-
-        _ = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
+        var result1 = _localCacheSvc.Delete(key);
+        var result2 = await _remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
 
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
@@ -117,5 +118,12 @@ public class DistributedCacheService : IDistributedCacheService
             _logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
                 nameof(DistributedCacheService), key);
         }
+        return result1 || result2;
+    }
+
+    public async Task<long> DeleteAll(CancellationToken cancellationToken)
+    {
+        await Task.Delay(0, cancellationToken);
+        throw new NotImplementedException("TODO!");
     }
 }

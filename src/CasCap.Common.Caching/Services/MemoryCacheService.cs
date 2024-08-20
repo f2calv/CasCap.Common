@@ -4,7 +4,7 @@ public class MemoryCacheService : ILocalCacheService
 {
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;
-    readonly IMemoryCache _localCache;
+    readonly MemoryCache _localCache;
 
     HashSet<string> _cacheKeys = new();
 

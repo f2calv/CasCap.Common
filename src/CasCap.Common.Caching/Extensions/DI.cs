@@ -9,19 +9,19 @@ public static class DI
 {
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(LocalCacheType: LocalCacheType, remoteCacheConnectionString: remoteCacheConnectionString);
+        => services.AddServices(remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configuration: configuration, remoteCacheConnectionString: remoteCacheConnectionString);
+        => services.AddServices(configuration: configuration, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(cachingOptions: cachingOptions, remoteCacheConnectionString: remoteCacheConnectionString);
+        => services.AddServices(cachingOptions: cachingOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingOptions> configureOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString);
+        => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,

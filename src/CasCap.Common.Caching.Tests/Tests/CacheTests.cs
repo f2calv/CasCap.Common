@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using System.Diagnostics;
 using System.Threading;
 
 namespace CasCap.Common.Caching.Tests;
@@ -86,20 +85,16 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     [InlineData(SerialisationType.Json, false)]
     [InlineData(SerialisationType.MessagePack, true)]
     [InlineData(SerialisationType.MessagePack, false)]
-    public async Task RemoteCacheSvc_Async(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup)
+    public async Task RemoteCacheSvc_Async(SerialisationType SerialisationType, bool ClearOnStartup)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Async)}:{RemoteCacheSerialisationType}";
+        var key = $"{nameof(RemoteCacheSvc_Async)}:{SerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions
-            {
-                SerialisationType = RemoteCacheSerialisationType,
-                ClearOnStartup = ClearOnStartup
-            },
+            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerialisationType = SerialisationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
@@ -110,7 +105,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         string json = null, resultJson = null;
         byte[] bytes = null, resultBytes = null;
         MyTestClass fromCache;
-        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        if (SerialisationType == SerialisationType.Json)
         {
             //serialise
             json = obj.ToJSON();
@@ -121,7 +116,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             //deserialise
             fromCache = resultJson.FromJSON<MyTestClass>();
         }
-        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (SerialisationType == SerialisationType.MessagePack)
         {
             //serialise
             bytes = obj.ToMessagePack();
@@ -133,15 +128,15 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
-            throw new NotSupportedException($"{nameof(RemoteCacheSerialisationType)} {RemoteCacheSerialisationType} is not supported!");
+            throw new NotSupportedException($"{nameof(SerialisationType)} {SerialisationType} is not supported!");
 
         //Assert
-        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        if (SerialisationType == SerialisationType.Json)
         {
             Assert.NotNull(resultJson);
             Assert.Equal(json, resultJson);
         }
-        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (SerialisationType == SerialisationType.MessagePack)
         {
             Assert.NotNull(resultBytes);
             Assert.Equal(bytes, resultBytes);
@@ -152,20 +147,16 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
     [InlineData(SerialisationType.Json)]
     [InlineData(SerialisationType.MessagePack)]
-    public async Task RemoteCacheSvc_LuaTest(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup = true)
+    public async Task RemoteCacheSvc_LuaTest(SerialisationType SerialisationType, bool ClearOnStartup = true)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerialisationType}";
+        var key = $"{nameof(RemoteCacheSvc_Sync)}:{SerialisationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions
-            {
-                SerialisationType = RemoteCacheSerialisationType,
-                ClearOnStartup = ClearOnStartup
-            },
+            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerialisationType = SerialisationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
@@ -173,9 +164,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
 
         //Act
         var inserted = false;
-        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        if (SerialisationType == SerialisationType.Json)
             inserted = await remoteCacheSvc.SetAsync(key, obj.ToJSON(), expiry);
-        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (SerialisationType == SerialisationType.MessagePack)
             inserted = await remoteCacheSvc.SetAsync(key, obj.ToMessagePack(), expiry);
         var t1 = remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
         var t2 = remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
@@ -208,19 +199,17 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     [InlineData(SerialisationType.Json, CacheType.Disk)]
     [InlineData(SerialisationType.MessagePack, CacheType.Memory)]
     [InlineData(SerialisationType.MessagePack, CacheType.Disk)]
-    public async Task DistCacheSvc_Test(SerialisationType RemoteCacheSerialisationType, CacheType LocalCacheType)
+    public async Task DistCacheSvc_Test(SerialisationType SerialisationType, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(DistCacheSvc_Test)}:{RemoteCacheSerialisationType}";
+        var key = $"{nameof(DistCacheSvc_Test)}:{SerialisationType}";
         var ttl = 5;
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingOptions = new CachingOptions
         {
-            RemoteCache = new CacheOptions
-            {
-                SerialisationType = RemoteCacheSerialisationType,
-                ClearOnStartup = true
-            },
+            RemoteCache = new CacheOptions { ClearOnStartup = true, SerialisationType = SerialisationType },
+            DiskCache = new CacheOptions { ClearOnStartup = true, SerialisationType = SerialisationType },
+            MemoryCache = new CacheOptions { ClearOnStartup = true }
         };
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
         var serviceProvider = services.BuildServiceProvider();
@@ -245,25 +234,23 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //retrieve from dist cache (i.e. get from local)
         var result1 = await distCacheSvc.Get<MyTestClass>(key);
         //delete from localCache to force retrieve from remote
-        var test22 = localCacheSvc.Get<MyTestClass>(key);
-        var isDeleted = localCacheSvc.Delete(key);
-        //retrieve from dist cache (i.e. now need to get from remote)
-        var result2 = await distCacheSvc.Get<MyTestClass>(key);
-        //retrieve from dist cache (i.e. get from local again)
+        var result2 = localCacheSvc.Get<MyTestClass>(key);
+        var isDeleted1 = localCacheSvc.Delete(key);
+        //retrieve from dist cache (i.e. now will need to get from remote)
         var result3 = await distCacheSvc.Get<MyTestClass>(key);
         //delete from both caches
-        await distCacheSvc.Delete(key);
+        var isDeleted2 = await distCacheSvc.Delete(key);
         //re-retrieve from cache
         var result4 = await distCacheSvc.Get<MyTestClass>(key);
-
         //test async Func setter
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
-        //var cacheEntry = await _distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
+        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
+        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
+        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
+        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
         var cacheEntryA = await distCacheSvc.Get(key, () => APIService.GetAsync(), ttl);
         var cacheEntryB = await distCacheSvc.Get(key, () => APIService.GetAsync());
 
+        var isDeleted3 = await distCacheSvc.Delete(key);
         //stop bg service
         await source.CancelAsync();
         await Task.Delay(1_000);//short pause for the cancellation token to take effect
@@ -272,12 +259,14 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Assert
         Assert.Equal(cacheEntry, result1);
         Assert.Equal(cacheEntry, result2);
+        Assert.True(isDeleted1);
         Assert.Equal(cacheEntry, result3);
         Assert.Null(result4);
-        Assert.True(isDeleted);
+        Assert.True(isDeleted2);
         Assert.NotNull(cacheEntryA);
         Assert.NotNull(cacheEntryB);
         Assert.Equal(cacheEntryA, cacheEntryB);
+        Assert.True(isDeleted3);
     }
 
     [Theory, Trait("Category", "ServiceCollection")]
@@ -297,7 +286,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var key = $"{nameof(CacheTests)}:{nameof(ServiceCollectionSetupTests)}";
         var cacheEntry = new MyTestClass();
 
-        //Act
         if (extensionType == 1)
             services.AddCasCapCaching(LocalCacheType: LocalCacheType);
         else if (extensionType == 2)
@@ -315,7 +303,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             {
                 //DiskCacheFolder = "testing123"
             };
-            services.AddCasCapCaching(cachingOptions);
+            services.AddCasCapCaching(cachingOptions, LocalCacheType: LocalCacheType);
         }
         else if (extensionType == 4)
         {
@@ -327,13 +315,10 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         }
 
         var serviceProvider = services.BuildServiceProvider();
+
+        //Act
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-
         var localCacheSvc = serviceProvider.GetRequiredService<ILocalCacheService>();
-        //var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCacheService>();
-        //var remoteCacheSvc = serviceProvider.GetRequiredService<IRemoteCacheService>();
-
         localCacheSvc.Set(key, cacheEntry);
         var cacheResult = localCacheSvc.Get<MyTestClass>(key);
         var deleteSuccess = localCacheSvc.Delete(key);

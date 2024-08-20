@@ -36,12 +36,14 @@ public class DiskCacheService : ILocalCacheService
         var files = 0L;
         foreach (var file in di.GetFiles())
         {
+            _logger.LogTrace("{serviceName} attempting deletion of file {fileName}", nameof(DiskCacheService), file.Name);
             file.Delete();
             files++;
         }
         var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
+            _logger.LogTrace("{serviceName} attempting deletion of directory {directoryName}", nameof(DiskCacheService), dir.Name);
             dir.Delete(true);
             directories++;
         }
