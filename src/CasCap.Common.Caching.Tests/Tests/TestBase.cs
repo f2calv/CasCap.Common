@@ -16,7 +16,7 @@ public abstract class TestBase
         //{
         //    MemoryCacheSizeLimit = 100,
         //    //LoadBuiltInLuaScripts = true,
-        //    //RemoteCache = new CacheOptions() { SerialisationType = SerialisationType.Json },
+        //    //RemoteCache = new CacheOptions() { SerializationType = SerializationType.Json },
         //});
 
         //initiate ServiceCollection w/logging

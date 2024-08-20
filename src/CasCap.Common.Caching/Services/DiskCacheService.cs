@@ -56,18 +56,18 @@ public class DiskCacheService : ILocalCacheService
         T? cacheEntry;
         if (File.Exists(key))
         {
-            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = File.ReadAllText(key);
                 cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = File.ReadAllBytes(key);
                 cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
         }
         else
             cacheEntry = default;
@@ -81,18 +81,18 @@ public class DiskCacheService : ILocalCacheService
         _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
-            if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.Json)
+            if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = cacheEntry.ToJSON();
                 File.WriteAllText(key, json);
             }
-            else if (_cachingOptions.DiskCache.SerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 File.WriteAllBytes(key, bytes);
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerialisationType)} {_cachingOptions.DiskCache.SerialisationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
         }
     }
 
@@ -116,7 +116,7 @@ public class DiskCacheService : ILocalCacheService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{serviceName} deserialisation error for {key}", nameof(DiskCacheService), key);
+                _logger.LogError(ex, "{serviceName} deSerialization error for {key}", nameof(DiskCacheService), key);
                 Debugger.Break();
             }
             _logger.LogTrace("{serviceName} retrieved cacheEntry {key}", nameof(DiskCacheService), key);

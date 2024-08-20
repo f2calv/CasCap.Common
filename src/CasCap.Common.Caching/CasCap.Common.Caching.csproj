@@ -13,8 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
-    <ProjectReference Include="..\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj" />
-    <ProjectReference Include="..\CasCap.Common.Serialisation.MessagePack\CasCap.Common.Serialisation.MessagePack.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Serialization.Json\CasCap.Common.Serialization.Json.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Serialization.MessagePack\CasCap.Common.Serialization.MessagePack.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
 

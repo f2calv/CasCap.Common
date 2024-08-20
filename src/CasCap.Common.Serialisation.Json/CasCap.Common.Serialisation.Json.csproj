@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for common Json serialisation requirements.</Description>
+    <Description>Helper library for common Json Serialization requirements.</Description>
     <PackageTags>extensions,helpers,Json</PackageTags>
   </PropertyGroup>
 

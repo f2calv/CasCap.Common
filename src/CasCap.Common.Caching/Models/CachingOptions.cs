@@ -29,11 +29,11 @@ public class CachingOptions
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
-    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.None };
+    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
 
-    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.Json };
+    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerializationType = SerializationType.Json };
 
-    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerialisationType = SerialisationType.MessagePack };
+    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerializationType = SerializationType.MessagePack };
 
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialised files.
@@ -46,7 +46,7 @@ public class CachingOptions
 public class CacheOptions
 {
     public bool ClearOnStartup { get; set; } = false;
-    public SerialisationType SerialisationType { get; set; } = SerialisationType.MessagePack;
+    public SerializationType SerializationType { get; set; } = SerializationType.MessagePack;
 }
 
 public enum CacheType
@@ -59,7 +59,7 @@ public enum CacheType
     //Postgres
 }
 
-public enum SerialisationType
+public enum SerializationType
 {
     None = 0,
     Json = 1,

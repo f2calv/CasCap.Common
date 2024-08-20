@@ -70,18 +70,18 @@ public class RedisCacheService : IRemoteCacheService
         if (o.Expiry.HasValue && o.Value.HasValue)
         {
             tpl.expiry = o.Expiry;
-            if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
+            if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString();
                 tpl.cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = (byte[])o.Value!;
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
         }
         return tpl;
     }
@@ -99,20 +99,20 @@ public class RedisCacheService : IRemoteCacheService
         if (res != default && res.payload is not null)
         {
             tpl.expiry = res.ttl.GetExpiry();
-            if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
+            if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = (string?)res.payload;
                 if (json is not null)
                     tpl.cacheEntry = json.FromJSON<T>();
             }
-            else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
+            else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = (byte[]?)res.payload;
                 if (bytes is not null)
                     tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
         }
 
         return tpl;

@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Serialisation.Tests;
+﻿namespace CasCap.Common.Serialization.Tests;
 
 public abstract class TestBase
 {

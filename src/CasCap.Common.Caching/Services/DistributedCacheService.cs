@@ -75,18 +75,18 @@ public class DistributedCacheService : IDistributedCacheService
     {
         var expiry = ttl.GetExpiry();
 
-        if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.Json)
+        if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
         {
             var json = cacheEntry.ToJSON();
             _ = await _remoteCacheSvc.SetAsync(key, json, expiry);
         }
-        else if (_cachingOptions.RemoteCache.SerialisationType == SerialisationType.MessagePack)
+        else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
         {
             var bytes = cacheEntry.ToMessagePack();
             _ = await _remoteCacheSvc.SetAsync(key, bytes, expiry);
         }
         else
-            throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerialisationType)} {_cachingOptions.RemoteCache.SerialisationType} is not supported!");
+            throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
 
         _localCacheSvc.Set(key, cacheEntry, expiry);
     }

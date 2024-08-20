@@ -3,9 +3,9 @@ using System;
 
 namespace CasCap.Common.Extensions;
 
-public static class MessagePackSerialisationHelpers
+public static class MessagePackSerializationHelpers
 {
-    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackSerialisationHelpers));
+    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackSerializationHelpers));
 
     public static byte[] ToMessagePack<T>(this T data)
     {
@@ -13,7 +13,7 @@ public static class MessagePackSerialisationHelpers
         {
             var bytes = MessagePackSerializer.Serialize(data);
             //_logger.LogTrace("{serviceName} serialised object {typeof} into {count} bytes",
-            //    nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
+            //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return bytes;
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public static class MessagePackSerialisationHelpers
         {
             T obj =  MessagePackSerializer.Deserialize<T>(bytes);
             //_logger.LogTrace("{serviceName} deserialised object {typeof} from {count} bytes",
-            //    nameof(MessagePackSerialisationHelpers), typeof(T), bytes.Length);
+            //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return obj;
         }
         catch (Exception ex)

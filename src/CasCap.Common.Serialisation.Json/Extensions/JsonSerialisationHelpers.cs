@@ -2,9 +2,9 @@
 
 namespace CasCap.Common.Extensions;
 
-public static class JsonSerialisationHelpers
+public static class JsonSerializationHelpers
 {
-    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerialisationHelpers));
+    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerializationHelpers));
 
     //https://stackoverflow.com/questions/24066400/checking-for-empty-or-null-jtoken-in-a-jobject/24067483#24067483
     public static bool IsNullOrEmpty(this JToken token)

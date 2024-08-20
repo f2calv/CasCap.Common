@@ -9,18 +9,18 @@ namespace CasCap.Common.Caching.Tests;
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json, true, CacheType.Memory)]
-    [InlineData(SerialisationType.Json, false, CacheType.Memory)]
-    [InlineData(SerialisationType.Json, true, CacheType.Disk)]
-    [InlineData(SerialisationType.Json, false, CacheType.Disk)]
-    [InlineData(SerialisationType.MessagePack, true, CacheType.Memory)]
-    [InlineData(SerialisationType.MessagePack, false, CacheType.Memory)]
-    [InlineData(SerialisationType.MessagePack, true, CacheType.Disk)]
-    [InlineData(SerialisationType.MessagePack, false, CacheType.Disk)]
-    public void RemoteCacheSvc_Sync(SerialisationType RemoteCacheSerialisationType, bool ClearOnStartup, CacheType LocalCacheType)
+    [InlineData(SerializationType.Json, true, CacheType.Memory)]
+    [InlineData(SerializationType.Json, false, CacheType.Memory)]
+    [InlineData(SerializationType.Json, true, CacheType.Disk)]
+    [InlineData(SerializationType.Json, false, CacheType.Disk)]
+    [InlineData(SerializationType.MessagePack, true, CacheType.Memory)]
+    [InlineData(SerializationType.MessagePack, false, CacheType.Memory)]
+    [InlineData(SerializationType.MessagePack, true, CacheType.Disk)]
+    [InlineData(SerializationType.MessagePack, false, CacheType.Disk)]
+    public void RemoteCacheSvc_Sync(SerializationType RemoteCacheSerializationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerialisationType}:{LocalCacheType}";
+        var key = $"{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerializationType}:{LocalCacheType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -28,7 +28,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             LoadBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions
             {
-                SerialisationType = RemoteCacheSerialisationType,
+                SerializationType = RemoteCacheSerializationType,
                 ClearOnStartup = ClearOnStartup
             },
         };
@@ -41,7 +41,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         string json = null, resultJson = null;
         byte[] bytes = null, resultBytes = null;
         MyTestClass fromCache;
-        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        if (RemoteCacheSerializationType == SerializationType.Json)
         {
             //serialise
             json = obj.ToJSON();
@@ -52,7 +52,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             //deserialise
             fromCache = resultJson.FromJSON<MyTestClass>();
         }
-        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (RemoteCacheSerializationType == SerializationType.MessagePack)
         {
             //serialise
             bytes = obj.ToMessagePack();
@@ -64,15 +64,15 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
-            throw new NotSupportedException($"{nameof(RemoteCacheSerialisationType)} {RemoteCacheSerialisationType} is not supported!");
+            throw new NotSupportedException($"{nameof(RemoteCacheSerializationType)} {RemoteCacheSerializationType} is not supported!");
 
         //Assert
-        if (RemoteCacheSerialisationType == SerialisationType.Json)
+        if (RemoteCacheSerializationType == SerializationType.Json)
         {
             Assert.NotNull(resultJson);
             Assert.Equal(json, resultJson);
         }
-        else if (RemoteCacheSerialisationType == SerialisationType.MessagePack)
+        else if (RemoteCacheSerializationType == SerializationType.MessagePack)
         {
             Assert.NotNull(resultBytes);
             Assert.Equal(bytes, resultBytes);
@@ -81,20 +81,20 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     }
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json, true)]
-    [InlineData(SerialisationType.Json, false)]
-    [InlineData(SerialisationType.MessagePack, true)]
-    [InlineData(SerialisationType.MessagePack, false)]
-    public async Task RemoteCacheSvc_Async(SerialisationType SerialisationType, bool ClearOnStartup)
+    [InlineData(SerializationType.Json, true)]
+    [InlineData(SerializationType.Json, false)]
+    [InlineData(SerializationType.MessagePack, true)]
+    [InlineData(SerializationType.MessagePack, false)]
+    public async Task RemoteCacheSvc_Async(SerializationType SerializationType, bool ClearOnStartup)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Async)}:{SerialisationType}";
+        var key = $"{nameof(RemoteCacheSvc_Async)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerialisationType = SerialisationType },
+            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
@@ -105,7 +105,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         string json = null, resultJson = null;
         byte[] bytes = null, resultBytes = null;
         MyTestClass fromCache;
-        if (SerialisationType == SerialisationType.Json)
+        if (SerializationType == SerializationType.Json)
         {
             //serialise
             json = obj.ToJSON();
@@ -116,7 +116,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             //deserialise
             fromCache = resultJson.FromJSON<MyTestClass>();
         }
-        else if (SerialisationType == SerialisationType.MessagePack)
+        else if (SerializationType == SerializationType.MessagePack)
         {
             //serialise
             bytes = obj.ToMessagePack();
@@ -128,15 +128,15 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
-            throw new NotSupportedException($"{nameof(SerialisationType)} {SerialisationType} is not supported!");
+            throw new NotSupportedException($"{nameof(SerializationType)} {SerializationType} is not supported!");
 
         //Assert
-        if (SerialisationType == SerialisationType.Json)
+        if (SerializationType == SerializationType.Json)
         {
             Assert.NotNull(resultJson);
             Assert.Equal(json, resultJson);
         }
-        else if (SerialisationType == SerialisationType.MessagePack)
+        else if (SerializationType == SerializationType.MessagePack)
         {
             Assert.NotNull(resultBytes);
             Assert.Equal(bytes, resultBytes);
@@ -145,18 +145,18 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     }
 
     [Theory, Trait("Category", nameof(IRemoteCacheService))]
-    [InlineData(SerialisationType.Json)]
-    [InlineData(SerialisationType.MessagePack)]
-    public async Task RemoteCacheSvc_LuaTest(SerialisationType SerialisationType, bool ClearOnStartup = true)
+    [InlineData(SerializationType.Json)]
+    [InlineData(SerializationType.MessagePack)]
+    public async Task RemoteCacheSvc_LuaTest(SerializationType SerializationType, bool ClearOnStartup = true)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Sync)}:{SerialisationType}";
+        var key = $"{nameof(RemoteCacheSvc_Sync)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
         {
             LoadBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerialisationType = SerialisationType },
+            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
@@ -164,9 +164,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
 
         //Act
         var inserted = false;
-        if (SerialisationType == SerialisationType.Json)
+        if (SerializationType == SerializationType.Json)
             inserted = await remoteCacheSvc.SetAsync(key, obj.ToJSON(), expiry);
-        else if (SerialisationType == SerialisationType.MessagePack)
+        else if (SerializationType == SerializationType.MessagePack)
             inserted = await remoteCacheSvc.SetAsync(key, obj.ToMessagePack(), expiry);
         var t1 = remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);
         var t2 = remoteCacheSvc.GetCacheEntryWithTTL<MyTestClass>(key);
@@ -195,20 +195,20 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     }
 
     [Theory, Trait("Category", nameof(IDistributedCacheService))]
-    [InlineData(SerialisationType.Json, CacheType.Memory)]
-    [InlineData(SerialisationType.Json, CacheType.Disk)]
-    [InlineData(SerialisationType.MessagePack, CacheType.Memory)]
-    [InlineData(SerialisationType.MessagePack, CacheType.Disk)]
-    public async Task DistCacheSvc_Test(SerialisationType SerialisationType, CacheType LocalCacheType)
+    [InlineData(SerializationType.Json, CacheType.Memory)]
+    [InlineData(SerializationType.Json, CacheType.Disk)]
+    [InlineData(SerializationType.MessagePack, CacheType.Memory)]
+    [InlineData(SerializationType.MessagePack, CacheType.Disk)]
+    public async Task DistCacheSvc_Test(SerializationType SerializationType, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(DistCacheSvc_Test)}:{SerialisationType}";
+        var key = $"{nameof(DistCacheSvc_Test)}:{SerializationType}";
         var ttl = 5;
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingOptions = new CachingOptions
         {
-            RemoteCache = new CacheOptions { ClearOnStartup = true, SerialisationType = SerialisationType },
-            DiskCache = new CacheOptions { ClearOnStartup = true, SerialisationType = SerialisationType },
+            RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType },
+            DiskCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType },
             MemoryCache = new CacheOptions { ClearOnStartup = true }
         };
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);

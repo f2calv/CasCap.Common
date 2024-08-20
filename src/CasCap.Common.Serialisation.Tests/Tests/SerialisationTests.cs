@@ -1,10 +1,10 @@
-﻿namespace CasCap.Common.Serialisation.Tests;
+﻿namespace CasCap.Common.Serialization.Tests;
 
-public class SerialisationTests : TestBase
+public class SerializationTests : TestBase
 {
-    public SerialisationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+    public SerializationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
     public void TestMessagePack()
     {
         var obj1 = new MyTestClass();
@@ -24,7 +24,7 @@ public class SerialisationTests : TestBase
         Assert.Equal(str1, str2);
     }
 
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "Json")]
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "Json")]
     public void TestJson()
     {
         var obj1 = new MyTestClass();
@@ -47,10 +47,10 @@ public class SerialisationTests : TestBase
     /// DateTime.Kind is not preserved when serializing/deserializing - lets confirm that and implement a workaround.
     /// </summary>
     /// <returns></returns>
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
-    public void DateTimeKindSerialisation()
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
+    public void DateTimeKindSerialization()
     {
-        //todo: move this into a CasCap.Common.Serialisation.Tests lib
+        //todo: move this into a CasCap.Common.Serialization.Tests lib
         var obj = new MyTestClass { dtNowFixed = DateTime.Now };
 
         Assert.True(obj.dtNow.Kind == DateTimeKind.Local);
