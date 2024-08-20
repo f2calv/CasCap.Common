@@ -43,24 +43,24 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         MyTestClass fromCache;
         if (RemoteCacheSerializationType == SerializationType.Json)
         {
-            //serialise
+            //serialize
             json = obj.ToJSON();
             //insert into cache
             result = remoteCacheSvc.Set(key, json, expiry);
             //retrieve from cache
             resultJson = remoteCacheSvc.Get(key);
-            //deserialise
+            //deserialize
             fromCache = resultJson.FromJSON<MyTestClass>();
         }
         else if (RemoteCacheSerializationType == SerializationType.MessagePack)
         {
-            //serialise
+            //serialize
             bytes = obj.ToMessagePack();
             //insert into cache
             result = remoteCacheSvc.Set(key, bytes, expiry);
             //retrieve from cache
             resultBytes = remoteCacheSvc.GetBytes(key);
-            //deserialise
+            //deserialize
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else
@@ -107,24 +107,24 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         MyTestClass fromCache;
         if (SerializationType == SerializationType.Json)
         {
-            //serialise
+            //serialize
             json = obj.ToJSON();
             //insert into cache
             result = await remoteCacheSvc.SetAsync(key, json, expiry);
             //retrieve from cache
             resultJson = await remoteCacheSvc.GetAsync(key);
-            //deserialise
+            //deserialize
             fromCache = resultJson.FromJSON<MyTestClass>();
         }
         else if (SerializationType == SerializationType.MessagePack)
         {
-            //serialise
+            //serialize
             bytes = obj.ToMessagePack();
             //insert into cache
             result = await remoteCacheSvc.SetAsync(key, bytes, expiry);
             //retrieve from cache
             resultBytes = await remoteCacheSvc.GetBytesAsync(key);
-            //deserialise
+            //deserialize
             fromCache = resultBytes.FromMessagePack<MyTestClass>();
         }
         else

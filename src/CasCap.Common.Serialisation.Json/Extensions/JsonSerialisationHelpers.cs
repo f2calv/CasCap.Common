@@ -59,7 +59,7 @@ public static class JsonSerializationHelpers
         }
     }
 
-    //not sure why I added this? Maybe to deserialise massive json files?
+    //not sure why I added this? Maybe to deserialize massive json files?
     //public static T FromJSONv2<T>(this string json)
     //{
     //    T output = default;

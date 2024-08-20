@@ -36,7 +36,7 @@ public class CachingOptions
     public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerializationType = SerializationType.MessagePack };
 
     /// <summary>
-    /// Specifies the root folder where the local disk cache will store serialised files.
+    /// Specifies the root folder where the local disk cache will store serialized files.
     /// </summary>
     public string DiskCacheFolder { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 

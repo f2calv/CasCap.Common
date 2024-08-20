@@ -94,7 +94,7 @@ public class MyTestClass
     public DateTime dtNow { get; set; } = DateTime.Now.Date;
     DateTime _dtNowFixed;
     /// <summary>
-    /// We send in a normal datetime, which when deserialised by MessagePack gets converted to Utc.
+    /// We send in a normal datetime, which when deserialized by MessagePack gets converted to Utc.
     /// </summary>
     public DateTime dtNowFixed
     {
