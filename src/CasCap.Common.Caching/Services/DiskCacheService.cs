@@ -16,18 +16,6 @@ public class DiskCacheService : ILocalCacheService
         if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
     }
 
-    public string CacheSize()
-    {
-        var size = Utils.CalculateFolderSize(DiskCacheFolder);
-        if (size > 1024)
-        {
-            var s = size / 1024;
-            return $"{s:###,###,##0}kb";
-        }
-        else
-            return $"0kb";
-    }
-
     public long DeleteAll()
     {
         var di = new DirectoryInfo(DiskCacheFolder);
