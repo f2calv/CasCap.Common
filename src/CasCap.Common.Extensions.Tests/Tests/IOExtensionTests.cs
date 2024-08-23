@@ -13,7 +13,8 @@ public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         var filePath1 = Path.Combine(path, "test.txt");
         var filePath2 = Path.Combine(path, "test.bin");
         //cleanup
-        Directory.Delete(path, true);
+        if (Directory.Exists(path))
+            Directory.Delete(path, true);
 
         //Act
         var newFolder = path.Extend("sub-folder/test.txt");
