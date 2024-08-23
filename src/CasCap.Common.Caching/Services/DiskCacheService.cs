@@ -1,4 +1,6 @@
-﻿namespace CasCap.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CasCap.Services;
 
 public class DiskCacheService : ILocalCacheService
 {
@@ -89,6 +91,7 @@ public class DiskCacheService : ILocalCacheService
         return Path.Combine(DiskCacheFolder, key.Replace(":", "_"));
     }
 
+    [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
     public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken token = default) where T : class
     {
         key = GetKey(key);
