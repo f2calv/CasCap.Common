@@ -37,3 +37,5 @@ A range of .NET class libraries packed with helper functions, extensions, utilit
 ## CasCap.Common.Caching
 
 Special mention to this package which provides a customisable flexible Distributed Caching solution supporting the cache-aside pattern in an async manner. Local caching via either Memory or Disk and remote caching using Redis. Serialization supported includes both JSON and MessagePack.
+
+Cache items are stored both in local and remote cache locations and a background service provides an expiration and syncronisation capability. This way CPU and/or IO intensive methods which generate objects for storage in the cache can only be fired once and then retrieved either from the original server via the local cache or by other consumers via the remote cache.
