@@ -13,7 +13,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    //todo:store a summary of all cached items in a local lookup dictionary?
+    //todo: store a summary of all cached items in a local lookup dictionary?
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
     //public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
