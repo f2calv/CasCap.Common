@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.Extensions.Logging;
 
+[ExcludeFromCodeCoverage]
 public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvider
 {
     readonly ITestOutputHelper _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
@@ -17,6 +18,7 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
     }
 }
 
+[ExcludeFromCodeCoverage]
 class TestLogger(ITestOutputHelper output) : ILogger
 {
     readonly List<LogEntry> _entries = [];
@@ -35,6 +37,7 @@ class TestLogger(ITestOutputHelper output) : ILogger
     }
 }
 
+[ExcludeFromCodeCoverage]
 class LogEntry(LogLevel level, string message)
 {
     public DateTime Timestamp { get; } = DateTime.Now;

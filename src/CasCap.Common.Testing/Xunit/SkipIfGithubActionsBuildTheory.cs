@@ -1,5 +1,6 @@
 ﻿namespace CasCap.Xunit;
 
+[ExcludeFromCodeCoverage]
 public sealed class SkipIfGithubActionsBuildTheory : TheoryAttribute
 {
     public SkipIfGithubActionsBuildTheory()

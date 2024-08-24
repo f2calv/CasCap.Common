@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.Extensions.DependencyInjection;
 
+[ExcludeFromCodeCoverage]
 public static class DI
 {
     public static IServiceCollection AddXUnitLogging(this IServiceCollection services, ITestOutputHelper testOutputHelper)
@@ -10,7 +11,8 @@ public static class DI
             logging.SetMinimumLevel(LogLevel.Trace);
         });
         //assign to the static LoggerFactory instance before exiting!
-        ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+        //ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+        services.BuildServiceProvider().AddStaticLogging();
         return services;
     }
 }
