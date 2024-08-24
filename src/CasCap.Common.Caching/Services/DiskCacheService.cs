@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public class DiskCacheService : ILocalCacheService
 {
