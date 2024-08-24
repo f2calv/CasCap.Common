@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CasCap.Common.Extensions;
+﻿namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Asynchronous locking based on a key
@@ -10,19 +8,13 @@ namespace CasCap.Common.Extensions;
 /// </summary>
 public sealed class AsyncDuplicateLock
 {
-    sealed class RefCounted<T>
+    sealed class RefCounted<T>(T value)
     {
-        public RefCounted(T value)
-        {
-            RefCount = 1;
-            Value = value;
-        }
-
-        public int RefCount { get; set; }
-        public T Value { get; private set; }
+        public int RefCount { get; set; } = 1;
+        public T Value { get; private set; } = value;
     }
 
-    static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = new();
+    static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
 
     static SemaphoreSlim GetOrCreate(object key)
     {

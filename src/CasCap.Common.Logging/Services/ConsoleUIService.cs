@@ -1,4 +1,6 @@
-﻿namespace CasCap.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CasCap.Services;
 
 public interface IConsoleUIService
 {
@@ -19,19 +21,11 @@ public interface IConsoleUIService
 /// <summary>
 /// Console UI functions
 /// </summary>
-public class ConsoleUIService : IConsoleUIService
+[ExcludeFromCodeCoverage(Justification = "soon to be deprecated")]
+public class ConsoleUIService(ILogger<ConsoleUIService> logger, IHostEnvironment env) : IConsoleUIService
 {
-    readonly ILogger _logger;
-    readonly IHostEnvironment _env;
-
-    public ConsoleUIService(ILogger<ConsoleUIService> logger, IHostEnvironment env)
-    {
-        _logger = logger;
-        _env = env;
-        sw = new Stopwatch();
-    }
-
-    Stopwatch sw;
+    readonly ILogger _logger = logger;
+    Stopwatch sw = new();
     int rowCount { get; set; } = 0;
     bool SkipRestOfScreen { get; set; } = false;
     int lineWidth { get; set; } = 0;
@@ -75,7 +69,7 @@ public class ConsoleUIService : IConsoleUIService
             nextKey = new ConsoleKeyInfo();//clear it
             OnUIKeyPress(key);//send it
         }
-        else if (_env.IsDevelopment())
+        else if (env.IsDevelopment())
             _logger.LogDebug("Render time {elapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)", sw.ElapsedMilliseconds, iWrite, iWriteLine);
         isScreenRefreshing = false;
     }

@@ -1,19 +1,14 @@
 ﻿namespace Microsoft.Extensions.Logging;
 
-public class TestLogProvider : ILoggerProvider
+[ExcludeFromCodeCoverage]
+public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvider
 {
-    readonly ITestOutputHelper _output;
-    readonly ConcurrentDictionary<string, TestLogger> _loggers;
-
-    public TestLogProvider(ITestOutputHelper output)
-    {
-        _output = output ?? throw new ArgumentNullException(nameof(output));
-        _loggers = new ConcurrentDictionary<string, TestLogger>(StringComparer.OrdinalIgnoreCase);
-    }
+    readonly ITestOutputHelper _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
+    readonly ConcurrentDictionary<string, TestLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 
     public ILogger CreateLogger(string categoryName)
     {
-        return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_output));
+        return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_testOutputHelper));
     }
 
     public void Dispose()
@@ -23,16 +18,10 @@ public class TestLogProvider : ILoggerProvider
     }
 }
 
-class TestLogger : ILogger
+[ExcludeFromCodeCoverage]
+class TestLogger(ITestOutputHelper output) : ILogger
 {
-    readonly ITestOutputHelper _output;
-    readonly List<LogEntry> _entries;
-
-    public TestLogger(ITestOutputHelper output)
-    {
-        _output = output;
-        _entries = new List<LogEntry>();
-    }
+    readonly List<LogEntry> _entries = [];
 
     public IReadOnlyCollection<LogEntry> GetLogs() => _entries.AsReadOnly();
 
@@ -44,27 +33,18 @@ class TestLogger : ILogger
     {
         var entry = new LogEntry(logLevel, formatter(state, exception));
         _entries.Add(entry);
-        _output.WriteLine(entry.ToString());
+        output.WriteLine(entry.ToString());
     }
 }
 
-class LogEntry
+[ExcludeFromCodeCoverage]
+class LogEntry(LogLevel level, string message)
 {
-    public LogEntry(LogLevel level, string message)
-    {
-        LogLevel = level;
-        Message = message;
-        Timestamp = DateTime.Now;
-    }
+    public DateTime Timestamp { get; } = DateTime.Now;
 
-    public DateTime Timestamp { get; }
+    public LogLevel LogLevel { get; } = level;
 
-    public LogLevel LogLevel { get; }
+    public string Message { get; } = message;
 
-    public string Message { get; }
-
-    public override string ToString()
-    {
-        return $"{Timestamp:o}: {Message}";
-    }
+    public override string ToString() => $"{Timestamp:o}: {Message}";
 }

@@ -25,7 +25,7 @@ public static class ExtensionHelpers
     //    return string.IsNullOrEmpty(value);
     //}
 
-    //public static bool IsNullOrEmpty(string? value)//conflits with collections extension IsNullOrEmpty
+    //public static bool IsNullOrEmpty(string? value)//conflicts with collections extension IsNullOrEmpty
     //{
     //    return string.IsNullOrEmpty(value);
     //    //return input?.Length > 0;
@@ -53,7 +53,7 @@ public static class ExtensionHelpers
         {
             var batchNumber = i / batchSize;
             if (!batches.ContainsKey(batchNumber))
-                batches.Add(batchNumber, new List<T>());
+                batches.Add(batchNumber, []);
             batches[batchNumber].Add(objects[i]);
         }
         return batches;
@@ -317,10 +317,10 @@ public static class ExtensionHelpers
 
     public static string UrlCombine(this string baseUrl, string relativeUrl)
     {
-        baseUrl = baseUrl.TrimEnd(new char[] { '/' });
+        baseUrl = baseUrl.TrimEnd(['/']);
         relativeUrl ??= string.Empty;
-        relativeUrl = relativeUrl.TrimStart(new char[] { '~' });
-        relativeUrl = relativeUrl.TrimStart(new char[] { '/' });
+        relativeUrl = relativeUrl.TrimStart(['~']);
+        relativeUrl = relativeUrl.TrimStart(['/']);
         return baseUrl + "/" + relativeUrl;
     }
 
@@ -333,7 +333,7 @@ public static class ExtensionHelpers
 
     public static IEnumerable<string> String2List(this string input)
     {
-        foreach (var s in input.Split(new[] { '\r', '\n' }))
+        foreach (var s in input.Split(['\r', '\n']))
             if (!string.IsNullOrWhiteSpace(s))
                 yield return s;
     }
@@ -359,7 +359,7 @@ public static class ExtensionHelpers
         return enumerationValue.ToString()!;
     }
 
-    static Dictionary<string, object> dEnumLookup { get; set; } = new();
+    static Dictionary<string, object> dEnumLookup { get; set; } = [];
 
     /// <summary>
     /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
@@ -512,103 +512,6 @@ public static class ExtensionHelpers
         }
         return string.Empty;
     }
-
-    #region IO extensions
-    public static string Extend(this string root, string folderOrFile)
-    {
-        var path = Path.Combine(root, folderOrFile);
-        return path;
-    }
-
-    //public static string ExtendAndCreateDirectory(this string root, string folderOrFile)
-    //{
-    //    var directory = root.ExtendPath(Path.GetFullPath(folderOrFile));
-    //    if (!Directory.Exists(directory))
-    //        Directory.CreateDirectory(directory);
-    //    return directory;
-    //}
-
-    public static void WriteAllBytes(this string path, byte[] bytes)
-    {
-        var dir = Path.GetDirectoryName(path);
-        if (dir is not null)
-        {
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllBytes(path, bytes);
-        }
-        else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
-    }
-
-    public static void WriteAllText(this string path, string str)
-    {
-        var dir = Path.GetDirectoryName(path);
-        if (dir is not null)
-        {
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, str);
-        }
-        else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
-    }
-
-    public static void AppendTextFile(this string path, string content)
-    {
-        var dir = Path.GetDirectoryName(path);
-        if (dir is not null)
-        {
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            if (!File.Exists(path))
-            {
-                using var sw = File.CreateText(path);
-                sw.WriteLine(content);
-            }
-            else
-            {
-                try
-                {
-                    using var sw = File.AppendText(path);
-                    sw.WriteLine(content);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                }
-            }
-        }
-        else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
-    }
-
-    public static List<string> ReadTextFile(this string path)
-    {
-        var output = new List<string>(50000);
-        if (File.Exists(path))
-        {
-            //var count = TotalLines(path);
-            //output = new List<string>(count);
-            foreach (var line in File.ReadLines(path))
-            {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                output.Add(line);
-            }
-            //using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            //{
-            //    using (var stream = new StreamReader(fs))
-            //    {
-            //        while (true)
-            //        {
-            //            var line = stream.ReadLine();
-            //            output.Add(line);
-            //            if (line is null)
-            //                break;
-            //        }
-            //    }
-            //}
-        }
-        return output;
-    }
-    #endregion
 
     public static string Clean(this string thisString, string replacement = "")
     {

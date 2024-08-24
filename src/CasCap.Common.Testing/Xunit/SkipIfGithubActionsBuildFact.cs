@@ -1,5 +1,6 @@
 ﻿namespace CasCap.Xunit;
 
+[ExcludeFromCodeCoverage]
 public sealed class SkipIfGitHubActionsBuildFact : FactAttribute
 {
     public SkipIfGitHubActionsBuildFact()

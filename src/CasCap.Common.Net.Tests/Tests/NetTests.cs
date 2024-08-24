@@ -1,9 +1,7 @@
 ﻿namespace CasCap.Common.Net.Tests;
 
-public class NetTests : TestBase
+public class NetTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public NetTests(ITestOutputHelper output) : base(output) { }
-
     [Fact]
     public void Placeholder()
     {

@@ -7,11 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Logging", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Net", "src\CasCap.Common.Net\CasCap.Common.Net.csproj", "{4D5C38A5-4DAA-491E-AA8E-8EAFA6C00A5E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation.Json", "src\CasCap.Common.Serialisation.Json\CasCap.Common.Serialisation.Json.csproj", "{9DBCA96C-ED15-4833-85DC-71514AB0B178}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialization.Json", "src\CasCap.Common.Serialization.Json\CasCap.Common.Serialization.Json.csproj", "{9DBCA96C-ED15-4833-85DC-71514AB0B178}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Extensions", "src\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj", "{42FE6DFE-F092-4BBA-BD4B-89109E9A56D7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation.MessagePack", "src\CasCap.Common.Serialisation.MessagePack\CasCap.Common.Serialisation.MessagePack.csproj", "{7F93C655-B8BB-49E0-9BB1-54871B925952}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialization.MessagePack", "src\CasCap.Common.Serialization.MessagePack\CasCap.Common.Serialization.MessagePack.csproj", "{7F93C655-B8BB-49E0-9BB1-54871B925952}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Caching", "src\CasCap.Common.Caching\CasCap.Common.Caching.csproj", "{478286C7-9771-4A9A-8366-5DA5AE333A12}"
 EndProject
@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Caching.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Extensions.Tests", "src\CasCap.Common.Extensions.Tests\CasCap.Common.Extensions.Tests.csproj", "{2B2ED821-FECE-4EFD-AC76-A4D55267D501}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialisation.Tests", "src\CasCap.Common.Serialisation.Tests\CasCap.Common.Serialisation.Tests.csproj", "{C4C34D6C-3A0A-4716-B4FA-CEBBC03D1435}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Serialization.Tests", "src\CasCap.Common.Serialization.Tests\CasCap.Common.Serialization.Tests.csproj", "{C4C34D6C-3A0A-4716-B4FA-CEBBC03D1435}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Common.Net.Tests", "src\CasCap.Common.Net.Tests\CasCap.Common.Net.Tests.csproj", "{E3D7C965-3B4D-4A2F-A16B-F014B3477347}"
 EndProject

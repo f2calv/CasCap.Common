@@ -7,12 +7,13 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for common Json serialisation requirements.</Description>
+    <Description>Helper library for common Json Serialization requirements.</Description>
     <PackageTags>extensions,helpers,Json</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

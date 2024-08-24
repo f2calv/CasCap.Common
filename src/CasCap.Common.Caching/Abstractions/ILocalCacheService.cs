@@ -2,7 +2,8 @@
 
 public interface ILocalCacheService
 {
-    void SetLocal<T>(string key, T cacheEntry, TimeSpan? expiry);
+    void Set<T>(string key, T cacheEntry, TimeSpan? expiry = null);
     T? Get<T>(string key);
-    void DeleteLocal(string key, bool viaPubSub);
+    bool Delete(string key);
+    long DeleteAll();
 }

@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Extensions.Tests;
+﻿namespace CasCap.Common.Serialization.Tests;
 
 public abstract class TestBase
 {
@@ -9,6 +9,8 @@ public abstract class TestBase
             .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
-        _ = services.BuildServiceProvider();
+        var serviceProvider = services.BuildServiceProvider();
+
+        ApplicationLogging.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
     }
 }

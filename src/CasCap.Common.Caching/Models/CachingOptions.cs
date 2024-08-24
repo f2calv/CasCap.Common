@@ -2,13 +2,16 @@
 
 public class CachingOptions
 {
+    /// <summary>
+    /// Configuration sub-section locator key.
+    /// </summary>
     public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
     /// Prefix all keys sent via pub/sub with a unique identifier so that when a single client is connected
     /// as both pub+sub it doesn't duplicate handling of it's own expiration messages.
     /// </summary>
-    public string pubSubPrefix { get; } = $"{Environment.MachineName}_{AppDomain.CurrentDomain.FriendlyName}_";
+    public string pubSubPrefix { get; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
 
     public string ChannelName { get; set; } = "expiration";
 
@@ -24,28 +27,39 @@ public class CachingOptions
 
     public bool LoadBuiltInLuaScripts { get; set; } = false;
 
-    public LocalCacheType LocalCacheType { get; set; } = LocalCacheType.Memory;
+    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
 
-    public SerialisationType DiskCacheSerialisationType { get; set; } = SerialisationType.Json;
+    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerializationType = SerializationType.Json };
 
-    public SerialisationType RemoteCacheSerialisationType { get; set; } = SerialisationType.MessagePack;
+    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerializationType = SerializationType.MessagePack };
 
     /// <summary>
-    /// Specifies the root folder where the local disk cache will store serialised files.
+    /// Specifies the root folder where the local disk cache will store serialized files.
     /// </summary>
-    public string DiskCacheFolder { get; set; } = null!;
+    public string DiskCacheFolder { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 }
 
-public enum LocalCacheType
+public class CacheOptions
 {
-    Memory,
-    Disk
+    public bool ClearOnStartup { get; set; } = false;
+    public SerializationType SerializationType { get; set; } = SerializationType.MessagePack;
 }
 
-public enum SerialisationType
+public enum CacheType
 {
-    Json,
-    MessagePack
+    None = 0,
+    Memory = 1,
+    Disk = 2,
+    Redis = 4,
+    //ValKey
+    //Postgres
+}
+
+public enum SerializationType
+{
+    None = 0,
+    Json = 1,
+    MessagePack = 2
 }

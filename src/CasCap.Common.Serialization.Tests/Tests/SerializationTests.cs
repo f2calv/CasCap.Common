@@ -1,11 +1,8 @@
-﻿using MessagePack;
-namespace CasCap.Common.Serialisation.Tests;
+﻿namespace CasCap.Common.Serialization.Tests;
 
-public class SerialisationTests : TestBase
+public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public SerialisationTests(ITestOutputHelper output) : base(output) { }
-
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
     public void TestMessagePack()
     {
         var obj1 = new MyTestClass();
@@ -25,7 +22,7 @@ public class SerialisationTests : TestBase
         Assert.Equal(str1, str2);
     }
 
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "Json")]
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "Json")]
     public void TestJson()
     {
         var obj1 = new MyTestClass();
@@ -48,15 +45,15 @@ public class SerialisationTests : TestBase
     /// DateTime.Kind is not preserved when serializing/deserializing - lets confirm that and implement a workaround.
     /// </summary>
     /// <returns></returns>
-    [Fact(Skip = "broken!"), Trait("Category", "Serialisation"), Trait("Category", "MessagePack")]
-    public void DateTimeKindSerialisation()
+    [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
+    public void DateTimeKindSerialization()
     {
-        //todo: move this into a CasCap.Common.Serialisation.Tests lib
+        //todo: move this into a CasCap.Common.Serialization.Tests lib
         var obj = new MyTestClass { dtNowFixed = DateTime.Now };
 
-        Assert.True(obj.dtNow.Kind == DateTimeKind.Local);
-        Assert.True(obj.dtNowFixed.Kind == DateTimeKind.Utc);//Local is changed to Utc on the property set
-        Assert.True(obj.utcNow.Kind == DateTimeKind.Utc);
+        Assert.Equal(DateTimeKind.Local, obj.dtNow.Kind);
+        Assert.Equal(DateTimeKind.Utc, obj.dtNowFixed.Kind);//Local is changed to Utc on the property set
+        Assert.Equal(DateTimeKind.Utc, obj.utcNow.Kind);
         //obj.d.Keys.
         //myDt = DateTime.SpecifyKind(saveNow, DateTimeKind.Utc);
 
@@ -64,9 +61,9 @@ public class SerialisationTests : TestBase
 
         var o = bytes.FromMessagePack<MyTestClass>();
 
-        Assert.True(o.dtNow.Kind == DateTimeKind.Utc);//broken
-        Assert.True(o.dtNowFixed.Kind == DateTimeKind.Utc);//fixed
-        Assert.True(o.utcNow.Kind == DateTimeKind.Utc);//no change
+        Assert.Equal(DateTimeKind.Utc, o.dtNow.Kind);//broken
+        Assert.Equal(DateTimeKind.Utc, o.dtNowFixed.Kind);//fixed
+        Assert.Equal(DateTimeKind.Utc, o.utcNow.Kind);//no change
 
         Assert.Equal(obj.dtNow, o.dtNow);
     }
@@ -95,7 +92,7 @@ public class MyTestClass
     public DateTime dtNow { get; set; } = DateTime.Now.Date;
     DateTime _dtNowFixed;
     /// <summary>
-    /// We send in a normal datetime, which when deserialised by messagepack gets converted to Utc.
+    /// We send in a normal datetime, which when deserialized by MessagePack gets converted to Utc.
     /// </summary>
     public DateTime dtNowFixed
     {

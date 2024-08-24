@@ -4,7 +4,7 @@
 public static class ApplicationLogging
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-    public static ILoggerFactory LoggerFactory { get; set; }// = new LoggerFactory();
+    public static ILoggerFactory LoggerFactory { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     public static ILogger CreateLogger<T>() => LoggerFactory.CreateLogger<T>();
     public static ILogger CreateLogger(string categoryName) => LoggerFactory.CreateLogger(categoryName);
