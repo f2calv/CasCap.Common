@@ -11,9 +11,9 @@ on:
         options:
           - Release
           - Debug
-      publish-preview:
+      push-preview:
         type: string
-        description: Publish preview branch?
+        description: Push preview branch?
         required: true
         default: "false"
   push:
@@ -50,12 +50,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ inputs.configuration }}
-          publish-preview: ${{ inputs.publish-preview }}
+          push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.semVer }}
 
   release:
     needs: [versioning, build]
-    if: github.ref == 'refs/heads/main' || inputs.publish-preview == 'true'
+    if: needs.versioning.outputs.release-exists == 'false'
+      && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || inputs.push-preview == 'true')
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
     permissions:
       contents: write
