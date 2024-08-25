@@ -51,7 +51,7 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ inputs.configuration }}
           push-preview: ${{ inputs.push-preview }}
-          version: ${{ needs.versioning.outputs.semVer }}
+          version: ${{ needs.versioning.outputs.version }}
 
   release:
     needs: [versioning, build]
@@ -61,6 +61,6 @@ jobs:
     permissions:
       contents: write
     with:
-      semVer: ${{ needs.versioning.outputs.semVer }}
+      semVer: ${{ needs.versioning.outputs.version }}
       tag-prefix: ''
       move-major-tag: false
