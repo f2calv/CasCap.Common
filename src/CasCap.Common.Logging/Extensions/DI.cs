@@ -2,9 +2,12 @@
 
 public static class DI
 {
-    public static void AddStaticLogging(this ServiceProvider serviceProvider)
+    /// <summary>
+    /// Assign the registered ILoggerFactory service to the static LoggerFactory instance.
+    /// </summary>
+    /// <param name="serviceProvider"></param>
+    public static void AddStaticLogging(this IServiceProvider serviceProvider)
     {
-        //assign to the static LoggerFactory instance
         ApplicationLogging.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
     }
 }
