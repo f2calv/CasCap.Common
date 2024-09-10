@@ -24,6 +24,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         T? cacheEntry = localCacheSvc.Get<T>(key);
         if (cacheEntry is null)
         {
+            logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from local cache",
+                nameof(DistributedCacheService), key, typeof(T));
             var tpl = await remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
             if (tpl != default)
             {
@@ -34,13 +36,15 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             }
             else if (createItem is not null)
             {
+                logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from remote cache",
+                    nameof(DistributedCacheService), key, typeof(T));
                 //we lock here to prevent multiple creations occurring at the same time
                 //TODO: integrate Redlock here
                 using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
-                    logger.LogTrace("{serviceName} setting {key} object type {type} in local cache",
+                    logger.LogTrace("{serviceName} setting {key} object type {type} in remote cache",
                         nameof(DistributedCacheService), key, typeof(T));
                     if (cacheEntry is not null)
                     {
@@ -50,7 +54,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             }
         }
         else if (cacheEntry is not null)
-            logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
+            logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                 nameof(DistributedCacheService), key, typeof(T));
         return cacheEntry;
     }
@@ -62,6 +66,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     {
         var expiry = ttl.GetExpiry();
 
+        logger.LogTrace("{serviceName} storing {key} object type {type} in remote cache",
+            nameof(DistributedCacheService), key, typeof(T));
         if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
         {
             var json = cacheEntry.ToJSON();
@@ -76,6 +82,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
 
         localCacheSvc.Set(key, cacheEntry, expiry);
+        logger.LogTrace("{serviceName} store {key} object type {type} in local cache",
+            nameof(DistributedCacheService), key, typeof(T));
     }
 
     public async Task<bool> Delete(string key)

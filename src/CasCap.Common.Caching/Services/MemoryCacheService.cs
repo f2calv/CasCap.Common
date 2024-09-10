@@ -29,7 +29,10 @@ public class MemoryCacheService : ILocalCacheService
 
     public T? Get<T>(string key)
     {
-        _localCache.TryGetValue(key, out T? cacheEntry);
+        if (_localCache.TryGetValue(key, out T? cacheEntry))
+            _logger.LogTrace("{serviceName} retrieved object with {key} from local cache", nameof(MemoryCacheService), key);
+        else
+            _logger.LogTrace("{serviceName} could not retrieve object with {key} from local cache", nameof(MemoryCacheService), key);
         return cacheEntry;
     }
 
@@ -47,7 +50,7 @@ public class MemoryCacheService : ILocalCacheService
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.Add(key);
-        _logger.LogTrace("{serviceName} set {key} in local cache", nameof(MemoryCacheService), key);
+        _logger.LogTrace("{serviceName} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, expiry);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -55,7 +58,7 @@ public class MemoryCacheService : ILocalCacheService
         _cacheKeys.Remove((string)key);
         var args = new PostEvictionEventArgs(key, value, reason, state);
         OnRaisePostEvictionEvent(args);
-        _logger.LogTrace("{serviceName} evicted {key} from local cache, reason {reason}",
+        _logger.LogTrace("{serviceName} evicted object with {key} from local cache (reason {reason})",
             nameof(MemoryCacheService), args.key, args.reason);
     }
 
@@ -66,8 +69,11 @@ public class MemoryCacheService : ILocalCacheService
         {
             _localCache.Remove(key);
             _cacheKeys.Remove(key);
+            _logger.LogTrace("{serviceName} deleted object with {key} from local cache", nameof(MemoryCacheService), key);
             return true;
         }
+        else
+            _logger.LogTrace("{serviceName} could not delete object with {key} from local cache (not present)", nameof(MemoryCacheService), key);
         return false;
     }
 
