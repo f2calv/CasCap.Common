@@ -1,4 +1,6 @@
-﻿namespace CasCap.Services;
+﻿using Microsoft.Extensions.Logging;
+
+namespace CasCap.Services;
 
 //https://stackexchange.github.io/StackExchange.Redis/
 public class RedisCacheService : IRemoteCacheService
@@ -79,6 +81,9 @@ public class RedisCacheService : IRemoteCacheService
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
         }
+        else
+            _logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from remote cache",
+                nameof(RedisCacheService), key, typeof(T));
         return tpl;
     }
 

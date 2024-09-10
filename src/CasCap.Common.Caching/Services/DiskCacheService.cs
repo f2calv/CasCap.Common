@@ -42,6 +42,7 @@ public class DiskCacheService : ILocalCacheService
         T? cacheEntry;
         if (File.Exists(key))
         {
+            _logger.LogTrace("{serviceName} retrieved object with {key} from local cache", nameof(DiskCacheService), key);
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = File.ReadAllText(key);
@@ -56,7 +57,10 @@ public class DiskCacheService : ILocalCacheService
                 throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
         }
         else
+        {
+            _logger.LogTrace("{serviceName} could not retrieve object with {key} from local cache", nameof(DiskCacheService), key);
             cacheEntry = default;
+        }
         return cacheEntry;
     }
 
@@ -64,7 +68,7 @@ public class DiskCacheService : ILocalCacheService
     {
         key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
-        _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+        _logger.LogTrace("{serviceName} attempting to store object with {key} in local cache", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
