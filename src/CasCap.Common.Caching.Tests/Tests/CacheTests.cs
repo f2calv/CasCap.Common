@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 using System.Threading;
 
 namespace CasCap.Common.Caching.Tests;
@@ -203,7 +204,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     {
         //Arrange
         var key = $"{nameof(DistCacheSvc_Test)}:{SerializationType}";
-        var ttl = 5;
+        var ttl = Debugger.IsAttached ? 60 : 5;
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingOptions = new CachingOptions
         {
