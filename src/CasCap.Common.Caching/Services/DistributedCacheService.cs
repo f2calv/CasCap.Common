@@ -82,8 +82,6 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
 
         localCacheSvc.Set(key, cacheEntry, expiry);
-        logger.LogTrace("{serviceName} store {key} object type {type} in local cache",
-            nameof(DistributedCacheService), key, typeof(T));
     }
 
     public async Task<bool> Delete(string key)
