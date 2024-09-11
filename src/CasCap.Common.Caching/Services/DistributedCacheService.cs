@@ -47,14 +47,12 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
                     logger.LogTrace("{serviceName} setting {key} object type {type} in remote cache",
                         nameof(DistributedCacheService), key, typeof(T));
                     if (cacheEntry is not null)
-                    {
                         await Set(key, cacheEntry, ttl);
-                    }
                 }
             }
         }
         else if (cacheEntry is not null)
-            logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
+            logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
         return cacheEntry;
     }
