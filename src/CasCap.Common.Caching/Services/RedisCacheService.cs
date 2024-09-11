@@ -65,9 +65,10 @@ public class RedisCacheService : IRemoteCacheService
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
         var o = await Db.StringGetWithExpiryAsync(key);
-        if (o.Expiry.HasValue && o.Value.HasValue)
+        if (o.Value.HasValue)
         {
-            tpl.expiry = o.Expiry;
+            _logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
+                nameof(RedisCacheService), key, typeof(T));
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString();
@@ -80,6 +81,8 @@ public class RedisCacheService : IRemoteCacheService
             }
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
+            if (o.Expiry.HasValue)
+                tpl.expiry = o.Expiry;
         }
         else
             _logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from remote cache",
