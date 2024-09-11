@@ -27,7 +27,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
             var tpl = await remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
-            if (tpl != default)
+            if (tpl != default && tpl.cacheEntry is not null)
             {
                 logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
