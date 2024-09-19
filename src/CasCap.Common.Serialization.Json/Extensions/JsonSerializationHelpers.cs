@@ -6,7 +6,7 @@ public static class JsonSerializationHelpers
 
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 
-    public static string ToJson(this object obj, JsonSerializerOptions? options = null)
+    public static string ToJson(this object obj, JsonSerializerOptions? options)
     {
         try
         {
@@ -19,7 +19,9 @@ public static class JsonSerializationHelpers
         }
     }
 
-    public static T? FromJson<T>(this string json, JsonSerializerOptions? options = null)
+    public static T? FromJson<T>(this string json) => json.FromJson<T>(options: null);
+
+    public static T? FromJson<T>(this string json, JsonSerializerOptions? options)
     {
         try
         {
