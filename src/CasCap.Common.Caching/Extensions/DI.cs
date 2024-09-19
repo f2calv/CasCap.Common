@@ -11,8 +11,9 @@ public static class DI
         => services.AddServices(remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
+        string sectionKey = CachingOptions.SectionKey,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configuration: configuration, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+        => services.AddServices(configuration: configuration, sectionKey, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
@@ -24,6 +25,7 @@ public static class DI
 
     static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
+        string sectionKey = CachingOptions.SectionKey,
         CachingOptions? cachingOptions = null,
         Action<CachingOptions>? configureOptions = null,
         string? remoteCacheConnectionString = null,
@@ -33,7 +35,7 @@ public static class DI
     {
         if (configuration is not null)
         {
-            var configSection = configuration.GetSection(CachingOptions.SectionKey);
+            var configSection = configuration.GetSection(sectionKey);
             cachingOptions = configSection.Get<CachingOptions>();
             if (cachingOptions is not null)
                 services.Configure<CachingOptions>(configSection);
