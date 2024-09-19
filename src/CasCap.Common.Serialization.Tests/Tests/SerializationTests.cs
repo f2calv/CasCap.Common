@@ -7,13 +7,13 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
     {
         var obj1 = new MyTestClass();
         Assert.True(IsTestClassValid(obj1));
-        var str1 = obj1.ToJSON();
+        var str1 = obj1.ToJson();
         Debug.WriteLine(str1);
         var bytes = obj1.ToMessagePack();
 
         var obj2 = bytes.FromMessagePack<MyTestClass>();
         Assert.NotNull(obj2);
-        var str2 = obj2.ToJSON();
+        var str2 = obj2.ToJson();
         Debug.WriteLine(str2);
         Assert.NotEqual(obj1, obj2);
         Assert.True(IsTestClassValid(obj2));
@@ -27,12 +27,12 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
     {
         var obj1 = new MyTestClass();
         Assert.True(IsTestClassValid(obj1));
-        var str1 = obj1.ToJSON();
+        var str1 = obj1.ToJson();
         //Debug.WriteLine(str1);
 
-        var obj2 = str1.FromJSON<MyTestClass>();
+        var obj2 = str1.FromJson<MyTestClass>();
         Assert.NotNull(obj2);
-        var str2 = obj2.ToJSON();
+        var str2 = obj2.ToJson();
         //Debug.WriteLine(str2);
         Assert.NotEqual(obj1, obj2);
         Assert.True(IsTestClassValid(obj2));

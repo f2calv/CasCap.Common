@@ -1,6 +1,4 @@
-﻿//using Newtonsoft.Json.Converters;
-
-//namespace CasCap.Models;
+﻿//namespace CasCap.Models;
 
 //public class MicrosecondEpochConverter : DateTimeConverterBase
 //{

@@ -68,7 +68,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             nameof(DistributedCacheService), key, typeof(T));
         if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
         {
-            var json = cacheEntry.ToJSON();
+            var json = cacheEntry.ToJson();
             _ = await remoteCacheSvc.SetAsync(key, json, expiry);
         }
         else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)

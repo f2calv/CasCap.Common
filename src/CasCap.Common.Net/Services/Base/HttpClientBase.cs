@@ -22,7 +22,7 @@ public abstract class HttpClientBase
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
-        var json = req!.ToJSON();
+        var json = req!.ToJson();
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
             request.Content = new StringContent(json, Encoding.UTF8, mediaType);
@@ -93,7 +93,7 @@ public abstract class HttpClientBase
             else if (typeof(TResult).Equals(typeof(byte[])))
                 tpl.result = (TResult)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             else
-                tpl.result = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TResult>();
+                tpl.result = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJson<TResult>();
             tpl.error = default;
         }
         else
@@ -103,7 +103,7 @@ public abstract class HttpClientBase
             else if (typeof(TError).Equals(typeof(byte[])))
                 tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             else
-                tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJSON<TError>();
+                tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJson<TError>();
             _logger.LogError("StatusCode={StatusCode}, RequestUri={RequestUri}", response.StatusCode, response.RequestMessage?.RequestUri);
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)

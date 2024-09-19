@@ -72,7 +72,7 @@ public class RedisCacheService : IRemoteCacheService
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString();
-                tpl.cacheEntry = json.FromJSON<T>();
+                tpl.cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
@@ -107,7 +107,7 @@ public class RedisCacheService : IRemoteCacheService
             {
                 var json = (string?)res.payload;
                 if (json is not null)
-                    tpl.cacheEntry = json.FromJSON<T>();
+                    tpl.cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {

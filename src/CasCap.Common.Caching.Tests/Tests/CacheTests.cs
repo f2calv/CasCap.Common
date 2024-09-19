@@ -45,13 +45,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         if (RemoteCacheSerializationType == SerializationType.Json)
         {
             //serialize
-            json = obj.ToJSON();
+            json = obj.ToJson();
             //insert into cache
             result = remoteCacheSvc.Set(key, json, expiry);
             //retrieve from cache
             resultJson = remoteCacheSvc.Get(key);
             //deserialize
-            fromCache = resultJson.FromJSON<MyTestClass>();
+            fromCache = resultJson.FromJson<MyTestClass>();
         }
         else if (RemoteCacheSerializationType == SerializationType.MessagePack)
         {
@@ -109,13 +109,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         if (SerializationType == SerializationType.Json)
         {
             //serialize
-            json = obj.ToJSON();
+            json = obj.ToJson();
             //insert into cache
             result = await remoteCacheSvc.SetAsync(key, json, expiry);
             //retrieve from cache
             resultJson = await remoteCacheSvc.GetAsync(key);
             //deserialize
-            fromCache = resultJson.FromJSON<MyTestClass>();
+            fromCache = resultJson.FromJson<MyTestClass>();
         }
         else if (SerializationType == SerializationType.MessagePack)
         {
@@ -166,7 +166,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Act
         var inserted = false;
         if (SerializationType == SerializationType.Json)
-            inserted = await remoteCacheSvc.SetAsync(key, obj.ToJSON(), expiry);
+            inserted = await remoteCacheSvc.SetAsync(key, obj.ToJson(), expiry);
         else if (SerializationType == SerializationType.MessagePack)
             inserted = await remoteCacheSvc.SetAsync(key, obj.ToMessagePack(), expiry);
         var t1 = remoteCacheSvc.GetCacheEntryWithTTL_Lua<MyTestClass>(key);

@@ -46,7 +46,7 @@ public class DiskCacheService : ILocalCacheService
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = File.ReadAllText(key);
-                cacheEntry = json.FromJSON<T>();
+                cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
             {
@@ -73,7 +73,7 @@ public class DiskCacheService : ILocalCacheService
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
-                var json = cacheEntry.ToJSON();
+                var json = cacheEntry.ToJson();
                 File.WriteAllText(key, json);
             }
             else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
@@ -103,7 +103,7 @@ public class DiskCacheService : ILocalCacheService
             var json = await File.ReadAllTextAsync(key, token);
             try
             {
-                cacheEntry = json.FromJSON<T>();
+                cacheEntry = json.FromJson<T>();
             }
             catch (Exception ex)
             {
