@@ -3,7 +3,7 @@
 namespace CasCap.Services;
 
 //https://stackexchange.github.io/StackExchange.Redis/
-public class RedisCacheService : IRemoteCacheService
+public class RedisCacheService : IRemoteCache
 {
     readonly ILogger _logger;
     readonly IConnectionMultiplexer _connectionMultiplexer;
@@ -72,7 +72,7 @@ public class RedisCacheService : IRemoteCacheService
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString();
-                tpl.cacheEntry = json.FromJSON<T>();
+                tpl.cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
@@ -107,7 +107,7 @@ public class RedisCacheService : IRemoteCacheService
             {
                 var json = (string?)res.payload;
                 if (json is not null)
-                    tpl.cacheEntry = json.FromJSON<T>();
+                    tpl.cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {

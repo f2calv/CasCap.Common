@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Services;
 
-public class MemoryCacheService : ILocalCacheService
+public class MemoryCacheService : ILocalCache
 {
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;

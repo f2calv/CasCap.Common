@@ -11,8 +11,9 @@ public static class DI
         => services.AddServices(remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
+        string sectionKey = CachingOptions.SectionKey,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configuration: configuration, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+        => services.AddServices(configuration: configuration, sectionKey, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
@@ -24,6 +25,7 @@ public static class DI
 
     static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
+        string sectionKey = CachingOptions.SectionKey,
         CachingOptions? cachingOptions = null,
         Action<CachingOptions>? configureOptions = null,
         string? remoteCacheConnectionString = null,
@@ -33,7 +35,7 @@ public static class DI
     {
         if (configuration is not null)
         {
-            var configSection = configuration.GetSection(CachingOptions.SectionKey);
+            var configSection = configuration.GetSection(sectionKey);
             cachingOptions = configSection.Get<CachingOptions>();
             if (cachingOptions is not null)
                 services.Configure<CachingOptions>(configSection);
@@ -69,20 +71,20 @@ public static class DI
         if (LocalCacheType == CacheType.Memory)
         {
             //services.AddMemoryCache();//now added via MemoryCacheService
-            services.AddSingleton<ILocalCacheService, MemoryCacheService>();
+            services.AddSingleton<ILocalCache, MemoryCacheService>();
         }
         else if (LocalCacheType == CacheType.Disk)
-            services.AddSingleton<ILocalCacheService, DiskCacheService>();
+            services.AddSingleton<ILocalCache, DiskCacheService>();
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
         if (!string.IsNullOrWhiteSpace(remoteCacheConnectionString))
         {
             if (RemoteCacheType == CacheType.Redis)
-                services.AddSingleton<IRemoteCacheService, RedisCacheService>();
+                services.AddSingleton<IRemoteCache, RedisCacheService>();
             else
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
-            services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
+            services.AddSingleton<IDistributedCache, DistributedCacheService>();
             services.AddHostedService<LocalCacheInvalidationBgService>();
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);

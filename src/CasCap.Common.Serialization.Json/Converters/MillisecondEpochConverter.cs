@@ -1,4 +1,5 @@
-﻿namespace CasCap.Models;
+﻿/*
+namespace CasCap.Models;
 
 /// <summary>
 /// https://stackoverflow.com/questions/34185295/handling-null-objects-in-custom-jsonconverters-readjson-method
@@ -22,3 +23,4 @@ public class MillisecondEpochConverter : JsonConverter
             writer.WriteValue(dt.Value.ToUnixTimeMS());
     }
 }
+*/

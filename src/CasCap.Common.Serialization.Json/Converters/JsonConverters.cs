@@ -1,4 +1,5 @@
-﻿namespace CasCap.Models;
+﻿/*
+namespace CasCap.Models;
 
 public class ColumnCleaner : JsonConverter
 {
@@ -18,4 +19,5 @@ public class ColumnCleaner : JsonConverter
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         => throw new NotImplementedException($"{nameof(ColumnCleaner)}.{nameof(WriteJson)} not implemented");
 }
+*/
 //todo: Uri convertor

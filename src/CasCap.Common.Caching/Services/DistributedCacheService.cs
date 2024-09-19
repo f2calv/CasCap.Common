@@ -5,8 +5,8 @@
 /// </summary>
 public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     IOptions<CachingOptions> cachingOptions,
-    IRemoteCacheService remoteCacheSvc,
-    ILocalCacheService localCacheSvc) : IDistributedCacheService
+    IRemoteCache remoteCache,
+    ILocalCache localCache) : IDistributedCache
 {
     readonly CachingOptions _cachingOptions = cachingOptions.Value;
 
@@ -21,18 +21,18 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
 
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
     {
-        T? cacheEntry = localCacheSvc.Get<T>(key);
+        T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
         {
             logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
-            var tpl = await remoteCacheSvc.GetCacheEntryWithTTL<T>(key);
+            var tpl = await remoteCache.GetCacheEntryWithTTL<T>(key);
             if (tpl != default && tpl.cacheEntry is not null)
             {
                 logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
-                localCacheSvc.Set(key, cacheEntry, tpl.expiry);
+                localCache.Set(key, cacheEntry, tpl.expiry);
             }
             else if (createItem is not null)
             {
@@ -68,28 +68,28 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             nameof(DistributedCacheService), key, typeof(T));
         if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
         {
-            var json = cacheEntry.ToJSON();
-            _ = await remoteCacheSvc.SetAsync(key, json, expiry);
+            var json = cacheEntry.ToJson();
+            _ = await remoteCache.SetAsync(key, json, expiry);
         }
         else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
         {
             var bytes = cacheEntry.ToMessagePack();
-            _ = await remoteCacheSvc.SetAsync(key, bytes, expiry);
+            _ = await remoteCache.SetAsync(key, bytes, expiry);
         }
         else
             throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
 
-        localCacheSvc.Set(key, cacheEntry, expiry);
+        localCache.Set(key, cacheEntry, expiry);
     }
 
     public async Task<bool> Delete(string key)
     {
-        var result1 = localCacheSvc.Delete(key);
-        var result2 = await remoteCacheSvc.DeleteAsync(key, CommandFlags.FireAndForget);
+        var result1 = localCache.Delete(key);
+        var result2 = await remoteCache.DeleteAsync(key, CommandFlags.FireAndForget);
 
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await remoteCacheSvc.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}:{key}", CommandFlags.FireAndForget);
+            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}:{key}", CommandFlags.FireAndForget);
             logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
                 nameof(DistributedCacheService), key);
         }

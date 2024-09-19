@@ -20,7 +20,7 @@ public static class NetHelpers
     public static async Task<T?> ReadAsJsonAsync<T>(this HttpContent content)//for .NET Standard compatibility
     {
         var json = await content.ReadAsStringAsync().ConfigureAwait(false);
-        T? value = json.FromJSON<T>();
+        T? value = json.FromJson<T>();
         return value;
     }
 
@@ -33,7 +33,7 @@ public static class NetHelpers
 
     public static Task<HttpResponseMessage> PostAsJsonAsync<T>(this HttpClient httpClient, string url, T obj)//for .NET Standard compatibility
     {
-        var json = obj!.ToJSON();
+        var json = obj!.ToJson();
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         return httpClient.PostAsync(url, content);
     }
