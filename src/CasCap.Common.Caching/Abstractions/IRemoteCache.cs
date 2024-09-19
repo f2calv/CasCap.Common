@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Abstractions;
 
-public interface IRemoteCacheService
+public interface IRemoteCache
 {
     IConnectionMultiplexer Connection { get; }
     IDatabase Db { get; }

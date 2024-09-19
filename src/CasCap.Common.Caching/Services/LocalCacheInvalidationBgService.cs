@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Services;
 
 public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
-    IRemoteCacheService remoteCacheSvc, ILocalCacheService localCacheSvc, IOptions<CachingOptions> cachingOptions) : BackgroundService
+    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingOptions> cachingOptions) : BackgroundService
 {
     readonly CachingOptions _cachingOptions = cachingOptions.Value;
 
@@ -32,14 +32,14 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         var channel = RedisChannel.Literal(_cachingOptions.ChannelName);
 
         //// Synchronous handler
-        //_remoteCacheSvc.subscriber.Subscribe(channel).OnMessage(channelMessage =>
+        //_remoteCache.subscriber.Subscribe(channel).OnMessage(channelMessage =>
         //{
         //    var key = (string)channelMessage.Message;
-        //    _localCacheSvc.DeleteLocal(key, true);
+        //    _localCache.DeleteLocal(key, true);
         //});
 
         // Asynchronous handler
-        remoteCacheSvc.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
+        remoteCache.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
         {
             var key = (string?)channelMessage.Message;
             if (key is not null)
@@ -54,7 +54,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
 
         logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
-        await remoteCacheSvc.Subscriber.UnsubscribeAsync(channel);
+        await remoteCache.Subscriber.UnsubscribeAsync(channel);
     }
 
     async Task ExpireByKey(string key, CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         var keySuffix = key.Substring(firstIndex);
         if (!keyPrefix.Equals(_cachingOptions.pubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            if (localCacheSvc.Delete(keySuffix))
+            if (localCache.Delete(keySuffix))
                 logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);
             _ = Interlocked.Increment(ref count);
         }

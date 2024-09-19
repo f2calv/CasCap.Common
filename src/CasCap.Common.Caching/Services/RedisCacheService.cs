@@ -3,7 +3,7 @@
 namespace CasCap.Services;
 
 //https://stackexchange.github.io/StackExchange.Redis/
-public class RedisCacheService : IRemoteCacheService
+public class RedisCacheService : IRemoteCache
 {
     readonly ILogger _logger;
     readonly IConnectionMultiplexer _connectionMultiplexer;

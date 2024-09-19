@@ -71,20 +71,20 @@ public static class DI
         if (LocalCacheType == CacheType.Memory)
         {
             //services.AddMemoryCache();//now added via MemoryCacheService
-            services.AddSingleton<ILocalCacheService, MemoryCacheService>();
+            services.AddSingleton<ILocalCache, MemoryCacheService>();
         }
         else if (LocalCacheType == CacheType.Disk)
-            services.AddSingleton<ILocalCacheService, DiskCacheService>();
+            services.AddSingleton<ILocalCache, DiskCacheService>();
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
         if (!string.IsNullOrWhiteSpace(remoteCacheConnectionString))
         {
             if (RemoteCacheType == CacheType.Redis)
-                services.AddSingleton<IRemoteCacheService, RedisCacheService>();
+                services.AddSingleton<IRemoteCache, RedisCacheService>();
             else
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
-            services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
+            services.AddSingleton<IDistributedCache, DistributedCacheService>();
             services.AddHostedService<LocalCacheInvalidationBgService>();
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);

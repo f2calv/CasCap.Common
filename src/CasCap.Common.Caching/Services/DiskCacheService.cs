@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Services;
 
-public class DiskCacheService : ILocalCacheService
+public class DiskCacheService : ILocalCache
 {
     readonly ILogger _logger;
     readonly CachingOptions _cachingOptions;

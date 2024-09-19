@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Abstractions;
 
-public interface IDistributedCacheService
+public interface IDistributedCache
 {
     event EventHandler<PostEvictionEventArgs> PostEvictionEvent;
 
