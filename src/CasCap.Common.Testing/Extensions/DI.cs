@@ -11,7 +11,6 @@ public static class DI
             logging.SetMinimumLevel(LogLevel.Trace);
         });
         //assign to the static LoggerFactory instance before exiting!
-        //ApplicationLogging.LoggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
         services.BuildServiceProvider().AddStaticLogging();
         return services;
     }
