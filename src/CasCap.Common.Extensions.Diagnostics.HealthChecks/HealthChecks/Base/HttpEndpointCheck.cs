@@ -7,7 +7,7 @@ public abstract class HttpEndpointCheck(ILogger logger, HttpClient client)
     protected async Task<bool> IsAccessible(string requestUri, int HealthCheckExpectedHttpStatusCode = 0, CancellationToken cancellationToken = default)
     {
         requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
-        _logger.LogDebug("{serviceName} health check executing...", nameof(HttpEndpointCheck));
+        _logger.LogDebug("{serviceName} health check executing", nameof(HttpEndpointCheck));
         HttpResponseMessage? result = null;
         try
         {
