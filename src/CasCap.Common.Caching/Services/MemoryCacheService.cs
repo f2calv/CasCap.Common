@@ -6,7 +6,7 @@ public class MemoryCacheService : ILocalCache
     readonly CachingOptions _cachingOptions;
     readonly MemoryCache _localCache;
 
-    readonly HashSet<string> _cacheKeys = [];
+    readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
@@ -49,17 +49,19 @@ public class MemoryCacheService : ILocalCache
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
-        _cacheKeys.Add(key);
+        _cacheKeys.TryAdd(key, 0);
         _logger.LogTrace("{serviceName} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, expiry);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
     {
-        _cacheKeys.Remove((string)key);
-        var args = new PostEvictionEventArgs(key, value, reason, state);
-        OnRaisePostEvictionEvent(args);
-        _logger.LogTrace("{serviceName} evicted object with {key} from local cache (reason {reason})",
-            nameof(MemoryCacheService), args.key, args.reason);
+        if (_cacheKeys.TryGetValue((string)key, out var ignore))
+        {
+            var args = new PostEvictionEventArgs(key, value, reason, state);
+            OnRaisePostEvictionEvent(args);
+            _logger.LogTrace("{serviceName} evicted object with {key} from local cache (reason {reason})",
+                nameof(MemoryCacheService), args.key, args.reason);
+        }
     }
 
     public bool Delete(string key)
@@ -68,7 +70,7 @@ public class MemoryCacheService : ILocalCache
         if (cacheEntry is not null)
         {
             _localCache.Remove(key);
-            _cacheKeys.Remove(key);
+            _cacheKeys.TryRemove(key, out var val);
             _logger.LogTrace("{serviceName} deleted object with {key} from local cache", nameof(MemoryCacheService), key);
             return true;
         }
@@ -80,7 +82,7 @@ public class MemoryCacheService : ILocalCache
     public long DeleteAll()
     {
         var i = 0L;
-        foreach (var cacheKey in _cacheKeys)
+        foreach (var cacheKey in _cacheKeys.Keys)
         {
             if (Delete(cacheKey)) i++;
         }
