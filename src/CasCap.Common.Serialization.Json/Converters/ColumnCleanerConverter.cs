@@ -1,7 +1,7 @@
 ﻿/*
 namespace CasCap.Models;
 
-public class ColumnCleaner : JsonConverter
+public class ColumnCleanerConverter : JsonConverter
 {
     public override bool CanConvert(Type objectType) => objectType == typeof(DateTime);
 

@@ -1,18 +1,18 @@
-﻿//namespace CasCap.Models;
+﻿namespace CasCap.Models;
 
-//public class MicrosecondEpochConverter : DateTimeConverterBase
-//{
-//    static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+public class MicrosecondEpochConverter : JsonConverter<DateTime?>
+{
+    static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-//    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-//    {
-//        if (reader.Value is null) { return null; }
-//        var t = long.Parse((string)reader.Value);
-//        return _epoch.AddMilliseconds(t / 1000d);
-//    }
+    public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null) return null;
+        return long.TryParse(reader.GetString(), out var t) ? _epoch.AddMilliseconds(t / 1000d) : null;
+    }
 
-//    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-//    {
-//        writer.WriteRawValue(((DateTime)value - _epoch).TotalMilliseconds + "000");
-//    }
-//}
+    public override void Write(Utf8JsonWriter writer, DateTime? dateTimeValue, JsonSerializerOptions options)
+    {
+        if (dateTimeValue.HasValue)
+            writer.WriteRawValue((dateTimeValue.Value - _epoch).TotalMilliseconds + "000");
+    }
+}
