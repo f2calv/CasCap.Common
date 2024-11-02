@@ -12,7 +12,7 @@ public static class MessagePackSerializationHelpers
         try
         {
             var bytes = MessagePackSerializer.Serialize(data);
-            //_logger.LogTrace("{serviceName} serialized object {typeof} into {count} bytes",
+            //_logger.LogTrace("{className} serialized object {typeof} into {count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return bytes;
         }
@@ -34,7 +34,7 @@ public static class MessagePackSerializationHelpers
         try
         {
             T obj =  MessagePackSerializer.Deserialize<T>(bytes);
-            //_logger.LogTrace("{serviceName} deserialized object {typeof} from {count} bytes",
+            //_logger.LogTrace("{className} deserialized object {typeof} from {count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return obj;
         }

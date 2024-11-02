@@ -67,7 +67,7 @@ public class RedisCacheService : IRemoteCache
         var o = await Db.StringGetWithExpiryAsync(key);
         if (o.Value.HasValue)
         {
-            _logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
+            _logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
                 nameof(RedisCacheService), key, typeof(T));
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
@@ -85,7 +85,7 @@ public class RedisCacheService : IRemoteCache
                 tpl.expiry = o.Expiry;
         }
         else
-            _logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from remote cache",
+            _logger.LogTrace("{className} unable to retrieve {key} object type {type} from remote cache",
                 nameof(RedisCacheService), key, typeof(T));
         return tpl;
     }
@@ -202,7 +202,7 @@ public class RedisCacheService : IRemoteCache
         }
 
         var luaScript = LuaScript.Prepare(script);
-        _logger.LogTrace("{serviceName} loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogTrace("{className} loading Lua script '{scriptName}'", nameof(RedisCacheService), resourceName);
         var loadedLuaScript = luaScript.Load(Server);
 
         return LuaScripts.TryAdd(scriptName, loadedLuaScript);

@@ -22,14 +22,14 @@ public class DiskCacheService : ILocalCache
         var files = 0L;
         foreach (var file in di.GetFiles())
         {
-            _logger.LogTrace("{serviceName} attempting deletion of file {fileName}", nameof(DiskCacheService), file.Name);
+            _logger.LogTrace("{className} attempting deletion of file {fileName}", nameof(DiskCacheService), file.Name);
             file.Delete();
             files++;
         }
         var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
-            _logger.LogTrace("{serviceName} attempting deletion of directory {directoryName}", nameof(DiskCacheService), dir.Name);
+            _logger.LogTrace("{className} attempting deletion of directory {directoryName}", nameof(DiskCacheService), dir.Name);
             dir.Delete(true);
             directories++;
         }
@@ -42,7 +42,7 @@ public class DiskCacheService : ILocalCache
         T? cacheEntry;
         if (File.Exists(key))
         {
-            _logger.LogTrace("{serviceName} retrieved object with {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{className} retrieved object with {key} from local cache", nameof(DiskCacheService), key);
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = File.ReadAllText(key);
@@ -58,7 +58,7 @@ public class DiskCacheService : ILocalCache
         }
         else
         {
-            _logger.LogTrace("{serviceName} could not retrieve object with {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{className} could not retrieve object with {key} from local cache", nameof(DiskCacheService), key);
             cacheEntry = default;
         }
         return cacheEntry;
@@ -68,7 +68,7 @@ public class DiskCacheService : ILocalCache
     {
         key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
-        _logger.LogTrace("{serviceName} attempting to store object with {key} in local cache", nameof(DiskCacheService), key);
+        _logger.LogTrace("{className} attempting to store object with {key} in local cache", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
@@ -107,9 +107,9 @@ public class DiskCacheService : ILocalCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{serviceName} deserialization error for {key}", nameof(DiskCacheService), key);
+                _logger.LogError(ex, "{className} deserialization error for {key}", nameof(DiskCacheService), key);
             }
-            _logger.LogTrace("{serviceName} retrieved cacheEntry {key}", nameof(DiskCacheService), key);
+            _logger.LogTrace("{className} retrieved cacheEntry {key}", nameof(DiskCacheService), key);
         }
         else if (createItem is not null)
         {
@@ -118,7 +118,7 @@ public class DiskCacheService : ILocalCache
             {
                 // Key not in cache, so populate
                 cacheEntry = await createItem();
-                _logger.LogTrace("{serviceName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+                _logger.LogTrace("{className} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
                 if (cacheEntry != null)
                     Set(key, cacheEntry, null);
             }
