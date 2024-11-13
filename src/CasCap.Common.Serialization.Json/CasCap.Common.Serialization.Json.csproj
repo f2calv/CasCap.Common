@@ -16,7 +16,7 @@
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

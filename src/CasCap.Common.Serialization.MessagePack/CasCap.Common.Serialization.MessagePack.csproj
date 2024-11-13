@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.187" />
-    <PackageReference Include="MessagePackAnalyzer" Version="2.5.187">
+    <PackageReference Include="MessagePack" Version="2.5.192" />
+    <PackageReference Include="MessagePackAnalyzer" Version="2.5.192">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
