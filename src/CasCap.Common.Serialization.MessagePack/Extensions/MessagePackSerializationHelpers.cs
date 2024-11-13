@@ -9,6 +9,7 @@ public static class MessagePackSerializationHelpers
 
     public static byte[] ToMessagePack<T>(this T data)
     {
+        data = data ?? throw new ArgumentNullException(paramName: nameof(data));
         try
         {
             var bytes = MessagePackSerializer.Serialize(data);
@@ -31,9 +32,10 @@ public static class MessagePackSerializationHelpers
 
     public static T FromMessagePack<T>(this byte[] bytes/*, MessagePack.Resolvers.StandardResolver.Instance*/)
     {
+        bytes = bytes ?? throw new ArgumentNullException(paramName: nameof(bytes));
         try
         {
-            T obj =  MessagePackSerializer.Deserialize<T>(bytes);
+            T obj = MessagePackSerializer.Deserialize<T>(bytes);
             //_logger.LogTrace("{className} deserialized object {typeof} from {count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return obj;
