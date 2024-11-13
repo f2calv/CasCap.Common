@@ -52,6 +52,7 @@ jobs:
           configuration: ${{ inputs.configuration }}
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
+          dotnet-version: 9.0.x
 
   release:
     needs: [versioning, build]
