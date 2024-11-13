@@ -21,7 +21,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public void RemoteCacheSvc_Sync(SerializationType RemoteCacheSerializationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerializationType}:{LocalCacheType}";
+        var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerializationType}:{LocalCacheType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -89,7 +89,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task RemoteCacheSvc_Async(SerializationType SerializationType, bool ClearOnStartup)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Async)}:{SerializationType}";
+        var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Async)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -151,7 +151,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task RemoteCacheSvc_LuaTest(SerializationType SerializationType, bool ClearOnStartup = true)
     {
         //Arrange
-        var key = $"{nameof(RemoteCacheSvc_Sync)}:{SerializationType}";
+        var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Sync)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
         var obj = new MyTestClass();
         var cachingOptions = new CachingOptions
@@ -203,7 +203,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task DistCacheSvc_Test(SerializationType SerializationType, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{nameof(DistCacheSvc_Test)}:{SerializationType}";
+        var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_Test)}:{SerializationType}";
         var ttl = Debugger.IsAttached ? 60 : 5;
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingOptions = new CachingOptions
@@ -284,7 +284,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        var key = $"{nameof(CacheTests)}:{nameof(ServiceCollectionSetupTests)}";
+        var key = $"{Guid.NewGuid()}:{nameof(CacheTests)}:{nameof(ServiceCollectionSetupTests)}";
         var cacheEntry = new MyTestClass();
 
         if (extensionType == 1)
