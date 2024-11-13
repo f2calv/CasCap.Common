@@ -23,6 +23,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Sync)}:{RemoteCacheSerializationType}:{LocalCacheType}";
         var expiry = TimeSpan.FromSeconds(10);
+        var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MyTestClass(DateTime.UtcNow);
         var cachingOptions = new CachingOptions
         {
@@ -72,6 +73,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             throw new NotSupportedException($"{nameof(RemoteCacheSerializationType)} {RemoteCacheSerializationType} is not supported!");
 
         //Assert
+        Assert.True(DateTime.UtcNow < expiration);
+        Assert.True(inserted);
         if (RemoteCacheSerializationType == SerializationType.Json)
         {
             Assert.NotNull(jsonFromCache);
@@ -95,6 +98,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Async)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
+        var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MyTestClass(DateTime.UtcNow);
         var cachingOptions = new CachingOptions
         {
@@ -139,9 +143,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         else
             throw new NotSupportedException($"{nameof(SerializationType)} {SerializationType} is not supported!");
 
-        Assert.True(inserted);
-
         //Assert
+        Assert.True(DateTime.UtcNow < expiration);
+        Assert.True(inserted);
         if (SerializationType == SerializationType.Json)
         {
             Assert.NotNull(jsonFromCache);
@@ -163,6 +167,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_Sync)}:{SerializationType}";
         var expiry = TimeSpan.FromSeconds(10);
+        var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MyTestClass(DateTime.UtcNow);
         var cachingOptions = new CachingOptions
         {
@@ -191,6 +196,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var notfound = remoteCache.Get(key);
 
         //Assert
+        Assert.True(DateTime.UtcNow < expiration);
         Assert.True(inserted);
 
         Assert.NotEqual(default, objFromCache1);
@@ -198,8 +204,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.NotNull(objFromCache1.expiry);
         Assert.True(objFromCache1.expiry.Value.TotalSeconds <= expiry.TotalSeconds);
 
-        (TimeSpan? t, MyTestClass? o) tpl = default;
-        Assert.NotEqual(tpl, objFromCache2);
+        Assert.NotEqual(default, objFromCache2);
         Assert.Equal(objInitial, objFromCache2.cacheEntry);
         Assert.NotNull(objFromCache2.expiry);
         Assert.True(objFromCache2.expiry.Value.TotalSeconds <= expiry.TotalSeconds);
