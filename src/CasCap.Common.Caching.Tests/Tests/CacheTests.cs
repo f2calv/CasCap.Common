@@ -238,31 +238,31 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //start bg service
         await localCacheInvalidationBgSvc!.StartAsync(cancellationToken);
         //check if object exists
-        var cacheEntry = await distCacheSvc.Get<MyTestClass>(key);
-        if (cacheEntry is null)
-            cacheEntry = new MyTestClass(DateTime.UtcNow);
+        var objInitial = await distCacheSvc.Get<MyTestClass>(key);
+        if (objInitial is null)
+            objInitial = new MyTestClass(DateTime.UtcNow);
         else
             throw new Exception("object should not exist in the cache at the start of the test");
         //insert into both local and remote cache
-        await distCacheSvc.Set(key, cacheEntry, ttl);
+        await distCacheSvc.Set(key, objInitial, ttl);
         //retrieve from dist cache (i.e. get from local)
-        var result1 = await distCacheSvc.Get<MyTestClass>(key);
+        var objFromCache1 = await distCacheSvc.Get<MyTestClass>(key);
         //delete from localCache to force retrieve from remote
-        var result2 = localCache.Get<MyTestClass>(key);
+        var objFromCache2 = localCache.Get<MyTestClass>(key);
         var isDeleted1 = localCache.Delete(key);
         //retrieve from dist cache (i.e. now will need to get from remote)
-        var result3 = await distCacheSvc.Get<MyTestClass>(key);
+        var objFromCache3 = await distCacheSvc.Get<MyTestClass>(key);
         //delete from both caches
         var isDeleted2 = await distCacheSvc.Delete(key);
         //re-retrieve from cache
-        var result4 = await distCacheSvc.Get<MyTestClass>(key);
+        var objFromCache4 = await distCacheSvc.Get<MyTestClass>(key);
         //test async Func setter
-        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
-        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
-        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
-        //var cacheEntry = await distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
-        var cacheEntryA = await distCacheSvc.Get(key, () => APIService.GetAsync(), ttl);
-        var cacheEntryB = await distCacheSvc.Get(key, () => APIService.GetAsync());
+        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
+        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
+        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
+        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
+        var objFromCacheA = await distCacheSvc.Get(key, () => APIService.GetAsync(), ttl);
+        var objFromCacheB = await distCacheSvc.Get(key, () => APIService.GetAsync());
 
         var isDeleted3 = await distCacheSvc.Delete(key);
         //stop bg service
@@ -271,15 +271,15 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
-        Assert.Equal(cacheEntry, result1);
-        Assert.Equal(cacheEntry, result2);
+        Assert.Equal(objInitial, objFromCache1);
+        Assert.Equal(objInitial, objFromCache2);
         Assert.True(isDeleted1);
-        Assert.Equal(cacheEntry, result3);
-        Assert.Null(result4);
+        Assert.Equal(objInitial, objFromCache3);
+        Assert.Null(objFromCache4);
         Assert.True(isDeleted2);
-        Assert.NotNull(cacheEntryA);
-        Assert.NotNull(cacheEntryB);
-        Assert.Equal(cacheEntryA, cacheEntryB);
+        Assert.NotNull(objFromCacheA);
+        Assert.NotNull(objFromCacheB);
+        Assert.Equal(objFromCacheA, objFromCacheB);
         Assert.True(isDeleted3);
     }
 
@@ -298,7 +298,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var services = new ServiceCollection();
         services.AddLogging();
         var key = $"{Guid.NewGuid()}:{nameof(CacheTests)}:{nameof(ServiceCollectionSetupTests)}";
-        var cacheEntry = new MyTestClass(DateTime.UtcNow);
+        var objInitial = new MyTestClass(DateTime.UtcNow);
 
         if (extensionType == 1)
             services.AddCasCapCaching(LocalCacheType: LocalCacheType);
@@ -333,8 +333,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Act
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         var localCache = serviceProvider.GetRequiredService<ILocalCache>();
-        localCache.Set(key, cacheEntry);
-        var cacheResult = localCache.Get<MyTestClass>(key);
+        localCache.Set(key, objInitial);
+        var objFromCache = localCache.Get<MyTestClass>(key);
         var deleteSuccess = localCache.Delete(key);
         var deleteFailure = localCache.Delete(Guid.NewGuid().ToString());
         localCache.Set("test123", new MyTestClass(DateTime.UtcNow));
@@ -343,8 +343,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Assert
         Assert.NotNull(loggerFactory);
         Assert.NotNull(localCache);
-        Assert.NotNull(cacheResult);
-        Assert.Equal(cacheResult, cacheEntry);
+        Assert.NotNull(objFromCache);
+        Assert.Equal(objFromCache, objInitial);
         Assert.True(deleteSuccess);
         Assert.False(deleteFailure);
         Assert.Equal(1, countDeleted);
