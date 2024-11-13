@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 17.3.0">$(TargetFrameworks);net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
