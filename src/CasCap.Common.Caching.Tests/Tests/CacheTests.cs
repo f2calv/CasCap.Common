@@ -62,6 +62,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             bytes = objInitial.ToMessagePack();
             //insert into cache
             inserted = remoteCache.Set(key, bytes, expiry);
+            if (!inserted)
+                throw new NullReferenceException($"{nameof(inserted)} should be true here");
             //retrieve from cache
             bytesFromCache = remoteCache.GetBytes(key);
             if (bytesFromCache is null)
@@ -120,6 +122,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             json = objInitial.ToJson();
             //insert into cache
             inserted = await remoteCache.SetAsync(key, json, expiry);
+            if (!inserted)
+                throw new NullReferenceException($"{nameof(inserted)} should be true here");
             //retrieve from cache
             jsonFromCache = await remoteCache.GetAsync(key);
             if (string.IsNullOrWhiteSpace(jsonFromCache))
@@ -133,6 +137,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             bytes = objInitial.ToMessagePack();
             //insert into cache
             inserted = await remoteCache.SetAsync(key, bytes, expiry);
+            if (!inserted)
+                throw new NullReferenceException($"{nameof(inserted)} should be true here");
             //retrieve from cache
             bytesFromCache = await remoteCache.GetBytesAsync(key);
             if (bytesFromCache is null)
