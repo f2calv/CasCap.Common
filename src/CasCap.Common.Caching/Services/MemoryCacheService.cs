@@ -30,9 +30,9 @@ public class MemoryCacheService : ILocalCache
     public T? Get<T>(string key)
     {
         if (_localCache.TryGetValue(key, out T? cacheEntry))
-            _logger.LogTrace("{serviceName} retrieved object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} retrieved object with {key} from local cache", nameof(MemoryCacheService), key);
         else
-            _logger.LogTrace("{serviceName} could not retrieve object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} could not retrieve object with {key} from local cache", nameof(MemoryCacheService), key);
         return cacheEntry;
     }
 
@@ -50,7 +50,7 @@ public class MemoryCacheService : ILocalCache
             options.SetAbsoluteExpiration(expiry.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.TryAdd(key, 0);
-        _logger.LogTrace("{serviceName} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, expiry);
+        _logger.LogTrace("{className} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, expiry);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -59,7 +59,7 @@ public class MemoryCacheService : ILocalCache
         {
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
-            _logger.LogTrace("{serviceName} evicted object with {key} from local cache (reason {reason})",
+            _logger.LogTrace("{className} evicted object with {key} from local cache (reason {reason})",
                 nameof(MemoryCacheService), args.key, args.reason);
         }
     }
@@ -71,11 +71,11 @@ public class MemoryCacheService : ILocalCache
         {
             _localCache.Remove(key);
             _cacheKeys.TryRemove(key, out var val);
-            _logger.LogTrace("{serviceName} deleted object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} deleted object with {key} from local cache", nameof(MemoryCacheService), key);
             return true;
         }
         else
-            _logger.LogTrace("{serviceName} could not delete object with {key} from local cache (not present)", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} could not delete object with {key} from local cache (not present)", nameof(MemoryCacheService), key);
         return false;
     }
 

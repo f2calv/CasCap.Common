@@ -8,6 +8,7 @@ public static class JsonSerializationHelpers
 
     public static string ToJson(this object obj, JsonSerializerOptions? options)
     {
+        obj = obj ?? throw new ArgumentNullException(paramName: nameof(obj));
         try
         {
             return JsonSerializer.Serialize(obj, options);
@@ -23,6 +24,7 @@ public static class JsonSerializationHelpers
 
     public static T? FromJson<T>(this string json, JsonSerializerOptions? options)
     {
+        json = json ?? throw new ArgumentNullException(paramName: nameof(json));
         try
         {
             return JsonSerializer.Deserialize<T>(json, options);

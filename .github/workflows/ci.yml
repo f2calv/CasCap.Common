@@ -52,6 +52,7 @@ jobs:
           configuration: ${{ inputs.configuration }}
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
+          dotnet-test-args: --maxcpucount:1 #Note: disable parallel test execution due to InlineData and Redis ClearOnStartup property
 
   release:
     needs: [versioning, build]

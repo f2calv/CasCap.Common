@@ -24,19 +24,19 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
         {
-            logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from local cache",
+            logger.LogTrace("{className} unable to retrieve {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
             var tpl = await remoteCache.GetCacheEntryWithTTL<T>(key);
             if (tpl != default && tpl.cacheEntry is not null)
             {
-                logger.LogTrace("{serviceName} retrieved {key} object type {type} from remote cache",
+                logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 cacheEntry = tpl.cacheEntry;
                 localCache.Set(key, cacheEntry, tpl.expiry);
             }
             else if (createItem is not null)
             {
-                logger.LogTrace("{serviceName} unable to retrieve {key} object type {type} from remote cache",
+                logger.LogTrace("{className} unable to retrieve {key} object type {type} from remote cache",
                     nameof(DistributedCacheService), key, typeof(T));
                 //we lock here to prevent multiple creations occurring at the same time
                 //TODO: integrate Redlock here
@@ -44,7 +44,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
                 {
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
-                    logger.LogTrace("{serviceName} setting {key} object type {type} in remote cache",
+                    logger.LogTrace("{className} setting {key} object type {type} in remote cache",
                         nameof(DistributedCacheService), key, typeof(T));
                     if (cacheEntry is not null)
                         await Set(key, cacheEntry, ttl);
@@ -52,7 +52,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             }
         }
         else if (cacheEntry is not null)
-            logger.LogTrace("{serviceName} retrieved {key} object type {type} from local cache",
+            logger.LogTrace("{className} retrieved {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
         return cacheEntry;
     }
@@ -64,7 +64,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     {
         var expiry = ttl.GetExpiry();
 
-        logger.LogTrace("{serviceName} storing {key} object type {type} in remote cache",
+        logger.LogTrace("{className} storing {key} object type {type} in remote cache",
             nameof(DistributedCacheService), key, typeof(T));
         if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
         {
@@ -90,7 +90,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
             _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}:{key}", CommandFlags.FireAndForget);
-            logger.LogTrace("{serviceName} removed {key} from local+remote cache, expiration message sent via pub/sub",
+            logger.LogTrace("{className} removed {key} from local+remote cache, expiration message sent via pub/sub",
                 nameof(DistributedCacheService), key);
         }
         return result1 || result2;

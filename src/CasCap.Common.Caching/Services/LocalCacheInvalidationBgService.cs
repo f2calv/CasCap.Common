@@ -9,7 +9,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
     {
         if (!_cachingOptions.LocalCacheInvalidationEnabled) return;
 
-        logger.LogInformation("{serviceName} starting", nameof(LocalCacheInvalidationBgService));
+        logger.LogInformation("{className} starting", nameof(LocalCacheInvalidationBgService));
         try
         {
             await RunServiceAsync(cancellationToken);
@@ -22,7 +22,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
             logger.LogCritical(ex, "Fatal error");
             throw;
         }
-        logger.LogInformation("{serviceName} stopping", nameof(LocalCacheInvalidationBgService));
+        logger.LogInformation("{className} stopping", nameof(LocalCacheInvalidationBgService));
     }
 
     long count = 0;
@@ -52,7 +52,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
             await Task.Delay(100, cancellationToken);
         }
 
-        logger.LogInformation("{serviceName} unsubscribing from remote cache channel {channelName}",
+        logger.LogInformation("{className} unsubscribing from remote cache channel {channelName}",
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
         await remoteCache.Subscriber.UnsubscribeAsync(channel);
     }
@@ -66,7 +66,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         if (!keyPrefix.Equals(_cachingOptions.pubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(keySuffix))
-                logger.LogTrace("{serviceName} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);
+                logger.LogTrace("{className} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);
             _ = Interlocked.Increment(ref count);
         }
     }
