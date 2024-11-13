@@ -198,7 +198,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.NotNull(objFromCache1.expiry);
         Assert.True(objFromCache1.expiry.Value.TotalSeconds <= expiry.TotalSeconds);
 
-        Assert.NotEqual(default, objFromCache2);
+        (TimeSpan? t, MyTestClass? o) tpl = default;
+        Assert.NotEqual(tpl, objFromCache2);
         Assert.Equal(objInitial, objFromCache2.cacheEntry);
         Assert.NotNull(objFromCache2.expiry);
         Assert.True(objFromCache2.expiry.Value.TotalSeconds <= expiry.TotalSeconds);
@@ -368,24 +369,27 @@ public class APIService
 [MessagePackObject(true)]
 public class MyTestClass
 {
-    public MyTestClass(DateTime utcNow)
+    public MyTestClass(DateTime someDateTimeUtc)
     {
-        ID = 1337;
+        SomeDateTimeUtc = someDateTimeUtc;
+        SomeId = 1337;
     }
 
-    public int ID { get; init; }
+    public int SomeId { get; init; }
 
-    public DateTime utcNow { get; init; }
+    public DateTime SomeDateTimeUtc { get; init; }
 
     public override bool Equals(object? obj)
     {
         return obj is MyTestClass @class &&
-               ID == @class.ID &&
-               utcNow == @class.utcNow;
+               SomeId == @class.SomeId &&
+               SomeDateTimeUtc == @class.SomeDateTimeUtc;
     }
 
-    public override int GetHashCode()
+    public override int GetHashCode() => HashCode.Combine(SomeId, SomeDateTimeUtc);
+
+    public override string? ToString()
     {
-        throw new NotImplementedException();
+        return $"{SomeId} {SomeDateTimeUtc}";
     }
 }
