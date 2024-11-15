@@ -13,7 +13,16 @@ public class CachingOptions
     /// </summary>
     public string PubSubPrefix { get; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
 
-    public string ChannelName { get; set; } = "__keyspace@0__:*";
+    /// <summary>
+    /// All SET and DEL events are pushed to this channel prefixed with the PubSubPrefix of the local application.
+    /// All other applications subscribe to this channel and expire any cache items which don't match their own PubSubPrefix.
+    /// </summary>
+    public string ChannelName { get; set; } = "expiration";
+    
+    ///// <summary>
+    ///// Subscribe and process all keyspace events.
+    ///// </summary>
+    //public string ChannelName { get; set; } = "__keyspace@0__:*";
 
     /// <summary>
     /// Gets or sets the maximum size of the cache, default is no limit.
