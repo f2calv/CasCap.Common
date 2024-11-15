@@ -70,11 +70,13 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         {
             var json = cacheEntry.ToJson();
             _ = await remoteCache.SetAsync(key, json, expiry);
+            await Invalidate(key);
         }
         else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
         {
             var bytes = cacheEntry.ToMessagePack();
             _ = await remoteCache.SetAsync(key, bytes, expiry);
+            await Invalidate(key);
         }
         else
             throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
@@ -86,14 +88,19 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     {
         var result1 = localCache.Delete(key);
         var result2 = await remoteCache.DeleteAsync(key, CommandFlags.FireAndForget);
+        await Invalidate(key);
+        return result1 || result2;
+    }
 
+    private async Task Invalidate(string key)
+    {
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}:{key}", CommandFlags.FireAndForget);
-            logger.LogTrace("{className} removed {key} from local+remote cache, expiration message sent via pub/sub",
+            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName),
+                $"{_cachingOptions.PubSubPrefix}:{key}", CommandFlags.FireAndForget);
+            logger.LogTrace("{className} sent expiration message for {key} via pub/sub",
                 nameof(DistributedCacheService), key);
         }
-        return result1 || result2;
     }
 
     public async Task<long> DeleteAll(CancellationToken cancellationToken)
