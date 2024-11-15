@@ -29,13 +29,14 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
 
     async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        var channel = RedisChannel.Literal(_cachingOptions.ChannelName);
+        var channel = RedisChannel.Pattern(_cachingOptions.ChannelName);
 
         //// Synchronous handler
-        //_remoteCache.subscriber.Subscribe(channel).OnMessage(channelMessage =>
+        //remoteCache.Subscriber.Subscribe(channel).OnMessage(channelMessage =>
         //{
-        //    var key = (string)channelMessage.Message;
-        //    _localCache.DeleteLocal(key, true);
+        //    var key = (string?)channelMessage.Message;
+        //    if (key is not null)
+        //        localCache.Delete(key);
         //});
 
         // Asynchronous handler
@@ -63,7 +64,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         var firstIndex = key.IndexOf(':');
         var keyPrefix = key.Substring(0, firstIndex);
         var keySuffix = key.Substring(firstIndex);
-        if (!keyPrefix.Equals(_cachingOptions.pubSubPrefix, StringComparison.OrdinalIgnoreCase))
+        if (!keyPrefix.Equals(_cachingOptions.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(keySuffix))
                 logger.LogTrace("{className} removed {key} from local cache", nameof(LocalCacheInvalidationBgService), keySuffix);

@@ -89,7 +89,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
 
         if (_cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.pubSubPrefix}:{key}", CommandFlags.FireAndForget);
+            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName), $"{_cachingOptions.PubSubPrefix}:{key}", CommandFlags.FireAndForget);
             logger.LogTrace("{className} removed {key} from local+remote cache, expiration message sent via pub/sub",
                 nameof(DistributedCacheService), key);
         }
