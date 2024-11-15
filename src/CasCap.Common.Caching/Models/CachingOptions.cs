@@ -18,7 +18,7 @@ public class CachingOptions
     /// All other applications subscribe to this channel and expire any cache items which don't match their own PubSubPrefix.
     /// </summary>
     public string ChannelName { get; set; } = "expiration";
-    
+
     ///// <summary>
     ///// Subscribe and process all keyspace events.
     ///// </summary>
