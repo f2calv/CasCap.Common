@@ -45,7 +45,7 @@ jobs:
         ports:
           - 6379:6379
     steps:
-      - uses: f2calv/gha-dotnet-nuget@v2.0.9
+      - uses: f2calv/gha-dotnet-nuget@v2.0.11
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
