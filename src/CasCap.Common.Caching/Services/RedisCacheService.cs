@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 //https://stackexchange.github.io/StackExchange.Redis/
 public class RedisCacheService : IRemoteCache
@@ -61,10 +59,10 @@ public class RedisCacheService : IRemoteCache
 
     public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDeleteAsync(key, flags);
 
-    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key)
+    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None)
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
-        var o = await Db.StringGetWithExpiryAsync(key);
+        var o = await Db.StringGetWithExpiryAsync(key, flags);
         if (o.Value.HasValue)
         {
             _logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
@@ -92,7 +90,7 @@ public class RedisCacheService : IRemoteCache
 
     #region use custom LUA script to return cached object plus meta data i.e. object expiry information
     [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
-    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, [CallerMemberName] string caller = "")
+    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, CommandFlags flags = CommandFlags.None, [CallerMemberName] string caller = "")
     {
         if (!_cachingOptions.LoadBuiltInLuaScripts)
             throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
@@ -154,7 +152,7 @@ public class RedisCacheService : IRemoteCache
                     cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
                     trackKey = (RedisKey)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
                     trackCaller = (RedisKey)caller//the method which instigated this particular access attempt
-                });
+                }, flags: flags);
                 var retKeys = (RedisResult[]?)result;
                 return retKeys;
             }
