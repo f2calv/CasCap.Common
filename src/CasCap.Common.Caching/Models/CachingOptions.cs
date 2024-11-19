@@ -52,7 +52,10 @@ public class CachingOptions
 
 public class CacheOptions
 {
+    public bool IsEnabled { get; set; } = true;
+
     public bool ClearOnStartup { get; set; } = false;
+
     public SerializationType SerializationType { get; set; } = SerializationType.MessagePack;
 }
 
