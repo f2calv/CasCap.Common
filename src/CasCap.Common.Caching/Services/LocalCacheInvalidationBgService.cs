@@ -82,13 +82,13 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
             nameof(LocalCacheInvalidationBgService), _cachingOptions.ChannelName);
         await remoteCache.Subscriber.UnsubscribeAsync(channel);
 
-        static string GetKey(string channel)
-        {
-            var index = channel.IndexOf(':');
-            if (index >= 0 && index < channel.Length - 1)
-                return channel[(index + 1)..];
-            return channel;
-        }
+        //static string GetKey(string channel)
+        //{
+        //    var index = channel.IndexOf(':');
+        //    if (index >= 0 && index < channel.Length - 1)
+        //        return channel[(index + 1)..];
+        //    return channel;
+        //}
 
         void ExpireByKey(string clientNamePrefixedKey)
         {
