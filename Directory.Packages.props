@@ -3,22 +3,22 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="MessagePack" Version="2.5" />
-    <PackageVersion Include="MessagePackAnalyzer" Version="2.5" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12" />
-    <PackageVersion Include="Serilog.Sinks.XUnit" Version="3.0" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.8" />
-    <PackageVersion Include="System.Text.Json" Version="9.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0" />
-    <PackageVersion Include="xunit" Version="2.9" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8" />
+    <PackageVersion Include="MessagePack" Version="2.5.192" />
+    <PackageVersion Include="MessagePackAnalyzer" Version="2.5.192" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Serilog.Sinks.XUnit" Version="3.0.5" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.8.16" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.0" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 </Project>
