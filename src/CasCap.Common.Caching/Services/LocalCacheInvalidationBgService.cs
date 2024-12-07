@@ -34,9 +34,9 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         logger.LogInformation("{className} stopping", nameof(LocalCacheInvalidationBgService));
     }
 
-    long count = 0;
+    private long count = 0;
 
-    async Task RunServiceAsync(CancellationToken cancellationToken)
+    private async Task RunServiceAsync(CancellationToken cancellationToken)
     {
         var channel = RedisChannel.Pattern(_cachingOptions.ChannelName);
 
