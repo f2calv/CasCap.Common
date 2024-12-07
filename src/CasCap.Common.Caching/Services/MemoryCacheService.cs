@@ -2,11 +2,11 @@
 
 public class MemoryCacheService : ILocalCache
 {
-    readonly ILogger _logger;
-    readonly CachingOptions _cachingOptions;
-    readonly MemoryCache _localCache;
+    private readonly ILogger _logger;
+    private readonly CachingOptions _cachingOptions;
+    private readonly MemoryCache _localCache;
 
-    readonly ConcurrentDictionary<string, int> _cacheKeys = [];
+    private readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }

@@ -3,8 +3,8 @@
 [ExcludeFromCodeCoverage]
 public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvider
 {
-    readonly ITestOutputHelper _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
-    readonly ConcurrentDictionary<string, TestLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
+    private readonly ConcurrentDictionary<string, TestLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 
     public ILogger CreateLogger(string categoryName)
     {
@@ -21,7 +21,7 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
 [ExcludeFromCodeCoverage]
 class TestLogger(ITestOutputHelper output) : ILogger
 {
-    readonly List<LogEntry> _entries = [];
+    private readonly List<LogEntry> _entries = [];
 
     public IReadOnlyCollection<LogEntry> GetLogs() => _entries.AsReadOnly();
 

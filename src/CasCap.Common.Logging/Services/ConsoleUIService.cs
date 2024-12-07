@@ -24,7 +24,7 @@ public interface IConsoleUIService
 [ExcludeFromCodeCoverage(Justification = "soon to be deprecated")]
 public class ConsoleUIService(ILogger<ConsoleUIService> logger, IHostEnvironment env) : IConsoleUIService
 {
-    readonly ILogger _logger = logger;
+    private readonly ILogger _logger = logger;
     Stopwatch sw = new();
     int rowCount { get; set; } = 0;
     bool SkipRestOfScreen { get; set; } = false;
