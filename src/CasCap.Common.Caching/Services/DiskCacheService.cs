@@ -2,8 +2,8 @@
 
 public class DiskCacheService : ILocalCache
 {
-    readonly ILogger _logger;
-    readonly CachingOptions _cachingOptions;
+    private readonly ILogger _logger;
+    private readonly CachingOptions _cachingOptions;
 
     public string DiskCacheFolder { get; set; } = string.Empty;
 

@@ -79,7 +79,7 @@ public abstract class HttpClientBase
         return await HandleResult<TResult, TError>(response);
     }
 
-    async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> HandleResult<TResult, TError>(HttpResponseMessage response)
+    private async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> HandleResult<TResult, TError>(HttpResponseMessage response)
         where TResult : class
         where TError : class
     {
@@ -114,7 +114,7 @@ public abstract class HttpClientBase
         return tpl;
     }
 
-    static void AddRequestHeaders(HttpRequestMessage request, List<(string name, string value)>? headers)
+    private static void AddRequestHeaders(HttpRequestMessage request, List<(string name, string value)>? headers)
     {
         if (!headers.IsNullOrEmpty())
             foreach (var header in headers!)
@@ -122,7 +122,7 @@ public abstract class HttpClientBase
     }
 
     //https://stackoverflow.com/questions/46874693/re-using-httpclient-but-with-a-different-timeout-setting-per-request
-    static CancellationToken GetCT(TimeSpan? timeout = null)
+    private static CancellationToken GetCT(TimeSpan? timeout = null)
     {
         var cts = new CancellationTokenSource();
         cts.CancelAfter(timeout ?? TimeSpan.FromSeconds(90));

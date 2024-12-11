@@ -8,7 +8,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     IRemoteCache remoteCache,
     ILocalCache localCache) : IDistributedCache
 {
-    readonly CachingOptions _cachingOptions = cachingOptions.Value;
+    private readonly CachingOptions _cachingOptions = cachingOptions.Value;
 
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }

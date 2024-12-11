@@ -3,9 +3,9 @@
 //https://stackexchange.github.io/StackExchange.Redis/
 public class RedisCacheService : IRemoteCache
 {
-    readonly ILogger _logger;
-    readonly IConnectionMultiplexer _connectionMultiplexer;
-    readonly CachingOptions _cachingOptions;
+    private readonly ILogger _logger;
+    private readonly IConnectionMultiplexer _connectionMultiplexer;
+    private readonly CachingOptions _cachingOptions;
 
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer, IOptions<CachingOptions> cachingOptions)
     {
