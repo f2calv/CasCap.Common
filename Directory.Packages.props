@@ -3,8 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="MessagePack" Version="3.0.300" />
-    <PackageVersion Include="MessagePackAnalyzer" Version="3.0.300" />
+    <PackageVersion Include="MessagePack" Version="3.0.308" />
+    <PackageVersion Include="MessagePackAnalyzer" Version="3.0.308" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.0" />
