@@ -13,9 +13,19 @@ public class FixedSizedQueue<T> : IReadOnlyCollection<T>
 
     public FixedSizedQueue(int limit)
     {
-        if (limit < 1)
-            throw new ArgumentOutOfRangeException(nameof(limit));
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
 
+        Limit = limit;
+    }
+
+    public FixedSizedQueue(int limit, IEnumerable<T> collection)//own addition
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
+
+        if (collection is null || !collection.Any())
+            throw new ArgumentException("Can not initialize the Queue with a null or empty collection", nameof(collection));
+
+        _queue = new Queue<T>(collection);
         Limit = limit;
     }
 
