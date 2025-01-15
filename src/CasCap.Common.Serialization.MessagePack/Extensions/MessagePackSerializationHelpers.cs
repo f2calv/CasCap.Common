@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
 
 namespace CasCap.Common.Extensions;
 
 public static class MessagePackSerializationHelpers
 {
-    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackSerializationHelpers));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackSerializationHelpers));
 
     public static byte[] ToMessagePack<T>(this T data)
     {

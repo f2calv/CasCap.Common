@@ -171,7 +171,7 @@ public static class ExtensionHelpers
         return thisDateTime.ToString("yyyy-MM-dd");
     }
 
-    static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public static DateTime FromUnixTime(this long seconds)
     {
@@ -518,9 +518,9 @@ public static class ExtensionHelpers
         return rgx.Replace(thisString, replacement);
     }
 
-    static Regex rgx { get { return new Regex(cleanPattern, RegexOptions.Compiled); } }
+    private static Regex rgx { get { return new Regex(cleanPattern, RegexOptions.Compiled); } }
 
-    const string cleanPattern = @"\t|\n|\r";
+    private const string cleanPattern = @"\t|\n|\r";
 
     public static bool IsEmail(this string thisString)
     {
@@ -579,16 +579,16 @@ public static class ExtensionHelpers
     /// </summary>
     public static string[] split(this string _s, char sep = ';')
     {
-        return (_s ?? string.Empty).Split(new[] { sep }, StringSplitOptions.RemoveEmptyEntries);
+        return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
     }
 
     public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
 
-    static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    const string singleSpace = " ";
+    private const string singleSpace = " ";
 
     /// <summary>
     /// Strips characters that are non-conducive to being in a file name.

@@ -4,7 +4,7 @@ namespace CasCap.Extensions;
 
 public static class IOExtensions
 {
-    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(IOExtensions));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(IOExtensions));
 
     public static string Extend(this string root, string folderOrFile)
     {
