@@ -115,7 +115,7 @@ public static class IOExtensions
             Directory.CreateDirectory(dir);
             directories.Add(dir);
         }
-        return subFolder;
+        return path;
     }
 
     static HashSet<string> directories { get; set; } = [];
