@@ -105,15 +105,15 @@ public static class IOExtensions
     /// <summary>
     /// Does a Path.Combine() and creates the destination directory if not existing
     /// </summary>
-    public static string GetLocalPath(this string localPath, string subFolder)
+    public static string GetLocalPath(this string basePath, string relativePath)
     {
-        var path = localPath.Extend(subFolder);
-        var dir = Path.GetDirectoryName(subFolder);
-        if (dir is not null && !directories.Contains(dir) && !Directory.Exists(dir))
+        var path = basePath.Extend(relativePath);
+        var dirName = Path.GetDirectoryName(path);
+        if (dirName is not null && !directories.Contains(dirName) && !Directory.Exists(dirName))
         {
             //Debugger.Break();
-            Directory.CreateDirectory(dir);
-            directories.Add(dir);
+            Directory.CreateDirectory(dirName);
+            directories.Add(dirName);
         }
         return path;
     }
