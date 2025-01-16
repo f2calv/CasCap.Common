@@ -2,7 +2,7 @@
 
 public static class JsonSerializationHelpers
 {
-    static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerializationHelpers));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerializationHelpers));
 
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 

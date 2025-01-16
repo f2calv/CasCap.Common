@@ -1,5 +1,5 @@
 #.NET Application environment variables
 $env:DOTNET_ENVIRONMENT = "Development"
-$env:DOTNET_RUNNING_IN_COMPOSE = $true
+$env:ASPDOTNET_ENVIRONMENT = "Development"
 
 docker-compose up --build --remove-orphans
