@@ -28,7 +28,7 @@ public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgSer
         //catch (Exception ex) when (!(ex is OperationCanceledException)) //not working, why?
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "Fatal error");
+            logger.LogCritical(ex, "{className} fatal error", nameof(LocalCacheInvalidationBgService));
             throw;
         }
         logger.LogInformation("{className} stopping", nameof(LocalCacheInvalidationBgService));
