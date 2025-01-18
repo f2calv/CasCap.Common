@@ -15,7 +15,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"{nameof(JsonSerializer.Serialize)} failed");
+            _logger.LogError(ex, "{className} {methodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Serialize));
             throw;
         }
     }
@@ -31,7 +31,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"{nameof(JsonSerializer.Deserialize)} failed");
+            _logger.LogError(ex, "{className} {methodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize));
             throw;
         }
     }

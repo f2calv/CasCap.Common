@@ -18,7 +18,7 @@ public static class MessagePackSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"{nameof(MessagePackSerializer.Serialize)} failed");
+            _logger.LogError(ex, "{className} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Serialize));
             throw;
         }
     }
@@ -41,7 +41,7 @@ public static class MessagePackSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"{nameof(MessagePackSerializer.Deserialize)} failed");
+            _logger.LogError(ex, "{className} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Deserialize));
             throw;
         }
     }

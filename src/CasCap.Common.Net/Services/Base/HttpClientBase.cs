@@ -104,7 +104,7 @@ public abstract class HttpClientBase
                 tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             else
                 tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJson<TError>();
-            _logger.LogError("StatusCode={StatusCode}, RequestUri={RequestUri}", response.StatusCode, response.RequestMessage?.RequestUri);
+            _logger.LogError("{className} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)
             //if (req is not null) err += $"{json}";

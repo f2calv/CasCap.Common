@@ -158,7 +158,7 @@ public class RedisCacheService : IRemoteCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "some failure");
+                _logger.LogError(ex, "{className} some failure", nameof(RedisCacheService));
                 throw;
             }
 
