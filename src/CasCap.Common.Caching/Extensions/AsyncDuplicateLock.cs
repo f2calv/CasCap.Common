@@ -14,7 +14,7 @@ public sealed class AsyncDuplicateLock
         public T Value { get; private set; } = value;
     }
 
-    static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
+    private static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
 
     static SemaphoreSlim GetOrCreate(object key)
     {
