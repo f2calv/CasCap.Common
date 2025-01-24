@@ -3,8 +3,10 @@
 /// <summary>
 /// This local cache invalidation service is limited in it's scope.
 /// Only cache keys that are directly Set or Deleted by this library will automatically be removed from local cache.
-/// TODO: Subscribe to the full cache key events and expire via a more advanced configuration model.
 /// </summary>
+/// <remarks>
+/// Subscribe to the full cache key events and expire via a more advanced configuration model.
+/// </remarks>
 /// <param name="logger"></param>
 /// <param name="remoteCache"></param>
 /// <param name="localCache"></param>

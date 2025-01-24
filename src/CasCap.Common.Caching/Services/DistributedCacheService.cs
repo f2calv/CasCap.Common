@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Services;
 
 /// <summary>
-/// Distributed cache service uses both a local cache (dotnet in-memory or disk) and a remote (Redis) cache.
+/// Distributed cache service uses both <see cref="ILocalCache"/> and a <see cref="IRemoteCache"/>.
 /// </summary>
 public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     IOptions<CachingOptions> cachingOptions,

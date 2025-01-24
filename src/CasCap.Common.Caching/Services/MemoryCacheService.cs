@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Services;
 
+/// <summary>
+/// The <see cref="MemoryCacheService"/> acts as a wrapper around key functionality of the <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/> API.
+/// </summary>
 public class MemoryCacheService : ILocalCache
 {
     private readonly ILogger _logger;

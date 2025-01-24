@@ -1,6 +1,8 @@
 ﻿namespace CasCap.Services;
 
-//https://stackexchange.github.io/StackExchange.Redis/
+/// <summary>
+/// The <see cref="RedisCacheService"/> acts as a wrapper around key functionality of the <see cref="StackExchange.Redis"/> library.
+/// </summary>
 public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
