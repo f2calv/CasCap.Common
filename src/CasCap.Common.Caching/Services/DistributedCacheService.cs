@@ -1,7 +1,8 @@
 ﻿namespace CasCap.Services;
 
 /// <summary>
-/// Distributed cache service uses both <see cref="ILocalCache"/> and a <see cref="IRemoteCache"/>.
+/// The <see cref="DistributedCacheService"/> uses both <see cref="ILocalCache"/> and <see cref="IRemoteCache"/>
+/// to implement <see cref="IDistributedCache"/>.
 /// </summary>
 public class DistributedCacheService(ILogger<DistributedCacheService> logger,
     IOptions<CachingOptions> cachingOptions,

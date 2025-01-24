@@ -1,7 +1,8 @@
 ﻿namespace CasCap.Services;
 
 /// <summary>
-/// The <see cref="MemoryCacheService"/> acts as a wrapper around key functionality of the <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/> API.
+/// The <see cref="MemoryCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
+/// acts as a wrapper around key functionality of the <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/> API.
 /// </summary>
 public class MemoryCacheService : ILocalCache
 {
@@ -11,9 +12,11 @@ public class MemoryCacheService : ILocalCache
 
     private readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
+    /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
+    /// <inheritdoc/>
     public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -30,6 +33,7 @@ public class MemoryCacheService : ILocalCache
         if (_cachingOptions.MemoryCache.ClearOnStartup) DeleteAll();
     }
 
+    /// <inheritdoc/>
     public T? Get<T>(string key)
     {
         if (_localCache.TryGetValue(key, out T? cacheEntry))
@@ -39,7 +43,8 @@ public class MemoryCacheService : ILocalCache
         return cacheEntry;
     }
 
-    public void Set<T>(string key, T cacheEntry, TimeSpan? expiry = null)
+    /// <inheritdoc/>
+    public void Set<T>(string key, T cacheEntry, TimeSpan? relativeExpiration = null, TimeSpan? absoluteExpiration = null)
     {
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
@@ -49,11 +54,13 @@ public class MemoryCacheService : ILocalCache
             // Add eviction callback
             .RegisterPostEvictionCallback(EvictionCallback!/*, this or cacheEntry.GetType()*/)
             ;
-        if (expiry.HasValue)
-            options.SetAbsoluteExpiration(expiry.Value);
+        if (relativeExpiration.HasValue)
+            options.SetSlidingExpiration(relativeExpiration.Value);
+        if (absoluteExpiration.HasValue)
+            options.SetAbsoluteExpiration(absoluteExpiration.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.TryAdd(key, 0);
-        _logger.LogTrace("{className} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, expiry);
+        _logger.LogTrace("{className} stored object with {key} in local cache (expiry {expiry})", nameof(MemoryCacheService), key, absoluteExpiration);
     }
 
     void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -67,6 +74,7 @@ public class MemoryCacheService : ILocalCache
         }
     }
 
+    /// <inheritdoc/>
     public bool Delete(string key)
     {
         _localCache.TryGetValue(key, out object? cacheEntry);
@@ -82,6 +90,7 @@ public class MemoryCacheService : ILocalCache
         return false;
     }
 
+    /// <inheritdoc/>
     public long DeleteAll()
     {
         var i = 0L;

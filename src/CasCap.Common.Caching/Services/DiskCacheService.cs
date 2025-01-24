@@ -1,24 +1,30 @@
 ﻿namespace CasCap.Services;
 
+/// <summary>
+/// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
+/// uses the physical disk to implement core functionality.
+/// </summary>
 public class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingOptions _cachingOptions;
 
-    public string DiskCacheFolder { get; set; } = string.Empty;
+    private string _diskCacheFolder { get; set; } = string.Empty;
 
+    /// <inheritdoc/>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
-        DiskCacheFolder = _cachingOptions.DiskCacheFolder;
-        if (!Directory.Exists(DiskCacheFolder)) Directory.CreateDirectory(DiskCacheFolder);
+        _diskCacheFolder = _cachingOptions.DiskCacheFolder;
+        if (!Directory.Exists(_diskCacheFolder)) Directory.CreateDirectory(_diskCacheFolder);
         if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
     }
 
+    /// <inheritdoc/>
     public long DeleteAll()
     {
-        var di = new DirectoryInfo(DiskCacheFolder);
+        var di = new DirectoryInfo(_diskCacheFolder);
         var files = 0L;
         foreach (var file in di.GetFiles())
         {
@@ -36,6 +42,7 @@ public class DiskCacheService : ILocalCache
         return files;
     }
 
+    /// <inheritdoc/>
     public T? Get<T>(string key)
     {
         key = GetKey(key);
@@ -64,8 +71,13 @@ public class DiskCacheService : ILocalCache
         return cacheEntry;
     }
 
-    public void Set<T>(string key, T cacheEntry, TimeSpan? expiry = null)
+    /// <inheritdoc/>
+    public void Set<T>(string key, T cacheEntry, TimeSpan? relativeExpiration = null, TimeSpan? absoluteExpiration = null)
     {
+        if (relativeExpiration.HasValue)
+            throw new NotSupportedException($"parameter {nameof(relativeExpiration)} is not supported by this cache type");
+        if (absoluteExpiration.HasValue)
+            throw new NotSupportedException($"parameter {nameof(absoluteExpiration)} is not supported by this cache type");
         key = GetKey(key);
         //TODO: plug in expiry service via DiskCacheInvalidationBgService ?
         _logger.LogTrace("{className} attempting to store object with {key} in local cache", nameof(DiskCacheService), key);
@@ -88,9 +100,9 @@ public class DiskCacheService : ILocalCache
 
     string GetKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(DiskCacheFolder))
+        if (string.IsNullOrWhiteSpace(_diskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
-        return Path.Combine(DiskCacheFolder, key.Replace(":", "_"));
+        return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
     }
 
     [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
