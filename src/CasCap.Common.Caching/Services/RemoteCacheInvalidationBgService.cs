@@ -29,21 +29,22 @@ public class RemoteCacheInvalidationBgService(ILogger<RemoteCacheInvalidationBgS
 
     private async Task RunServiceAsync(CancellationToken cancellationToken)
     {
-        var channel = RedisChannel.Pattern("__keyevent@0__:expired");
+        //__keyspace@0__:*
+        var channel = RedisChannel.Literal("__keyevent@0__:expired");
 
         await remoteCache.Subscriber.SubscribeAsync(channel, (redisChannel, redisValue) =>
         {
             var key = redisValue.ToString();
             //do housekeeping
             var success = remoteCache.SlidingExpirations.TryRemove(redisValue.ToString(), out var _);
-            logger.LogInformation("{className} expiration detected key={key}, dictionary={count}, success={success}",
+            logger.LogTrace("{className} expiration detected key={key}, dictionary={count}, success={success}",
                 nameof(RemoteCacheInvalidationBgService), key, remoteCache.SlidingExpirations.Count, success);
         });
 
         //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(100, cancellationToken);
+            await Task.Delay(1000, cancellationToken);
         }
 
         logger.LogInformation("{className} unsubscribing from remote cache subscription channel {channelName}",
