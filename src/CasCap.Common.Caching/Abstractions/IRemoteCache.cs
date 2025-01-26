@@ -81,6 +81,13 @@ public interface IRemoteCache
     Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None);
 
     /// <summary>
+    /// Collection keeps track of the cache item requested sliding expirations.
+    /// When we attempt to a previously cached item we also send in the sliding
+    /// expiration again to push the Redis expiration forward.
+    /// </summary>
+    ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; }
+
+    /// <summary>
     /// Leverages <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return the object
     /// plus meta data i.e. object expiry information
     /// </summary>

@@ -7,10 +7,6 @@
 /// <remarks>
 /// Subscribe to the full cache key events and expire via a more advanced configuration model.
 /// </remarks>
-/// <param name="logger"></param>
-/// <param name="remoteCache"></param>
-/// <param name="localCache"></param>
-/// <param name="cachingOptions"></param>
 public class LocalCacheInvalidationBgService(ILogger<LocalCacheInvalidationBgService> logger,
     IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingOptions> cachingOptions) : BackgroundService
 {

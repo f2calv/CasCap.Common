@@ -81,7 +81,10 @@ public static class DI
         if (!string.IsNullOrWhiteSpace(remoteCacheConnectionString))
         {
             if (RemoteCacheType == CacheType.Redis)
+            {
                 services.AddSingleton<IRemoteCache, RedisCacheService>();
+                services.AddHostedService<RemoteCacheInvalidationBgService>();
+            }
             else
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
             services.AddSingleton<IDistributedCache, DistributedCacheService>();

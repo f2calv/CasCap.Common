@@ -36,15 +36,8 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public int DatabaseId { get; set; } = -1;
 
-    /// <summary>
-    /// Collection keeps track of the cache item requested sliding expirations.
-    /// When we attempt to a previously cached item we also send in the sliding
-    /// expiration again to push the Redis expiration forward.
-    /// </summary>
-    /// <remarks>
-    /// TODO: this is currently a memory leak as there is no way to remove expired cache entries.
-    /// </remarks>
-    private ConcurrentDictionary<string, TimeSpan> _slidingExpirations = [];
+    /// <inheritdoc/>
+    public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
 
     /// <summary>
     /// Delete all items in the Redis database.
@@ -126,7 +119,7 @@ public class RedisCacheService : IRemoteCache
         if (slidingExpiration.HasValue)
         {
             var _slidingExpiration = slidingExpiration.Value;//because can't use ref type in lamba
-            _ = _slidingExpirations.AddOrUpdate(key, _slidingExpiration, (k, v) => { v = _slidingExpiration; return v; });
+            _ = SlidingExpirations.AddOrUpdate(key, _slidingExpiration, (k, v) => { v = _slidingExpiration; return v; });
         }
         //Redis doesn't support absolute expiration, so we convert any given absoluteExpiration
         //into a relative value - but we don't add the key to the _slidingExpirations collection.
@@ -137,16 +130,24 @@ public class RedisCacheService : IRemoteCache
     private bool TryGetExpiration(string key, out TimeSpan? slidingExpiration)
     {
         slidingExpiration = null;
-        if (_slidingExpirations.TryGetValue(key, out var sExpiration))
+        if (SlidingExpirations.TryGetValue(key, out var sExpiration))
             slidingExpiration = sExpiration;
         return slidingExpiration.HasValue;
     }
 
     /// <inheritdoc/>
-    public bool Delete(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDelete(key, flags);
+    public bool Delete(string key, CommandFlags flags = CommandFlags.None)
+    {
+        SlidingExpirations.TryRemove(key, out var _);
+        return Db.KeyDelete(key, flags);
+    }
 
     /// <inheritdoc/>
-    public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDeleteAsync(key, flags);
+    public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None)
+    {
+        SlidingExpirations.TryRemove(key, out var _);
+        return Db.KeyDeleteAsync(key, flags);
+    }
 
     /// <inheritdoc/>
     public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None)
