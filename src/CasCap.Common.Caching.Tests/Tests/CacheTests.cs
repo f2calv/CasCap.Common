@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using System.Diagnostics;
-
-namespace CasCap.Common.Caching.Tests;
+﻿namespace CasCap.Common.Caching.Tests;
 
 /// <summary>
 /// Integration tests with a dependency on a running Redis instance.
