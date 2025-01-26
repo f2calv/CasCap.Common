@@ -70,7 +70,8 @@ public class ConsoleUIService(ILogger<ConsoleUIService> logger, IHostEnvironment
             OnUIKeyPress(key);//send it
         }
         else if (env.IsDevelopment())
-            _logger.LogDebug("Render time {elapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)", sw.ElapsedMilliseconds, iWrite, iWriteLine);
+            _logger.LogDebug("{className} Render time {elapsedMilliseconds}ms ({iWrite} * Write, {iWriteLine} * Writeline)",
+                nameof(ConsoleUIService), sw.ElapsedMilliseconds, iWrite, iWriteLine);
         isScreenRefreshing = false;
     }
 

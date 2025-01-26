@@ -1,12 +1,15 @@
 ﻿namespace CasCap.Services;
 
-//https://stackexchange.github.io/StackExchange.Redis/
+/// <summary>
+/// The <see cref="RedisCacheService"/> acts as a wrapper around key functionality of the <see cref="StackExchange.Redis"/> library.
+/// </summary>
 public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly CachingOptions _cachingOptions;
 
+    /// <inheritdoc/>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -18,47 +21,135 @@ public class RedisCacheService : IRemoteCache
         if (_cachingOptions.RemoteCache.ClearOnStartup) DeleteAll();
     }
 
+    /// <inheritdoc/>
     public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
 
+    /// <inheritdoc/>
     public IDatabase Db { get { return Connection.GetDatabase(DatabaseId); } }
 
+    /// <inheritdoc/>
     public ISubscriber Subscriber { get { return Connection.GetSubscriber(); } }
 
+    /// <inheritdoc/>
     public IServer Server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
 
+    /// <inheritdoc/>
     public int DatabaseId { get; set; } = -1;
 
-    public void DeleteAll(CommandFlags flags = CommandFlags.None)
+    /// <inheritdoc/>
+    public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
+
+    /// <summary>
+    /// Delete all items in the Redis database.
+    /// </summary>
+    /// <remarks>
+    /// Only works when connecting with ADMIN=true.
+    /// </remarks>
+    private void DeleteAll(CommandFlags flags = CommandFlags.None)
         => Server.FlushDatabase(DatabaseId, flags);
 
+    /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)
-        => Db.StringGet(key, flags);
+        => _Get(key, flags);
 
+    /// <inheritdoc/>
     public byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None)
-        => Db.StringGet(key, flags);
+        => (byte[]?)_Get(key, flags);
 
+    private RedisValue _Get(string key, CommandFlags flags = CommandFlags.None)
+        => TryGetExpiration(key, out var slidingExpiration)
+            ? Db.StringGetSetExpiry(key, slidingExpiration, flags)
+            : Db.StringGet(key, flags);
+
+    /// <inheritdoc/>
     public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
-        => await Db.StringGetAsync(key, flags);
+        => await _GetAsync(key, flags);
 
+    /// <inheritdoc/>
     public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
-        => await Db.StringGetAsync(key, flags);
+        => (byte[]?)(await _GetAsync(key, flags));
 
-    public bool Set(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
-        => Db.StringSet(key, value, expiry, flags: flags);
+    private async Task<RedisValue> _GetAsync(string key, CommandFlags flags = CommandFlags.None)
+        => TryGetExpiration(key, out var slidingExpiration)
+            ? await Db.StringGetSetExpiryAsync(key, slidingExpiration, flags)
+            : await Db.StringGetAsync(key, flags);
 
-    public bool Set(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
-        => Db.StringSet(key, value, expiry, flags: flags);
+    /// <inheritdoc/>
+    public bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
+    {
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
+        return Db.StringSet(key, value, slidingExpiration, flags: flags);
+    }
 
-    public Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
-        => Db.StringSetAsync(key, value, expiry, flags: flags);
+    /// <inheritdoc/>
+    public bool Set(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
+    {
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
+        return Db.StringSet(key, value, slidingExpiration, flags: flags);
+    }
 
-    public Task<bool> SetAsync(string key, byte[] value, TimeSpan? expiry = null, CommandFlags flags = CommandFlags.None)
-        => Db.StringSetAsync(key, value, expiry, flags: flags);
+    /// <inheritdoc/>
+    public Task<bool> SetAsync(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
+    {
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
+        return Db.StringSetAsync(key, value, slidingExpiration, flags: flags);
+    }
 
-    public bool Delete(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDelete(key, flags);
+    /// <inheritdoc/>
+    public Task<bool> SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
+    {
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
+        return Db.StringSetAsync(key, value, slidingExpiration, flags: flags);
+    }
 
-    public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None) => Db.KeyDeleteAsync(key, flags);
+    private void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
+    {
+        if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
+            throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");
+        if (absoluteExpiration.HasValue && absoluteExpiration.Value < DateTime.UtcNow)
+            throw new NotSupportedException($"{nameof(absoluteExpiration)} is requested for key {key} but {absoluteExpiration} is already expired!");
+    }
 
+    private void UpdateExpirations(string key, ref TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
+    {
+        if (slidingExpiration.HasValue)
+        {
+            var _slidingExpiration = slidingExpiration.Value;//because can't use ref type in lamba
+            _ = SlidingExpirations.AddOrUpdate(key, _slidingExpiration, (k, v) => { v = _slidingExpiration; return v; });
+        }
+        //Redis doesn't support absolute expiration, so we convert any given absoluteExpiration
+        //into a relative value - but we don't add the key to the _slidingExpirations collection.
+        if (absoluteExpiration.HasValue)
+            slidingExpiration = absoluteExpiration.Value - DateTime.UtcNow;
+    }
+
+    private bool TryGetExpiration(string key, out TimeSpan? slidingExpiration)
+    {
+        slidingExpiration = null;
+        if (SlidingExpirations.TryGetValue(key, out var sExpiration))
+            slidingExpiration = sExpiration;
+        return slidingExpiration.HasValue;
+    }
+
+    /// <inheritdoc/>
+    public bool Delete(string key, CommandFlags flags = CommandFlags.None)
+    {
+        SlidingExpirations.TryRemove(key, out var _);
+        return Db.KeyDelete(key, flags);
+    }
+
+    /// <inheritdoc/>
+    public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None)
+    {
+        SlidingExpirations.TryRemove(key, out var _);
+        return Db.KeyDeleteAsync(key, flags);
+    }
+
+    /// <inheritdoc/>
     public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None)
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
@@ -88,8 +179,7 @@ public class RedisCacheService : IRemoteCache
         return tpl;
     }
 
-    #region use custom LUA script to return cached object plus meta data i.e. object expiry information
-    [Obsolete("Superseded by the built-in StringGetWithExpiryAsync, however left as a Lua script example.")]
+    /// <inheritdoc/>
     public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, CommandFlags flags = CommandFlags.None, [CallerMemberName] string caller = "")
     {
         if (!_cachingOptions.LoadBuiltInLuaScripts)
@@ -100,7 +190,7 @@ public class RedisCacheService : IRemoteCache
         var res = await luaGet();
         if (res != default && res.payload is not null)
         {
-            tpl.expiry = res.ttl.GetExpiry();
+            tpl.expiry = res.ttl.GetExpirationFromSeconds();
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = (string?)res.payload;
@@ -144,12 +234,15 @@ public class RedisCacheService : IRemoteCache
         //Retrieves both the TTL and the cached item from Redis in one network call.
         async Task<RedisResult[]?> GetCacheEntryWithTTL()
         {
+            TryGetExpiration(key, out var slidingExpiration);
+            var cacheExpiry = slidingExpiration.HasValue ? (int)slidingExpiration.Value.TotalSeconds : -1;
             try
             {
                 var luaScript = LuaScripts[keyGetCacheEntryWithTTL];
                 var result = await luaScript.EvaluateAsync(Db, new
                 {
                     cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
+                    cacheExpiry = (RedisKey)cacheExpiry.ToString(),
                     trackKey = (RedisKey)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
                     trackCaller = (RedisKey)caller//the method which instigated this particular access attempt
                 }, flags: flags);
@@ -158,7 +251,7 @@ public class RedisCacheService : IRemoteCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "some failure");
+                _logger.LogError(ex, "{className} some failure", nameof(RedisCacheService));
                 throw;
             }
 
@@ -174,18 +267,20 @@ public class RedisCacheService : IRemoteCache
     }
 
     #region
+    /// <inheritdoc/>
     public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = [];
 
-    void LoadBuiltInLuaScripts()
+    private void LoadBuiltInLuaScripts()
     {
         //add additional default LUA scripts into this array...
         var scriptNames = new[] { keyGetCacheEntryWithTTL };
         foreach (var scriptName in scriptNames)
-            LoadLuaScript(this.GetType().Assembly, scriptName);
+            LoadLuaScript(GetType().Assembly, scriptName);
     }
 
-    const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithTTL);
+    private const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithTTL);
 
+    /// <inheritdoc/>
     public bool LoadLuaScript(Assembly assembly, string scriptName)
     {
         var resourceName = scriptName.EndsWith(".lua") ? scriptName : $"CasCap.Resources.{scriptName}.lua";
@@ -205,6 +300,5 @@ public class RedisCacheService : IRemoteCache
 
         return LuaScripts.TryAdd(scriptName, loadedLuaScript);
     }
-    #endregion
     #endregion
 }

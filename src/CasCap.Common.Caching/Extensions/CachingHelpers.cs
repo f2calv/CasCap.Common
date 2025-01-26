@@ -1,8 +1,16 @@
 ﻿namespace CasCap.Common.Extensions;
 
+/// <summary>
+/// Extension methods to assist with common Caching tasks.
+/// </summary>
 public static class CachingHelpers
 {
-    public static TimeSpan? GetExpiry(this int ttl)
+    /// <summary>
+    /// Calculates the relative expiration <see cref="TimeSpan"/> from an integer.
+    /// </summary>
+    /// <param name="ttl"></param>
+    /// <returns></returns>
+    public static TimeSpan? GetExpirationFromSeconds(this int ttl)
     {
         TimeSpan? expiry = null;
         if (ttl > -1)//if -1, the key does not have expiry timeout.

@@ -21,7 +21,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
+        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         var json = req!.ToJson();
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
@@ -47,7 +47,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
+        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
             request.Content = new ByteArrayContent(bytes);
@@ -73,7 +73,7 @@ public abstract class HttpClientBase
         where TError : class
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{httpMethod}\t{url}", HttpMethod.Post, url);
+        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         //todo: add in headers?
         using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, GetCT(timeout)).ConfigureAwait(false);
         return await HandleResult<TResult, TError>(response);
@@ -104,7 +104,7 @@ public abstract class HttpClientBase
                 tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             else
                 tpl.error = (await response.Content.ReadAsStringAsync().ConfigureAwait(false)).FromJson<TError>();
-            _logger.LogError("StatusCode={StatusCode}, RequestUri={RequestUri}", response.StatusCode, response.RequestMessage?.RequestUri);
+            _logger.LogError("{className} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)
             //if (req is not null) err += $"{json}";
