@@ -4,3 +4,12 @@ services:
     image: redis
     ports:
       - 6379:6379
+
+  p3x:
+    image: patrikx3/p3x-redis-ui
+    ports:
+      - 7843:7843
+    volumes:
+      - ./.docker/p3x.json:/settings/.p3xrs-conns.json
+    depends_on:
+      - redis
