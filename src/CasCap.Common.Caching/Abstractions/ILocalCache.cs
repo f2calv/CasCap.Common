@@ -3,28 +3,18 @@
 public interface ILocalCache
 {
     /// <summary>
-    /// Adds an object to the cache, with optional expiration.
+    /// Adds an object to the cache, with optional expiration parameters.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <param name="cacheEntry"></param>
-    /// <param name="relativeExpirationRelativeToNow"></param>
-    /// <param name="absoluteExpirationRelativeToNow"></param>
-    void Set<T>(string key, T cacheEntry, TimeSpan? relativeExpiration = null, TimeSpan? absoluteExpiration = null);
+    void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null);
 
     /// <summary>
-    /// Retrieves an object from the cache matching the given <see cref="key"/>.
+    /// Retrieves an object from the cache matching the given <paramref name="key"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <returns></returns>
     T? Get<T>(string key);
 
     /// <summary>
-    /// Deletes a single object from the cache matching the given <see cref="key"/>.
+    /// Deletes a single object from the cache matching the given <paramref name="key"/>.
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
     bool Delete(string key);
 
     /// <summary>

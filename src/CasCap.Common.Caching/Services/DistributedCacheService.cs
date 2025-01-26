@@ -4,23 +4,27 @@
 /// The <see cref="DistributedCacheService"/> uses both <see cref="ILocalCache"/> and <see cref="IRemoteCache"/>
 /// to implement <see cref="IDistributedCache"/>.
 /// </summary>
-public class DistributedCacheService(ILogger<DistributedCacheService> logger,
-    IOptions<CachingOptions> cachingOptions,
-    IRemoteCache remoteCache,
-    ILocalCache localCache) : IDistributedCache
+public class DistributedCacheService(ILogger<DistributedCacheService> logger, IOptions<CachingOptions> cachingOptions,
+    IRemoteCache remoteCache, ILocalCache localCache) : IDistributedCache
 {
     private readonly CachingOptions _cachingOptions = cachingOptions.Value;
 
+    /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
+    /// <inheritdoc/>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     //todo: store a summary of all cached items in a local lookup dictionary?
+    ///// <inheritdoc/>
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
-    //public Task<T?> Get<T>(ICacheKey<T> key, Func<Task<T>>? createItem = null, int ttl = -1) where T : class
-    //    => Get(key.CacheKey, createItem, ttl);
+    /// <inheritdoc/>
+    public Task<T?> Get<T>(string key) where T : class
+        => Get<T>(key, createItem: null, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
 
-    public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, int ttl = -1, CommandFlags flags = CommandFlags.None) where T : class
+    /// <inheritdoc/>
+    public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
+        CommandFlags flags = CommandFlags.None) where T : class
     {
         T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
@@ -51,7 +55,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
                     // Key not in cache, so get data.
                     cacheEntry = await createItem();
                     if (cacheEntry is not null)
-                        await Set(key, cacheEntry, ttl);
+                        await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags);
                 }
             }
         }
@@ -61,13 +65,14 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         return cacheEntry;
     }
 
-    //public Task Set<T>(ICacheKey<T> key, T cacheEntry, int ttl = -1) where T : class
-    //    => Set(key.CacheKey, cacheEntry, ttl);
+    /// <inheritdoc/>
+    public Task Set<T>(string key, T cacheEntry) where T : class
+        => Set<T>(key, cacheEntry, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
 
-    public async Task Set<T>(string key, T cacheEntry, int ttl = -1, CommandFlags flags = CommandFlags.None) where T : class
+    /// <inheritdoc/>
+    public async Task Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
+        CommandFlags flags = CommandFlags.None) where T : class
     {
-        var expiry = ttl.GetExpiry();
-
         if (_cachingOptions.RemoteCache.IsEnabled)
         {
             logger.LogTrace("{className} storing {key} object type {type} in remote cache",
@@ -75,22 +80,23 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = cacheEntry.ToJson();
-                _ = await remoteCache.SetAsync(key, json, expiry, flags);
+                _ = await remoteCache.SetAsync(key, json, slidingExpiration, absoluteExpiration, flags: flags);
                 await Invalidate(key);
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
-                _ = await remoteCache.SetAsync(key, bytes, expiry, flags);
+                _ = await remoteCache.SetAsync(key, bytes, slidingExpiration, absoluteExpiration, flags: flags);
                 await Invalidate(key);
             }
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
         }
 
-        localCache.Set(key, cacheEntry, expiry);
+        localCache.Set(key, cacheEntry, slidingExpiration);
     }
 
+    /// <inheritdoc/>
     public async Task<bool> Delete(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
         var result1 = localCache.Delete(key);
@@ -112,7 +118,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger,
         }
     }
 
-    public async Task<long> DeleteAll(CancellationToken cancellationToken)
+    /// <inheritdoc/>
+    public async Task<long> DeleteAll(CommandFlags flags = CommandFlags.None, CancellationToken cancellationToken = default)
     {
         await Task.Delay(0, cancellationToken);
         throw new NotImplementedException("TODO!");
