@@ -46,6 +46,41 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Null(exists);
     }
 
+    [Fact]
+    public async Task AbsoluteExpirationTest_Async()
+    {
+        //Arrange
+        var cachingOptions = new CachingOptions
+        {
+            LoadBuiltInLuaScripts = true,
+            RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType.Json },
+        };
+        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+
+        var key = $"{Guid.NewGuid()}:{nameof(AbsoluteExpirationTest_Async)}:{SerializationType.Json}";
+        var absoluteExpirationSeconds = 5;
+        var absoluteExpiration = DateTime.UtcNow.AddSeconds(absoluteExpirationSeconds);
+        var objInitial = new MockDto(DateTime.UtcNow);
+
+        //Act
+        var added = await remoteCache.SetAsync(key, objInitial.ToJson(), absoluteExpiration: absoluteExpiration);
+        var exists = await remoteCache.GetAsync(key);
+        //check 1 second before it expires
+        await Task.Delay((absoluteExpirationSeconds - 1) * 1000, CancellationToken.None);
+        var stillExists = await remoteCache.GetAsync(key);
+        //check 1 second after it expires
+        await Task.Delay(2 * 1000, CancellationToken.None);
+        var hasExpired = await remoteCache.GetAsync(key);
+
+        //Assert
+        Assert.True(added);
+        Assert.NotNull(exists);
+        Assert.NotNull(stillExists);
+        Assert.Null(hasExpired);
+    }
+
     [Theory, Trait("Category", nameof(IRemoteCache))]
     [InlineData(SerializationType.Json, true, CacheType.Memory)]
     [InlineData(SerializationType.Json, false, CacheType.Memory)]
