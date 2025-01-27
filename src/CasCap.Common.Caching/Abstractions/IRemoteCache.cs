@@ -106,5 +106,5 @@ public interface IRemoteCache
     /// <summary>
     /// Loads a custom script into the <see cref="LuaScripts"/> collection.
     /// </summary>
-    bool LoadLuaScript(Assembly assembly, string scriptName);
+    LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName);
 }
