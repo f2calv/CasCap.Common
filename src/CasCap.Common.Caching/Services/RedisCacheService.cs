@@ -150,17 +150,27 @@ public class RedisCacheService : IRemoteCache
     }
 
     /// <inheritdoc/>
-    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None)
+    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithExpiryAsync<T>(
+        string key, CommandFlags flags = CommandFlags.None, bool updateSlidingExpirationIfExists = true, [CallerMemberName] string caller = "")
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
-        var o = await Db.StringGetWithExpiryAsync(key, flags);
+
+        RedisValueWithExpiry o = default;
+        if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration))
+        {
+            if (!_cachingOptions.LoadBuiltInLuaScripts)
+                throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
+            o = await StringGetWithExpiryAsync();
+        }
+        else
+            o = await Db.StringGetWithExpiryAsync(key, flags);
         if (o.Value.HasValue)
         {
             _logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
                 nameof(RedisCacheService), key, typeof(T));
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
-                var json = o.Value.ToString();
+                var json = o.Value.ToString()!;
                 tpl.cacheEntry = json.FromJson<T>();
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
@@ -176,76 +186,40 @@ public class RedisCacheService : IRemoteCache
         else
             _logger.LogTrace("{className} unable to retrieve {key} object type {type} from remote cache",
                 nameof(RedisCacheService), key, typeof(T));
-        return tpl;
-    }
-
-    /// <inheritdoc/>
-    public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, CommandFlags flags = CommandFlags.None, [CallerMemberName] string caller = "")
-    {
-        if (!_cachingOptions.LoadBuiltInLuaScripts)
-            throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
-
-        (TimeSpan? expiry, T? cacheEntry) tpl = default;
-
-        var res = await luaGet();
-        if (res != default && res.payload is not null)
-        {
-            tpl.expiry = res.ttl.GetExpirationFromSeconds();
-            if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
-            {
-                var json = (string?)res.payload;
-                if (json is not null)
-                    tpl.cacheEntry = json.FromJson<T>();
-            }
-            else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
-            {
-                var bytes = (byte[]?)res.payload;
-                if (bytes is not null)
-                    tpl.cacheEntry = bytes.FromMessagePack<T>();
-            }
-            else
-                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
-        }
 
         return tpl;
 
-        async Task<(int ttl, RedisResult payload)> luaGet()
+        async Task<RedisValueWithExpiry> StringGetWithExpiryAsync()
         {
-            (int, RedisResult) output = default;
-            var tpl = await luaGetCacheEntryWithTTL();
-            if (tpl != default)
-                output = (tpl.ttl, tpl.payload);
-            return output;
-        }
-
-        async Task<(int ttl, string type, RedisResult payload)> luaGetCacheEntryWithTTL()
-        {
-            (int, string, RedisResult) tpl = default;
-            var retKeys = await GetCacheEntryWithTTL();
+            RedisValueWithExpiry result = default;
+            var retKeys = await StringGetWithExpiryAsyncLua();
             if (retKeys is not null && retKeys.Length == 3)
             {
-                var ttl = retKeys[0] is not null ? (int)retKeys[0] : -1;
-                var type = retKeys[1] is not null ? (string)retKeys[1]! : string.Empty;
-                tpl = (int.Parse(ttl.ToString()), type.ToString(), retKeys[2]);
+                var expiry = retKeys[0] is not null ? TimeSpan.FromSeconds((int)retKeys[0]) : (TimeSpan?)null;
+                //var type = retKeys[1] is not null ? (string?)retKeys[1]! : null;
+                var value = retKeys[2] is not null ? (RedisValue)retKeys[2] : RedisValue.Null;
+                result = new RedisValueWithExpiry(value, expiry);
             }
-            return tpl;
+            return result;
         }
 
         //Retrieves both the TTL and the cached item from Redis in one network call.
-        async Task<RedisResult[]?> GetCacheEntryWithTTL()
+        async Task<RedisResult[]?> StringGetWithExpiryAsyncLua()
         {
-            TryGetExpiration(key, out var slidingExpiration);
             var cacheExpiry = slidingExpiration.HasValue ? (int)slidingExpiration.Value.TotalSeconds : -1;
             try
             {
                 var luaScript = LuaScripts[keyGetCacheEntryWithTTL];
-                var result = await luaScript.EvaluateAsync(Db, new
+                if (string.IsNullOrWhiteSpace(luaScript.ExecutableScript))
+                    throw new FileNotFoundException($"Lua script {keyGetCacheEntryWithTTL} not found!");
+                var ps = new
                 {
                     cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
                     cacheExpiry = (RedisKey)cacheExpiry.ToString(),
                     trackKey = (RedisKey)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
                     trackCaller = (RedisKey)caller//the method which instigated this particular access attempt
-                }, flags: flags);
+                };
+                var result = await luaScript.EvaluateAsync(Db, ps, flags: flags);
                 var retKeys = (RedisResult[]?)result;
                 return retKeys;
             }
@@ -278,7 +252,7 @@ public class RedisCacheService : IRemoteCache
             LoadLuaScript(GetType().Assembly, scriptName);
     }
 
-    private const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithTTL);
+    private const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithExpiryAsync);
 
     /// <inheritdoc/>
     public bool LoadLuaScript(Assembly assembly, string scriptName)

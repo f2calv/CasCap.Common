@@ -89,16 +89,14 @@ public interface IRemoteCache
 
     /// <summary>
     /// Leverages <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return the object
-    /// plus meta data i.e. object expiry information
+    /// plus meta data i.e. object expiry information.
     /// </summary>
-    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None);
-
-    /// <summary>
-    /// Leverages the same logic as <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return
-    /// the object plus meta data i.e. object expiry information.
-    /// However this method uses a LUA script and allows for re-adjusting the sliding expiration value if it was set initially.
-    /// </summary>
-    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, CommandFlags flags = CommandFlags.None, [CallerMemberName] string caller = "");
+    /// <remarks>
+    /// If a Sliding expiration has been used for this key, then this method uses a custom LUA script
+    /// which allows for re-adjusting the sliding expiration value to what it was initially set.
+    /// </remarks>
+    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithExpiryAsync<T>
+        (string key, CommandFlags flags = CommandFlags.None, bool updateSlidingExpirationIfExists = true, [CallerMemberName] string caller = "");
 
     /// <summary>
     /// Exposes a dictionary of LuaScripts to allow management of scripts during connection.

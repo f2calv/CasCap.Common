@@ -26,10 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\GetCacheEntryWithTTL.lua" />
+    <None Remove="Resources\GetCacheEntryWithExpiryAsync.lua" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\GetCacheEntryWithTTL.lua" />
+    <EmbeddedResource Include="Resources\GetCacheEntryWithExpiryAsync.lua" />
   </ItemGroup>
 
 </Project>

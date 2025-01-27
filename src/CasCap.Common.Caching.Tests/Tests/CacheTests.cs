@@ -31,7 +31,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         {
             //each time this is called the slidingExpiration should be reset...
             //var result = await remoteCache.GetCacheEntryWithTTL<MockDto>(key);//wont work because it doesn't use GETEX
-            var result = await remoteCache.GetCacheEntryWithTTL_Lua<MockDto>(key);
+            var result = await remoteCache.GetCacheEntryWithExpiryAsync<MockDto>(key);
 
             Assert.NotNull(result.cacheEntry);
             Assert.NotNull(result.expiry);
@@ -259,8 +259,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             inserted = await remoteCache.SetAsync(key, objInitial.ToJson(), absoluteExpiration: absoluteExpiration);
         else if (SerializationType == SerializationType.MessagePack)
             inserted = await remoteCache.SetAsync(key, objInitial.ToMessagePack(), absoluteExpiration: absoluteExpiration);
-        var objFromCacheTask1 = remoteCache.GetCacheEntryWithTTL_Lua<MockDto>(key);
-        var objFromCacheTask2 = remoteCache.GetCacheEntryWithTTL<MockDto>(key);
+        var objFromCacheTask1 = remoteCache.GetCacheEntryWithExpiryAsync<MockDto>(key, updateSlidingExpirationIfExists: false);
+        var objFromCacheTask2 = remoteCache.GetCacheEntryWithExpiryAsync<MockDto>(key);
         //retrieve object from cache + ttl info via StackExchange and custom Lua
         var tasks = await Task.WhenAll(objFromCacheTask1, objFromCacheTask2);
         var objFromCache1 = tasks[0];

@@ -33,7 +33,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
                 nameof(DistributedCacheService), key, typeof(T));
             if (_cachingOptions.RemoteCache.IsEnabled)
             {
-                var tpl = await remoteCache.GetCacheEntryWithTTL<T>(key, flags);
+                var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
                 if (tpl != default && tpl.cacheEntry is not null)
                 {
                     logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
@@ -60,14 +60,17 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             }
         }
         else if (cacheEntry is not null)
+        {
+            //do we extend the remote cache expiry if its sliding?
             logger.LogTrace("{className} retrieved {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
+        }
         return cacheEntry;
     }
 
     /// <inheritdoc/>
     public Task Set<T>(string key, T cacheEntry) where T : class
-        => Set<T>(key, cacheEntry, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
+        => Set(key, cacheEntry, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
 
     /// <inheritdoc/>
     public async Task Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
