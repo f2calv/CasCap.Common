@@ -35,7 +35,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         await cacheExpiryBgSvc!.StartAsync(cancellationToken);
         await Task.Delay(5_000);//short pause for the cancellation token to take effect
 
-        
+
         //stop bg service
         await source.CancelAsync();
         await Task.Delay(1_000);//short pause for the cancellation token to take effect
