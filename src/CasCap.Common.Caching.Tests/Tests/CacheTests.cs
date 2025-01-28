@@ -11,7 +11,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var cachingOptions = new CachingOptions
         {
-            LoadBuiltInLuaScripts = true,
+            UseBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
@@ -49,7 +49,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var cachingOptions = new CachingOptions
         {
-            LoadBuiltInLuaScripts = true,
+            UseBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
@@ -96,7 +96,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var objInitial = new MockDto(DateTime.UtcNow);
         var cachingOptions = new CachingOptions
         {
-            LoadBuiltInLuaScripts = true,
+            UseBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions
             {
                 SerializationType = RemoteCacheSerializationType,
@@ -173,7 +173,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var objInitial = new MockDto(DateTime.UtcNow);
         var cachingOptions = new CachingOptions
         {
-            LoadBuiltInLuaScripts = true,
+            UseBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
@@ -242,7 +242,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var cachingOptions = new CachingOptions
         {
-            LoadBuiltInLuaScripts = true,
+            UseBuiltInLuaScripts = true,
             RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);

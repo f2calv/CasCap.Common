@@ -106,5 +106,6 @@ public interface IRemoteCache
     /// <summary>
     /// Loads a custom script into the <see cref="LuaScripts"/> collection.
     /// </summary>
+    /// <param name="scriptName">Should be of the form "Namespace.Class.ScriptName.lua", e.g. CasCap.Resources.MyScript.lua</param>
     LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName);
 }

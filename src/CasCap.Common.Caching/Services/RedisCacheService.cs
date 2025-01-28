@@ -17,7 +17,7 @@ public class RedisCacheService : IRemoteCache
         _cachingOptions = cachingOptions.Value;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-        if (_cachingOptions.LoadBuiltInLuaScripts) LoadBuiltInLuaScripts();
+        if (_cachingOptions.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
         if (_cachingOptions.RemoteCache.ClearOnStartup) DeleteAll();
     }
 
@@ -158,11 +158,13 @@ public class RedisCacheService : IRemoteCache
         RedisValueWithExpiry o = default;
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
-            if (!_cachingOptions.LoadBuiltInLuaScripts)
-                throw new NotSupportedException($"You must enable {nameof(_cachingOptions.LoadBuiltInLuaScripts)} to execute this method!");
-            //o = await StringGetWithExpiryAsync();//this is the Lua version
-            var _o = await Db.StringGetSetExpiryAsync(key, slidingExpiration.Value, flags);
-            o = new RedisValueWithExpiry(_o, slidingExpiration.Value);
+            if (_cachingOptions.UseBuiltInLuaScripts)
+                o = await StringGetSetExpiryAsync();
+            else
+            {
+                var _o = await Db.StringGetSetExpiryAsync(key, slidingExpiration.Value, flags);
+                o = new RedisValueWithExpiry(_o, slidingExpiration.Value);
+            }
         }
         else
             o = await Db.StringGetWithExpiryAsync(key, flags);
@@ -191,8 +193,8 @@ public class RedisCacheService : IRemoteCache
 
         return tpl;
 
-#pragma warning disable CS8321 // Local function is declared but never used
-        async Task<RedisValueWithExpiry> StringGetWithExpiryAsync()
+        //custom Lua version of Db.StringGetSetExpiryAsync
+        async Task<RedisValueWithExpiry> StringGetSetExpiryAsync()
         {
             RedisValueWithExpiry result = default;
             var retKeys = await StringGetWithExpiryAsyncLua();
@@ -205,7 +207,6 @@ public class RedisCacheService : IRemoteCache
             }
             return result;
         }
-#pragma warning restore CS8321 // Local function is declared but never used
 
         //Retrieves both the TTL and the cached item from Redis in one network call.
         async Task<RedisResult[]?> StringGetWithExpiryAsyncLua()
@@ -213,9 +214,9 @@ public class RedisCacheService : IRemoteCache
             var cacheExpiry = slidingExpiration.HasValue ? (int)slidingExpiration.Value.TotalSeconds : -1;
             try
             {
-                var loaded = LuaScripts[keyGetCacheEntryWithTTL];
+                var loaded = LuaScripts[keyStringGetSetExpiryAsync];
                 if (string.IsNullOrWhiteSpace(loaded.ExecutableScript))
-                    throw new FileNotFoundException($"Lua script {keyGetCacheEntryWithTTL} not found!");
+                    throw new FileNotFoundException($"Lua script {keyStringGetSetExpiryAsync} not found!");
                 var ps = new
                 {
                     cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
@@ -251,20 +252,19 @@ public class RedisCacheService : IRemoteCache
 
     private void LoadBuiltInLuaScripts()
     {
-        //add additional default LUA scripts into this array...
-        var scriptNames = new[] { keyGetCacheEntryWithTTL };
-        foreach (var scriptName in scriptNames)
-            LoadLuaScript(GetType().Assembly, scriptName);
+        //TODO: add additional Lua script examples into this array as and when required
+        var resourceNames = new[] { keyStringGetSetExpiryAsync };
+        foreach (var resourceName in resourceNames)
+            LoadLuaScript(GetType().Assembly, resourceName);
     }
 
-    private const string keyGetCacheEntryWithTTL = nameof(GetCacheEntryWithExpiryAsync);
+    private const string keyStringGetSetExpiryAsync = $"CasCap.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
-    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName)
+    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string resourceName)
     {
-        scriptName = scriptName.EndsWith(".lua") ? scriptName : $"CasCap.Resources.{scriptName}.lua";
         var script = string.Empty;
-        using (var stream = assembly.GetManifestResourceStream(scriptName))
+        using (var stream = assembly.GetManifestResourceStream(resourceName))
         {
             if (stream is not null)
             {
@@ -273,13 +273,16 @@ public class RedisCacheService : IRemoteCache
             }
         }
 
+        if (string.IsNullOrWhiteSpace(script))
+            throw new NullReferenceException($"Lua script '{resourceName}' is null or empty");
+
         var prepared = LuaScript.Prepare(script);
-        _logger.LogTrace("{className} loading Lua script '{scriptName}'", nameof(RedisCacheService), scriptName);
+        _logger.LogTrace("{className} loading Lua script '{resourceName}'", nameof(RedisCacheService), resourceName);
         var loaded = prepared.Load(Server);
 
-        if (!LuaScripts.TryAdd(scriptName, loaded))
-            _logger.LogWarning("{className} loading Lua script '{scriptName}' failed, duplicate name found",
-                nameof(RedisCacheService), scriptName);
+        if (!LuaScripts.TryAdd(resourceName, loaded))
+            _logger.LogWarning("{className} loading Lua script '{resourceName}' failed, duplicate name found",
+                nameof(RedisCacheService), resourceName);
         return loaded;
     }
     #endregion

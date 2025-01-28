@@ -34,7 +34,7 @@ public class CachingOptions
     /// </summary>
     public CacheItemPriority MemoryCacheItemPriority { get; set; } = CacheItemPriority.Normal;
 
-    public bool LoadBuiltInLuaScripts { get; set; } = false;
+    public bool UseBuiltInLuaScripts { get; set; } = false;
 
     public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
 
