@@ -68,7 +68,7 @@ public class MemoryCacheService : ILocalCache
             nameof(MemoryCacheService), typeof(T), key, options);
     }
 
-    private void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
+    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
             throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");

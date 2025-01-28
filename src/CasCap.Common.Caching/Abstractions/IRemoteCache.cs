@@ -32,11 +32,6 @@ public interface IRemoteCache
     IServer Server { get; }
 
     /// <summary>
-    /// Exposes the currently connected <see cref="DatabaseId"/>.
-    /// </summary>
-    int DatabaseId { get; }
-
-    /// <summary>
     /// Get object from cache casting it to a <see cref="string"/> upon retrieval.
     /// </summary>
     string? Get(string key, CommandFlags flags = CommandFlags.None);
@@ -73,6 +68,11 @@ public interface IRemoteCache
         CommandFlags flags = CommandFlags.None);
 
     /// <summary>
+    /// If a sliding expiration was ever set for a cached item, this then extends it.
+    /// </summary>
+    Task<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget);
+
+    /// <summary>
     /// Delete an object from the cache.
     /// </summary>
     bool Delete(string key, CommandFlags flags = CommandFlags.None);
@@ -89,16 +89,14 @@ public interface IRemoteCache
 
     /// <summary>
     /// Leverages <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return the object
-    /// plus meta data i.e. object expiry information
+    /// plus meta data i.e. object expiry information.
     /// </summary>
-    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL<T>(string key, CommandFlags flags = CommandFlags.None);
-
-    /// <summary>
-    /// Leverages the same logic as <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return
-    /// the object plus meta data i.e. object expiry information.
-    /// However this method uses a LUA script and allows for re-adjusting the sliding expiration value if it was set initially.
-    /// </summary>
-    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithTTL_Lua<T>(string key, CommandFlags flags = CommandFlags.None, [CallerMemberName] string caller = "");
+    /// <remarks>
+    /// If a Sliding expiration has been used for this key, then this method uses a custom LUA script
+    /// which allows for re-adjusting the sliding expiration value to what it was initially set.
+    /// </remarks>
+    Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithExpiryAsync<T>
+        (string key, CommandFlags flags = CommandFlags.None, bool updateSlidingExpirationIfExists = true, [CallerMemberName] string caller = "");
 
     /// <summary>
     /// Exposes a dictionary of LuaScripts to allow management of scripts during connection.
@@ -108,5 +106,6 @@ public interface IRemoteCache
     /// <summary>
     /// Loads a custom script into the <see cref="LuaScripts"/> collection.
     /// </summary>
-    bool LoadLuaScript(Assembly assembly, string scriptName);
+    /// <param name="scriptName">Should be of the form "Namespace.Class.ScriptName.lua", e.g. CasCap.Resources.MyScript.lua</param>
+    LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName);
 }

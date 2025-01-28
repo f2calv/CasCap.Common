@@ -29,21 +29,21 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
         {
-            logger.LogTrace("{className} unable to retrieve {key} object type {type} from local cache",
-                nameof(DistributedCacheService), key, typeof(T));
+            logger.LogTrace("{className} unable to retrieve {key} object type {type} from {objectName}",
+                nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
             if (_cachingOptions.RemoteCache.IsEnabled)
             {
-                var tpl = await remoteCache.GetCacheEntryWithTTL<T>(key, flags);
+                var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
                 if (tpl != default && tpl.cacheEntry is not null)
                 {
-                    logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
-                        nameof(DistributedCacheService), key, typeof(T));
+                    logger.LogTrace("{className} retrieved {key} object type {type} from {objectName}",
+                        nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
                     cacheEntry = tpl.cacheEntry;
                     localCache.Set(key, cacheEntry, tpl.expiry);
                 }
                 else
-                    logger.LogTrace("{className} unable to retrieve {key} object type {type} from remote cache",
-                        nameof(DistributedCacheService), key, typeof(T));
+                    logger.LogTrace("{className} unable to retrieve {key} object type {type} from {objectName}",
+                        nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
             }
             //if cacheEntry is still null so now create it
             if (cacheEntry is null && createItem is not null)
@@ -60,14 +60,18 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             }
         }
         else if (cacheEntry is not null)
-            logger.LogTrace("{className} retrieved {key} object type {type} from local cache",
-                nameof(DistributedCacheService), key, typeof(T));
+        {
+            logger.LogTrace("{className} retrieved {key} object type {type} from {objectName}",
+                nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
+            if (_cachingOptions.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
+                await remoteCache.ExtendSlidingExpirationAsync(key);
+        }
         return cacheEntry;
     }
 
     /// <inheritdoc/>
     public Task Set<T>(string key, T cacheEntry) where T : class
-        => Set<T>(key, cacheEntry, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
+        => Set(key, cacheEntry, slidingExpiration: null, absoluteExpiration: null, flags: CommandFlags.None);
 
     /// <inheritdoc/>
     public async Task Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
@@ -75,19 +79,19 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     {
         if (_cachingOptions.RemoteCache.IsEnabled)
         {
-            logger.LogTrace("{className} storing {key} object type {type} in remote cache",
-                nameof(DistributedCacheService), key, typeof(T));
+            logger.LogTrace("{className} storing {key} object type {type} in {objectName}",
+                nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = cacheEntry.ToJson();
                 _ = await remoteCache.SetAsync(key, json, slidingExpiration, absoluteExpiration, flags: flags);
-                await Invalidate(key);
+                await InvalidateLocalCache(key);
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 _ = await remoteCache.SetAsync(key, bytes, slidingExpiration, absoluteExpiration, flags: flags);
-                await Invalidate(key);
+                await InvalidateLocalCache(key);
             }
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
@@ -103,17 +107,22 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         var result2 = false;
         if (_cachingOptions.RemoteCache.IsEnabled)
             result2 = await remoteCache.DeleteAsync(key, flags);
-        await Invalidate(key);
+        await InvalidateLocalCache(key);
         return result1 || result2;
     }
 
-    private async Task Invalidate(string key, CommandFlags flags = CommandFlags.FireAndForget)
+    /// <summary>
+    /// When a change or update is made to a cached item in <see cref="DistributedCacheService"/> we must
+    /// invalidate the locally cached item from all clients other than this one.
+    /// All SET and DEL events are pushed to this channel prefixed with the local application+client id (PubSubPrefix).
+    /// </summary>
+    private async Task InvalidateLocalCache(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
         if (_cachingOptions.RemoteCache.IsEnabled && _cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName),
+            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(nameof(LocalCacheExpiryService)),
                 $"{_cachingOptions.PubSubPrefix}:{key}", flags);
-            logger.LogTrace("{className} sent expiration message for {key} via pub/sub",
+            logger.LogTrace("{className} sent local cache expiration message for {key} via pub/sub",
                 nameof(DistributedCacheService), key);
         }
     }

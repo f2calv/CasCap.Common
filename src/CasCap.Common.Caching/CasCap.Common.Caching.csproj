@@ -24,12 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Remove="Resources\GetCacheEntryWithTTL.lua" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\GetCacheEntryWithTTL.lua" />
+    <EmbeddedResource Include="Resources\StringGetSetExpiryAsync.lua" />
   </ItemGroup>
 
 </Project>

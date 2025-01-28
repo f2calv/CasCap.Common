@@ -8,21 +8,13 @@ public class CachingOptions
     public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
-    /// Prefix all keys sent via pub/sub with a unique identifier so that when a single client is connected
-    /// as both pub+sub it doesn't duplicate handling of it's own expiration messages.
+    /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
+    /// channel so that the current instance doesn't take any action on self-generated messages.
     /// </summary>
+    /// <remarks>
+    /// This prefix can be customized.
+    /// </remarks>
     public string PubSubPrefix { get; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
-
-    /// <summary>
-    /// All SET and DEL events are pushed to this channel prefixed with the PubSubPrefix of the local application.
-    /// All other applications subscribe to this channel and expire any cache items which don't match their own PubSubPrefix.
-    /// </summary>
-    public string ChannelName { get; set; } = "expiration";
-
-    ///// <summary>
-    ///// Subscribe and process all keyspace events.
-    ///// </summary>
-    //public string ChannelName { get; set; } = "__keyspace@0__:*";
 
     /// <summary>
     /// Gets or sets the maximum size of the cache, default is no limit.
@@ -34,7 +26,7 @@ public class CachingOptions
     /// </summary>
     public CacheItemPriority MemoryCacheItemPriority { get; set; } = CacheItemPriority.Normal;
 
-    public bool LoadBuiltInLuaScripts { get; set; } = false;
+    public bool UseBuiltInLuaScripts { get; set; } = false;
 
     public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
 
@@ -48,11 +40,15 @@ public class CachingOptions
     public string DiskCacheFolder { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
+
+    public ExpirationSyncType ExpirationSyncMode { get; set; } = ExpirationSyncType.None;
 }
 
 public class CacheOptions
 {
     public bool IsEnabled { get; set; } = true;
+
+    public int DatabaseId { get; set; } = 0;
 
     public bool ClearOnStartup { get; set; } = false;
 
@@ -74,4 +70,25 @@ public enum SerializationType
     None = 0,
     Json = 1,
     MessagePack = 2
+}
+
+/// <summary>
+/// When retrieving an item from <see cref="ILocalCache"/> it's sliding expiration will be updated
+/// automatically however the <see cref="IRemoteCache"/> will not know about this expiration extension
+/// and will expire the local item sooner, we can handle that in a number of ways.
+/// </summary>
+public enum ExpirationSyncType
+{
+    /// <summary>
+    /// No action is taken and there could be a disparity between the sliding expirations local vs. remote.
+    /// </summary>
+    None = 0,
+    /// <summary>
+    /// Let the <see cref="LocalCacheExpiryService"/> handle the expiration event on other connected clients.
+    /// </summary>
+    ExpireViaPubSub = 1,
+    /// <summary>
+    /// Extend remote expiry by setting an updated expiry time on the cached item.
+    /// </summary>
+    ExtendRemoteExpiry = 2
 }
