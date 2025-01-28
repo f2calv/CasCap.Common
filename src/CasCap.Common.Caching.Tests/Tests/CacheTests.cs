@@ -310,13 +310,14 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         serviceProvider.AddStaticLogging();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
         var localCache = serviceProvider.GetRequiredService<ILocalCache>();
-        var localCacheInvalidationBgSvc = serviceProvider.GetRequiredService<IHostedService>() as LocalCacheInvalidationBgService;
+        //var cacheExpiryBgSvc = serviceProvider.GetRequiredService<IHostedService>() as CacheExpiryBgService;
+        var localCacheExpirySvc = serviceProvider.GetRequiredService<LocalCacheExpiryService>();
         var source = new CancellationTokenSource();
         var cancellationToken = source.Token;
 
         //Act
         //start bg service
-        await localCacheInvalidationBgSvc!.StartAsync(cancellationToken);
+        await localCacheExpirySvc!.ExecuteAsync(cancellationToken);
         //check if object exists
         var objInitial = await distCacheSvc.Get<MockDto>(key);
         if (objInitial is null)

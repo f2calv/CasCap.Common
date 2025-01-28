@@ -6,19 +6,25 @@
 /// </summary>
 public static class DI
 {
+    /// <summary>
+    /// Add all necessary services to enable the CasCap distributed caching API.
+    /// </summary>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
+    /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
         string sectionKey = CachingOptions.SectionKey,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configuration: configuration, sectionKey, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
+    /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(cachingOptions: cachingOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
+    /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingOptions> configureOptions,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
@@ -83,12 +89,13 @@ public static class DI
             if (RemoteCacheType == CacheType.Redis)
             {
                 services.AddSingleton<IRemoteCache, RedisCacheService>();
-                services.AddHostedService<RemoteCacheInvalidationBgService>();
+                services.AddSingleton<RemoteCacheExpiryService>();
             }
             else
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
             services.AddSingleton<IDistributedCache, DistributedCacheService>();
-            services.AddHostedService<LocalCacheInvalidationBgService>();
+            services.AddSingleton<LocalCacheExpiryService>();
+            services.AddHostedService<CacheExpiryBgService>();
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
