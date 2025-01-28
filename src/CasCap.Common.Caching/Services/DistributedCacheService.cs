@@ -61,9 +61,10 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         }
         else if (cacheEntry is not null)
         {
-            //do we extend the remote cache expiry if its sliding?
             logger.LogTrace("{className} retrieved {key} object type {type} from local cache",
                 nameof(DistributedCacheService), key, typeof(T));
+            if (_cachingOptions.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
+                await remoteCache.ExtendSlidingExpirationAsync(key);
         }
         return cacheEntry;
     }

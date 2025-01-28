@@ -104,6 +104,14 @@ public class RedisCacheService : IRemoteCache
         return Db.StringSetAsync(key, value, slidingExpiration, flags: flags);
     }
 
+    /// <inheritdoc/>
+    public Task<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget)
+    {
+        if (TryGetExpiration(key, out var slidingExpiration))
+            return Db.KeyExpireAsync(key, slidingExpiration, flags: flags);
+        return Task.FromResult(false);
+    }
+
     private void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         if (slidingExpiration.HasValue && absoluteExpiration.HasValue)

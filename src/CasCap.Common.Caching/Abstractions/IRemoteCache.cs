@@ -68,6 +68,11 @@ public interface IRemoteCache
         CommandFlags flags = CommandFlags.None);
 
     /// <summary>
+    /// If a sliding expiration was ever set for a cached item, this then extends it.
+    /// </summary>
+    Task<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget);
+
+    /// <summary>
     /// Delete an object from the cache.
     /// </summary>
     bool Delete(string key, CommandFlags flags = CommandFlags.None);
