@@ -84,13 +84,13 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             {
                 var json = cacheEntry.ToJson();
                 _ = await remoteCache.SetAsync(key, json, slidingExpiration, absoluteExpiration, flags: flags);
-                await Invalidate(key);
+                await InvalidateLocalCache(key);
             }
             else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 _ = await remoteCache.SetAsync(key, bytes, slidingExpiration, absoluteExpiration, flags: flags);
-                await Invalidate(key);
+                await InvalidateLocalCache(key);
             }
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
@@ -106,17 +106,22 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         var result2 = false;
         if (_cachingOptions.RemoteCache.IsEnabled)
             result2 = await remoteCache.DeleteAsync(key, flags);
-        await Invalidate(key);
+        await InvalidateLocalCache(key);
         return result1 || result2;
     }
 
-    private async Task Invalidate(string key, CommandFlags flags = CommandFlags.FireAndForget)
+    /// <summary>
+    /// When a change or update is made to a cached item in <see cref="DistributedCacheService"/> we must
+    /// invalidate the locally cached item from all clients other than this one.
+    /// All SET and DEL events are pushed to this channel prefixed with the local application+client id (PubSubPrefix).
+    /// </summary>
+    private async Task InvalidateLocalCache(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
         if (_cachingOptions.RemoteCache.IsEnabled && _cachingOptions.LocalCacheInvalidationEnabled)
         {
-            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(_cachingOptions.ChannelName),
+            _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(nameof(LocalCacheExpiryService)),
                 $"{_cachingOptions.PubSubPrefix}:{key}", flags);
-            logger.LogTrace("{className} sent expiration message for {key} via pub/sub",
+            logger.LogTrace("{className} sent local cache expiration message for {key} via pub/sub",
                 nameof(DistributedCacheService), key);
         }
     }

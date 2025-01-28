@@ -32,11 +32,6 @@ public interface IRemoteCache
     IServer Server { get; }
 
     /// <summary>
-    /// Exposes the currently connected <see cref="DatabaseId"/>.
-    /// </summary>
-    int DatabaseId { get; }
-
-    /// <summary>
     /// Get object from cache casting it to a <see cref="string"/> upon retrieval.
     /// </summary>
     string? Get(string key, CommandFlags flags = CommandFlags.None);

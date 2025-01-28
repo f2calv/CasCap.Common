@@ -1,12 +1,9 @@
 ﻿namespace CasCap.Services;
 
 /// <summary>
-/// This local cache invalidation service is limited in it's scope.
-/// Only cache keys that are directly Set or Deleted by this library will automatically be removed from local cache.
+/// When a change to a cached item is effected by the <see cref="IDistributedCache"/> this service comes into action.
+/// <inheritdoc cref="DistributedCacheService.InvalidateLocalCache(string, CommandFlags)"/>
 /// </summary>
-/// <remarks>
-/// Subscribe to the full cache key events and expire via a more advanced configuration model.
-/// </remarks>
 public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
     IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingOptions> cachingOptions)
 {
@@ -18,8 +15,10 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
 
         logger.LogInformation("{className} starting", nameof(LocalCacheExpiryService));
 
-        var channel = RedisChannel.Pattern(cachingOptions.Value.ChannelName);
-
+        var channelName = nameof(LocalCacheExpiryService);
+        var channel = RedisChannel.Pattern(channelName);
+        logger.LogDebug("{className} subscribing to {objectType} name {channelName}, {propertyName}={IsPattern}",
+            nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         // Synchronous handler
         remoteCache.Subscriber.Subscribe(channel).OnMessage(channelMessage =>
         {
@@ -58,8 +57,8 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
             await Task.Delay(100, cancellationToken);
         }
 
-        logger.LogInformation("{className} unsubscribing from remote cache subscription channel {channelName}",
-            nameof(LocalCacheExpiryService), cachingOptions.Value.ChannelName);
+        logger.LogDebug("{className} unsubscribing from {objectType} name {channelName}, {propertyName}={IsPattern}",
+            nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel);
 
         //static string GetKey(string channel)
@@ -72,12 +71,14 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         logger.LogInformation("{className} stopping", nameof(LocalCacheExpiryService));
     }
 
+    /// <summary>
+    /// We expire any cache items from <see cref="ILocalCache"/> when their PubSubPrefix matches the incoming key.
+    /// </summary>
     private void ExpireByKey(string clientNamePrefixedKey)
     {
-        var firstIndex = clientNamePrefixedKey.IndexOf(':');
-        if (firstIndex < 1) return;
-        var clientName = clientNamePrefixedKey.Substring(0, firstIndex);
-        var key = clientNamePrefixedKey.Substring(firstIndex + 1);
+        var parts = clientNamePrefixedKey.Split([':'], 2);
+        var clientName = parts[0];
+        var key = parts[1];
         if (!clientName.Equals(cachingOptions.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(key))
@@ -86,7 +87,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
             _ = Interlocked.Increment(ref count);
         }
         else
-            logger.LogTrace("{className} skipped removing {key} from local cache as this instance just added it",
+            logger.LogTrace("{className} skipped removing {key} from local cache as this instance just raised that event",
                 nameof(LocalCacheExpiryService), key);
     }
 }

@@ -10,7 +10,8 @@ public class RedisCacheService : IRemoteCache
     private readonly CachingOptions _cachingOptions;
 
     /// <inheritdoc/>
-    public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer, IOptions<CachingOptions> cachingOptions)
+    public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
+        IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
         _connectionMultiplexer = connectionMultiplexer;
@@ -25,16 +26,13 @@ public class RedisCacheService : IRemoteCache
     public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
 
     /// <inheritdoc/>
-    public IDatabase Db { get { return Connection.GetDatabase(DatabaseId); } }
+    public IDatabase Db { get { return Connection.GetDatabase(_cachingOptions.RemoteCache.DatabaseId); } }
 
     /// <inheritdoc/>
     public ISubscriber Subscriber { get { return Connection.GetSubscriber(); } }
 
     /// <inheritdoc/>
     public IServer Server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
-
-    /// <inheritdoc/>
-    public int DatabaseId { get; set; } = -1;
 
     /// <inheritdoc/>
     public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
@@ -46,7 +44,7 @@ public class RedisCacheService : IRemoteCache
     /// Only works when connecting with ADMIN=true.
     /// </remarks>
     private void DeleteAll(CommandFlags flags = CommandFlags.None)
-        => Server.FlushDatabase(DatabaseId, flags);
+        => Server.FlushDatabase(_cachingOptions.RemoteCache.DatabaseId, flags);
 
     /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)

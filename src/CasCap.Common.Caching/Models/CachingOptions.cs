@@ -8,21 +8,13 @@ public class CachingOptions
     public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
-    /// Prefix all keys sent via pub/sub with a unique identifier so that when a single client is connected
-    /// as both pub+sub it doesn't duplicate handling of it's own expiration messages.
+    /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
+    /// channel so that the current instance doesn't take any action on self-generated messages.
     /// </summary>
+    /// <remarks>
+    /// This prefix can be customized.
+    /// </remarks>
     public string PubSubPrefix { get; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
-
-    /// <summary>
-    /// All SET and DEL events are pushed to this channel prefixed with the PubSubPrefix of the local application.
-    /// All other applications subscribe to this channel and expire any cache items which don't match their own PubSubPrefix.
-    /// </summary>
-    public string ChannelName { get; set; } = "expiration";
-
-    ///// <summary>
-    ///// Subscribe and process all keyspace events.
-    ///// </summary>
-    //public string ChannelName { get; set; } = "__keyspace@0__:*";
 
     /// <summary>
     /// Gets or sets the maximum size of the cache, default is no limit.
@@ -53,6 +45,8 @@ public class CachingOptions
 public class CacheOptions
 {
     public bool IsEnabled { get; set; } = true;
+
+    public int DatabaseId { get; set; } = 0;
 
     public bool ClearOnStartup { get; set; } = false;
 
