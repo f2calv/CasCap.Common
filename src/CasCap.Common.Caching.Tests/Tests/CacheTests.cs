@@ -5,6 +5,46 @@
 /// </summary>
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    [Theory, Trait("Category", nameof(BackgroundService))]
+    [InlineData(SerializationType.Json, false, CacheType.Memory)]
+    public async Task TestBgServices_Async(SerializationType SerializationType, bool ClearOnStartup, CacheType LocalCacheType)
+    {
+        //Arrange
+        var key = $"{Guid.NewGuid()}:{nameof(TestBgServices_Async)}:{SerializationType}";
+        var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
+        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var cachingOptions = new CachingOptions
+        {
+            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            DiskCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            MemoryCache = new CacheOptions { ClearOnStartup = ClearOnStartup }
+        };
+        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        var serviceProvider = services.BuildServiceProvider();
+        serviceProvider.AddStaticLogging();
+        var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
+        var localCache = serviceProvider.GetRequiredService<ILocalCache>();
+        var source = new CancellationTokenSource();
+        var cancellationToken = source.Token;
+
+        var cacheExpiryBgSvc = serviceProvider.GetRequiredService<IHostedService>() as CacheExpiryBgService;
+        //var localCacheExpirySvc = serviceProvider.GetRequiredService<LocalCacheExpiryService>();
+
+        //Act
+        //start bg service
+        await cacheExpiryBgSvc!.StartAsync(cancellationToken);
+        await Task.Delay(5_000);//short pause for the cancellation token to take effect
+
+        
+        //stop bg service
+        await source.CancelAsync();
+        await Task.Delay(1_000);//short pause for the cancellation token to take effect
+        //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
+
+        //Assert
+        //TODO: all
+    }
+
     [Fact]
     public async Task SlidingExpirationTest_Async()
     {
@@ -310,14 +350,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         serviceProvider.AddStaticLogging();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
         var localCache = serviceProvider.GetRequiredService<ILocalCache>();
-        //var cacheExpiryBgSvc = serviceProvider.GetRequiredService<IHostedService>() as CacheExpiryBgService;
-        var localCacheExpirySvc = serviceProvider.GetRequiredService<LocalCacheExpiryService>();
-        var source = new CancellationTokenSource();
-        var cancellationToken = source.Token;
 
         //Act
-        //start bg service
-        await localCacheExpirySvc!.ExecuteAsync(cancellationToken);
         //check if object exists
         var objInitial = await distCacheSvc.Get<MockDto>(key);
         if (objInitial is null)
@@ -346,10 +380,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var objFromCacheB = await distCacheSvc.Get(key, MockApiService.GetAsync);
 
         var isDeleted3 = await distCacheSvc.Delete(key);
-        //stop bg service
-        await source.CancelAsync();
-        await Task.Delay(1_000);//short pause for the cancellation token to take effect
-        //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
         Assert.Equal(objInitial, objFromCache1);

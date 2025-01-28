@@ -18,7 +18,7 @@ public class DiskCacheService : ILocalCache
     /// <remarks>
     /// TODO: also cache this collection locally and reload on startup!
     /// </remarks>
-    private ConcurrentDictionary<string, TimeSpan> _slidingExpirations = [];
+    private readonly ConcurrentDictionary<string, TimeSpan> _slidingExpirations = [];
 
     /// <summary>
     /// Collection keeps track of the cache items absolute expirations.
@@ -28,7 +28,7 @@ public class DiskCacheService : ILocalCache
     /// TODO: In future we could create some sort of background service to auto-expire the items, e.g. DiskCacheInvalidationBgService ?
     /// TODO: also cache this collection locally and reload on startup!
     /// </remarks>
-    private ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
     /// <inheritdoc/>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
@@ -82,7 +82,7 @@ public class DiskCacheService : ILocalCache
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         key = ConvertKeyToFilePath(key);//this must happen first!
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        DiskCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{className} attempting to store object with {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
@@ -102,7 +102,7 @@ public class DiskCacheService : ILocalCache
         }
     }
 
-    private void ValidateExpirations(string key, TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
+    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
     {
         if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
             throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");

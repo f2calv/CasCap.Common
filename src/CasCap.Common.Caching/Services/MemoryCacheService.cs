@@ -49,7 +49,7 @@ public class MemoryCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        MemoryCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
             .SetPriority(_cachingOptions.MemoryCacheItemPriority)
@@ -68,7 +68,7 @@ public class MemoryCacheService : ILocalCache
             nameof(MemoryCacheService), typeof(T), key, options);
     }
 
-    private void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
+    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
             throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");
