@@ -75,7 +75,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        RedisCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, flags: flags);
     }
@@ -83,7 +83,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        RedisCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, flags: flags);
     }
@@ -91,7 +91,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        RedisCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, flags: flags);
     }
@@ -99,7 +99,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        RedisCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, flags: flags);
     }

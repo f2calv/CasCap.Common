@@ -49,7 +49,7 @@ public class MemoryCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
-        MemoryCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
             .SetPriority(_cachingOptions.MemoryCacheItemPriority)

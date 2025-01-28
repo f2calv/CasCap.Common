@@ -82,7 +82,7 @@ public class DiskCacheService : ILocalCache
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         key = ConvertKeyToFilePath(key);//this must happen first!
-        DiskCacheService.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{className} attempting to store object with {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
