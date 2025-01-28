@@ -69,10 +69,12 @@ public class DiskCacheService : ILocalCache
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
             UpdateExpirations(key, ref slidingExpiration, ref absoluteExpiration);
-            _logger.LogTrace("{className} retrieved object with {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{className} retrieved object {objectType} with {key}",
+                nameof(DiskCacheService), typeof(T), key);
         }
         else
-            _logger.LogTrace("{className} could not retrieve object with {key} from local cache", nameof(DiskCacheService), key);
+            _logger.LogTrace("{className} retrieved object {objectType} with {key} failed",
+                nameof(DiskCacheService), typeof(T), key);
         return cacheEntry;
     }
 
@@ -81,7 +83,7 @@ public class DiskCacheService : ILocalCache
     {
         key = ConvertKeyToFilePath(key);//this must happen first!
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
-        _logger.LogTrace("{className} attempting to store object with {key} in local cache", nameof(DiskCacheService), key);
+        _logger.LogTrace("{className} attempting to store object with {key}", nameof(DiskCacheService), key);
         if (cacheEntry != null)
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)

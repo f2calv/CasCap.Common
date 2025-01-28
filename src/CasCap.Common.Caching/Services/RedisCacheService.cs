@@ -176,8 +176,8 @@ public class RedisCacheService : IRemoteCache
             o = await Db.StringGetWithExpiryAsync(key, flags);
         if (o.Value.HasValue)
         {
-            _logger.LogTrace("{className} retrieved {key} object type {type} from remote cache",
-                nameof(RedisCacheService), key, typeof(T));
+            _logger.LogTrace("{className} retrieved object {objectType} with {key}",
+                nameof(RedisCacheService), typeof(T), key);
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString()!;
@@ -194,8 +194,8 @@ public class RedisCacheService : IRemoteCache
                 tpl.expiry = o.Expiry;
         }
         else
-            _logger.LogTrace("{className} unable to retrieve {key} object type {type} from remote cache",
-                nameof(RedisCacheService), key, typeof(T));
+            _logger.LogTrace("{className} retrieved object {objectType} with {key} failed",
+                nameof(RedisCacheService), typeof(T), key);
 
         return tpl;
 
