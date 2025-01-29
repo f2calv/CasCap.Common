@@ -40,9 +40,11 @@ public class MemoryCacheService : ILocalCache
     public T? Get<T>(string key)
     {
         if (_localCache.TryGetValue(key, out T? cacheEntry))
-            _logger.LogTrace("{className} retrieved object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} retrieved object with {key} from {apiName}",
+                nameof(MemoryCacheService), key, nameof(MemoryCache));
         else
-            _logger.LogTrace("{className} could not retrieve object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} could not retrieve object with {key} from {apiName}",
+                nameof(MemoryCacheService), key, nameof(MemoryCache));
         return cacheEntry;
     }
 
@@ -64,8 +66,8 @@ public class MemoryCacheService : ILocalCache
             options.SetAbsoluteExpiration(absoluteExpiration.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.TryAdd(key, 0);
-        _logger.LogTrace("{className} stored {objectType} with {key} in local cache (options {@options})",
-            nameof(MemoryCacheService), typeof(T), key, options);
+        _logger.LogTrace("{className} stored {objectType} with {key} in {apiName} (options {@options})",
+            nameof(MemoryCacheService), typeof(T), key, nameof(MemoryCache), options);
     }
 
     private static void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
@@ -82,8 +84,8 @@ public class MemoryCacheService : ILocalCache
         {
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
-            _logger.LogTrace("{className} evicted object with {key} from local cache (reason {reason})",
-                nameof(MemoryCacheService), args.key, args.reason);
+            _logger.LogTrace("{className} evicted object with {key} from {apiName} (reason {reason})",
+                nameof(MemoryCacheService), nameof(MemoryCache), args.key, args.reason);
             _cacheKeys.TryRemove((string)key, out var _);
         }
     }
@@ -96,11 +98,13 @@ public class MemoryCacheService : ILocalCache
         {
             _localCache.Remove(key);
             _cacheKeys.TryRemove(key, out var _);
-            _logger.LogTrace("{className} deleted object with {key} from local cache", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} deleted object with {key} from {apiName}",
+                nameof(MemoryCacheService), nameof(MemoryCache), key);
             return true;
         }
         else
-            _logger.LogTrace("{className} could not delete object with {key} from local cache (not present)", nameof(MemoryCacheService), key);
+            _logger.LogTrace("{className} could not delete object with {key} from {apiName} (not present)",
+                nameof(MemoryCacheService), nameof(MemoryCache), key);
         return false;
     }
 
