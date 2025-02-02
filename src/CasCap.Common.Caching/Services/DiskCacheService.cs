@@ -84,7 +84,7 @@ public class DiskCacheService : ILocalCache
         key = ConvertKeyToFilePath(key);//this must happen first!
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{className} attempting to store object with {key}", nameof(DiskCacheService), key);
-        if (cacheEntry != null)
+        if (cacheEntry is not null)
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
             {
@@ -179,7 +179,7 @@ public class DiskCacheService : ILocalCache
                 // Key not in cache, so populate
                 cacheEntry = await createItem();
                 _logger.LogTrace("{className} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
-                if (cacheEntry != null)
+                if (cacheEntry is not null)
                     Set(key, cacheEntry, null);
             }
         }
