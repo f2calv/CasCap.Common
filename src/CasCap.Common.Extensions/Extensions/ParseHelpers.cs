@@ -20,7 +20,7 @@ public static class ParseHelpers
 
     public static string csvDate2Str(this DateTime date) => date.Ticks.ToString();
 
-    const char _zero = '0';
+    private const char _zero = '0';
 
     /// <summary>
     /// FastParse a decimal string into a int
@@ -132,34 +132,8 @@ public static class ParseHelpers
             return input;
     }
 
-    public static int getMidpoint(this int bid, int offer)
-    {
-        //if (Envir0nments.IsDev)//this was a fantastic performance drain (before being changed to a static)
-        //{
-        //    var mid = (bid + offer) / (decimal)2;
-        //    var _int = mid.decimal2int();
-        //    if (_int.ToString("0.##") != mid.ToString("0.##"))
-        //        throw new Exception("precision lost?");
-        //    return _int;
-        //}
-        //else
-        {
-            var mid = (bid + offer) / 2;
-            return mid;
-        }
-    }
-
-    public static int getMidpoint(this decimal bid, decimal offer)
-    {
-        var mid = (bid + offer) / 2;
-        return (int)mid;
-    }
-
-    //public static int getMidpoint(this decimal? bid, decimal? offer)
-    //    => bid.HasValue && offer.HasValue ? bid.Value.getMidpoint(offer.Value) : 0;
-
     //this will be faster than the bitmask variant below
-    //static int Pow(int exp) => exp switch
+    //private static int Pow(int exp) => exp switch
     //{
     //    0 => exp,
     //    1 => exp *= 10,
@@ -171,7 +145,7 @@ public static class ParseHelpers
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function
     //https://stackoverflow.com/questions/936541/math-pow-vs-multiply-operator-performance (slightly wrong)
-    static int Pow(int exp, int num = 10)
+    private static int Pow(int exp, int num = 10)
     {
         var result = 1;
         while (exp > 0)
