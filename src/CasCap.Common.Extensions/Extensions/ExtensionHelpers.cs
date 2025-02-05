@@ -119,8 +119,8 @@ public static class ExtensionHelpers
     public static List<DateTime> GetMissingDates(this DateTime dtStart, DateTime dtEnd)
     {
         //todo: plug in known holidays dates somehow?
-        var dayGap = dtEnd.Date.Subtract(dtStart).Days;
-        var missingDates = Enumerable.Range(1, dayGap).Select(p => dtStart.AddDays(p)).ToArray();
+        var days = dtEnd.Date.Subtract(dtStart).Days;
+        var missingDates = Enumerable.Range(1, days).Select(p => dtStart.AddDays(p)).ToArray();
         return missingDates.ToList();
     }
 
@@ -149,7 +149,7 @@ public static class ExtensionHelpers
     public static string GetTimeDifference(this DateTime dtiStart, DateTime dtiEnd,
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
-        var ts = dtiStart > dtiEnd ? dtiStart.Subtract(dtiEnd) : dtiEnd.Subtract(dtiStart);
+        var ts = dtiStart.Subtract(dtiEnd).Duration();
         var sb = new StringBuilder();
         if (includeDays && ts.Days != 0) sb.Append(ts.Days + "d ");
         if (includeHours && ts.Hours != 0) sb.Append(ts.Hours + "h ");
@@ -287,22 +287,22 @@ public static class ExtensionHelpers
     }
     static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
     {
-        TimeSpan diff = comparedTo.Subtract(date);
-        if (diff.TotalDays >= 365)
+        TimeSpan ts = comparedTo.Subtract(date);
+        if (ts.TotalDays >= 365)
             return string.Concat("on ", date.ToString("MMMM d, yyyy"));
-        if (diff.TotalDays >= 7)
+        if (ts.TotalDays >= 7)
             return string.Concat("on ", date.ToString("MMMM d"));
-        else if (diff.TotalDays > 1)
-            return string.Format("{0:N0} days ago", diff.TotalDays);
-        else if (diff.TotalDays == 1)
+        else if (ts.TotalDays > 1)
+            return string.Format("{0:N0} days ago", ts.TotalDays);
+        else if (ts.TotalDays == 1)
             return "yesterday";
-        else if (diff.TotalHours >= 2)
-            return string.Format("{0:N0} hours ago", diff.TotalHours);
-        else if (diff.TotalMinutes >= 60)
+        else if (ts.TotalHours >= 2)
+            return string.Format("{0:N0} hours ago", ts.TotalHours);
+        else if (ts.TotalMinutes >= 60)
             return "more than an hour ago";
-        else if (diff.TotalMinutes >= 5)
-            return string.Format("{0:N0} minutes ago", diff.TotalMinutes);
-        if (diff.TotalMinutes >= 1)
+        else if (ts.TotalMinutes >= 5)
+            return string.Format("{0:N0} minutes ago", ts.TotalMinutes);
+        if (ts.TotalMinutes >= 1)
             return "a few minutes ago";
         else
             return "less than a minute ago";
