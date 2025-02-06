@@ -284,7 +284,7 @@ public static class ExtensionHelpers
     {
         return GetRelativeDateValue(date, DateTime.UtcNow);
     }
-    static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
+    private static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
     {
         TimeSpan ts = comparedTo.Subtract(date);
         if (ts.TotalDays >= 365)
@@ -358,7 +358,7 @@ public static class ExtensionHelpers
         return enumerationValue.ToString()!;
     }
 
-    static Dictionary<string, object> dEnumLookup { get; set; } = [];
+    private static Dictionary<string, object> dEnumLookup { get; set; } = [];
 
     /// <summary>
     /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
@@ -426,7 +426,7 @@ public static class ExtensionHelpers
     public static decimal? ToDecimal(this string input, bool nullable) => ParseDecimal(input);
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    static decimal ParseDecimal(string input)
+    private static decimal ParseDecimal(string input)
     {
         var output = 0m;
         if (!string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output))
@@ -445,10 +445,10 @@ public static class ExtensionHelpers
     //    result = ParseInt(input);
     //    return result;
     //}
-    //static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
+    //private static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
 
-    static int ParseInt(string input) => ParseInt(input, 0);
-    static int ParseInt(string input, int _def)
+    private static int ParseInt(string input) => ParseInt(input, 0);
+    private static int ParseInt(string input, int _def)
     {
         var output = _def;
         if (string.IsNullOrWhiteSpace(input))
@@ -467,11 +467,11 @@ public static class ExtensionHelpers
 
     public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
-    static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
+    private static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
 
-    static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
+    private static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
 
-    static DateTime ParseDateTime(string input, DateTime _def)
+    private static DateTime ParseDateTime(string input, DateTime _def)
     {
         DateTime output = _def;
         if (string.IsNullOrWhiteSpace(input))
@@ -529,7 +529,7 @@ public static class ExtensionHelpers
 
     static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }
 
-    const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
+    private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
 
     /// <summary>
     /// GZip using integrated .NET compression library.
