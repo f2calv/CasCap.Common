@@ -15,7 +15,7 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
-    protected virtual async Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)> PostJson<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json")
+    protected virtual async Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)> PostJson<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/json")
         where TResult : class
         where TError : class
     {
@@ -26,7 +26,7 @@ public abstract class HttpClientBase
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
             request.Content = new StringContent(json, Encoding.UTF8, mediaType);
-            AddRequestHeaders(request, headers);
+            request.Headers.AddOrOverwrite(additionalHeaders);
             using var response = await _client.SendAsync(request).ConfigureAwait(false);//need to create a new .NET Standard extension method to handle GetCT(timeout)
             tpl = await HandleResult<TResult, TError>(response);
         }
@@ -41,7 +41,7 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
-    protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostBytes<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream")
+    protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostBytes<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/octet-stream")
         where TResult : class
         where TError : class
     {
@@ -53,7 +53,7 @@ public abstract class HttpClientBase
             request.Content = new ByteArrayContent(bytes);
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
             //request.Headers.Add("Content-Type", mediaType);
-            AddRequestHeaders(request, headers);
+            request.Headers.AddOrOverwrite(additionalHeaders);
             using var response = await _client.SendAsync(request).ConfigureAwait(false);
             tpl = await HandleResult<TResult, TError>(response);
         }
@@ -112,13 +112,6 @@ public abstract class HttpClientBase
             tpl.result = default;
         }
         return tpl;
-    }
-
-    private static void AddRequestHeaders(HttpRequestMessage request, List<(string name, string value)>? headers)
-    {
-        if (!headers.IsNullOrEmpty())
-            foreach (var header in headers!)
-                request.Headers.Add(header.name, header.value);
     }
 
     //https://stackoverflow.com/questions/46874693/re-using-httpclient-but-with-a-different-timeout-setting-per-request
