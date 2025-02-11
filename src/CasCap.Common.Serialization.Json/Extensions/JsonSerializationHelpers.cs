@@ -37,6 +37,23 @@ public static class JsonSerializationHelpers
         }
     }
 
+    public static bool TryFromJson<T>(this string json, out T? output, JsonSerializerOptions? options = null)
+    {
+        json = json ?? throw new ArgumentNullException(paramName: nameof(json));
+        output = default;
+        try
+        {
+            output = JsonSerializer.Deserialize<T>(json, options);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "{className} {methodName} failed to deserialize {objectType}",
+                nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
+        }
+        return false;
+    }
+
     public static T[,] To2D<T>(this List<List<T>> source)
     {
         // Adapted from this answer https://stackoverflow.com/a/26291720/3744182
