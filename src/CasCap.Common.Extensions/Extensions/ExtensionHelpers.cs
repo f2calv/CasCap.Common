@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text;
@@ -119,8 +118,8 @@ public static class ExtensionHelpers
     public static List<DateTime> GetMissingDates(this DateTime dtStart, DateTime dtEnd)
     {
         //todo: plug in known holidays dates somehow?
-        var dayGap = dtEnd.Date.Subtract(dtStart).Days;
-        var missingDates = Enumerable.Range(1, dayGap).Select(p => dtStart.AddDays(p)).ToArray();
+        var days = dtEnd.Date.Subtract(dtStart).Days;
+        var missingDates = Enumerable.Range(1, days).Select(p => dtStart.AddDays(p)).ToArray();
         return missingDates.ToList();
     }
 
@@ -149,7 +148,7 @@ public static class ExtensionHelpers
     public static string GetTimeDifference(this DateTime dtiStart, DateTime dtiEnd,
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
-        var ts = dtiStart > dtiEnd ? dtiStart.Subtract(dtiEnd) : dtiEnd.Subtract(dtiStart);
+        var ts = dtiStart.Subtract(dtiEnd).Duration();
         var sb = new StringBuilder();
         if (includeDays && ts.Days != 0) sb.Append(ts.Days + "d ");
         if (includeHours && ts.Hours != 0) sb.Append(ts.Hours + "h ");
@@ -285,24 +284,24 @@ public static class ExtensionHelpers
     {
         return GetRelativeDateValue(date, DateTime.UtcNow);
     }
-    static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
+    private static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
     {
-        TimeSpan diff = comparedTo.Subtract(date);
-        if (diff.TotalDays >= 365)
+        TimeSpan ts = comparedTo.Subtract(date);
+        if (ts.TotalDays >= 365)
             return string.Concat("on ", date.ToString("MMMM d, yyyy"));
-        if (diff.TotalDays >= 7)
+        if (ts.TotalDays >= 7)
             return string.Concat("on ", date.ToString("MMMM d"));
-        else if (diff.TotalDays > 1)
-            return string.Format("{0:N0} days ago", diff.TotalDays);
-        else if (diff.TotalDays == 1)
+        else if (ts.TotalDays > 1)
+            return string.Format("{0:N0} days ago", ts.TotalDays);
+        else if (ts.TotalDays == 1)
             return "yesterday";
-        else if (diff.TotalHours >= 2)
-            return string.Format("{0:N0} hours ago", diff.TotalHours);
-        else if (diff.TotalMinutes >= 60)
+        else if (ts.TotalHours >= 2)
+            return string.Format("{0:N0} hours ago", ts.TotalHours);
+        else if (ts.TotalMinutes >= 60)
             return "more than an hour ago";
-        else if (diff.TotalMinutes >= 5)
-            return string.Format("{0:N0} minutes ago", diff.TotalMinutes);
-        if (diff.TotalMinutes >= 1)
+        else if (ts.TotalMinutes >= 5)
+            return string.Format("{0:N0} minutes ago", ts.TotalMinutes);
+        if (ts.TotalMinutes >= 1)
             return "a few minutes ago";
         else
             return "less than a minute ago";
@@ -359,7 +358,7 @@ public static class ExtensionHelpers
         return enumerationValue.ToString()!;
     }
 
-    static Dictionary<string, object> dEnumLookup { get; set; } = [];
+    private static Dictionary<string, object> dEnumLookup { get; set; } = [];
 
     /// <summary>
     /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
@@ -427,7 +426,7 @@ public static class ExtensionHelpers
     public static decimal? ToDecimal(this string input, bool nullable) => ParseDecimal(input);
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    static decimal ParseDecimal(string input)
+    private static decimal ParseDecimal(string input)
     {
         var output = 0m;
         if (!string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output))
@@ -446,10 +445,10 @@ public static class ExtensionHelpers
     //    result = ParseInt(input);
     //    return result;
     //}
-    //static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
+    //private static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
 
-    static int ParseInt(string input) => ParseInt(input, 0);
-    static int ParseInt(string input, int _def)
+    private static int ParseInt(string input) => ParseInt(input, 0);
+    private static int ParseInt(string input, int _def)
     {
         var output = _def;
         if (string.IsNullOrWhiteSpace(input))
@@ -468,11 +467,11 @@ public static class ExtensionHelpers
 
     public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
-    static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
+    private static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
 
-    static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
+    private static DateTime ParseDateTime(string input) => ParseDateTime(input, DateTime.MinValue);
 
-    static DateTime ParseDateTime(string input, DateTime _def)
+    private static DateTime ParseDateTime(string input, DateTime _def)
     {
         DateTime output = _def;
         if (string.IsNullOrWhiteSpace(input))
@@ -530,7 +529,7 @@ public static class ExtensionHelpers
 
     static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }
 
-    const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
+    private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
 
     /// <summary>
     /// GZip using integrated .NET compression library.

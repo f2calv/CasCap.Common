@@ -122,8 +122,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         {
             _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(nameof(LocalCacheExpiryService)),
                 $"{_cachingOptions.PubSubPrefix}:{key}", flags);
-            logger.LogTrace("{className} sent local cache expiration message for {key} via pub/sub",
-                nameof(DistributedCacheService), key);
+            logger.LogTrace("{className} sent {abstractionName} expiration message for {key} via pub/sub",
+                nameof(DistributedCacheService), nameof(ILocalCache), key);
         }
     }
 

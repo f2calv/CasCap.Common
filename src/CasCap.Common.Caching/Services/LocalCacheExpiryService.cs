@@ -82,12 +82,12 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         if (!clientName.Equals(cachingOptions.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(key))
-                logger.LogDebug("{className} cache key {key} was invalidated by client {clientName} now removed from local cache",
-                    nameof(LocalCacheExpiryService), key, clientName);
+                logger.LogDebug("{className} cache key {key} was invalidated by client {clientName} now removed from {abstractionName}",
+                    nameof(LocalCacheExpiryService), key, clientName, nameof(ILocalCache));
             _ = Interlocked.Increment(ref count);
         }
         else
-            logger.LogTrace("{className} skipped removing {key} from local cache as this instance just raised that event",
-                nameof(LocalCacheExpiryService), key);
+            logger.LogTrace("{className} skipped removing {key} from {abstractionName} as this instance just raised that event",
+                nameof(LocalCacheExpiryService), key, nameof(ILocalCache));
     }
 }
