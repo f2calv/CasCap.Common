@@ -22,7 +22,7 @@ public class Array2DConverter : JsonConverterFactory
         private readonly JsonConverter<T>? _valueConverter;
 
         public Array2DConverterInner(JsonSerializerOptions options) =>
-            _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T)); // Encountered a bug using the builtin ObjectConverter 
+            _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T)); // Encountered a bug using the builtin ObjectConverter
 
         public override void Write(Utf8JsonWriter writer, T[,] array, JsonSerializerOptions options)
         {
