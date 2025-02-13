@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Diagnostics.CodeAnalysis;
-
-namespace CasCap.Common.Extensions;
+﻿namespace CasCap.Common.Extensions;
 
 public static class NetHelpers
 {
