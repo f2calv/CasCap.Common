@@ -154,13 +154,13 @@ public class DiskCacheService : ILocalCache
 
     /// <inheritdoc/>
     [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
-    public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken token = default) where T : class
+    public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken cancellationToken = default) where T : class
     {
         key = ConvertKeyToFilePath(key);
         T? cacheEntry = default;
         if (File.Exists(key))
         {
-            var json = await File.ReadAllTextAsync(key, token);
+            var json = await File.ReadAllTextAsync(key, cancellationToken);
             try
             {
                 cacheEntry = json.FromJson<T>();
