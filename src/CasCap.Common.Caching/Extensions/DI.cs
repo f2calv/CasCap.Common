@@ -2,8 +2,13 @@
 
 /// <summary>
 /// Extension methods to setup local/remote/distributed Caching services.
-/// Follows official best practice/guidance from Microsoft for library authors, https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors
+/// Follows official best practice/guidance from Microsoft for library authors,
+/// <see href="https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors"/>.
 /// </summary>
+/// <remarks>
+/// Note: Official documentation says to not add these extension methods to the
+/// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
+/// </remarks>
 public static class DI
 {
     /// <summary>
