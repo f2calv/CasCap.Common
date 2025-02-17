@@ -165,47 +165,25 @@ public static class ExtensionHelpers
     /// <summary>
     /// Represent a date in "yyyy-MM-dd" format
     /// </summary>
-    public static string To_yyyy_MM_dd(this DateTime thisDateTime)
-    {
-        return thisDateTime.ToString("yyyy-MM-dd");
-    }
+    public static string To_yyyy_MM_dd(this DateTime thisDateTime) => thisDateTime.ToString("yyyy-MM-dd");
 
     private static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-    public static DateTime FromUnixTime(this long seconds)
-    {
-        return epoch.AddSeconds(seconds);
-    }
+    public static DateTime FromUnixTime(this long seconds) => epoch.AddSeconds(seconds);
 
-    public static DateTime FromUnixTimeMS(this long milliseconds)
-    {
-        return epoch.AddMilliseconds(milliseconds);
-    }
+    public static DateTime FromUnixTimeMs(this long milliseconds) => epoch.AddMilliseconds(milliseconds);
 
-    public static long ToUnixTime(this DateTime dt)
-    {
-        return ((DateTimeOffset)dt).ToUnixTimeSeconds();
-    }
+    public static DateTime FromUnixTimeMs(this double milliseconds) => epoch.AddMilliseconds(milliseconds);
 
-    public static long ToUnixTimeMS(this DateTime dt)
-    {
-        return dt.ToUnixTime() * 1000;
-    }
+    public static long ToUnixTime(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
-    public static bool IsWeekend(this DateTime date)
-    {
-        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
-    }
+    public static long ToUnixTimeMS(this DateTime dt) => dt.ToUnixTime() * 1000;
 
-    public static bool IsWeekday(this DateTime date)
-    {
-        return !date.IsWeekend();
-    }
+    public static bool IsWeekend(this DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
-    public static DateTime ToUTC(this DateTime dt)
-    {
-        return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-    }
+    public static bool IsWeekday(this DateTime date) => !date.IsWeekend();
+
+    public static DateTime ToUtc(this DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
     public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss")
     {
