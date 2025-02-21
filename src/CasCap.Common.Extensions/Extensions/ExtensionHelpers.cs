@@ -341,9 +341,6 @@ public static class ExtensionHelpers
     /// <summary>
     /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="value"></param>
-    /// <returns></returns>
 #pragma warning disable IDE0060 // Remove unused parameter
     public static T ParseEnumFAST<T>(this string value, [CallerMemberName] string caller = "")
     {
@@ -361,15 +358,18 @@ public static class ExtensionHelpers
 
     public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
+    public static bool TryParseEnum<T>(this string value, out T resultInputType, bool ignoreCase = true)
         where T : struct
     {
-        if (Enum.TryParse<T>(value, ignoreCase, out T resultInputType))
-            return resultInputType;
-        return null;
+        resultInputType = default;
+        if (Enum.TryParse(value, ignoreCase, out T result))
+        {
+            resultInputType = result;
+            return true;
+        }
+        else
+            return false;
     }
-#pragma warning restore IDE0060 // Remove unused parameter
 
     public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
     {
