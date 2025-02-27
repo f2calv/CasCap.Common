@@ -116,21 +116,21 @@ public static class ParseHelpers
         return output;
     }
 
-    public static decimal int2decimal(this int input, int exp = 0)//uses of this should be *very* limited
-    {
-        if (exp > 0)
-            return input / (decimal)Pow(exp);
-        else
-            return input;
-    }
+    //public static decimal int2decimal(this int input, int exp = 0)//uses of this should be *very* limited
+    //{
+    //    if (exp > 0)
+    //        return input / (decimal)Pow(exp);
+    //    else
+    //        return input;
+    //}
 
-    public static double int2double(this int input, int exp = 0)
-    {
-        if (exp > 0)
-            return input / (double)Pow(exp);
-        else
-            return input;
-    }
+    //public static double int2double(this int input, int exp = 0)
+    //{
+    //    if (exp > 0)
+    //        return input / (double)Pow(exp);
+    //    else
+    //        return input;
+    //}
 
     //this will be faster than the bitmask variant below
     //private static int Pow(int exp) => exp switch
