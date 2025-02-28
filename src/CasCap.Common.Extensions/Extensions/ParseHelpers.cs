@@ -2,6 +2,11 @@
 
 public static class ParseHelpers
 {
+    /// <summary>
+    /// Use when converting a DateTime value from a string to an actual DateTime.
+    /// </summary>
+    /// <param name="f">supports 1) Ticks, 2) ISO 8601 & 3) Time without the Date</param>
+    /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
     public static DateTime csvStr2Date(this string f, DateTime? date = null)
     {
         DateTime dt;
@@ -23,7 +28,8 @@ public static class ParseHelpers
     private const char _zero = '0';
 
     /// <summary>
-    /// FastParse a decimal string into a int
+    /// When you know the input value is a string-ified decimal this is the fastest way to parse
+    /// that string into the equivalent number.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int decimal2int(this string input, int exp = 0)

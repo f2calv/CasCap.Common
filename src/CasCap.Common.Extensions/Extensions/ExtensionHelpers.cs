@@ -183,6 +183,9 @@ public static class ExtensionHelpers
 
     public static bool IsWeekday(this DateTime date) => !date.IsWeekend();
 
+    /// <summary>
+    /// Sets a <see cref="DateTime"/> to be <see cref="DateTimeKind.Utc"/>.
+    /// </summary>
     public static DateTime ToUtc(this DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
     public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss")
