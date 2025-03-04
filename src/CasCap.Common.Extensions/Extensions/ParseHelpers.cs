@@ -122,32 +122,32 @@ public static class ParseHelpers
         return output;
     }
 
-    //public static decimal int2decimal(this int input, int exp = 0)//uses of this should be *very* limited
-    //{
-    //    if (exp > 0)
-    //        return input / (decimal)Pow(exp);
-    //    else
-    //        return input;
-    //}
+    public static decimal int2decimal(this int input, int exp = 0)//uses of this should be *very* limited
+    {
+        if (exp > 0)
+            return input / (decimal)Pow(exp);
+        else
+            return input;
+    }
 
-    //public static double int2double(this int input, int exp = 0)
-    //{
-    //    if (exp > 0)
-    //        return input / (double)Pow(exp);
-    //    else
-    //        return input;
-    //}
+    public static double int2double(this int input, int exp = 0)
+    {
+        if (exp > 0)
+            return input / (double)Pow(exp);
+        else
+            return input;
+    }
 
     //this will be faster than the bitmask variant below
-    //private static int Pow(int exp) => exp switch
-    //{
-    //    0 => exp,
-    //    1 => exp *= 10,
-    //    2 => exp *= 100,
-    //    3 => exp *= 1000,
-    //    4 => exp *= 10000,
-    //    _ => exp *= Pow(exp)
-    //};
+    private static int Pow(int exp) => exp switch
+    {
+        0 => exp,
+        1 => exp *= 10,
+        2 => exp *= 100,
+        3 => exp *= 1000,
+        4 => exp *= 10000,
+        _ => exp *= Pow(exp)
+    };
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function
     //https://stackoverflow.com/questions/936541/math-pow-vs-multiply-operator-performance (slightly wrong)
