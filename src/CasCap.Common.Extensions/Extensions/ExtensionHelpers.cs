@@ -177,7 +177,7 @@ public static class ExtensionHelpers
 
     public static long ToUnixTime(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
-    public static long ToUnixTimeMS(this DateTime dt) => dt.ToUnixTime() * 1000;
+    public static long ToUnixTimeMs(this DateTime dt) => dt.ToUnixTime() * 1000;
 
     public static bool IsWeekend(this DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 

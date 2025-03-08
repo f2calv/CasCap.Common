@@ -2,6 +2,23 @@
 
 public static class ParseHelpers
 {
+    public static int GetDecimalCount(this double val)
+    {
+        var i = 0;
+        //Doubles can be rounded to 15 digits max. ref: https://stackoverflow.com/a/33714700/1266873
+        while (i < 16 && Math.Round(val, i) != val)
+            i++;
+        return i;
+    }
+
+    public static int GetDecimalCount(this decimal val)
+    {
+        var i = 0;
+        while (Math.Round(val, i) != val)
+            i++;
+        return i;
+    }
+
     /// <summary>
     /// Use when converting a DateTime value from a string to an actual DateTime.
     /// </summary>

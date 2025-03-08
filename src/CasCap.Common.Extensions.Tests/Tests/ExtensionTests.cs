@@ -9,8 +9,8 @@ public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testO
         var dt = DateTime.UtcNow;
 
         //Act
-        var unixMS = dt.ToUnixTimeMS();
-        var utcNow = unixMS.FromUnixTimeMS();
+        var unixMS = dt.ToUnixTimeMs();
+        var utcNow = unixMS.FromUnixTimeMs();
 
         //Assert
         Assert.Equal(dt.ToString(), utcNow.ToString());

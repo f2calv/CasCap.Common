@@ -11,6 +11,6 @@ public class MillisecondEpochConverter : JsonConverter<DateTime?>
     public override void Write(Utf8JsonWriter writer, DateTime? dateTimeValue, JsonSerializerOptions options)
     {
         if (dateTimeValue.HasValue)
-            writer.WriteRawValue(dateTimeValue.Value.ToUnixTimeMS().ToString());
+            writer.WriteRawValue(dateTimeValue.Value.ToUnixTimeMs().ToString());
     }
 }
