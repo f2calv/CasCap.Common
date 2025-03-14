@@ -19,6 +19,22 @@ public static class ParseHelpers
         return i;
     }
 
+    public static int GetDecimalCount(this string val)
+    {
+        var s = val.ToString();
+        var dot = s.IndexOf('.');
+        if (dot == -1)
+            return 0;
+        else
+            return s.Length - dot;
+    }
+
+    public static int GetDecimalCount<T>(this T val)
+        where T : INumber<T>
+    {
+        return val.ToString()!.GetDecimalCount();
+    }
+
     /// <summary>
     /// Use when converting a DateTime value from a string to an actual DateTime.
     /// </summary>
