@@ -515,8 +515,6 @@ public static class ExtensionHelpers
     /// <summary>
     /// GZip using integrated .NET compression library.
     /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
     public static byte[] Compress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;
@@ -530,8 +528,6 @@ public static class ExtensionHelpers
     /// <summary>
     /// UnGZip using integrated .NET compression library.
     /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
     public static byte[] Decompress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;

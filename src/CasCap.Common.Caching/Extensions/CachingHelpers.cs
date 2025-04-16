@@ -8,8 +8,6 @@ public static class CachingHelpers
     /// <summary>
     /// Calculates the relative expiration <see cref="TimeSpan"/> from an integer.
     /// </summary>
-    /// <param name="ttl"></param>
-    /// <returns></returns>
     public static TimeSpan? GetExpirationFromSeconds(this int ttl)
     {
         TimeSpan? expiry = null;

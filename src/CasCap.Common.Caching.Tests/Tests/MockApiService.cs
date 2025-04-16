@@ -10,7 +10,6 @@ public class MockApiService
     /// <summary>
     /// Mock synchronous data retrieval.
     /// </summary>
-    /// <returns></returns>
     public static MockDto Get()
     {
         //lets go fake getting some data
@@ -21,7 +20,6 @@ public class MockApiService
     /// <summary>
     /// Mock asynchronous data retrieval.
     /// </summary>
-    /// <returns></returns>
     public static Task<MockDto> GetAsync()
     {
         //lets go fake getting some data
