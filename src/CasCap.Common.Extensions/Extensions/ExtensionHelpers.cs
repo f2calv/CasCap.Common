@@ -13,11 +13,11 @@ public static class ExtensionHelpers
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
     //https://github.com/dotnet/roslyn/issues/37995
     //https://github.com/JamesNK/Newtonsoft.Json/pull/2163/commits/fba64bcf9b8f41500da1c1dd75825f3db99cd3b4
-    public static bool IsNullOrWhiteSpace(this string? val)
-    {
-        return val is null || val.Trim() == string.Empty;
-        //return string.IsNullOrWhiteSpace(value);
-    }
+    //public static bool IsNullOrWhiteSpace(this string? val)
+    //{
+    //    return val is null || val.Trim() == string.Empty;
+    //    //return string.IsNullOrWhiteSpace(value);
+    //}
 
     //public static bool IsNullOrEmpty([NotNullWhen(false)] string? value)
     //{
@@ -31,7 +31,7 @@ public static class ExtensionHelpers
     //}
     #endregion
 
-    public static T? FromXML<T>(this string input) where T : class
+    public static T? FromXml<T>(this string input) where T : class
     {
         var ser = new XmlSerializer(typeof(T));
         using var sr = new StringReader(input);
@@ -64,7 +64,7 @@ public static class ExtensionHelpers
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new Exception($"AddRange failed due to conflicting key");
+                throw new ApplicationException($"AddRange failed due to conflicting key");
         }
         return d1;
     }
@@ -139,12 +139,6 @@ public static class ExtensionHelpers
         return (int)ts.TotalSeconds;//does this round-up?
     }
 
-    public static string GetTimeDifference(this DateTime dtiStart, out DateTime utcNow, bool includeMilliseconds = false)
-    {
-        utcNow = DateTime.UtcNow;
-        return GetTimeDifference(dtiStart, utcNow, includeMilliseconds: includeMilliseconds);
-    }
-
     public static string GetTimeDifference(this DateTime dtiStart, DateTime dtiEnd,
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
@@ -165,47 +159,26 @@ public static class ExtensionHelpers
     /// <summary>
     /// Represent a date in "yyyy-MM-dd" format
     /// </summary>
-    public static string To_yyyy_MM_dd(this DateTime thisDateTime)
-    {
-        return thisDateTime.ToString("yyyy-MM-dd");
-    }
+    public static string To_yyyy_MM_dd(this DateTime thisDateTime) => thisDateTime.ToString("yyyy-MM-dd");
 
-    private static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static DateTime FromUnixTime(this long seconds) => DateTime.UnixEpoch.AddSeconds(seconds);
 
-    public static DateTime FromUnixTime(this long seconds)
-    {
-        return epoch.AddSeconds(seconds);
-    }
+    public static DateTime FromUnixTimeMs(this long milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
 
-    public static DateTime FromUnixTimeMS(this long milliseconds)
-    {
-        return epoch.AddMilliseconds(milliseconds);
-    }
+    public static DateTime FromUnixTimeMs(this double milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
 
-    public static long ToUnixTime(this DateTime dt)
-    {
-        return ((DateTimeOffset)dt).ToUnixTimeSeconds();
-    }
+    public static long ToUnixTime(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
-    public static long ToUnixTimeMS(this DateTime dt)
-    {
-        return dt.ToUnixTime() * 1000;
-    }
+    public static long ToUnixTimeMs(this DateTime dt) => dt.ToUnixTime() * 1000;
 
-    public static bool IsWeekend(this DateTime date)
-    {
-        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
-    }
+    public static bool IsWeekend(this DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
-    public static bool IsWeekday(this DateTime date)
-    {
-        return !date.IsWeekend();
-    }
+    public static bool IsWeekday(this DateTime date) => !date.IsWeekend();
 
-    public static DateTime ToUTC(this DateTime dt)
-    {
-        return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-    }
+    /// <summary>
+    /// Sets a <see cref="DateTime"/> to be <see cref="DateTimeKind.Utc"/>.
+    /// </summary>
+    public static DateTime ToUtc(this DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
     public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss")
     {
@@ -241,22 +214,19 @@ public static class ExtensionHelpers
         }
         return date;
     }
-    public static DateTime FirstDayOfMonth(this DateTime date)
-    {
-        return new DateTime(date.Year, date.Month, 1);
-    }
-    public static DateTime LastDayOfMonth(this DateTime date)
-    {
-        return new DateTime(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month));
-    }
-    public static DateTime LastDayOfYear(this DateTime date)
-    {
-        return new DateTime(date.Year, 12, 1).LastDayOfMonth();
-    }
+
+    public static DateTime FirstDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
+        => new DateTime(date.Year, date.Month, 1, 0, 0, 0, kind);
+
+    public static DateTime LastDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
+        => new DateTime(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month), 0, 0, 0, kind);
+
+    public static DateTime LastDayOfYear(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
+        => new DateTime(date.Year, 12, 1, 0, 0, 0, kind).LastDayOfMonth();
+
     public static int MonthDifference(this DateTime lValue, DateTime rValue)
-    {
-        return Math.Abs(lValue.Month - rValue.Month + 12 * (lValue.Year - rValue.Year));
-    }
+        => Math.Abs(lValue.Month - rValue.Month + 12 * (lValue.Year - rValue.Year));
+
     public static string ToString(this DateTime? date)
     {
         return date.ToString(DateTimeFormatInfo.CurrentInfo);
@@ -276,14 +246,11 @@ public static class ExtensionHelpers
         else
             return string.Empty;
     }
-    public static string ToRelativeDateString(this DateTime date)
-    {
-        return GetRelativeDateValue(date, DateTime.UtcNow);
-    }
-    public static string ToRelativeDateStringUtc(this DateTime date)
-    {
-        return GetRelativeDateValue(date, DateTime.UtcNow);
-    }
+
+    public static string ToRelativeDateString(this DateTime date) => GetRelativeDateValue(date, DateTime.UtcNow);
+
+    public static string ToRelativeDateStringUtc(this DateTime date) => GetRelativeDateValue(date, DateTime.UtcNow);
+
     private static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
     {
         TimeSpan ts = comparedTo.Subtract(date);
@@ -316,10 +283,10 @@ public static class ExtensionHelpers
 
     public static string UrlCombine(this string baseUrl, string relativeUrl)
     {
-        baseUrl = baseUrl.TrimEnd(['/']);
+        baseUrl = baseUrl.TrimEnd('/');
         relativeUrl ??= string.Empty;
-        relativeUrl = relativeUrl.TrimStart(['~']);
-        relativeUrl = relativeUrl.TrimStart(['/']);
+        relativeUrl = relativeUrl.TrimStart('~');
+        relativeUrl = relativeUrl.TrimStart('/');
         return baseUrl + "/" + relativeUrl;
     }
 
@@ -363,13 +330,10 @@ public static class ExtensionHelpers
     /// <summary>
     /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="value"></param>
-    /// <returns></returns>
 #pragma warning disable IDE0060 // Remove unused parameter
     public static T ParseEnumFAST<T>(this string value, [CallerMemberName] string caller = "")
     {
-        //todo: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
+        //TODO: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
         //i.e. enum1.MyVal and enum2.MyVal
         if (!dEnumLookup.TryGetValue(value, out object? result))
         {
@@ -383,15 +347,18 @@ public static class ExtensionHelpers
 
     public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public static T? TryParseEnum<T>(this string value, bool ignoreCase = true, [CallerMemberName] string caller = "")
+    public static bool TryParseEnum<T>(this string value, out T resultInputType, bool ignoreCase = true)
         where T : struct
     {
-        if (Enum.TryParse<T>(value, ignoreCase, out T resultInputType))
-            return resultInputType;
-        return null;
+        resultInputType = default;
+        if (Enum.TryParse(value, ignoreCase, out T result))
+        {
+            resultInputType = result;
+            return true;
+        }
+        else
+            return false;
     }
-#pragma warning restore IDE0060 // Remove unused parameter
 
     public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
     {
@@ -534,8 +501,6 @@ public static class ExtensionHelpers
     /// <summary>
     /// GZip using integrated .NET compression library.
     /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
     public static byte[] Compress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;
@@ -549,8 +514,6 @@ public static class ExtensionHelpers
     /// <summary>
     /// UnGZip using integrated .NET compression library.
     /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
     public static byte[] Decompress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;

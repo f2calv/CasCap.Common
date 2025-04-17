@@ -2,6 +2,44 @@
 
 public static class ParseHelpers
 {
+    public static int GetDecimalCount(this double val)
+    {
+        var i = 0;
+        //Doubles can be rounded to 15 digits max. ref: https://stackoverflow.com/a/33714700/1266873
+        while (i < 16 && Math.Round(val, i) != val)
+            i++;
+        return i;
+    }
+
+    public static int GetDecimalCount(this decimal val)
+    {
+        var i = 0;
+        while (Math.Round(val, i) != val)
+            i++;
+        return i;
+    }
+
+    public static int GetDecimalCount(this string val)
+    {
+        var s = val.ToString();
+        var dot = s.IndexOf('.');
+        if (dot == -1)
+            return 0;
+        else
+            return s.Length - dot;
+    }
+
+    public static int GetDecimalCount<T>(this T val)
+        where T : INumber<T>
+    {
+        return val.ToString()!.GetDecimalCount();
+    }
+
+    /// <summary>
+    /// Use when converting a DateTime value from a string to an actual DateTime.
+    /// </summary>
+    /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
+    /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
     public static DateTime csvStr2Date(this string f, DateTime? date = null)
     {
         DateTime dt;
@@ -23,7 +61,8 @@ public static class ParseHelpers
     private const char _zero = '0';
 
     /// <summary>
-    /// FastParse a decimal string into a int
+    /// When you know the input value is a string-ified decimal this is the fastest way to parse
+    /// that string into the equivalent number.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int decimal2int(this string input, int exp = 0)
@@ -133,15 +172,15 @@ public static class ParseHelpers
     }
 
     //this will be faster than the bitmask variant below
-    //private static int Pow(int exp) => exp switch
-    //{
-    //    0 => exp,
-    //    1 => exp *= 10,
-    //    2 => exp *= 100,
-    //    3 => exp *= 1000,
-    //    4 => exp *= 10000,
-    //    _ => exp *= Pow(exp)
-    //};
+    private static int Pow(int exp) => exp switch
+    {
+        0 => exp,
+        1 => exp *= 10,
+        2 => exp *= 100,
+        3 => exp *= 1000,
+        4 => exp *= 10000,
+        _ => exp *= Pow(exp)
+    };
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function
     //https://stackoverflow.com/questions/936541/math-pow-vs-multiply-operator-performance (slightly wrong)

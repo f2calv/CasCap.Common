@@ -44,7 +44,6 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
     /// <summary>
     /// DateTime.Kind is not preserved when serializing/deserializing - lets confirm that and implement a workaround.
     /// </summary>
-    /// <returns></returns>
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
     public void DateTimeKindSerialization()
     {
