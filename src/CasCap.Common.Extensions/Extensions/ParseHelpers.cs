@@ -29,11 +29,13 @@ public static class ParseHelpers
             return s.Length - dot;
     }
 
+#if NET8_0_OR_GREATER
     public static int GetDecimalCount<T>(this T val)
         where T : INumber<T>
     {
         return val.ToString()!.GetDecimalCount();
     }
+#endif
 
     /// <summary>
     /// Use when converting a DateTime value from a string to an actual DateTime.

@@ -12,13 +12,13 @@ public static class MessagePackSerializationHelpers
         try
         {
             var bytes = MessagePackSerializer.Serialize(data);
-            //_logger.LogTrace("{className} serialized object {typeof} into {count} bytes",
+            //_logger.LogTrace("{ClassName} serialized object {typeof} into {count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return bytes;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{className} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Serialize));
             throw;
         }
     }
@@ -35,13 +35,13 @@ public static class MessagePackSerializationHelpers
         try
         {
             T obj = MessagePackSerializer.Deserialize<T>(bytes);
-            //_logger.LogTrace("{className} deserialized object {typeof} from {count} bytes",
+            //_logger.LogTrace("{ClassName} deserialized object {typeof} from {count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return obj;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{className} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Deserialize));
+            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Deserialize));
             throw;
         }
     }

@@ -161,11 +161,13 @@ public static class ExtensionHelpers
     /// </summary>
     public static string To_yyyy_MM_dd(this DateTime thisDateTime) => thisDateTime.ToString("yyyy-MM-dd");
 
+#if NET8_0_OR_GREATER
     public static DateTime FromUnixTime(this long seconds) => DateTime.UnixEpoch.AddSeconds(seconds);
 
     public static DateTime FromUnixTimeMs(this long milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
 
     public static DateTime FromUnixTimeMs(this double milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
+#endif
 
     public static long ToUnixTime(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
@@ -216,10 +218,10 @@ public static class ExtensionHelpers
     }
 
     public static DateTime FirstDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
-        => new DateTime(date.Year, date.Month, 1, 0, 0, 0, kind);
+        => new(date.Year, date.Month, 1, 0, 0, 0, kind);
 
     public static DateTime LastDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
-        => new DateTime(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month), 0, 0, 0, kind);
+        => new(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month), 0, 0, 0, kind);
 
     public static DateTime LastDayOfYear(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
         => new DateTime(date.Year, 12, 1, 0, 0, 0, kind).LastDayOfMonth();

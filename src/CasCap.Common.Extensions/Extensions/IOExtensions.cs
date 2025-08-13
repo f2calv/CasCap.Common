@@ -64,7 +64,7 @@ public static class IOExtensions
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "{className} append failed", nameof(IOExtensions));
+                    _logger.LogError(ex, "{ClassName} append failed", nameof(IOExtensions));
                     throw;
                 }
             }
