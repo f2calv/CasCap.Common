@@ -9,18 +9,18 @@ public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, 
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("{className} starting", nameof(RemoteCacheExpiryService));
+        logger.LogInformation("{ClassName} starting", nameof(RemoteCacheExpiryService));
 
         var channelName = $"__keyevent@{cachingOptions.Value.RemoteCache.DatabaseId}__:expired";
         var channel = RedisChannel.Literal(channelName);
-        logger.LogDebug("{className} subscribing to {objectType} name {channelName}, {propertyName}={IsPattern}",
+        logger.LogDebug("{ClassName} subscribing to {objectType} name {channelName}, {propertyName}={IsPattern}",
             nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         await remoteCache.Subscriber.SubscribeAsync(channel, (redisChannel, redisValue) =>
         {
             var key = redisValue.ToString();
             //lets do housekeeping
             var success = remoteCache.SlidingExpirations.TryRemove(redisValue.ToString(), out var _);
-            logger.LogTrace("{className} expiration detected key={key}, removal status={success}, {count} item(s) remaining",
+            logger.LogTrace("{ClassName} expiration detected key={key}, removal status={success}, {count} item(s) remaining",
                 nameof(RemoteCacheExpiryService), key, success, remoteCache.SlidingExpirations.Count);
         });
 
@@ -30,10 +30,10 @@ public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, 
             await Task.Delay(1000, cancellationToken);
         }
 
-        logger.LogDebug("{className} unsubscribing from {objectType} name {channelName}, {propertyName}={IsPattern}",
+        logger.LogDebug("{ClassName} unsubscribing from {objectType} name {channelName}, {propertyName}={IsPattern}",
             nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel);
 
-        logger.LogInformation("{className} stopping", nameof(RemoteCacheExpiryService));
+        logger.LogInformation("{ClassName} stopping", nameof(RemoteCacheExpiryService));
     }
 }

@@ -13,11 +13,11 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
     {
         if (!cachingOptions.Value.LocalCacheInvalidationEnabled) return;
 
-        logger.LogInformation("{className} starting", nameof(LocalCacheExpiryService));
+        logger.LogInformation("{ClassName} starting", nameof(LocalCacheExpiryService));
 
         var channelName = nameof(LocalCacheExpiryService);
         var channel = RedisChannel.Pattern(channelName);
-        logger.LogDebug("{className} subscribing to {objectType} name {channelName}, {propertyName}={IsPattern}",
+        logger.LogDebug("{ClassName} subscribing to {objectType} name {channelName}, {propertyName}={IsPattern}",
             nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         // Synchronous handler
         remoteCache.Subscriber.Subscribe(channel).OnMessage(channelMessage =>
@@ -47,7 +47,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         //            ExpireByKey(key);
         //            break;
         //    }
-        //    logger.LogInformation("{className} type={type}, key={key}",
+        //    logger.LogInformation("{ClassName} type={type}, key={key}",
         //        nameof(LocalCacheInvalidationBgService), redisValue, key);
         //});
 
@@ -57,7 +57,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
             await Task.Delay(100, cancellationToken);
         }
 
-        logger.LogDebug("{className} unsubscribing from {objectType} name {channelName}, {propertyName}={IsPattern}",
+        logger.LogDebug("{ClassName} unsubscribing from {objectType} name {channelName}, {propertyName}={IsPattern}",
             nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel);
 
@@ -68,7 +68,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         //        return channel[(index + 1)..];
         //    return channel;
         //}
-        logger.LogInformation("{className} stopping", nameof(LocalCacheExpiryService));
+        logger.LogInformation("{ClassName} stopping", nameof(LocalCacheExpiryService));
     }
 
     /// <summary>
@@ -82,12 +82,12 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         if (!clientName.Equals(cachingOptions.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(key))
-                logger.LogDebug("{className} cache key {key} was invalidated by client {clientName} now removed from {abstractionName}",
+                logger.LogDebug("{ClassName} cache key {key} was invalidated by client {clientName} now removed from {abstractionName}",
                     nameof(LocalCacheExpiryService), key, clientName, nameof(ILocalCache));
             _ = Interlocked.Increment(ref count);
         }
         else
-            logger.LogTrace("{className} skipped removing {key} from {abstractionName} as this instance just raised that event",
+            logger.LogTrace("{ClassName} skipped removing {key} from {abstractionName} as this instance just raised that event",
                 nameof(LocalCacheExpiryService), key, nameof(ILocalCache));
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace CasCap.Services;
 
+#if NET8_0_OR_GREATER
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
@@ -22,7 +23,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         var json = req!.ToJson();
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
@@ -50,7 +51,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
             request.Content = new ByteArrayContent(bytes);
@@ -78,7 +79,7 @@ public abstract class HttpClientBase
         where TError : class
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{className} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         //todo: add in headers?
         using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
         return await HandleResult<TResult, TError>(response, cancellationToken);
@@ -110,7 +111,7 @@ public abstract class HttpClientBase
                 tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             else
                 tpl.error = (await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).FromJson<TError>();
-            _logger.LogError("{className} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
+            _logger.LogError("{ClassName} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)
             //if (req is not null) err += $"{json}";
@@ -120,3 +121,4 @@ public abstract class HttpClientBase
         return tpl;
     }
 }
+#endif
