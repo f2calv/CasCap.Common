@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.HealthChecks.Base;
 
 public abstract class HttpEndpointCheck(ILogger logger, HttpClient client)
 {
@@ -35,12 +35,12 @@ public abstract class HttpEndpointCheck(ILogger logger, HttpClient client)
         }
         if (result is not null && (result.IsSuccessStatusCode || (int)result.StatusCode == HealthCheckExpectedHttpStatusCode))
         {
-            _logger.LogDebug("{ClassName} {requestUri} is accessible", nameof(HttpEndpointCheck), requestUri);
+            _logger.LogDebug("{ClassName} {RequestUri} is accessible", nameof(HttpEndpointCheck), requestUri);
             return true;
         }
         else
         {
-            _logger.LogDebug("{ClassName} {requestUri} is inaccessible", nameof(HttpEndpointCheck), requestUri);
+            _logger.LogDebug("{ClassName} {RequestUri} is inaccessible", nameof(HttpEndpointCheck), requestUri);
             return false;
         }
     }
