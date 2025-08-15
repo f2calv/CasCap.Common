@@ -15,7 +15,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Serialize));
             throw;
         }
     }
@@ -31,7 +31,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
+            _logger.LogError(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
                 nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
             throw;
         }
@@ -48,7 +48,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
+            _logger.LogWarning(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
                 nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
         }
         return false;

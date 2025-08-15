@@ -176,7 +176,7 @@ public class RedisCacheService : IRemoteCache
             o = await Db.StringGetWithExpiryAsync(key, flags);
         if (o.Value.HasValue)
         {
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key}",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(RedisCacheService), typeof(T), key);
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
@@ -194,7 +194,7 @@ public class RedisCacheService : IRemoteCache
                 tpl.expiry = o.Expiry;
         }
         else
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key} failed",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key} failed",
                 nameof(RedisCacheService), typeof(T), key);
 
         return tpl;
@@ -283,7 +283,7 @@ public class RedisCacheService : IRemoteCache
             throw new NullReferenceException($"Lua script '{resourceName}' is null or empty");
 
         var prepared = LuaScript.Prepare(script);
-        _logger.LogTrace("{ClassName} loading Lua script '{resourceName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogTrace("{ClassName} loading Lua script '{ResourceName}'", nameof(RedisCacheService), resourceName);
         var loaded = prepared.Load(Server);
 #if NET8_0_OR_GREATER
         if (!LuaScripts.TryAdd(resourceName, loaded))
@@ -292,7 +292,7 @@ public class RedisCacheService : IRemoteCache
             LuaScripts.Add(resourceName, loaded);
         else
 #endif
-            _logger.LogWarning("{ClassName} loading Lua script '{resourceName}' failed, duplicate name found",
+            _logger.LogWarning("{ClassName} loading Lua script '{ResourceName}' failed, duplicate name found",
                 nameof(RedisCacheService), resourceName);
 
         return loaded;
