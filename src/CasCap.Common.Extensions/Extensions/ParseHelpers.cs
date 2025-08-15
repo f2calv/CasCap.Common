@@ -42,15 +42,15 @@ public static class ParseHelpers
     /// </summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
-    public static DateTime csvStr2Date(this string f, DateTime? date = null)
+    public static DateTime csvStr2Date(this string f, DateTimeKind kind = DateTimeKind.Utc, DateTime ? date = null)
     {
         DateTime dt;
         if (f.Length == 18)//"635990653080800000".Length
-            dt = new DateTime(f.decimal2long());
+            dt = new DateTime(f.decimal2long(), kind);
         else if (f.Length == 23 && DateTime.TryParse(f, out var _dt1))//"yyyy-MM-dd HH:mm:ss.fff".Length
             dt = _dt1;
         else if (f.Length == 14)//"63599065308080".Length
-            dt = new DateTime(f.decimal2long(4));
+            dt = new DateTime(f.decimal2long(4), kind);
         else if (f.Length == 12 && date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var _dt2))//"HH:mm:ss.fff".Length
             dt = _dt2;
         else

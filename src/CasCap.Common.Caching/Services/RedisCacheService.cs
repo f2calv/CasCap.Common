@@ -161,7 +161,7 @@ public class RedisCacheService : IRemoteCache
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
 
-        RedisValueWithExpiry o = default;
+        RedisValueWithExpiry o;
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
             if (_cachingOptions.UseBuiltInLuaScripts)
@@ -267,10 +267,10 @@ public class RedisCacheService : IRemoteCache
     private const string keyStringGetSetExpiryAsync = $"CasCap.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
-    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string resourceName)
+    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName)
     {
         var script = string.Empty;
-        using (var stream = assembly.GetManifestResourceStream(resourceName))
+        using (var stream = assembly.GetManifestResourceStream(scriptName))
         {
             if (stream is not null)
             {
@@ -280,20 +280,20 @@ public class RedisCacheService : IRemoteCache
         }
 
         if (string.IsNullOrWhiteSpace(script))
-            throw new NullReferenceException($"Lua script '{resourceName}' is null or empty");
+            throw new NullReferenceException($"Lua script '{scriptName}' is null or empty");
 
         var prepared = LuaScript.Prepare(script);
-        _logger.LogTrace("{ClassName} loading Lua script '{ResourceName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogTrace("{ClassName} loading Lua script '{ResourceName}'", nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);
 #if NET8_0_OR_GREATER
-        if (!LuaScripts.TryAdd(resourceName, loaded))
+        if (!LuaScripts.TryAdd(scriptName, loaded))
 #else
-        if (!LuaScripts.ContainsKey(resourceName))
-            LuaScripts.Add(resourceName, loaded);
+        if (!LuaScripts.ContainsKey(scriptName))
+            LuaScripts.Add(scriptName, loaded);
         else
 #endif
             _logger.LogWarning("{ClassName} loading Lua script '{ResourceName}' failed, duplicate name found",
-                nameof(RedisCacheService), resourceName);
+                nameof(RedisCacheService), scriptName);
 
         return loaded;
     }

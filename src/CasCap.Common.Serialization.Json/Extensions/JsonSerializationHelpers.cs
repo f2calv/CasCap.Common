@@ -75,6 +75,6 @@ public static class JsonSerializationHelpers
         if (converter != null)
             converter.Write(writer, value, options);
         else
-            JsonSerializer.Serialize(writer, value, typeof(T), options);
+            JsonSerializer.Serialize(writer, value, options);
     }
 }
