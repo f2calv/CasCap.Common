@@ -42,7 +42,7 @@ public static class ParseHelpers
     /// </summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
-    public static DateTime csvStr2Date(this string f, DateTimeKind kind = DateTimeKind.Utc, DateTime ? date = null)
+    public static DateTime csvStr2Date(this string f, DateTimeKind kind = DateTimeKind.Utc, DateTime? date = null)
     {
         DateTime dt;
         if (f.Length == 18)//"635990653080800000".Length
