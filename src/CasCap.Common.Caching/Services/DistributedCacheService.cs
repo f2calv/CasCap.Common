@@ -14,7 +14,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    //todo: store a summary of all cached items in a local lookup dictionary?
+    //TODO: store a summary of all cached items in a local lookup dictionary?
     ///// <inheritdoc/>
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 

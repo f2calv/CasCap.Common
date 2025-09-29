@@ -20,4 +20,4 @@ public class ColumnCleanerConverter : JsonConverter
         => throw new NotImplementedException($"{nameof(ColumnCleaner)}.{nameof(WriteJson)} not implemented");
 }
 */
-//todo: Uri convertor
+//TODO: Uri convertor

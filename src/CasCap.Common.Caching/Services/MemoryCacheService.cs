@@ -40,10 +40,10 @@ public class MemoryCacheService : ILocalCache
     public T? Get<T>(string key)
     {
         if (_localCache.TryGetValue(key, out T? cacheEntry))
-            _logger.LogTrace("{ClassName} retrieved object with {key} from {apiName}",
+            _logger.LogTrace("{ClassName} retrieved object with {Key} from {ApiName}",
                 nameof(MemoryCacheService), key, nameof(MemoryCache));
         else
-            _logger.LogTrace("{ClassName} could not retrieve object with {key} from {apiName}",
+            _logger.LogTrace("{ClassName} could not retrieve object with {Key} from {ApiName}",
                 nameof(MemoryCacheService), key, nameof(MemoryCache));
         return cacheEntry;
     }
@@ -66,7 +66,7 @@ public class MemoryCacheService : ILocalCache
             options.SetAbsoluteExpiration(absoluteExpiration.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.TryAdd(key, 0);
-        _logger.LogTrace("{ClassName} stored {objectType} with {key} in {apiName} (options {@options})",
+        _logger.LogTrace("{ClassName} stored {ObjectType} with {Key} in {ApiName} (options {@Options})",
             nameof(MemoryCacheService), typeof(T), key, nameof(MemoryCache), options);
     }
 
@@ -84,7 +84,7 @@ public class MemoryCacheService : ILocalCache
         {
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
-            _logger.LogTrace("{ClassName} evicted object with {key} from {apiName} (reason {reason})",
+            _logger.LogTrace("{ClassName} evicted object with {Key} from {ApiName} (reason {Reason})",
                 nameof(MemoryCacheService), nameof(MemoryCache), args.key, args.reason);
             _cacheKeys.TryRemove((string)key, out var _);
         }
@@ -98,12 +98,12 @@ public class MemoryCacheService : ILocalCache
         {
             _localCache.Remove(key);
             _cacheKeys.TryRemove(key, out var _);
-            _logger.LogTrace("{ClassName} deleted object with {key} from {apiName}",
+            _logger.LogTrace("{ClassName} deleted object with {Key} from {ApiName}",
                 nameof(MemoryCacheService), nameof(MemoryCache), key);
             return true;
         }
         else
-            _logger.LogTrace("{ClassName} could not delete object with {key} from {apiName} (not present)",
+            _logger.LogTrace("{ClassName} could not delete object with {Key} from {ApiName} (not present)",
                 nameof(MemoryCacheService), nameof(MemoryCache), key);
         return false;
     }

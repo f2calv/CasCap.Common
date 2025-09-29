@@ -117,7 +117,7 @@ public static class ExtensionHelpers
 
     public static List<DateTime> GetMissingDates(this DateTime dtStart, DateTime dtEnd)
     {
-        //todo: plug in known holidays dates somehow?
+        //TODO: plug in known holidays dates somehow?
         var days = dtEnd.Date.Subtract(dtStart).Days;
         var missingDates = Enumerable.Range(1, days).Select(p => dtStart.AddDays(p)).ToArray();
         return missingDates.ToList();

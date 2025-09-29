@@ -80,7 +80,7 @@ public abstract class HttpClientBase
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
-        //todo: add in headers?
+        //TODO: add in headers?
         using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
         return await HandleResult<TResult, TError>(response, cancellationToken);
     }
