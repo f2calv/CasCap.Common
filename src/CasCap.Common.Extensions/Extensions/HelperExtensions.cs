@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 namespace CasCap.Common.Extensions;
 
-public static class ExtensionHelpers
+public static class HelperExtensions
 {
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
     //https://github.com/dotnet/roslyn/issues/37995
