@@ -1,9 +1,9 @@
 ﻿namespace CasCap.Common.Xunit;
 
 [ExcludeFromCodeCoverage]
-public sealed class SkipIfAzureDevOpsBuildTheory : TheoryAttribute
+public sealed class SkipIfAzureDevOpsBuildTheoryAttribute : TheoryAttribute
 {
-    public SkipIfAzureDevOpsBuildTheory()
+    public SkipIfAzureDevOpsBuildTheoryAttribute()
     {
         if (IsAzureDevOps())
             Skip = "Ignore test when running an Azure DevOps build";

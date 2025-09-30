@@ -1,9 +1,9 @@
 ﻿namespace CasCap.Common.Xunit;
 
 [ExcludeFromCodeCoverage]
-public sealed class SkipIfGithubActionsBuildTheory : TheoryAttribute
+public sealed class SkipIfGithubActionsBuildTheoryAttribute : TheoryAttribute
 {
-    public SkipIfGithubActionsBuildTheory()
+    public SkipIfGithubActionsBuildTheoryAttribute()
     {
         if (IsGitHubActions())
             Skip = "Ignore test when running a Github Actions build";
