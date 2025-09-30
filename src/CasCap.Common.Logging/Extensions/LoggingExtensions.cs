@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.Extensions.Logging;
 
-public static class LoggingHelpers
+public static class LoggingExtensions
 {
 #pragma warning disable IDE0060 // Remove unused parameter
     //public static void LogError(this ILogger logger, Exception ex, [CallerMemberName] string caller = "")
