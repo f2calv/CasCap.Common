@@ -1,8 +1,8 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class JsonSerializationHelpers
+public static class JsonExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerializationHelpers));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonExtensions));
 
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 
@@ -15,7 +15,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(JsonExtensions), nameof(JsonSerializer.Serialize));
             throw;
         }
     }
@@ -32,7 +32,7 @@ public static class JsonSerializationHelpers
         catch (Exception ex)
         {
             _logger.LogError(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
-                nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
+                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
             throw;
         }
     }
@@ -49,7 +49,7 @@ public static class JsonSerializationHelpers
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
-                nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
+                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
         }
         return false;
     }
