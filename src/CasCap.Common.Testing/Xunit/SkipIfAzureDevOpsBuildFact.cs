@@ -1,4 +1,4 @@
-﻿namespace CasCap.Xunit;
+﻿namespace CasCap.Common.Xunit;
 
 [ExcludeFromCodeCoverage]
 public sealed class SkipIfAzureDevOpsBuildFact : FactAttribute

@@ -1,4 +1,4 @@
-﻿namespace CasCap.HealthChecks;
+﻿namespace CasCap.Common.Diagnostics.HealthChecks;
 
 public abstract class HttpEndpointCheckBase(ILogger logger, HttpClient client)
 {
