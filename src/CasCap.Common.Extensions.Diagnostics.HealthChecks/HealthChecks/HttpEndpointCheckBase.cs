@@ -1,6 +1,6 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.HealthChecks;
 
-public abstract class HttpEndpointCheck(ILogger logger, HttpClient client)
+public abstract class HttpEndpointCheckBase(ILogger logger, HttpClient client)
 {
     protected /*readonly */ILogger _logger = logger;
 
