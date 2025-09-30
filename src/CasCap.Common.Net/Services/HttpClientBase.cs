@@ -1,5 +1,5 @@
 ﻿#if NET8_0_OR_GREATER
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 public abstract class HttpClientBase
 {
@@ -115,7 +115,7 @@ public abstract class HttpClientBase
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)
             //if (req is not null) err += $"{json}";
-            //throw new Exception(err);
+            //throw new GenericException(err);
             tpl.result = default;
         }
         return tpl;

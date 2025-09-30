@@ -13,8 +13,14 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
 
     public void Dispose()
     {
-        _loggers.Clear();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        // Cleanup
+        _loggers.Clear();
     }
 }
 

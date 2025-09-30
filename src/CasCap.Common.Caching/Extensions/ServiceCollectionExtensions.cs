@@ -89,7 +89,13 @@ public static class ServiceCollectionExtensions
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
-        if (!string.IsNullOrWhiteSpace(remoteCacheConnectionString))
+        if (
+#if NET8_0_OR_GREATER
+            !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
+#else
+            !string.IsNullOrWhiteSpace(remoteCacheConnectionString) && remoteCacheConnectionString is not null
+#endif
+            )
         {
             if (RemoteCacheType == CacheType.Redis)
             {

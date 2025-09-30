@@ -1,4 +1,4 @@
-﻿namespace CasCap.Converters;
+﻿namespace CasCap.Common.Converters;
 
 //TODO: move to common lib although this can be handled better by generics or even better by JsonNumberHandling.AllowReadingFromString
 public class StringToIntConverter : JsonConverter<int?>

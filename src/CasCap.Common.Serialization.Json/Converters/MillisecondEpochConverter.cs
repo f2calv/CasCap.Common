@@ -1,6 +1,6 @@
-﻿namespace CasCap.Models;
+﻿#if NET8_0_OR_GREATER
+namespace CasCap.Common.Converters;
 
-#if NET8_0_OR_GREATER
 public class MillisecondEpochConverter : JsonConverter<DateTime?>
 {
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

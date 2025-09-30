@@ -18,7 +18,7 @@ public static class MessagePackExtensions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Serialize));
             throw;
         }
     }
@@ -41,7 +41,7 @@ public static class MessagePackExtensions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Deserialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Deserialize));
             throw;
         }
     }

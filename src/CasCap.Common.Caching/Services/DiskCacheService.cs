@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which

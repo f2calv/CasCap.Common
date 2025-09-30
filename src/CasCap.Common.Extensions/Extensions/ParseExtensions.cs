@@ -1,6 +1,4 @@
-﻿using CasCap.Common.Exceptions;
-
-namespace CasCap.Common.Extensions;
+﻿namespace CasCap.Common.Extensions;
 
 public static class ParseExtensions
 {
@@ -188,7 +186,7 @@ public static class ParseExtensions
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function
     //https://stackoverflow.com/questions/936541/math-pow-vs-multiply-operator-performance (slightly wrong)
-    private static int Pow(int exp, int num = 10)
+    private static int Pow(int exp, int num/* = 10*/)
     {
         var result = 1;
         while (exp > 0)

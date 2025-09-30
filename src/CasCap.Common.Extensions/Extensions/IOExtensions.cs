@@ -1,7 +1,6 @@
-﻿using CasCap.Common.Exceptions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 public static class IOExtensions
 {
@@ -119,7 +118,7 @@ public static class IOExtensions
         return path;
     }
 
-    static HashSet<string> directories { get; set; } = [];
+    private static HashSet<string> directories { get; set; } = [];
 
     public static float CalculateFolderSize(this string folder)
     {
@@ -165,12 +164,12 @@ public static class IOExtensions
             file.Delete();
             files++;
         }
-        var directories = 0;
+        var directoryCount = 0;
         foreach (var dir in di.GetDirectories())
         {
             dir.Delete(true);
-            directories++;
+            directoryCount++;
         }
-        return (files, directories);
+        return (files, directoryCount);
     }
 }

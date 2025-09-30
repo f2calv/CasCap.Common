@@ -1,5 +1,4 @@
-﻿using CasCap.Common.Exceptions;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO.Compression;
@@ -65,7 +64,7 @@ public static class HelperExtensions
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new ApplicationException($"AddRange failed due to conflicting key");
+                throw new GenericException($"AddRange failed due to conflicting key");
         }
         return d1;
     }

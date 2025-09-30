@@ -2,7 +2,7 @@
 
 public abstract class TestBase
 {
-    public TestBase(ITestOutputHelper testOutputHelper)
+    protected TestBase(ITestOutputHelper testOutputHelper)
     {
         //initiate ServiceCollection w/logging
         var services = new ServiceCollection()

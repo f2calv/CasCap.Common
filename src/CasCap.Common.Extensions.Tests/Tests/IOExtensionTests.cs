@@ -1,7 +1,4 @@
-﻿using CasCap.Extensions;
-using System.IO;
-
-namespace CasCap.Common.Extensions.Tests;
+﻿namespace CasCap.Common.Extensions.Tests;
 
 public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {

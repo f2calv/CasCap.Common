@@ -1,8 +1,13 @@
-﻿namespace CasCap.Models;
+﻿namespace CasCap.Common.Converters;
 
 public class MicrosecondEpochConverter : JsonConverter<DateTime?>
 {
-    private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _epoch =
+#if NET8_0_OR_GREATER
+        DateTime.UnixEpoch;
+#else
+        new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+#endif
 
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
