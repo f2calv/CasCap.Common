@@ -347,7 +347,12 @@ public static class ExtensionHelpers
     }
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
+    public static T ParseEnum<T>(this string value) where T : struct =>
+#if NET9_0_OR_GREATER
+        Enum.Parse<T>(value, true);
+#else
+        (T)Enum.Parse(typeof(T), value, true);
+#endif
 
     public static bool TryParseEnum<T>(this string value, out T resultInputType, bool ignoreCase = true)
         where T : struct
