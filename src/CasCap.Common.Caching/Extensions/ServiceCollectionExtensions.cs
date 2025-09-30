@@ -9,7 +9,7 @@
 /// Note: Official documentation says to not add these extension methods to the
 /// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
 /// </remarks>
-public static class DI
+public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Add all necessary services to enable the CasCap distributed caching API.
