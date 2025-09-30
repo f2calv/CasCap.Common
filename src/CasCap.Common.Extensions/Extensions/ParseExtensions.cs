@@ -1,4 +1,6 @@
-﻿namespace CasCap.Common.Extensions;
+﻿using CasCap.Common.Exceptions;
+
+namespace CasCap.Common.Extensions;
 
 public static class ParseExtensions
 {
@@ -112,7 +114,7 @@ public static class ParseExtensions
         if (decimal.TryParse(input, out decimal val))
             return val;
         else
-            throw new Exception($"{nameof(string2decimal)} issue! :/");
+            throw new GenericException($"{nameof(string2decimal)} issue! :/");
     }
 
     //make this a generic? - used for new DateTime(tickCount)

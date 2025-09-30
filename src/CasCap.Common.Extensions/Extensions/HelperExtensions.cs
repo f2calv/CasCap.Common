@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using CasCap.Common.Exceptions;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO.Compression;
@@ -74,7 +75,7 @@ public static class HelperExtensions
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new Exception($"AddRange failed due to conflicting key");
+                throw new GenericException("AddRange failed due to conflicting key");
         }
         return d1;
     }
@@ -404,7 +405,7 @@ public static class HelperExtensions
     {
         var output = 0m;
         if (!string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output))
-            throw new Exception("TryParse failed");
+            throw new GenericException("TryParse failed");
         return output;
     }
     #endregion
