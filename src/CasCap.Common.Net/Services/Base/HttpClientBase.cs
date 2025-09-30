@@ -1,6 +1,6 @@
-﻿namespace CasCap.Services;
+﻿#if NET8_0_OR_GREATER
+namespace CasCap.Services;
 
-#if NET8_0_OR_GREATER
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
