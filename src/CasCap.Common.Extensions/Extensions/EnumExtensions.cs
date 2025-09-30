@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public class Utils
+public class EnumExtensions
 {
     /// <summary>
     /// Gets all items for an enum value.
