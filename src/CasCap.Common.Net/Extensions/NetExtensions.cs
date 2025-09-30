@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class NetHelpers
+public static class NetExtensions
 {
     public static string? TryGetValue(this HttpResponseHeaders headers, string name)
     {
