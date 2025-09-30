@@ -2,9 +2,9 @@
 
 namespace CasCap.Common.Extensions;
 
-public static class MessagePackSerializationHelpers
+public static class MessagePackExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackSerializationHelpers));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackExtensions));
 
     public static byte[] ToMessagePack<T>(this T data)
     {
@@ -18,7 +18,7 @@ public static class MessagePackSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Serialize));
             throw;
         }
     }
@@ -41,7 +41,7 @@ public static class MessagePackSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(MessagePackSerializationHelpers), nameof(MessagePackSerializer.Deserialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(MessagePackExtensions), nameof(MessagePackSerializer.Deserialize));
             throw;
         }
     }

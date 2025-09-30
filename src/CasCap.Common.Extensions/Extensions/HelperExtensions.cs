@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 namespace CasCap.Common.Extensions;
 
-public static class ExtensionHelpers
+public static class HelperExtensions
 {
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
     //https://github.com/dotnet/roslyn/issues/37995
@@ -64,7 +64,7 @@ public static class ExtensionHelpers
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new ApplicationException($"AddRange failed due to conflicting key");
+                throw new GenericException($"AddRange failed due to conflicting key");
         }
         return d1;
     }
@@ -74,7 +74,7 @@ public static class ExtensionHelpers
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new Exception($"AddRange failed due to conflicting key");
+                throw new GenericException("AddRange failed due to conflicting key");
         }
         return d1;
     }
@@ -117,7 +117,7 @@ public static class ExtensionHelpers
 
     public static List<DateTime> GetMissingDates(this DateTime dtStart, DateTime dtEnd)
     {
-        //todo: plug in known holidays dates somehow?
+        //TODO: plug in known holidays dates somehow?
         var days = dtEnd.Date.Subtract(dtStart).Days;
         var missingDates = Enumerable.Range(1, days).Select(p => dtStart.AddDays(p)).ToArray();
         return missingDates.ToList();
@@ -347,7 +347,12 @@ public static class ExtensionHelpers
     }
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    public static T ParseEnum<T>(this string value) where T : struct => (T)Enum.Parse(typeof(T), value, true);
+    public static T ParseEnum<T>(this string value) where T : struct =>
+#if NET9_0_OR_GREATER
+        Enum.Parse<T>(value, true);
+#else
+        (T)Enum.Parse(typeof(T), value, true);
+#endif
 
     public static bool TryParseEnum<T>(this string value, out T resultInputType, bool ignoreCase = true)
         where T : struct
@@ -399,7 +404,7 @@ public static class ExtensionHelpers
     {
         var output = 0m;
         if (!string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output))
-            throw new Exception("TryParse failed");
+            throw new GenericException("TryParse failed");
         return output;
     }
     #endregion

@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class ParseHelpers
+public static class ParseExtensions
 {
     public static int GetDecimalCount(this double val)
     {
@@ -42,15 +42,15 @@ public static class ParseHelpers
     /// </summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
-    public static DateTime csvStr2Date(this string f, DateTime? date = null)
+    public static DateTime csvStr2Date(this string f, DateTime? date = null, DateTimeKind kind = DateTimeKind.Utc)
     {
         DateTime dt;
         if (f.Length == 18)//"635990653080800000".Length
-            dt = new DateTime(f.decimal2long());
+            dt = new DateTime(f.decimal2long(), kind);
         else if (f.Length == 23 && DateTime.TryParse(f, out var _dt1))//"yyyy-MM-dd HH:mm:ss.fff".Length
             dt = _dt1;
         else if (f.Length == 14)//"63599065308080".Length
-            dt = new DateTime(f.decimal2long(4));
+            dt = new DateTime(f.decimal2long(4), kind);
         else if (f.Length == 12 && date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var _dt2))//"HH:mm:ss.fff".Length
             dt = _dt2;
         else
@@ -107,12 +107,12 @@ public static class ParseHelpers
         return output;
     }
 
-    public static decimal string2decimal(this string input)//todo: make this fast and not just a bog standard decimal.TryParse
+    public static decimal string2decimal(this string input)//TODO: make this fast and not just a bog standard decimal.TryParse
     {
         if (decimal.TryParse(input, out decimal val))
             return val;
         else
-            throw new Exception($"{nameof(string2decimal)} issue! :/");
+            throw new GenericException($"{nameof(string2decimal)} issue! :/");
     }
 
     //make this a generic? - used for new DateTime(tickCount)
@@ -186,7 +186,7 @@ public static class ParseHelpers
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function
     //https://stackoverflow.com/questions/936541/math-pow-vs-multiply-operator-performance (slightly wrong)
-    private static int Pow(int exp, int num = 10)
+    private static int Pow(int exp, int num/* = 10*/)
     {
         var result = 1;
         while (exp > 0)

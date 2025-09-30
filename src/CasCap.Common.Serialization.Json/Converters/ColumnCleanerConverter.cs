@@ -12,7 +12,7 @@ public class ColumnCleanerConverter : JsonConverter
         var sDate = (string?)reader.Value;
         if (sDate == "N/A") return null;
         if (!DateTime.TryParse(sDate, out var time))
-            throw new Exception($"{nameof(ReadJson)} unable to parse '{nameof(time)}'??");
+            throw new GenericException($"{nameof(ReadJson)} unable to parse '{nameof(time)}'??");
         return time;
     }
 
@@ -20,4 +20,4 @@ public class ColumnCleanerConverter : JsonConverter
         => throw new NotImplementedException($"{nameof(ColumnCleaner)}.{nameof(WriteJson)} not implemented");
 }
 */
-//todo: Uri convertor
+//TODO: Uri convertor

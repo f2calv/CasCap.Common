@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class NetHelpers
+public static class NetExtensions
 {
     public static string? TryGetValue(this HttpResponseHeaders headers, string name)
     {
@@ -28,7 +28,7 @@ public static class NetHelpers
     }
 
     /// <inheritdoc cref="AddOrOverwrite(HttpRequestHeaders, List{ValueTuple{string, string}}?)"/>
-    public static void AddOrOverwrite(this HttpRequestHeaders headers, Dictionary<string,string>? additionalHeaders)
+    public static void AddOrOverwrite(this HttpRequestHeaders headers, Dictionary<string, string>? additionalHeaders)
     {
         if (!additionalHeaders.IsNullOrEmpty())
             foreach (var header in additionalHeaders!)

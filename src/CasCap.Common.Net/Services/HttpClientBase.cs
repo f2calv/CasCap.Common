@@ -1,6 +1,6 @@
-﻿namespace CasCap.Services;
+﻿#if NET8_0_OR_GREATER
+namespace CasCap.Common.Services;
 
-#if NET8_0_OR_GREATER
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
@@ -80,7 +80,7 @@ public abstract class HttpClientBase
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
-        //todo: add in headers?
+        //TODO: add in headers?
         using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
         return await HandleResult<TResult, TError>(response, cancellationToken);
     }
@@ -115,7 +115,7 @@ public abstract class HttpClientBase
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)
             //if (req is not null) err += $"{json}";
-            //throw new Exception(err);
+            //throw new GenericException(err);
             tpl.result = default;
         }
         return tpl;

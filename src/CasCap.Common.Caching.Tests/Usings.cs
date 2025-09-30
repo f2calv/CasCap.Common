@@ -1,7 +1,8 @@
 ﻿global using CasCap.Abstractions;
+global using CasCap.Common.Exceptions;
 global using CasCap.Common.Extensions;
+global using CasCap.Common.Services;
 global using CasCap.Models;
-global using CasCap.Services;
 global using MessagePack;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;

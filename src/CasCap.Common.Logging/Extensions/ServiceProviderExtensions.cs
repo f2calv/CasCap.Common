@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.Extensions.DependencyInjection;
 
-public static class DI
+public static class ServiceProviderExtensions
 {
     /// <summary>
     /// Assign the registered ILoggerFactory service to the static LoggerFactory instance.

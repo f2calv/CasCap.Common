@@ -1,9 +1,10 @@
-﻿namespace CasCap.Xunit;
+﻿namespace CasCap.Common.Xunit;
 
 [ExcludeFromCodeCoverage]
-public sealed class SkipIfCIBuildFact : FactAttribute
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class SkipIfCIBuildTheoryAttribute : TheoryAttribute
 {
-    public SkipIfCIBuildFact()
+    public SkipIfCIBuildTheoryAttribute()
     {
         if (IsCI())
             Skip = "Ignore test when running a CI build";

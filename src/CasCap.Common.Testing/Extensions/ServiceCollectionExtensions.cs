@@ -1,7 +1,7 @@
 ﻿namespace Microsoft.Extensions.DependencyInjection;
 
 [ExcludeFromCodeCoverage]
-public static class DI
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddXUnitLogging(this IServiceCollection services, ITestOutputHelper testOutputHelper)
     {

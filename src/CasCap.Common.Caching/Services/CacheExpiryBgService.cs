@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.Common.Services;
 
 public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
     LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : BackgroundService
@@ -13,7 +13,7 @@ public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
             remoteCacheExpirySvc.ExecuteAsync(stoppingToken),
         };
         if (tasks.IsNullOrEmpty())
-            throw new Exception("no services found to launch!");
+            throw new GenericException("no services found to launch!");
         await Task.WhenAll(tasks);
         logger.LogInformation("{ClassName} exiting", nameof(CacheExpiryBgService));
     }

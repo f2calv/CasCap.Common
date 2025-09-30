@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 public static class IOExtensions
 {
@@ -29,7 +29,7 @@ public static class IOExtensions
             File.WriteAllBytes(path, bytes);
         }
         else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
+            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
     public static void WriteAllText(this string path, string str)
@@ -41,7 +41,7 @@ public static class IOExtensions
             File.WriteAllText(path, str);
         }
         else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
+            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
     public static void AppendTextFile(this string path, string content)
@@ -70,7 +70,7 @@ public static class IOExtensions
             }
         }
         else
-            throw new Exception($"GetDirectoryName not possible for path '{path}'");
+            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
     public static List<string> ReadTextFile(this string path)
@@ -118,7 +118,7 @@ public static class IOExtensions
         return path;
     }
 
-    static HashSet<string> directories { get; set; } = [];
+    private static HashSet<string> directories { get; set; } = [];
 
     public static float CalculateFolderSize(this string folder)
     {
@@ -144,13 +144,13 @@ public static class IOExtensions
                 }
                 catch (NotSupportedException e)
                 {
-                    throw new Exception($"Unable to calculate folder size: {e.Message}");
+                    throw new GenericException($"Unable to calculate folder size: {e.Message}");
                 }
             }
         }
         catch (UnauthorizedAccessException e)
         {
-            throw new Exception($"Unable to calculate folder size: {e.Message}");
+            throw new GenericException($"Unable to calculate folder size: {e.Message}");
         }
         return folderSize;
     }
@@ -164,12 +164,12 @@ public static class IOExtensions
             file.Delete();
             files++;
         }
-        var directories = 0;
+        var directoryCount = 0;
         foreach (var dir in di.GetDirectories())
         {
             dir.Delete(true);
-            directories++;
+            directoryCount++;
         }
-        return (files, directories);
+        return (files, directoryCount);
     }
 }

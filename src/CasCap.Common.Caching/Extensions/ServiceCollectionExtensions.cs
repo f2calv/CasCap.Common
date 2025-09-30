@@ -9,7 +9,7 @@
 /// Note: Official documentation says to not add these extension methods to the
 /// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
 /// </remarks>
-public static class DI
+public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Add all necessary services to enable the CasCap distributed caching API.
@@ -34,7 +34,7 @@ public static class DI
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
-    static ConnectionMultiplexer? AddServices(this IServiceCollection services,
+    private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
         string sectionKey = CachingOptions.SectionKey,
         CachingOptions? cachingOptions = null,
@@ -89,7 +89,13 @@ public static class DI
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
-        if (!string.IsNullOrWhiteSpace(remoteCacheConnectionString))
+        if (
+#if NET8_0_OR_GREATER
+            !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
+#else
+            !string.IsNullOrWhiteSpace(remoteCacheConnectionString) && remoteCacheConnectionString is not null
+#endif
+            )
         {
             if (RemoteCacheType == CacheType.Redis)
             {
@@ -112,7 +118,7 @@ public static class DI
             return null;
     }
 
-    static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
+    private static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
     {
         var configurationOptions = ConfigurationOptions.Parse(remoteCacheConnectionString);
         configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";

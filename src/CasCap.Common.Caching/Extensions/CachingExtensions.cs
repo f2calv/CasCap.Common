@@ -3,7 +3,7 @@
 /// <summary>
 /// Extension methods to assist with common Caching tasks.
 /// </summary>
-public static class CachingHelpers
+public static class CachingExtensions
 {
     /// <summary>
     /// Calculates the relative expiration <see cref="TimeSpan"/> from an integer.

@@ -2,7 +2,7 @@
 
 public abstract class TestBase
 {
-    public TestBase(ITestOutputHelper testOutputHelper)
+    protected TestBase(ITestOutputHelper testOutputHelper)
     {
         var configuration = new ConfigurationBuilder()
             .Build();

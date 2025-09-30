@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace CasCap.Converters;
+namespace CasCap.Common.Converters;
 
 /// <summary>
 /// <see href="https://stackoverflow.com/questions/66280645/how-can-i-serialize-a-double-2d-array-to-json-using-system-text-json"/>
@@ -9,20 +9,17 @@ public class Array2DConverter : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsArray && typeToConvert.GetArrayRank() == 2;
 
-    public override JsonConverter? CreateConverter(Type type, JsonSerializerOptions options) =>
+    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
         (JsonConverter?)Activator.CreateInstance(
-            typeof(Array2DConverterInner<>).MakeGenericType([type.GetElementType()!]),
+            typeof(Array2DConverterInner<>).MakeGenericType([typeToConvert.GetElementType()!]),
             BindingFlags.Instance | BindingFlags.Public,
             binder: null,
             args: [options],
             culture: null);
 
-    private class Array2DConverterInner<T> : JsonConverter<T[,]>
+    private class Array2DConverterInner<T>(JsonSerializerOptions options) : JsonConverter<T[,]>
     {
-        private readonly JsonConverter<T>? _valueConverter;
-
-        public Array2DConverterInner(JsonSerializerOptions options) =>
-            _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T)); // Encountered a bug using the builtin ObjectConverter
+        private readonly JsonConverter<T>? _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T));
 
         public override void Write(Utf8JsonWriter writer, T[,] array, JsonSerializerOptions options)
         {

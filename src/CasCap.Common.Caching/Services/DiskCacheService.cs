@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
@@ -8,7 +8,7 @@ public class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingOptions _cachingOptions;
-    private string _diskCacheFolder { get; set; } = string.Empty;
+    private readonly string _diskCacheFolder;
 
     /// <summary>
     /// Collection keeps track of the cache items sliding expirations.
@@ -52,7 +52,7 @@ public class DiskCacheService : ILocalCache
             File.Delete(key);
             _slidingExpirations.TryRemove(key, out var _);
             _absoluteExpirations.TryRemove(key, out var _);
-            _logger.LogTrace("{ClassName} retrieved object with {key} but deleted it due to expiration", nameof(DiskCacheService), key);
+            _logger.LogTrace("{ClassName} retrieved object with {Key} but deleted it due to expiration", nameof(DiskCacheService), key);
         }
         else if (exists)
         {
@@ -69,11 +69,11 @@ public class DiskCacheService : ILocalCache
             else
                 throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
             UpdateExpirations(key, ref slidingExpiration, ref absoluteExpiration);
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key}",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(DiskCacheService), typeof(T), key);
         }
         else
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key} failed",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key} failed",
                 nameof(DiskCacheService), typeof(T), key);
         return cacheEntry;
     }
@@ -83,7 +83,7 @@ public class DiskCacheService : ILocalCache
     {
         key = ConvertKeyToFilePath(key);//this must happen first!
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
-        _logger.LogTrace("{ClassName} attempting to store object with {key}", nameof(DiskCacheService), key);
+        _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
         if (cacheEntry is not null)
         {
             if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
@@ -176,9 +176,9 @@ public class DiskCacheService : ILocalCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{ClassName} deserialization error for {key}", nameof(DiskCacheService), key);
+                _logger.LogError(ex, "{ClassName} deserialization error for {Key}", nameof(DiskCacheService), key);
             }
-            _logger.LogTrace("{ClassName} retrieved cacheEntry {key}", nameof(DiskCacheService), key);
+            _logger.LogTrace("{ClassName} retrieved cacheEntry {Key}", nameof(DiskCacheService), key);
         }
         else if (createItem is not null)
         {
@@ -187,7 +187,7 @@ public class DiskCacheService : ILocalCache
             {
                 // Key not in cache, so populate
                 cacheEntry = await createItem();
-                _logger.LogTrace("{ClassName} attempted to populate a new cacheEntry object {key}", nameof(DiskCacheService), key);
+                _logger.LogTrace("{ClassName} attempted to populate a new cacheEntry object {Key}", nameof(DiskCacheService), key);
                 if (cacheEntry is not null)
                     Set(key, cacheEntry, null);
             }
@@ -214,14 +214,14 @@ public class DiskCacheService : ILocalCache
         var files = 0L;
         foreach (var file in di.GetFiles())
         {
-            _logger.LogTrace("{ClassName} attempting deletion of file {fileName}", nameof(DiskCacheService), file.Name);
+            _logger.LogTrace("{ClassName} attempting deletion of file {FileName}", nameof(DiskCacheService), file.Name);
             file.Delete();
             files++;
         }
         var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
-            _logger.LogTrace("{ClassName} attempting deletion of directory {directoryName}", nameof(DiskCacheService), dir.Name);
+            _logger.LogTrace("{ClassName} attempting deletion of directory {DirectoryName}", nameof(DiskCacheService), dir.Name);
             dir.Delete(true);
             directories++;
         }

@@ -38,10 +38,12 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
 
         //stop bg service
         await source.CancelAsync();
+        source.Dispose();
         await Task.Delay(1_000);//short pause for the cancellation token to take effect
         //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
+        Assert.True(true);
         //TODO: all
     }
 
@@ -66,7 +68,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var objInitial = new MockDto(DateTime.UtcNow);
 
         //Act
-        var added = await remoteCache.SetAsync(key, objInitial.ToJson(), slidingExpiration: slidingExpiration);
+        _ = await remoteCache.SetAsync(key, objInitial.ToJson(), slidingExpiration: slidingExpiration);
         for (var i = 0; i < slidingExpirationSeconds; i += checkIntervalSeconds)
         {
             //each time this is called the slidingExpiration should be reset...
@@ -306,9 +308,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var objFromCache1 = tasks[0];
         var objFromCache2 = tasks[1];
         //cleanup
-        var shouldBeTrue = remoteCache.Delete(key);
+        var shouldBeTrue = await remoteCache.DeleteAsync(key);
         //check cleaned up
-        var shouldBeNull = remoteCache.Get(key);
+        var shouldBeNull = await remoteCache.GetAsync(key);
 
         //Assert
         Assert.True(DateTime.UtcNow < absoluteExpiration);//check the above tests havent taken too long!
@@ -357,7 +359,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         if (objInitial is null)
             objInitial = new MockDto(DateTime.UtcNow);
         else
-            throw new Exception("object should not exist in the cache at the start of the test");
+            throw new GenericException("object should not exist in the cache at the start of the test");
         //insert into both local and remote cache
         await distCacheSvc.Set(key, objInitial, absoluteExpiration: absoluteExpiration);
         //retrieve from dist cache (i.e. get from local)

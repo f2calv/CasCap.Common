@@ -1,8 +1,8 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class JsonSerializationHelpers
+public static class JsonExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonSerializationHelpers));
+    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonExtensions));
 
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 
@@ -15,7 +15,7 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed", nameof(JsonSerializationHelpers), nameof(JsonSerializer.Serialize));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(JsonExtensions), nameof(JsonSerializer.Serialize));
             throw;
         }
     }
@@ -31,8 +31,8 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
-                nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
+            _logger.LogError(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
+                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
             throw;
         }
     }
@@ -48,8 +48,8 @@ public static class JsonSerializationHelpers
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "{ClassName} {methodName} failed to deserialize {objectType}",
-                nameof(JsonSerializationHelpers), nameof(JsonSerializer.Deserialize), typeof(T));
+            _logger.LogWarning(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
+                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
         }
         return false;
     }
@@ -75,6 +75,6 @@ public static class JsonSerializationHelpers
         if (converter != null)
             converter.Write(writer, value, options);
         else
-            JsonSerializer.Serialize(writer, value, typeof(T), options);
+            JsonSerializer.Serialize(writer, value, options);
     }
 }

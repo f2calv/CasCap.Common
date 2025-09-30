@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DistributedCacheService"/> uses both <see cref="ILocalCache"/> and <see cref="IRemoteCache"/>
@@ -14,7 +14,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    //todo: store a summary of all cached items in a local lookup dictionary?
+    //TODO: store a summary of all cached items in a local lookup dictionary?
     ///// <inheritdoc/>
     //public ConcurrentDictionary<string, object> dItems { get; set; } = new();
 
@@ -29,20 +29,20 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
         {
-            logger.LogTrace("{ClassName} unable to retrieve {key} object type {type} from {objectName}",
+            logger.LogTrace("{ClassName} unable to retrieve {Key} object type {Type} from {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
             if (_cachingOptions.RemoteCache.IsEnabled)
             {
                 var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
                 if (tpl != default && tpl.cacheEntry is not null)
                 {
-                    logger.LogTrace("{ClassName} retrieved {key} object type {type} from {objectName}",
+                    logger.LogTrace("{ClassName} retrieved {Key} object type {Type} from {ObjectName}",
                         nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
                     cacheEntry = tpl.cacheEntry;
                     localCache.Set(key, cacheEntry, tpl.expiry);
                 }
                 else
-                    logger.LogTrace("{ClassName} unable to retrieve {key} object type {type} from {objectName}",
+                    logger.LogTrace("{ClassName} unable to retrieve {Key} object type {Type} from {ObjectName}",
                         nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
             }
             //if cacheEntry is still null so now create it
@@ -61,7 +61,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         }
         else if (cacheEntry is not null)
         {
-            logger.LogTrace("{ClassName} retrieved {key} object type {type} from {objectName}",
+            logger.LogTrace("{ClassName} retrieved {Key} object type {Type} from {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
             if (_cachingOptions.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
                 await remoteCache.ExtendSlidingExpirationAsync(key);
@@ -79,7 +79,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     {
         if (_cachingOptions.RemoteCache.IsEnabled)
         {
-            logger.LogTrace("{ClassName} storing {key} object type {type} in {objectName}",
+            logger.LogTrace("{ClassName} storing {Key} object type {Type} in {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
@@ -122,7 +122,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         {
             _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(nameof(LocalCacheExpiryService)),
                 $"{_cachingOptions.PubSubPrefix}:{key}", flags);
-            logger.LogTrace("{ClassName} sent {abstractionName} expiration message for {key} via pub/sub",
+            logger.LogTrace("{ClassName} sent {AbstractionName} expiration message for {Key} via pub/sub",
                 nameof(DistributedCacheService), nameof(ILocalCache), key);
         }
     }

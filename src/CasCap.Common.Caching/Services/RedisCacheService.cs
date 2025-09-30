@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+﻿namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="RedisCacheService"/> acts as a wrapper around key functionality of the <see cref="StackExchange.Redis"/> library.
@@ -161,7 +161,7 @@ public class RedisCacheService : IRemoteCache
     {
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
 
-        RedisValueWithExpiry o = default;
+        RedisValueWithExpiry o;
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
             if (_cachingOptions.UseBuiltInLuaScripts)
@@ -176,7 +176,7 @@ public class RedisCacheService : IRemoteCache
             o = await Db.StringGetWithExpiryAsync(key, flags);
         if (o.Value.HasValue)
         {
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key}",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(RedisCacheService), typeof(T), key);
             if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
             {
@@ -194,7 +194,7 @@ public class RedisCacheService : IRemoteCache
                 tpl.expiry = o.Expiry;
         }
         else
-            _logger.LogTrace("{ClassName} retrieved object {objectType} with {key} failed",
+            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key} failed",
                 nameof(RedisCacheService), typeof(T), key);
 
         return tpl;
@@ -264,13 +264,13 @@ public class RedisCacheService : IRemoteCache
             LoadLuaScript(GetType().Assembly, resourceName);
     }
 
-    private const string keyStringGetSetExpiryAsync = $"CasCap.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
+    private const string keyStringGetSetExpiryAsync = $"CasCap.Common.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
-    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string resourceName)
+    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName)
     {
         var script = string.Empty;
-        using (var stream = assembly.GetManifestResourceStream(resourceName))
+        using (var stream = assembly.GetManifestResourceStream(scriptName))
         {
             if (stream is not null)
             {
@@ -280,20 +280,20 @@ public class RedisCacheService : IRemoteCache
         }
 
         if (string.IsNullOrWhiteSpace(script))
-            throw new NullReferenceException($"Lua script '{resourceName}' is null or empty");
+            throw new GenericException($"Lua script '{scriptName}' is null or empty");
 
         var prepared = LuaScript.Prepare(script);
-        _logger.LogTrace("{ClassName} loading Lua script '{resourceName}'", nameof(RedisCacheService), resourceName);
+        _logger.LogTrace("{ClassName} loading Lua script '{ScriptName}'", nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);
 #if NET8_0_OR_GREATER
-        if (!LuaScripts.TryAdd(resourceName, loaded))
+        if (!LuaScripts.TryAdd(scriptName, loaded))
 #else
-        if (!LuaScripts.ContainsKey(resourceName))
-            LuaScripts.Add(resourceName, loaded);
+        if (!LuaScripts.ContainsKey(scriptName))
+            LuaScripts.Add(scriptName, loaded);
         else
 #endif
-            _logger.LogWarning("{ClassName} loading Lua script '{resourceName}' failed, duplicate name found",
-                nameof(RedisCacheService), resourceName);
+            _logger.LogWarning("{ClassName} loading Lua script '{ScriptName}' failed, duplicate name found",
+                nameof(RedisCacheService), scriptName);
 
         return loaded;
     }

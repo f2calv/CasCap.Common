@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!--nullable we enable on a per project basis-->
     <!--<Nullable>enable</Nullable>-->
+	<RootNamespace>CasCap.Common</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
