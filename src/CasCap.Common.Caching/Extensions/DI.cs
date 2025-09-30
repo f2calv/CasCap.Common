@@ -34,7 +34,7 @@ public static class DI
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
-    static ConnectionMultiplexer? AddServices(this IServiceCollection services,
+    private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
         string sectionKey = CachingOptions.SectionKey,
         CachingOptions? cachingOptions = null,
@@ -112,7 +112,7 @@ public static class DI
             return null;
     }
 
-    static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
+    private static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
     {
         var configurationOptions = ConfigurationOptions.Parse(remoteCacheConnectionString);
         configurationOptions.ClientName = $"{AppDomain.CurrentDomain.FriendlyName}-{Environment.MachineName}";
