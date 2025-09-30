@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Common.Extensions;
 
-public static class ParseHelpers
+public static class ParseExtensions
 {
     public static int GetDecimalCount(this double val)
     {
