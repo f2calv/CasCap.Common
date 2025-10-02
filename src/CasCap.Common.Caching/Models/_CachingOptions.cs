@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Models;
 
-public class CachingOptions
+public record CachingOptions
 {
     /// <summary>
     /// Configuration sub-section locator key.
