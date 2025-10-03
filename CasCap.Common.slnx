@@ -1,24 +1,21 @@
 ﻿<Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Folder Name="/Solution Items/">
+  <Folder Name="/CasCap.Common/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
-  <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
-  <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
-  <Project Path="src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj" />
-  <Project Path="src/CasCap.Common.Extensions/CasCap.Common.Extensions.csproj" />
-  <Project Path="src/CasCap.Common.Logging/CasCap.Common.Logging.csproj" />
-  <Project Path="src/CasCap.Common.Net.Tests/CasCap.Common.Net.Tests.csproj" />
-  <Project Path="src/CasCap.Common.Net/CasCap.Common.Net.csproj" />
-  <Project Path="src/CasCap.Common.Serialization.Json/CasCap.Common.Serialization.Json.csproj" />
-  <Project Path="src/CasCap.Common.Serialization.MessagePack/CasCap.Common.Serialization.MessagePack.csproj" />
-  <Project Path="src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj" />
-  <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
+  <Folder Name="/CasCap.Common/">
+    <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
+    <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
+    <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
+    <Project Path="src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj" />
+    <Project Path="src/CasCap.Common.Extensions/CasCap.Common.Extensions.csproj" />
+    <Project Path="src/CasCap.Common.Logging/CasCap.Common.Logging.csproj" />
+    <Project Path="src/CasCap.Common.Net.Tests/CasCap.Common.Net.Tests.csproj" />
+    <Project Path="src/CasCap.Common.Net/CasCap.Common.Net.csproj" />
+    <Project Path="src/CasCap.Common.Serialization.Json/CasCap.Common.Serialization.Json.csproj" />
+    <Project Path="src/CasCap.Common.Serialization.MessagePack/CasCap.Common.Serialization.MessagePack.csproj" />
+    <Project Path="src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj" />
+    <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
+  </Folder>
 </Solution>
