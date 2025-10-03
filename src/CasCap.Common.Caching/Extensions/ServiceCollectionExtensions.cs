@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
-        string sectionKey = CachingOptions.SectionKey,
+        string sectionKey = CachingOptions.ConfigurationSectionName,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configuration: configuration, sectionKey, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
-        string sectionKey = CachingOptions.SectionKey,
+        string sectionKey = CachingOptions.ConfigurationSectionName,
         CachingOptions? cachingOptions = null,
         Action<CachingOptions>? configureOptions = null,
         string? remoteCacheConnectionString = null,

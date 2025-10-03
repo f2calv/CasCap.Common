@@ -5,7 +5,7 @@ public record CachingOptions
     /// <summary>
     /// Configuration sub-section locator key.
     /// </summary>
-    public const string SectionKey = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
+    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
 
     /// <summary>
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
