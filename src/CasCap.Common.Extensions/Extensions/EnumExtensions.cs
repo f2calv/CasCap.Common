@@ -31,8 +31,7 @@ public static class EnumExtensions
 
     public static string ToStringCached(this Enum myEnum)
     {
-        string textValue;
-        if (enumStringValues.TryGetValue(myEnum, out textValue))
+        if (enumStringValues.TryGetValue(myEnum, out var textValue))
             return textValue;
         else
         {
