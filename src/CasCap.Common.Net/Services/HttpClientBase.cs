@@ -107,7 +107,8 @@ public abstract class HttpClientBase
                 if (!string.IsNullOrWhiteSpace(json))
                 {
                     var fileName = $"{DateTime.UtcNow.To_yyyy_MM_dd()}-{DateTime.UtcNow.Ticks}-{typeof(TResult)}.json";
-                    await File.WriteAllTextAsync(Path.Combine(JsonDebugPath, fileName), json, cancellationToken);
+                    var path = Path.Combine(JsonDebugPath, fileName);
+                    await path.WriteAllTextAsync(json, cancellationToken);
                 }
                 tpl.result = json.FromJson<TResult>();
             }
