@@ -32,6 +32,7 @@ public static class IOExtensions
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
+    [Obsolete("Switch to WriteAllTextAsync")]
     public static void WriteAllText(this string path, string str)
     {
         var dir = Path.GetDirectoryName(path);
@@ -39,6 +40,23 @@ public static class IOExtensions
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             File.WriteAllText(path, str);
+        }
+        else
+            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+    }
+
+    public async static Task WriteAllTextAsync(this string path, string str, CancellationToken cancellationToken)
+    {
+        var dir = Path.GetDirectoryName(path);
+        if (dir is not null)
+        {
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+#if NET8_0_OR_GREATER
+            await File.WriteAllTextAsync(path, str, cancellationToken);
+#else
+            await Task.Delay(0, cancellationToken);
+            File.WriteAllText(path, str);
+#endif
         }
         else
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");
