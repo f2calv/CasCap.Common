@@ -20,9 +20,9 @@ public static class ServiceCollectionExtensions
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
-        string sectionKey = CachingOptions.SectionKey,
+        string sectionName = CachingOptions.ConfigurationSectionName,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configuration: configuration, sectionKey, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+        => services.AddServices(configuration: configuration, sectionName, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
-        string sectionKey = CachingOptions.SectionKey,
+        string sectionName = CachingOptions.ConfigurationSectionName,
         CachingOptions? cachingOptions = null,
         Action<CachingOptions>? configureOptions = null,
         string? remoteCacheConnectionString = null,
@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
     {
         if (configuration is not null)
         {
-            var configSection = configuration.GetSection(sectionKey);
+            var configSection = configuration.GetSection(sectionName);
             cachingOptions = configSection.Get<CachingOptions>();
             if (cachingOptions is not null)
                 services.Configure<CachingOptions>(configSection);

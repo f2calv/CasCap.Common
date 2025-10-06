@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Microsoft.Extensions.Hosting;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO.Compression;
@@ -10,6 +11,16 @@ namespace CasCap.Common.Extensions;
 
 public static class HelperExtensions
 {
+    /// <summary>
+    /// Checks if the current host environment name is 'Integration'.
+    /// </summary>
+    public static bool IsIntegration(this IHostEnvironment env) => env.IsEnvironment("Integration");
+
+    /// <summary>
+    /// Checks if the current host environment name is 'Test'.
+    /// </summary>
+    public static bool IsTest(this IHostEnvironment env) => env.IsEnvironment("Test");
+
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
     //https://github.com/dotnet/roslyn/issues/37995
     //https://github.com/JamesNK/Newtonsoft.Json/pull/2163/commits/fba64bcf9b8f41500da1c1dd75825f3db99cd3b4

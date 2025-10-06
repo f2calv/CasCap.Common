@@ -85,6 +85,8 @@ public abstract class HttpClientBase
         return await HandleResult<TResult, TError>(response, cancellationToken);
     }
 
+    protected virtual string JsonDebugPath { get; set; } = string.Empty;
+
     private async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         HandleResult<TResult, TError>(HttpResponseMessage response, CancellationToken cancellationToken)
         where TResult : class
@@ -100,7 +102,16 @@ public abstract class HttpClientBase
             else if (typeof(TResult).Equals(typeof(byte[])))
                 tpl.result = (TResult)(object)await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             else
-                tpl.result = (await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).FromJson<TResult>();
+            {
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(json))
+                {
+                    var fileName = $"{DateTime.UtcNow.To_yyyy_MM_dd()}-{DateTime.UtcNow.Ticks}-{typeof(TResult)}.json";
+                    var path = Path.Combine(JsonDebugPath, fileName);
+                    await path.WriteAllTextAsync(json, cancellationToken);
+                }
+                tpl.result = json.FromJson<TResult>();
+            }
             tpl.error = default;
         }
         else

@@ -12,7 +12,7 @@ public static class MessagePackExtensions
         try
         {
             var bytes = MessagePackSerializer.Serialize(data);
-            //_logger.LogTrace("{ClassName} serialized object {typeof} into {count} bytes",
+            //_logger.LogTrace("{ClassName} serialized object {Type} into {Count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return bytes;
         }
