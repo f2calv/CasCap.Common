@@ -104,7 +104,7 @@ public abstract class HttpClientBase
             else
             {
                 var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(json))
+                if (!string.IsNullOrWhiteSpace(json) && !string.IsNullOrWhiteSpace(JsonDebugPath) && Path.Exists(JsonDebugPath))
                 {
                     var fileName = $"{DateTime.UtcNow.To_yyyy_MM_dd()}-{DateTime.UtcNow.Ticks}-{typeof(TResult)}.json";
                     var path = Path.Combine(JsonDebugPath, fileName);
