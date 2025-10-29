@@ -1,0 +1,11 @@
+﻿global using CasCap.Common.Abstractions;
+global using CasCap.Common.Exceptions;
+global using CasCap.Common.Extensions;
+global using CasCap.Common.Models;
+global using CasCap.Common.Services;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using System.ComponentModel.DataAnnotations;
