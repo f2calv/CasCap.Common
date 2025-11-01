@@ -7,7 +7,7 @@
 /// If a service inherits from BackgroundService then it's a little harder to test so we create
 /// simpler objects that implement the <see cref="IFeature{T}"/> which can be launched via a bitwise enumeration.
 /// </remarks>
-public interface IFeature<T>
+public interface IFeature<T> where T : Enum
 {
     /// <summary>
     /// Enum used to identify the feature type of the implementation.
