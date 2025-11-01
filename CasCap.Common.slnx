@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Folder Name="/CasCap.Common/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
@@ -17,6 +17,7 @@
     <Project Path="src/CasCap.Common.Serialization.Json/CasCap.Common.Serialization.Json.csproj" />
     <Project Path="src/CasCap.Common.Serialization.MessagePack/CasCap.Common.Serialization.MessagePack.csproj" />
     <Project Path="src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj" />
+    <Project Path="src/CasCap.Common.Services/CasCap.Common.Services.csproj" Id="6d6a9bbc-b3e4-4d6d-a945-42a500988253" />
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
   </Folder>
 </Solution>
