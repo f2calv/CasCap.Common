@@ -24,10 +24,12 @@ public class FeatureFlagBgService<T> : BackgroundService
         var tasks = new List<Task>(_features.Count());
         foreach (var feature in _features)
         {
-            //TODO: logging of the start/stop of the service
-            //var x = feature.GetType().Name;
             if (_featureOptions.AppMode.HasFlag(feature.FeatureType))
+            {
+                _logger.LogInformation("{ClassName} starting {FeatureName}",
+                    nameof(FeatureFlagBgService<T>), feature.GetType().Name);
                 tasks.Add(feature.ExecuteAsync(stoppingToken));
+            }
         }
         if (tasks.IsNullOrEmpty())
             throw new GenericException("no features found to launch!");
