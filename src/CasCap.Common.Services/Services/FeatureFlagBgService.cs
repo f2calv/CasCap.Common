@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Common.Services;
 
 /// <summary>
-/// This service acts as a central launcher service for multiple other services which implement <see cref="IFeature"/>.
+/// This service acts as a flexible background service launcher for multiple services that implement <see cref="IFeature{T}"/>.
 /// </summary>
 public class FeatureFlagBgService<T> : BackgroundService
     where T : Enum
