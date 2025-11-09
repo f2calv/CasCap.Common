@@ -3,7 +3,7 @@
 public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact, Trait("Category", nameof(IO))]
-    public void IO()
+    public async Task IO()
     {
         //Arrange
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
@@ -17,7 +17,7 @@ public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         var newFolder = path.Extend("sub-folder/test.txt");
         newFolder.AppendTextFile("testing 456");
         Directory.Delete(path, true);
-        filePath1.WriteAllText("khfsjgfjsgf");
+        await filePath1.WriteAllTextAsync("khfsjgfjsgf", CancellationToken.None);
         filePath1.AppendTextFile("testing 123");
         filePath2.WriteAllBytes(Array.Empty<byte>());
 
