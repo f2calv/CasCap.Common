@@ -10,5 +10,5 @@ public sealed class SkipIfGithubActionsBuildTheoryAttribute : TheoryAttribute
             Skip = "Ignore test when running a Github Actions build";
     }
 
-    static bool IsGitHubActions() => Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
+    private static bool IsGitHubActions() => Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 }

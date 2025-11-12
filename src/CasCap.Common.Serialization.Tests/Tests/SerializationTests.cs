@@ -67,7 +67,7 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
         Assert.Equal(obj.dtNow, o.dtNow);
     }
 
-    static bool IsTestClassValid(MyTestClass o)
+    private static bool IsTestClassValid(MyTestClass o)
     {
         if (o.ID != 1337)
             return false;

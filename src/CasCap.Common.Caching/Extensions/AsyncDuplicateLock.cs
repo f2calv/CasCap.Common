@@ -16,7 +16,7 @@ public sealed class AsyncDuplicateLock
 
     private static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
 
-    static SemaphoreSlim GetOrCreate(object key)
+    private static SemaphoreSlim GetOrCreate(object key)
     {
         RefCounted<SemaphoreSlim>? item;
         lock (SemaphoreSlims)
