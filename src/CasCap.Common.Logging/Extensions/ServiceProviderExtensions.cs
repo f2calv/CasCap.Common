@@ -5,9 +5,10 @@ public static class ServiceProviderExtensions
     /// <summary>
     /// Assign the registered ILoggerFactory service to the static LoggerFactory instance.
     /// </summary>
-    public static void AddStaticLogging(this IServiceProvider serviceProvider)
+    public static IServiceProvider AddStaticLogging(this IServiceProvider serviceProvider)
     {
         ApplicationLogging.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        return serviceProvider;
     }
 
     /*
