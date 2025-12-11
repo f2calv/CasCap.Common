@@ -10,5 +10,5 @@ public sealed class SkipIfAzureDevOpsBuildTheoryAttribute : TheoryAttribute
             Skip = "Ignore test when running an Azure DevOps build";
     }
 
-    static bool IsAzureDevOps() => Environment.GetEnvironmentVariable("TF_BUILD") is not null;
+    private static bool IsAzureDevOps() => Environment.GetEnvironmentVariable("TF_BUILD") is not null;
 }

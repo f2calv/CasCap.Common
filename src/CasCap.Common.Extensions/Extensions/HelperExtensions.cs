@@ -512,7 +512,7 @@ public static class HelperExtensions
         return thisString is not null && rgxEmail.IsMatch(thisString);
     }
 
-    static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }
+    private static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }
 
     private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
 
