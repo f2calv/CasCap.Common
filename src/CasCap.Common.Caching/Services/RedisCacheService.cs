@@ -77,7 +77,7 @@ public class RedisCacheService : IRemoteCache
     {
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
-        return Db.StringSet(key, value, slidingExpiration, true, flags: flags);
+        return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
     }
 
     /// <inheritdoc/>
@@ -85,7 +85,7 @@ public class RedisCacheService : IRemoteCache
     {
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
-        return Db.StringSet(key, value, slidingExpiration, true, flags: flags);
+        return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
     }
 
     /// <inheritdoc/>
@@ -93,7 +93,7 @@ public class RedisCacheService : IRemoteCache
     {
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
-        return Db.StringSetAsync(key, value, slidingExpiration, true, flags: flags);
+        return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
     }
 
     /// <inheritdoc/>
@@ -101,7 +101,7 @@ public class RedisCacheService : IRemoteCache
     {
         ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
-        return Db.StringSetAsync(key, value, slidingExpiration, true, flags: flags);
+        return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
     }
 
     /// <inheritdoc/>
