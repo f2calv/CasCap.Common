@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Extensions.Tests;
 
+/// <summary>
+/// Tests for common extension methods.
+/// </summary>
 public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact]

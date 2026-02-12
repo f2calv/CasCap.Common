@@ -9,6 +9,9 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
 {
     private long count = 0;
 
+    /// <summary>
+    /// Subscribes to Redis pub/sub and runs until cancellation, processing local cache invalidation messages.
+    /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         if (!cachingOptions.Value.LocalCacheInvalidationEnabled) return;

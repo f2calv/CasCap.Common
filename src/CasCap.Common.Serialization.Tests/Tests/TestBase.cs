@@ -1,7 +1,12 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
-public abstract class TestBase
+/// <summary>
+/// Base class for serialization tests, providing xUnit logging.
+/// </summary>
+public abstract class TestBase : IDisposable
 {
+    private readonly ServiceProvider _serviceProvider;
+
     protected TestBase(ITestOutputHelper testOutputHelper)
     {
         //initiate ServiceCollection w/logging
@@ -9,8 +14,12 @@ public abstract class TestBase
             .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
-        var serviceProvider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
+    }
 
-        ApplicationLogging.LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+    public void Dispose()
+    {
+        _serviceProvider.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

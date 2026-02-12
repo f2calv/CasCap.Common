@@ -1,13 +1,23 @@
 ﻿#if NET8_0_OR_GREATER
 namespace CasCap.Common.Services;
 
+/// <summary>
+/// Abstract base class providing common HTTP request methods with built-in JSON/binary serialization and error handling.
+/// </summary>
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     protected ILogger _logger;
-    protected HttpClient _client;
+
+    /// <summary>
+    /// The underlying <see cref="HttpClient"/> used to send HTTP requests.
+    /// </summary>
+    public HttpClient Client { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
+    /// <summary>
+    /// Sends a POST request with a JSON body and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)> PostJsonAsync<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json", CancellationToken cancellationToken = default)
         where TResult : class
         where TError : class
@@ -16,25 +26,32 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a POST request with a JSON body and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)>
         PostJson<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/json", CancellationToken cancellationToken = default)
         where TResult : class
         where TError : class
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
-        var json = req!.ToJson();
+        var json = req is not null ? req.ToJson() : "{}";
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
             request.Content = new StringContent(json, Encoding.UTF8, mediaType);
             request.Headers.AddOrOverwrite(additionalHeaders);
-            using var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);//need to create a new .NET Standard extension method to handle GetCT(timeout)
-            tpl = await HandleResult<TResult, TError>(response, cancellationToken);
+            using var cts = CreateLinkedCts(timeout, cancellationToken);
+            using var response = await Client.SendAsync(request, cts.Token).ConfigureAwait(false);
+            tpl = await HandleResult<TResult, TError>(response, cts.Token);
         }
         return tpl;
     }
 
+    /// <summary>
+    /// Sends a POST request with a binary body and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)>
         PostBytesAsync<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream", CancellationToken cancellationToken = default)
         where TResult : class
@@ -44,13 +61,16 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a POST request with a binary body and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         PostBytes<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/octet-stream", CancellationToken cancellationToken = default)
         where TResult : class
         where TError : class
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
@@ -58,12 +78,16 @@ public abstract class HttpClientBase
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
             //request.Headers.Add("Content-Type", mediaType);
             request.Headers.AddOrOverwrite(additionalHeaders);
-            using var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            tpl = await HandleResult<TResult, TError>(response, cancellationToken);
+            using var cts = CreateLinkedCts(timeout, cancellationToken);
+            using var response = await Client.SendAsync(request, cts.Token).ConfigureAwait(false);
+            tpl = await HandleResult<TResult, TError>(response, cts.Token);
         }
         return tpl;
     }
 
+    /// <summary>
+    /// Sends a GET request and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)>
         GetAsync<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, CancellationToken cancellationToken = default)
         where TResult : class
@@ -73,19 +97,35 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a GET request and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         Get<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, CancellationToken cancellationToken = default)
         where TResult : class
         where TError : class
     {
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
-        //TODO: add in headers?
-        using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
-        return await HandleResult<TResult, TError>(response, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.AddOrOverwrite(headers);
+        using var cts = CreateLinkedCts(timeout, cancellationToken);
+        using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cts.Token).ConfigureAwait(false);
+        return await HandleResult<TResult, TError>(response, cts.Token);
     }
 
+    /// <summary>
+    /// Optional directory path for writing debug JSON response files. Disabled when empty.
+    /// </summary>
     protected virtual string JsonDebugPath { get; set; } = string.Empty;
+
+    private static CancellationTokenSource CreateLinkedCts(TimeSpan? timeout, CancellationToken cancellationToken)
+    {
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if (timeout.HasValue)
+            cts.CancelAfter(timeout.Value);
+        return cts;
+    }
 
     private async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         HandleResult<TResult, TError>(HttpResponseMessage response, CancellationToken cancellationToken)

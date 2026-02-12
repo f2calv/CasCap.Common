@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
+/// <summary>
+/// Tests for JSON and MessagePack serialization helpers.
+/// </summary>
 public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
@@ -81,22 +84,4 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
             return false;
         return true;
     }
-}
-
-[MessagePackObject(true)]
-public class MyTestClass
-{
-    public int ID { get; set; } = 1337;
-    public DateTime utcNow { get; set; } = DateTime.UtcNow;
-    public DateTime dtNow { get; set; } = DateTime.Now.Date;
-    DateTime _dtNowFixed;
-    /// <summary>
-    /// We send in a normal datetime, which when deserialized by MessagePack gets converted to Utc.
-    /// </summary>
-    public DateTime dtNowFixed
-    {
-        get { return _dtNowFixed; }
-        set { _dtNowFixed = DateTime.SpecifyKind(value, DateTimeKind.Utc); }
-    }
-    public Dictionary<DateTime, string> d { get; set; } = new Dictionary<DateTime, string> { { DateTime.UtcNow.Date, "x" }, { DateTime.UtcNow.Date.AddDays(-1), "y" } };
 }

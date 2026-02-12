@@ -1,7 +1,12 @@
 ﻿namespace CasCap.Common.Extensions.Tests;
 
-public abstract class TestBase
+/// <summary>
+/// Base class for extension method tests, providing xUnit logging.
+/// </summary>
+public abstract class TestBase : IDisposable
 {
+    private readonly ServiceProvider _serviceProvider;
+
     protected TestBase(ITestOutputHelper testOutputHelper)
     {
         //initiate ServiceCollection w/logging
@@ -9,6 +14,12 @@ public abstract class TestBase
             .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
-        _ = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
+    }
+
+    public void Dispose()
+    {
+        _serviceProvider.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

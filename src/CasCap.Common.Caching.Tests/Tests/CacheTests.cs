@@ -10,8 +10,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task TestBgServices_Async(SerializationType SerializationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
-        var key = $"{Guid.NewGuid()}:{nameof(TestBgServices_Async)}:{SerializationType}";
-        var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingOptions = new CachingOptions
         {
@@ -20,15 +18,11 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             MemoryCache = new CacheOptions { ClearOnStartup = ClearOnStartup }
         };
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
-        var serviceProvider = services.BuildServiceProvider();
-        serviceProvider.AddStaticLogging();
-        var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
-        var localCache = serviceProvider.GetRequiredService<ILocalCache>();
+        await using var serviceProvider = services.BuildServiceProvider();
         var source = new CancellationTokenSource();
         var cancellationToken = source.Token;
 
         var cacheExpiryBgSvc = serviceProvider.GetRequiredService<IHostedService>() as CacheExpiryBgService;
-        //var localCacheExpirySvc = serviceProvider.GetRequiredService<LocalCacheExpiryService>();
 
         //Act
         //start bg service
@@ -40,7 +34,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         await source.CancelAsync();
         source.Dispose();
         await Task.Delay(1_000);//short pause for the cancellation token to take effect
-        //await localCacheInvalidationBgSvc.StopAsync(cancellationToken);
 
         //Assert
         Assert.True(true);
@@ -58,13 +51,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
-        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+        await using var serviceProvider = services.BuildServiceProvider();
+        var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
         var key = $"{Guid.NewGuid()}:{nameof(SlidingExpirationTest_Async)}:{SerializationType.Json}";
         var slidingExpirationSeconds = 6;
         var checkIntervalSeconds = 2;
         var slidingExpiration = TimeSpan.FromSeconds(slidingExpirationSeconds);
-        //var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MockDto(DateTime.UtcNow);
 
         //Act
@@ -96,7 +89,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
-        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+        await using var serviceProvider = services.BuildServiceProvider();
+        var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
         var key = $"{Guid.NewGuid()}:{nameof(AbsoluteExpirationTest_Async)}:{SerializationType.Json}";
         var absoluteExpirationSeconds = 5;
@@ -147,7 +141,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
-        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+        using var serviceProvider = services.BuildServiceProvider();
+        var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
         //Act
         var inserted = false;
@@ -220,7 +215,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
-        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+        await using var serviceProvider = services.BuildServiceProvider();
+        var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
         //Act
         var inserted = false;
@@ -289,7 +285,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
-        var remoteCache = services.BuildServiceProvider().GetRequiredService<IRemoteCache>();
+        await using var serviceProvider = services.BuildServiceProvider();
+        var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
         var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_LuaTest)}:{SerializationType}";
         var totalSeconds = 10;
         var absoluteExpiration = DateTime.UtcNow.AddSeconds(totalSeconds);
@@ -348,8 +345,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             MemoryCache = new CacheOptions { ClearOnStartup = true }
         };
         _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
-        var serviceProvider = services.BuildServiceProvider();
-        serviceProvider.AddStaticLogging();
+        await using var serviceProvider = services.BuildServiceProvider();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
         var localCache = serviceProvider.GetRequiredService<ILocalCache>();
 
@@ -374,10 +370,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //re-retrieve from cache
         var objFromCache4 = await distCacheSvc.Get<MockDto>(key);
         //test async Func setter
-        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, new Func<Task>(() => return APIService.GetAsync());
-        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, APIService.GetAsync()));
-        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, async () => { return await APIService.GetAsync(); }));
-        //var objFromCache = await distCacheSvc.Get<MyTestClass>(key, async () => { await Task.Yield(); });
         var objFromCacheA = await distCacheSvc.Get(key, MockApiService.GetAsync, absoluteExpiration: absoluteExpiration);
         var objFromCacheB = await distCacheSvc.Get(key, MockApiService.GetAsync);
 
@@ -418,7 +410,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         else if (extensionType == 2)
         {
             var configuration = new ConfigurationBuilder()
-                //.AddCasCapConfiguration()
                 .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
                 .Build();
             services.AddSingleton<IConfiguration>(configuration);
@@ -428,7 +419,6 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         {
             var cachingOptions = new CachingOptions
             {
-                //DiskCacheFolder = "testing123"
             };
             services.AddCasCapCaching(cachingOptions, LocalCacheType: LocalCacheType);
         }
@@ -436,12 +426,10 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         {
             services.AddCasCapCaching(options =>
             {
-                // Specify default option values
-                //options.DiskCacheFolder = "testing123";
             }, LocalCacheType: LocalCacheType);
         }
 
-        var serviceProvider = services.BuildServiceProvider();
+        using var serviceProvider = services.BuildServiceProvider();
 
         //Act
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();

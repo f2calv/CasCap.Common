@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Extensions.Tests;
 
+/// <summary>
+/// Tests for IO extension methods.
+/// </summary>
 public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact, Trait("Category", nameof(IO))]

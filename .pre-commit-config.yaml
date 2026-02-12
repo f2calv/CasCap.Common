@@ -18,11 +18,11 @@ repos:
   - id: trailing-whitespace
   - id: double-quote-string-fixer
 - repo: https://gitlab.com/bmares/check-json5
-  rev: v1.0.0
+  rev: v1.0.1
   hooks:
   - id: check-json5
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.45.0
+  rev: v0.47.0
   hooks:
   - id: markdownlint
-    args: ["--disable", "MD013", "--disable", "MD034", "--"]
+    args: ["--disable", "MD013", "--disable", "MD034", "--disable", "MD060", "--"]

@@ -47,7 +47,7 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
         public int ID { get; set; } = 1337;
         public DateTime utcNow { get; set; } = DateTime.UtcNow;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MyTestClass3 @class &&
                    ID == @class.ID &&

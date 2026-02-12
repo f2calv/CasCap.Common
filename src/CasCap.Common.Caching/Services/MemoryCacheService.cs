@@ -15,11 +15,19 @@ public class MemoryCacheService : ILocalCache
     /// </summary>
     private readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Event fires when an object is evicted from the <see cref="MemoryCache"/>.
+    /// </summary>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
+
+    /// <summary>
+    /// Raises the <see cref="PostEvictionEvent"/>.
+    /// </summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.
+    /// </summary>
     public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -51,7 +59,7 @@ public class MemoryCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
             .SetPriority(_cachingOptions.MemoryCacheItemPriority)
@@ -70,14 +78,6 @@ public class MemoryCacheService : ILocalCache
             nameof(MemoryCacheService), typeof(T), key, nameof(MemoryCache), options);
     }
 
-    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
-    {
-        if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
-            throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");
-        if (absoluteExpiration.HasValue && absoluteExpiration.Value < DateTime.UtcNow)
-            throw new NotSupportedException($"{nameof(absoluteExpiration)} is requested for key {key} but {absoluteExpiration} is already expired!");
-    }
-
     private void EvictionCallback(object key, object value, EvictionReason reason, object state)
     {
         if (_cacheKeys.TryGetValue((string)key, out var _))
@@ -85,7 +85,7 @@ public class MemoryCacheService : ILocalCache
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
             _logger.LogTrace("{ClassName} evicted object with {Key} from {ApiName} (reason {Reason})",
-                nameof(MemoryCacheService), nameof(MemoryCache), args.key, args.reason);
+                nameof(MemoryCacheService), nameof(MemoryCache), args.Key, args.Reason);
             _cacheKeys.TryRemove((string)key, out var _);
         }
     }

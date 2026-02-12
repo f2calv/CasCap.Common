@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Services;
 
+/// <summary>
+/// Background service that runs <see cref="LocalCacheExpiryService"/> and <see cref="RemoteCacheExpiryService"/> concurrently.
+/// </summary>
 public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
     LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : BackgroundService
 {
@@ -7,14 +10,9 @@ public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
     {
         await Task.Yield();
         logger.LogInformation("{ClassName} starting", nameof(CacheExpiryBgService));
-        var tasks = new List<Task>
-        {
+        await Task.WhenAll(
             localCacheExpirySvc.ExecuteAsync(stoppingToken),
-            remoteCacheExpirySvc.ExecuteAsync(stoppingToken),
-        };
-        if (tasks.IsNullOrEmpty())
-            throw new GenericException("no services found to launch!");
-        await Task.WhenAll(tasks);
+            remoteCacheExpirySvc.ExecuteAsync(stoppingToken));
         logger.LogInformation("{ClassName} exiting", nameof(CacheExpiryBgService));
     }
 }

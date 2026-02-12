@@ -1,5 +1,8 @@
 ﻿namespace Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Provides a static <see cref="ILoggerFactory"/> for creating loggers outside of dependency injection.
+/// </summary>
 //https://stackoverflow.com/questions/48676152/asp-net-core-web-api-logging-from-a-static-class
 public static class ApplicationLogging
 {

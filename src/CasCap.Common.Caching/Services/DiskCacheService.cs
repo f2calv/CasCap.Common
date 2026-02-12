@@ -30,7 +30,9 @@ public class DiskCacheService : ILocalCache
     /// </remarks>
     private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
+    /// </summary>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -82,7 +84,7 @@ public class DiskCacheService : ILocalCache
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
         key = ConvertKeyToFilePath(key);//this must happen first!
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
         if (cacheEntry is not null)
         {
@@ -102,27 +104,19 @@ public class DiskCacheService : ILocalCache
         }
     }
 
-    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
-    {
-        if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
-            throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");
-        if (absoluteExpiration.HasValue && absoluteExpiration.Value < DateTime.UtcNow)
-            throw new NotSupportedException($"{nameof(absoluteExpiration)} is requested for key {key} but {absoluteExpiration} is already expired!");
-    }
-
     private void UpdateExpirations(string key, ref TimeSpan? slidingExpiration, ref DateTimeOffset? absoluteExpiration)
     {
         if (slidingExpiration.HasValue)
         {
-            var _slidingExpiration = slidingExpiration.Value;//because can't use ref type in lamba
-            _ = _slidingExpirations.AddOrUpdate(key, _slidingExpiration, (k, v) => { v = _slidingExpiration; return v; });
+            var newExpiration = slidingExpiration.Value;
+            _slidingExpirations.AddOrUpdate(key, newExpiration, (_, _) => newExpiration);
             if (!absoluteExpiration.HasValue)
-                absoluteExpiration = DateTime.UtcNow + _slidingExpiration;
+                absoluteExpiration = DateTime.UtcNow + newExpiration;
         }
         if (absoluteExpiration.HasValue)
         {
-            var _absoluteExpiration = absoluteExpiration.Value;//because can't use ref type in lamba
-            _ = _absoluteExpirations.AddOrUpdate(key, _absoluteExpiration, (k, v) => { v = _absoluteExpiration; return v; });
+            var newAbsoluteExpiration = absoluteExpiration.Value;
+            _absoluteExpirations.AddOrUpdate(key, newAbsoluteExpiration, (_, _) => newAbsoluteExpiration);
         }
     }
 
@@ -152,7 +146,9 @@ public class DiskCacheService : ILocalCache
         return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Asynchronously retrieves an object from disk, optionally creating it via <paramref name="createItem"/> if not found.
+    /// </summary>
 #if NET8_0_OR_GREATER
     [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
 #else

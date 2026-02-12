@@ -11,7 +11,10 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
 
     /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
-    /// <inheritdoc/>
+
+    /// <summary>
+    /// Raises the <see cref="PostEvictionEvent"/>.
+    /// </summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     //TODO: store a summary of all cached items in a local lookup dictionary?
@@ -130,7 +133,31 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     public async Task<long> DeleteAll(CommandFlags flags = CommandFlags.None, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(0, cancellationToken);
-        throw new NotImplementedException("TODO!");
+        var localCount = localCache.DeleteAll();
+        long remoteCount = 0;
+        if (_cachingOptions.RemoteCache.IsEnabled)
+        {
+            var server = remoteCache.Server;
+            const int batchSize = 1000;
+            var batch = new List<RedisKey>(batchSize);
+
+            foreach (var key in server.Keys(_cachingOptions.RemoteCache.DatabaseId, pageSize: batchSize))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                batch.Add(key);
+
+                if (batch.Count >= batchSize)
+                {
+                    remoteCount += await remoteCache.Db.KeyDeleteAsync(batch.ToArray(), flags).ConfigureAwait(false);
+                    batch.Clear();
+                }
+            }
+
+            if (batch.Count > 0)
+            {
+                remoteCount += await remoteCache.Db.KeyDeleteAsync(batch.ToArray(), flags).ConfigureAwait(false);
+            }
+        }
+        return localCount + remoteCount;
     }
 }

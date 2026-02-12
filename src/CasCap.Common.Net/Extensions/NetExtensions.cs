@@ -1,13 +1,23 @@
 ﻿namespace CasCap.Common.Extensions;
 
+/// <summary>
+/// Extension methods for HTTP headers, query strings and request utilities.
+/// </summary>
 public static class NetExtensions
 {
+    /// <summary>
+    /// Retrieves the first value for the specified response header name, or <c>null</c> if not found.
+    /// </summary>
     public static string? TryGetValue(this HttpResponseHeaders headers, string name)
     {
-        var headerValues = headers.GetValues(name);
-        return headerValues.FirstOrDefault();
+        if (headers.TryGetValues(name, out var headerValues))
+            return headerValues.FirstOrDefault();
+        return null;
     }
 
+    /// <summary>
+    /// Converts a <see cref="NameValueCollection"/> to a URL-encoded query string.
+    /// </summary>
     public static string ToQueryString(this NameValueCollection nvc)
     {
         var array = (from key in nvc.AllKeys

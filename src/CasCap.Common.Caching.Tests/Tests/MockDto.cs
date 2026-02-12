@@ -1,10 +1,14 @@
 ﻿namespace CasCap.Common.Caching.Tests;
 
-/// <inheritdoc/>
+/// <summary>
+/// Test DTO for cache serialization round-trip tests.
+/// </summary>
 [MessagePackObject(true)]
 public class MockDto
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance with the specified UTC timestamp.
+    /// </summary>
     public MockDto(DateTime someDateTimeUtc)
     {
         SomeDateTimeUtc = someDateTimeUtc;

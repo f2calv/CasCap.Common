@@ -85,7 +85,7 @@ public interface IRemoteCache
     /// When we attempt to a previously cached item we also send in the sliding
     /// expiration again to push the Redis expiration forward.
     /// </summary>
-    ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; }
+    ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; }
 
     /// <summary>
     /// Leverages <see cref="IDatabaseAsync.StringGetWithExpiryAsync(RedisKey, CommandFlags)"/> to return the object

@@ -9,7 +9,9 @@ public class RedisCacheService : IRemoteCache
     private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly CachingOptions _cachingOptions;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
+    /// </summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
         IOptions<CachingOptions> cachingOptions)
     {
@@ -75,7 +77,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
     }
@@ -83,7 +85,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
     }
@@ -91,7 +93,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
     }
@@ -99,7 +101,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
-        ValidateExpirations(key, slidingExpiration, absoluteExpiration);
+        CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
     }
@@ -112,20 +114,12 @@ public class RedisCacheService : IRemoteCache
         return Task.FromResult(false);
     }
 
-    private static void ValidateExpirations(string key, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
-    {
-        if (slidingExpiration.HasValue && absoluteExpiration.HasValue)
-            throw new NotSupportedException($"{nameof(slidingExpiration)} and {nameof(absoluteExpiration)} are both requested for key {key}!");
-        if (absoluteExpiration.HasValue && absoluteExpiration.Value < DateTime.UtcNow)
-            throw new NotSupportedException($"{nameof(absoluteExpiration)} is requested for key {key} but {absoluteExpiration} is already expired!");
-    }
-
     private void UpdateExpirations(string key, ref TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
     {
         if (slidingExpiration.HasValue)
         {
-            var _slidingExpiration = slidingExpiration.Value;//because can't use ref type in lamba
-            _ = SlidingExpirations.AddOrUpdate(key, _slidingExpiration, (k, v) => { v = _slidingExpiration; return v; });
+            var newExpiration = slidingExpiration.Value;
+            _ = SlidingExpirations.AddOrUpdate(key, newExpiration, (_, _) => newExpiration);
         }
         //Redis doesn't support absolute expiration, so we convert any given absoluteExpiration
         //into a relative value - but we don't add the key to the _slidingExpirations collection.
@@ -252,7 +246,7 @@ public class RedisCacheService : IRemoteCache
         }
     }
 
-    #region
+    #region Lua scripts
     /// <inheritdoc/>
     public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = [];
 

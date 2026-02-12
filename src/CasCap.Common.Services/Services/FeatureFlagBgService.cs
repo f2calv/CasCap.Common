@@ -10,6 +10,9 @@ public class FeatureFlagBgService<T> : BackgroundService
     private readonly IFeatureOptions<T> _featureOptions;
     private readonly IEnumerable<IFeature<T>> _features;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FeatureFlagBgService{T}"/> class.
+    /// </summary>
     public FeatureFlagBgService(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureOptions<T>> featureOptions, IEnumerable<IFeature<T>> features)
     {
         _logger = logger;

@@ -25,7 +25,7 @@ public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         public int ID { get; set; } = 1337;
         public DateTime utcNow { get; set; } = DateTime.UtcNow;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MyTestClass4 @class &&
                    ID == @class.ID &&
