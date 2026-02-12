@@ -3,27 +3,15 @@
 /// <summary>
 /// Mock API for testing fake async data retrieval.
 /// </summary>
-public class MockApiService
+public static class MockApiService
 {
-    private static MockDto? obj = null;
-
     /// <summary>
     /// Mock synchronous data retrieval.
     /// </summary>
-    public static MockDto Get()
-    {
-        //lets go fake getting some data
-        obj ??= new MockDto(DateTime.UtcNow);
-        return obj;
-    }
+    public static MockDto Get() => new(DateTime.UtcNow);
 
     /// <summary>
     /// Mock asynchronous data retrieval.
     /// </summary>
-    public static Task<MockDto> GetAsync()
-    {
-        //lets go fake getting some data
-        obj ??= new MockDto(DateTime.UtcNow);
-        return Task.FromResult(obj);
-    }
+    public static Task<MockDto> GetAsync() => Task.FromResult(new MockDto(DateTime.UtcNow));
 }
