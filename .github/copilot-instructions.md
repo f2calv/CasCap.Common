@@ -91,9 +91,10 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 ### XML Documentation
 
+- Every public class, record, method, property, and enum member should have an XML comment.
+- **Exception — test projects**: XML comments are required on classes, records, and properties but **not** on test methods.
 - **Document fully on the interface** — use `/// <inheritdoc/>` on implementing classes to avoid duplication.
 - When an enum is a public method parameter, use `<inheritdoc cref="EnumType" path="/summary"/>` in the `<param>` tag rather than repeating the enum's documentation.
-- Every public class, record, method, property, and enum member should have an XML comment.
 - Separate each property declaration with a blank line (including in records and classes with only auto-properties).
 
 ### Disposable Resources
