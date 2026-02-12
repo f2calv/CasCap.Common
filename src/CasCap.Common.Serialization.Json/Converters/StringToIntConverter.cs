@@ -1,6 +1,5 @@
 ﻿namespace CasCap.Common.Converters;
 
-//TODO: move to common lib although this can be handled better by generics or even better by JsonNumberHandling.AllowReadingFromString
 public class StringToIntConverter : JsonConverter<int?>
 {
     public override int? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -12,6 +11,6 @@ public class StringToIntConverter : JsonConverter<int?>
     public override void Write(Utf8JsonWriter writer, int? intValue, JsonSerializerOptions options)
     {
         if (intValue.HasValue)
-            writer.WriteRawValue(intValue.ToString());
+            writer.WriteRawValue(intValue.Value.ToString());
     }
 }
