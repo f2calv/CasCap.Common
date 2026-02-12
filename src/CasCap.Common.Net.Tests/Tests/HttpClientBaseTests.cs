@@ -57,7 +57,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         }, new TestPayload { Id = 0, Name = "empty" });
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", null);
+        var (result, _) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", null);
 
         Assert.NotNull(result);
         Assert.Equal("{}", capturedBody);
@@ -74,7 +74,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Custom", "myvalue") };
-        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, headers: headers);
+        _ = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, headers: headers);
 
         Assert.Equal("myvalue", headerValue);
     }
@@ -138,7 +138,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawBytes(expected);
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<byte[], string>("/api/test", new { Id = 1 });
+        var (result, _) = await client.TestPostJsonAsync<byte[], string>("/api/test", new { Id = 1 });
 
         Assert.NotNull(result);
         Assert.Equal(expected, result);
@@ -198,7 +198,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Upload-Id", "upload-123") };
-        var (result, error) = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], headers: headers);
+        _ = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], headers: headers);
 
         Assert.Equal("upload-123", headerValue);
     }
@@ -271,7 +271,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("Authorization", "Bearer token123") };
-        var (result, error) = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", headers: headers);
+        _ = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", headers: headers);
 
         Assert.Equal("Bearer token123", headerValue);
     }
@@ -322,7 +322,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawString("plain text");
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestGetAsync<string, string>("/api/data");
+        var (result, _) = await client.TestGetAsync<string, string>("/api/data");
 
         Assert.Equal("plain text", result);
     }
@@ -334,7 +334,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawBytes(expected);
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestGetAsync<byte[], string>("/api/data");
+        var (result, _) = await client.TestGetAsync<byte[], string>("/api/data");
 
         Assert.NotNull(result);
         Assert.Equal(expected, result);
