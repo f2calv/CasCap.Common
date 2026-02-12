@@ -130,7 +130,17 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     public async Task<long> DeleteAll(CommandFlags flags = CommandFlags.None, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(0, cancellationToken);
-        throw new NotImplementedException("TODO!");
+        var localCount = localCache.DeleteAll();
+        long remoteCount = 0;
+        if (_cachingOptions.RemoteCache.IsEnabled)
+        {
+            var server = remoteCache.Server;
+            var keys = server.Keys(_cachingOptions.RemoteCache.DatabaseId).ToArray();
+            if (keys.Length > 0)
+            {
+                remoteCount = await remoteCache.Db.KeyDeleteAsync(keys, flags);
+            }
+        }
+        return localCount + remoteCount;
     }
 }
