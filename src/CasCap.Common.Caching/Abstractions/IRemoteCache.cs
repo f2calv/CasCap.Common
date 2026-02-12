@@ -101,7 +101,7 @@ public interface IRemoteCache
     /// <summary>
     /// Exposes a dictionary of LuaScripts to allow management of scripts during connection.
     /// </summary>
-    Dictionary<string, LoadedLuaScript> LuaScripts { get; }
+    Dictionary<string, LoadedLuaScript> LuaScripts { get; set; }
 
     /// <summary>
     /// Loads a custom script into the <see cref="LuaScripts"/> collection.
