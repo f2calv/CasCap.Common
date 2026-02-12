@@ -138,10 +138,24 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         if (_cachingOptions.RemoteCache.IsEnabled)
         {
             var server = remoteCache.Server;
-            var keys = server.Keys(_cachingOptions.RemoteCache.DatabaseId).ToArray();
-            if (keys.Length > 0)
+            const int batchSize = 1000;
+            var batch = new List<RedisKey>(batchSize);
+
+            foreach (var key in server.Keys(_cachingOptions.RemoteCache.DatabaseId, pageSize: batchSize))
             {
-                remoteCount = await remoteCache.Db.KeyDeleteAsync(keys, flags);
+                cancellationToken.ThrowIfCancellationRequested();
+                batch.Add(key);
+
+                if (batch.Count >= batchSize)
+                {
+                    remoteCount += await remoteCache.Db.KeyDeleteAsync(batch.ToArray(), flags).ConfigureAwait(false);
+                    batch.Clear();
+                }
+            }
+
+            if (batch.Count > 0)
+            {
+                remoteCount += await remoteCache.Db.KeyDeleteAsync(batch.ToArray(), flags).ConfigureAwait(false);
             }
         }
         return localCount + remoteCount;
