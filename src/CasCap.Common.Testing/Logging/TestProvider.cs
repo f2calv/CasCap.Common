@@ -1,5 +1,8 @@
 ﻿namespace Microsoft.Extensions.Logging;
 
+/// <summary>
+/// <see cref="ILoggerProvider"/> that routes log output to xUnit's <see cref="ITestOutputHelper"/>.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvider
 {

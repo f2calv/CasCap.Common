@@ -1,9 +1,15 @@
 ﻿namespace CasCap.Common.Diagnostics.HealthChecks;
 
+/// <summary>
+/// Base class for health checks that verify HTTP endpoint accessibility.
+/// </summary>
 public abstract class HttpEndpointCheckBase(ILogger logger, HttpClient client)
 {
     protected /*readonly */ILogger _logger = logger;
 
+    /// <summary>
+    /// Checks whether the specified HTTP endpoint is accessible and returns the expected status code.
+    /// </summary>
     protected async Task<bool> IsAccessible(string requestUri, int HealthCheckExpectedHttpStatusCode = 0, CancellationToken cancellationToken = default)
     {
         requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));

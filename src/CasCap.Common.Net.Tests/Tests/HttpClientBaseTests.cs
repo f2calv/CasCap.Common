@@ -4,6 +4,9 @@ using CasCap.Common.Services;
 using System.Text;
 using System.Text.Json;
 
+/// <summary>
+/// Tests for <see cref="HttpClientBase"/> protected HTTP methods.
+/// </summary>
 public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     private static TestHttpClient CreateClient(MockHandler handler)
@@ -368,14 +371,30 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
 
 #region Test helpers
 
+/// <summary>
+/// Test response payload.
+/// </summary>
 public class TestPayload
 {
+    /// <summary>
+    /// Payload identifier.
+    /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// Payload name.
+    /// </summary>
     public string Name { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Test error payload.
+/// </summary>
 public class ErrorPayload
 {
+    /// <summary>
+    /// Error message.
+    /// </summary>
     public string Message { get; set; } = string.Empty;
 }
 

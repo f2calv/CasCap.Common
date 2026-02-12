@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Xunit;
 
+/// <summary>
+/// Skips the test when running in any CI environment (Azure DevOps or GitHub Actions).
+/// </summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfCIBuildFactAttribute : FactAttribute

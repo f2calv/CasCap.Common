@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
+/// <summary>
+/// Tests for JSON and MessagePack serialization helpers.
+/// </summary>
 public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]

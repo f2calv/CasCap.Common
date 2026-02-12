@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Net.Tests;
 
+/// <summary>
+/// Tests for <see cref="NetExtensions"/> methods.
+/// </summary>
 public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     [Fact, Trait("Category", "Extensions")]

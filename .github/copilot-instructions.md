@@ -166,3 +166,4 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 3. Run the full validation checklist before submitting a PR
 4. PRs target the `main` branch and require CI to pass
 5. Versioning is automated via GitVersion — do not manually edit version numbers
+6. When using Copilot to implement code quality or legibility improvements, update this file to capture any new conventions so they are applied consistently in future sessions
