@@ -10,8 +10,9 @@ public static class NetExtensions
     /// </summary>
     public static string? TryGetValue(this HttpResponseHeaders headers, string name)
     {
-        var headerValues = headers.GetValues(name);
-        return headerValues.FirstOrDefault();
+        if (headers.TryGetValues(name, out var headerValues))
+            return headerValues.FirstOrDefault();
+        return null;
     }
 
     /// <summary>
