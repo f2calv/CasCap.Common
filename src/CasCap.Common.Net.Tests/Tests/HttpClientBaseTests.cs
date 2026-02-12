@@ -51,9 +51,9 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_NullBody_SendsEmptyJsonObject()
     {
         string? capturedBody = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
-            capturedBody = req.Content!.ReadAsStringAsync().Result;
+            capturedBody = await req.Content!.ReadAsStringAsync();
         }, new TestPayload { Id = 0, Name = "empty" });
         var client = CreateClient(handler);
 
@@ -67,9 +67,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("X-Custom").FirstOrDefault();
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -83,9 +84,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_FullUrl_OverridesBaseAddress()
     {
         Uri? capturedUri = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             capturedUri = req.RequestUri;
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -191,9 +193,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostBytes_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("X-Upload-Id").FirstOrDefault();
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -207,9 +210,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostBytes_SetsContentType()
     {
         string? contentType = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             contentType = req.Content!.Headers.ContentType?.MediaType;
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -264,9 +268,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task GetAsync_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("Authorization").FirstOrDefault();
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -294,9 +299,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task GetAsync_FullUrl_OverridesBaseAddress()
     {
         Uri? capturedUri = null;
-        var handler = MockHandler.WithCapture(req =>
+        var handler = MockHandler.WithCapture(async req =>
         {
             capturedUri = req.RequestUri;
+            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -537,17 +543,17 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    public static MockHandler WithCapture<T>(Action<HttpRequestMessage> capture, T payload)
+    public static MockHandler WithCapture<T>(Func<HttpRequestMessage, Task> capture, T payload)
     {
-        return new MockHandler((req, _) =>
+        return new MockHandler(async (req, _) =>
         {
-            capture(req);
+            await capture(req);
             var json = JsonSerializer.Serialize(payload);
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            return Task.FromResult(response);
+            return response;
         });
     }
 
