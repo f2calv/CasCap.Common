@@ -137,9 +137,11 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 1. Add version to `Directory.Packages.props`
 2. Reference in `.csproj` **without** a version attribute:
+
    ```xml
    <PackageReference Include="PackageName" />
    ```
+
 3. Run `dotnet restore`
 
 ### Creating New Projects
