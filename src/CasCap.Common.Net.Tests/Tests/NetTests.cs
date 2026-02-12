@@ -134,9 +134,10 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
     }
 
     [Fact, Trait("Category", "Extensions")]
-    public void TryGetValue_MissingHeader_Throws()
+    public void TryGetValue_MissingHeader_ReturnsNull()
     {
         using var response = new HttpResponseMessage();
-        Assert.Throws<InvalidOperationException>(() => response.Headers.TryGetValue("X-Missing"));
+        var result = response.Headers.TryGetValue("X-Missing");
+        Assert.Null(result);
     }
 }
