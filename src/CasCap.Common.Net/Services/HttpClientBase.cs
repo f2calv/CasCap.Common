@@ -5,7 +5,7 @@ public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     protected ILogger _logger;
-    protected HttpClient _client;
+    public HttpClient Client;
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
     protected virtual async Task<(TResult? result, TError? error)> PostJsonAsync<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json", CancellationToken cancellationToken = default)
@@ -22,14 +22,14 @@ public abstract class HttpClientBase
         where TError : class
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         var json = req!.ToJson();
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
             request.Content = new StringContent(json, Encoding.UTF8, mediaType);
             request.Headers.AddOrOverwrite(additionalHeaders);
-            using var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);//need to create a new .NET Standard extension method to handle GetCT(timeout)
+            using var response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);//need to create a new .NET Standard extension method to handle GetCT(timeout)
             tpl = await HandleResult<TResult, TError>(response, cancellationToken);
         }
         return tpl;
@@ -50,7 +50,7 @@ public abstract class HttpClientBase
         where TError : class
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
@@ -58,7 +58,7 @@ public abstract class HttpClientBase
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
             //request.Headers.Add("Content-Type", mediaType);
             request.Headers.AddOrOverwrite(additionalHeaders);
-            using var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             tpl = await HandleResult<TResult, TError>(response, cancellationToken);
         }
         return tpl;
@@ -78,10 +78,10 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-        var url = requestUri.StartsWith("http") ? requestUri : $"{_client.BaseAddress}{requestUri}";//allows us to override base url
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
         //TODO: add in headers?
-        using var response = await _client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
+        using var response = await Client.GetAsync(url, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
         return await HandleResult<TResult, TError>(response, cancellationToken);
     }
 
