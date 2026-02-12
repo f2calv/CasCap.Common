@@ -15,11 +15,19 @@ public class MemoryCacheService : ILocalCache
     /// </summary>
     private readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Event fires when an object is evicted from the <see cref="MemoryCache"/>.
+    /// </summary>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
+
+    /// <summary>
+    /// Raises the <see cref="PostEvictionEvent"/>.
+    /// </summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.
+    /// </summary>
     public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;

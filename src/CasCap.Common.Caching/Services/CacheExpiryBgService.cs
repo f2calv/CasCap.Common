@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Services;
 
+/// <summary>
+/// Background service that runs <see cref="LocalCacheExpiryService"/> and <see cref="RemoteCacheExpiryService"/> concurrently.
+/// </summary>
 public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
     LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : BackgroundService
 {

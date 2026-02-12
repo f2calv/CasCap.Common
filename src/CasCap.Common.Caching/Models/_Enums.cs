@@ -1,19 +1,32 @@
 ﻿namespace CasCap.Models;
 
+/// <summary>
+/// Identifies the type of cache provider.
+/// </summary>
 public enum CacheType
 {
+    /// <summary>No cache.</summary>
     None = 0,
+    /// <summary>In-process memory cache.</summary>
     Memory = 1,
+    /// <summary>File-system disk cache.</summary>
     Disk = 2,
+    /// <summary>Redis remote cache.</summary>
     Redis = 4,
     //ValKey
     //Postgres
 }
 
+/// <summary>
+/// Identifies the serialization format used for cache entries.
+/// </summary>
 public enum SerializationType
 {
+    /// <summary>No serialization (in-memory objects only).</summary>
     None = 0,
+    /// <summary>JSON serialization via System.Text.Json.</summary>
     Json = 1,
+    /// <summary>Binary serialization via MessagePack.</summary>
     MessagePack = 2
 }
 

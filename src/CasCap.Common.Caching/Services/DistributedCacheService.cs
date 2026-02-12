@@ -11,7 +11,10 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
 
     /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
-    /// <inheritdoc/>
+
+    /// <summary>
+    /// Raises the <see cref="PostEvictionEvent"/>.
+    /// </summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
 
     //TODO: store a summary of all cached items in a local lookup dictionary?

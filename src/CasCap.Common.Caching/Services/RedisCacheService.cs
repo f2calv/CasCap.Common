@@ -9,7 +9,9 @@ public class RedisCacheService : IRemoteCache
     private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly CachingOptions _cachingOptions;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
+    /// </summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
         IOptions<CachingOptions> cachingOptions)
     {
@@ -244,7 +246,7 @@ public class RedisCacheService : IRemoteCache
         }
     }
 
-    #region
+    #region Lua scripts
     /// <inheritdoc/>
     public Dictionary<string, LoadedLuaScript> LuaScripts { get; set; } = [];
 

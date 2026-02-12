@@ -32,12 +32,18 @@ public sealed class AsyncDuplicateLock
         return item.Value;
     }
 
+    /// <summary>
+    /// Acquires a synchronous lock for the given key, blocking until the lock is available.
+    /// </summary>
     public static IDisposable Lock(object key)
     {
         GetOrCreate(key).Wait();
         return new Releaser { Key = key };
     }
 
+    /// <summary>
+    /// Acquires an asynchronous lock for the given key, awaiting until the lock is available.
+    /// </summary>
     public static async Task<IDisposable> LockAsync(object key)
     {
         await GetOrCreate(key).WaitAsync().ConfigureAwait(false);

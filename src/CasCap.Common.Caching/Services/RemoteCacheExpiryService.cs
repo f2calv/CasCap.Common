@@ -7,6 +7,9 @@
 /// </summary>
 public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, IRemoteCache remoteCache, IOptions<CachingOptions> cachingOptions)
 {
+    /// <summary>
+    /// Subscribes to Redis key expiration events and runs until cancellation, performing sliding expiration housekeeping.
+    /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("{ClassName} starting", nameof(RemoteCacheExpiryService));

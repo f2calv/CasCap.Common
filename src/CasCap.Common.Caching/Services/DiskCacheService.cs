@@ -30,7 +30,9 @@ public class DiskCacheService : ILocalCache
     /// </remarks>
     private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
+    /// </summary>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
     {
         _logger = logger;
@@ -144,7 +146,9 @@ public class DiskCacheService : ILocalCache
         return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Asynchronously retrieves an object from disk, optionally creating it via <paramref name="createItem"/> if not found.
+    /// </summary>
 #if NET8_0_OR_GREATER
     [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
 #else
