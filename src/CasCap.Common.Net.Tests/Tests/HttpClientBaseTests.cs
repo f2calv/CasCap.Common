@@ -70,7 +70,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("X-Custom").FirstOrDefault();
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -87,7 +86,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             capturedUri = req.RequestUri;
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -196,7 +194,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("X-Upload-Id").FirstOrDefault();
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -213,7 +210,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             contentType = req.Content!.Headers.ContentType?.MediaType;
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -271,7 +267,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             headerValue = req.Headers.GetValues("Authorization").FirstOrDefault();
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
@@ -302,7 +297,6 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.WithCapture(async req =>
         {
             capturedUri = req.RequestUri;
-            await Task.CompletedTask;
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
