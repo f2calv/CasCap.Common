@@ -78,6 +78,7 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 ### Style (enforced by `.editorconfig`)
 
+- **Class-per-file**: Each class, record, struct, or enum should be in its own file. Nested private types used only by their enclosing class are exempt.
 - **Indentation**: 4 spaces, LF line endings
 - **Interfaces**: Must start with `I` (PascalCase)
 - **Types/Methods/Properties**: PascalCase
