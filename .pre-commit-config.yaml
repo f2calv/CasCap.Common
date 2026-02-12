@@ -25,4 +25,4 @@ repos:
   rev: v0.47.0
   hooks:
   - id: markdownlint
-    args: ["--disable", "MD013", "--disable", "MD034", "--"]
+    args: ["--disable", "MD013", "--disable", "MD034", "--disable", "MD060", "--"]
