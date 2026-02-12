@@ -2,6 +2,8 @@
 
 public abstract class TestBase
 {
+    protected readonly IServiceProvider _serviceProvider;
+
     protected TestBase(ITestOutputHelper testOutputHelper)
     {
         var configuration = new ConfigurationBuilder()
@@ -13,7 +15,6 @@ public abstract class TestBase
             .AddXUnitLogging(testOutputHelper);
 
         //assign services to be tested
-        _ = services.BuildServiceProvider();
-        //_???Svc = serviceProvider.GetRequiredService<I???Service>();
+        _serviceProvider = services.BuildServiceProvider();
     }
 }
