@@ -1,13 +1,23 @@
 ﻿#if NET8_0_OR_GREATER
 namespace CasCap.Common.Services;
 
+/// <summary>
+/// Abstract base class providing common HTTP request methods with built-in JSON/binary serialization and error handling.
+/// </summary>
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     protected ILogger _logger;
+
+    /// <summary>
+    /// The underlying <see cref="HttpClient"/> used to send HTTP requests.
+    /// </summary>
     public HttpClient Client { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
+    /// <summary>
+    /// Sends a POST request with a JSON body and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)> PostJsonAsync<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json", CancellationToken cancellationToken = default)
         where TResult : class
         where TError : class
@@ -16,6 +26,9 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a POST request with a JSON body and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)>
         PostJson<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/json", CancellationToken cancellationToken = default)
         where TResult : class
@@ -36,6 +49,9 @@ public abstract class HttpClientBase
         return tpl;
     }
 
+    /// <summary>
+    /// Sends a POST request with a binary body and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)>
         PostBytesAsync<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/octet-stream", CancellationToken cancellationToken = default)
         where TResult : class
@@ -45,6 +61,9 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a POST request with a binary body and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         PostBytes<TResult, TError>(string requestUri, byte[] bytes, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, string mediaType = "application/octet-stream", CancellationToken cancellationToken = default)
         where TResult : class
@@ -66,6 +85,9 @@ public abstract class HttpClientBase
         return tpl;
     }
 
+    /// <summary>
+    /// Sends a GET request and returns the deserialized result or error.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error)>
         GetAsync<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, CancellationToken cancellationToken = default)
         where TResult : class
@@ -75,6 +97,9 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>
+    /// Sends a GET request and returns the deserialized result, error, status code and response headers.
+    /// </summary>
     protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
         Get<TResult, TError>(string requestUri, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, CancellationToken cancellationToken = default)
         where TResult : class
@@ -89,6 +114,9 @@ public abstract class HttpClientBase
         return await HandleResult<TResult, TError>(response, cts.Token);
     }
 
+    /// <summary>
+    /// Optional directory path for writing debug JSON response files. Disabled when empty.
+    /// </summary>
     protected virtual string JsonDebugPath { get; set; } = string.Empty;
 
     private static CancellationTokenSource CreateLinkedCts(TimeSpan? timeout, CancellationToken cancellationToken)
