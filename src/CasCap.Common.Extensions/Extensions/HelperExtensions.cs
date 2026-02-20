@@ -154,6 +154,12 @@ public static class HelperExtensions
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
         var ts = dtiStart.Subtract(dtiEnd).Duration();
+        return ts.GetTimeDifference(includeSeconds, includeMinutes, includeHours, includeDays, includeMilliseconds);
+    }
+
+    public static string GetTimeDifference(this TimeSpan ts,
+        bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
+    {
         var sb = new StringBuilder();
         if (includeDays && ts.Days != 0) sb.Append(ts.Days + "d ");
         if (includeHours && ts.Hours != 0) sb.Append(ts.Hours + "h ");
