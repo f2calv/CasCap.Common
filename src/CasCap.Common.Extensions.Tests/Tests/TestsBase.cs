@@ -7,6 +7,7 @@ public abstract class TestBase : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
 
+    /// <summary>Initializes a new instance of the <see cref="TestBase"/> class.</summary>
     protected TestBase(ITestOutputHelper testOutputHelper)
     {
         //initiate ServiceCollection w/logging
@@ -17,6 +18,7 @@ public abstract class TestBase : IDisposable
         _serviceProvider = services.BuildServiceProvider();
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         _serviceProvider.Dispose();

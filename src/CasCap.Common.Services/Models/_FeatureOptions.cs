@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Common.Models;
 
 /// <inheritdoc cref="IFeatureOptions{T}"/>
-public class FeatureOptions<T> : IFeatureOptions<T>
+public record FeatureOptions<T> : IFeatureOptions<T>
     where T : Enum
 {
     /// <inheritdoc/>

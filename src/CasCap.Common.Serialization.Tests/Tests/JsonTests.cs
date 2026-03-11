@@ -1,7 +1,9 @@
 ﻿namespace CasCap.Common.Serialization.Tests;
 
+/// <summary>Tests for JSON serialization extension methods.</summary>
 public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies JSON serialization and deserialization of objects via extension methods.</summary>
     [Fact]
     public void TestExtensions()
     {
@@ -42,11 +44,16 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
         Assert.Equal(obja, obja4);
     }
 
+    /// <summary>A test model used to verify JSON serialization round-trips.</summary>
     public class MyTestClass3
     {
+        /// <summary>An integer identifier.</summary>
         public int ID { get; set; } = 1337;
+
+        /// <summary>A UTC timestamp.</summary>
         public DateTime utcNow { get; set; } = DateTime.UtcNow;
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             return obj is MyTestClass3 @class &&
@@ -54,6 +61,7 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
                    utcNow == @class.utcNow;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             throw new NotImplementedException();

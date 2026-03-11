@@ -7,7 +7,7 @@
 public class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
-    private readonly CachingOptions _cachingOptions;
+    private readonly CachingConfig _cachingConfig;
     private readonly string _diskCacheFolder;
 
     /// <summary>
@@ -33,13 +33,13 @@ public class DiskCacheService : ILocalCache
     /// <summary>
     /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
     /// </summary>
-    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
+    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
-        _cachingOptions = cachingOptions.Value;
-        _diskCacheFolder = _cachingOptions.DiskCacheFolder;
+        _cachingConfig = cachingConfig.Value;
+        _diskCacheFolder = _cachingConfig.DiskCacheFolder;
         if (!Directory.Exists(_diskCacheFolder)) Directory.CreateDirectory(_diskCacheFolder);
-        if (_cachingOptions.DiskCache.ClearOnStartup) DeleteAll();
+        if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
     }
 
     /// <inheritdoc/>
@@ -58,18 +58,18 @@ public class DiskCacheService : ILocalCache
         }
         else if (exists)
         {
-            if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
+            if (_cachingConfig.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = File.ReadAllText(key);
                 cacheEntry = json.FromJson<T>();
             }
-            else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
+            else if (_cachingConfig.DiskCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = File.ReadAllBytes(key);
                 cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingConfig.DiskCache.SerializationType)} {_cachingConfig.DiskCache.SerializationType} is not supported!");
             UpdateExpirations(key, ref slidingExpiration, ref absoluteExpiration);
             _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(DiskCacheService), typeof(T), key);
@@ -88,18 +88,18 @@ public class DiskCacheService : ILocalCache
         _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
         if (cacheEntry is not null)
         {
-            if (_cachingOptions.DiskCache.SerializationType == SerializationType.Json)
+            if (_cachingConfig.DiskCache.SerializationType == SerializationType.Json)
             {
                 var json = cacheEntry.ToJson();
                 File.WriteAllText(key, json);
             }
-            else if (_cachingOptions.DiskCache.SerializationType == SerializationType.MessagePack)
+            else if (_cachingConfig.DiskCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 File.WriteAllBytes(key, bytes);
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.DiskCache.SerializationType)} {_cachingOptions.DiskCache.SerializationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingConfig.DiskCache.SerializationType)} {_cachingConfig.DiskCache.SerializationType} is not supported!");
             UpdateExpirations(key, ref slidingExpiration, ref absoluteExpiration);
         }
     }
@@ -142,7 +142,7 @@ public class DiskCacheService : ILocalCache
     private string ConvertKeyToFilePath(string key)
     {
         if (string.IsNullOrWhiteSpace(_diskCacheFolder))
-            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingOptions.DiskCacheFolder)}");
+            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingConfig.DiskCacheFolder)}");
         return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
     }
 

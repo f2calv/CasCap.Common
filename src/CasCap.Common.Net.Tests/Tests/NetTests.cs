@@ -1,10 +1,11 @@
-﻿namespace CasCap.Common.Net.Tests;
+namespace CasCap.Common.Net.Tests;
 
 /// <summary>
 /// Tests for <see cref="NetExtensions"/> methods.
 /// </summary>
 public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies that a single key-value pair is formatted as a query string.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void ToQueryString_SinglePair()
     {
@@ -13,6 +14,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("?key1=value1", result);
     }
 
+    /// <summary>Verifies that multiple key-value pairs are formatted as a query string.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void ToQueryString_MultiplePairs()
     {
@@ -25,6 +27,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("?key1=value1&key2=value2", result);
     }
 
+    /// <summary>Verifies that special characters in query string values are URL-encoded.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void ToQueryString_EncodesSpecialCharacters()
     {
@@ -33,6 +36,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("?q=hello+world", result);
     }
 
+    /// <summary>Verifies that an empty collection produces a bare question-mark query string.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void ToQueryString_Empty()
     {
@@ -41,6 +45,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("?", result);
     }
 
+    /// <summary>Verifies that AddOrOverwrite adds a new header when the header does not exist.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_String_AddsNewHeader()
     {
@@ -49,6 +54,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("value1", request.Headers.GetValues("X-Custom").First());
     }
 
+    /// <summary>Verifies that AddOrOverwrite replaces an existing header value.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_String_OverwritesExistingHeader()
     {
@@ -60,6 +66,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("value2", values[0]);
     }
 
+    /// <summary>Verifies that AddOrOverwrite adds multiple headers from a list.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_List_AddsMultipleHeaders()
     {
@@ -74,6 +81,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("b", request.Headers.GetValues("X-Second").First());
     }
 
+    /// <summary>Verifies that passing a null list to AddOrOverwrite is a no-op.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_List_NullIsNoOp()
     {
@@ -82,6 +90,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Empty(request.Headers);
     }
 
+    /// <summary>Verifies that passing an empty list to AddOrOverwrite is a no-op.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_List_EmptyIsNoOp()
     {
@@ -90,6 +99,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Empty(request.Headers);
     }
 
+    /// <summary>Verifies that AddOrOverwrite adds multiple headers from a dictionary.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_Dictionary_AddsMultipleHeaders()
     {
@@ -104,6 +114,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("b", request.Headers.GetValues("X-Second").First());
     }
 
+    /// <summary>Verifies that passing a null dictionary to AddOrOverwrite is a no-op.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_Dictionary_NullIsNoOp()
     {
@@ -112,6 +123,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Empty(request.Headers);
     }
 
+    /// <summary>Verifies that AddOrOverwrite overwrites an existing header from a dictionary.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void AddOrOverwrite_Dictionary_OverwritesExistingHeader()
     {
@@ -124,6 +136,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("new", values[0]);
     }
 
+    /// <summary>Verifies that TryGetValue returns the first value of an existing header.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void TryGetValue_ReturnsFirstValue()
     {
@@ -133,6 +146,7 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         Assert.Equal("value1", result);
     }
 
+    /// <summary>Verifies that TryGetValue returns null when the header does not exist.</summary>
     [Fact, Trait("Category", "Extensions")]
     public void TryGetValue_MissingHeader_ReturnsNull()
     {

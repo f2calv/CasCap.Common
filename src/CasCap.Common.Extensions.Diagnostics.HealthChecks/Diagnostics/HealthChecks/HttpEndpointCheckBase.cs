@@ -5,6 +5,7 @@
 /// </summary>
 public abstract class HttpEndpointCheckBase(ILogger logger, HttpClient client)
 {
+    /// <summary>The logger instance used by this health check.</summary>
     protected /*readonly */ILogger _logger = logger;
 
     /// <summary>

@@ -3,12 +3,17 @@
 namespace CasCap.Common.Converters;
 
 /// <summary>
-/// <see href="https://stackoverflow.com/questions/66280645/how-can-i-serialize-a-double-2d-array-to-json-using-system-text-json"/>
+/// <inheritdoc cref="JsonExtensions.To2D{T}(List{List{T}})"/>
 /// </summary>
+/// <remarks>
+/// <see href="https://stackoverflow.com/questions/66280645/how-can-i-serialize-a-double-2d-array-to-json-using-system-text-json"/>
+/// </remarks>
 public class Array2DConverter : JsonConverterFactory
 {
+    /// <inheritdoc/>
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsArray && typeToConvert.GetArrayRank() == 2;
 
+    /// <inheritdoc/>
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
         (JsonConverter?)Activator.CreateInstance(
             typeof(Array2DConverterInner<>).MakeGenericType([typeToConvert.GetElementType()!]),

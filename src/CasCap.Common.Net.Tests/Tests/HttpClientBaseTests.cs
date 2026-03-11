@@ -19,6 +19,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
 
     #region PostJson
 
+    /// <summary>Verifies that PostJsonAsync deserializes a successful JSON response into the result type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJsonAsync_Success_DeserializesResult()
     {
@@ -34,6 +35,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Null(error);
     }
 
+    /// <summary>Verifies that PostJsonAsync deserializes an error JSON response into the error type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJsonAsync_Error_DeserializesError()
     {
@@ -47,6 +49,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("bad", error.Message);
     }
 
+    /// <summary>Verifies that PostJson sends an empty JSON object when the body is null.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_NullBody_SendsEmptyJsonObject()
     {
@@ -63,6 +66,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("{}", capturedBody);
     }
 
+    /// <summary>Verifies that PostJson forwards additional request headers.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_WithHeaders_SendsHeaders()
     {
@@ -79,6 +83,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("myvalue", headerValue);
     }
 
+    /// <summary>Verifies that a full URL in PostJson overrides the client base address.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_FullUrl_OverridesBaseAddress()
     {
@@ -95,6 +100,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("other-host", capturedUri.Host);
     }
 
+    /// <summary>Verifies that PostJson returns the HTTP status code and response headers.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_ReturnsStatusCodeAndHeaders()
     {
@@ -109,6 +115,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("abc", res.responseHeaders.GetValues("X-Response-Id").First());
     }
 
+    /// <summary>Verifies that PostJson throws <see cref="OperationCanceledException"/> when the request times out.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_Timeout_ThrowsOperationCanceled()
     {
@@ -119,6 +126,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             () => client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, timeout: TimeSpan.FromMilliseconds(50)));
     }
 
+    /// <summary>Verifies that PostJson can return the raw response body as a string.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_ResultAsString_ReturnsRawString()
     {
@@ -131,6 +139,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Null(error);
     }
 
+    /// <summary>Verifies that PostJson can return the raw response body as a byte array.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_ResultAsBytes_ReturnsRawBytes()
     {
@@ -144,6 +153,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal(expected, result);
     }
 
+    /// <summary>Verifies that PostJson returns the raw error body as a string on failure.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_ErrorAsString_ReturnsRawErrorString()
     {
@@ -160,6 +170,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
 
     #region PostBytes
 
+    /// <summary>Verifies that PostBytesAsync deserializes a successful JSON response into the result type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostBytesAsync_Success_DeserializesResult()
     {
@@ -174,6 +185,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Null(error);
     }
 
+    /// <summary>Verifies that PostBytesAsync deserializes an error JSON response into the error type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostBytesAsync_Error_DeserializesError()
     {
@@ -187,6 +199,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("bad upload", error.Message);
     }
 
+    /// <summary>Verifies that PostBytes forwards additional request headers.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostBytes_WithHeaders_SendsHeaders()
     {
@@ -203,6 +216,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("upload-123", headerValue);
     }
 
+    /// <summary>Verifies that PostBytes sets the specified content type on the request.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostBytes_SetsContentType()
     {
@@ -218,6 +232,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("image/png", contentType);
     }
 
+    /// <summary>Verifies that PostBytes throws <see cref="OperationCanceledException"/> when the request times out.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostBytes_Timeout_ThrowsOperationCanceled()
     {
@@ -232,6 +247,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
 
     #region Get
 
+    /// <summary>Verifies that GetAsync deserializes a successful JSON response into the result type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_Success_DeserializesResult()
     {
@@ -247,6 +263,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Null(error);
     }
 
+    /// <summary>Verifies that GetAsync deserializes an error JSON response into the error type.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_Error_DeserializesError()
     {
@@ -260,6 +277,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("not found", error.Message);
     }
 
+    /// <summary>Verifies that GetAsync forwards additional request headers.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_WithHeaders_SendsHeaders()
     {
@@ -276,6 +294,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("Bearer token123", headerValue);
     }
 
+    /// <summary>Verifies that Get returns the HTTP status code and response headers.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task Get_ReturnsStatusCodeAndHeaders()
     {
@@ -290,6 +309,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("42", res.responseHeaders.GetValues("X-Total-Count").First());
     }
 
+    /// <summary>Verifies that a full URL in GetAsync overrides the client base address.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_FullUrl_OverridesBaseAddress()
     {
@@ -306,6 +326,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("external-api.com", capturedUri.Host);
     }
 
+    /// <summary>Verifies that Get throws <see cref="OperationCanceledException"/> when the request times out.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task Get_Timeout_ThrowsOperationCanceled()
     {
@@ -316,6 +337,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             () => client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", timeout: TimeSpan.FromMilliseconds(50)));
     }
 
+    /// <summary>Verifies that GetAsync can return the raw response body as a string.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_ResultAsString_ReturnsRawString()
     {
@@ -327,6 +349,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal("plain text", result);
     }
 
+    /// <summary>Verifies that GetAsync can return the raw response body as a byte array.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task GetAsync_ResultAsBytes_ReturnsRawBytes()
     {
@@ -344,6 +367,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
 
     #region CancellationToken
 
+    /// <summary>Verifies that PostJson respects the provided <see cref="CancellationToken"/>.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task PostJson_CancellationToken_Honored()
     {
@@ -355,6 +379,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             () => client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", cancellationToken: cts.Token));
     }
 
+    /// <summary>Verifies that Get respects the provided <see cref="CancellationToken"/>.</summary>
     [Fact, Trait("Category", "HttpClientBase")]
     public async Task Get_CancellationToken_Honored()
     {

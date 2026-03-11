@@ -7,34 +7,34 @@ public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly IConnectionMultiplexer _connectionMultiplexer;
-    private readonly CachingOptions _cachingOptions;
+    private readonly CachingConfig _cachingConfig;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
     /// </summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
-        IOptions<CachingOptions> cachingOptions)
+        IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
         _connectionMultiplexer = connectionMultiplexer;
-        _cachingOptions = cachingOptions.Value;
+        _cachingConfig = cachingConfig.Value;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-        if (_cachingOptions.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
-        if (_cachingOptions.RemoteCache.ClearOnStartup) DeleteAll();
+        if (_cachingConfig.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
+        if (_cachingConfig.RemoteCache.ClearOnStartup) DeleteAll();
     }
 
     /// <inheritdoc/>
-    public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
+    public IConnectionMultiplexer Connection => _connectionMultiplexer;
 
     /// <inheritdoc/>
-    public IDatabase Db { get { return Connection.GetDatabase(_cachingOptions.RemoteCache.DatabaseId); } }
+    public IDatabase Db => Connection.GetDatabase(_cachingConfig.RemoteCache.DatabaseId);
 
     /// <inheritdoc/>
-    public ISubscriber Subscriber { get { return Connection.GetSubscriber(); } }
+    public ISubscriber Subscriber => Connection.GetSubscriber();
 
     /// <inheritdoc/>
-    public IServer Server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
+    public IServer Server => Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]);
 
     /// <inheritdoc/>
     public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
@@ -46,7 +46,7 @@ public class RedisCacheService : IRemoteCache
     /// Only works when connecting with ADMIN=true.
     /// </remarks>
     private void DeleteAll(CommandFlags flags = CommandFlags.None)
-        => Server.FlushDatabase(_cachingOptions.RemoteCache.DatabaseId, flags);
+        => Server.FlushDatabase(_cachingConfig.RemoteCache.DatabaseId, flags);
 
     /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)
@@ -158,7 +158,7 @@ public class RedisCacheService : IRemoteCache
         RedisValueWithExpiry o;
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
-            if (_cachingOptions.UseBuiltInLuaScripts)
+            if (_cachingConfig.UseBuiltInLuaScripts)
                 o = await StringGetSetExpiryAsync();
             else
             {
@@ -172,18 +172,18 @@ public class RedisCacheService : IRemoteCache
         {
             _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(RedisCacheService), typeof(T), key);
-            if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
+            if (_cachingConfig.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString()!;
                 tpl.cacheEntry = json.FromJson<T>();
             }
-            else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
+            else if (_cachingConfig.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = (byte[])o.Value!;
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingConfig.RemoteCache.SerializationType)} {_cachingConfig.RemoteCache.SerializationType} is not supported!");
             if (o.Expiry.HasValue)
                 tpl.expiry = o.Expiry;
         }
@@ -255,27 +255,19 @@ public class RedisCacheService : IRemoteCache
         //TODO: add additional Lua script examples into this array as and when required
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
-            LoadLuaScript(GetType().Assembly, resourceName);
+        {
+            var script = GetType().Assembly.GetManifestResourceString(resourceName);
+            if (script is null)
+                throw new GenericException($"Lua script '{resourceName}' is null or empty");
+            LoadLuaScript(resourceName, script);
+        }
     }
 
     private const string keyStringGetSetExpiryAsync = $"CasCap.Common.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
-    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName)
+    public LoadedLuaScript? LoadLuaScript(string scriptName, string script)
     {
-        var script = string.Empty;
-        using (var stream = assembly.GetManifestResourceStream(scriptName))
-        {
-            if (stream is not null)
-            {
-                using var reader = new StreamReader(stream);
-                script = reader.ReadToEnd();
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(script))
-            throw new GenericException($"Lua script '{scriptName}' is null or empty");
-
         var prepared = LuaScript.Prepare(script);
         _logger.LogTrace("{ClassName} loading Lua script '{ScriptName}'", nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);

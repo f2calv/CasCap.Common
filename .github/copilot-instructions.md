@@ -1,94 +1,35 @@
-# CasCap.Common - Copilot Instructions
-
-## Repository Overview
-
-A .NET class library repository containing 8 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
-
-### Libraries
-
-| Library | Description | Targets | Packable |
-|---------|-------------|---------|----------|
-| **CasCap.Common.Caching** | Distributed caching (cache-aside pattern) with Memory/Disk local cache and Redis remote cache | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Extensions** | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Logging** | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Net** | `HttpClientBase` abstract class for HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Serialization.Json** | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Serialization.MessagePack** | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Services** | `FeatureFlagBgService<T>` and `IFeature<T>` abstractions | net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Testing** | xUnit test logging utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| **CasCap.Common.Extensions.Diagnostics.HealthChecks** | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-
-### Test Projects
-
-| Project | Targets |
-|---------|---------|
-| CasCap.Common.Caching.Tests | net8.0; net9.0; net10.0 |
-| CasCap.Common.Extensions.Tests | net8.0; net9.0; net10.0 |
-| CasCap.Common.Net.Tests | net8.0; net9.0; net10.0 |
-| CasCap.Common.Serialization.Tests | net8.0; net9.0; net10.0 |
-
-## Build and Test
-
-### Prerequisites
-
-- **.NET SDK**: 10.0.x stable (see `global.json` — `allowPrerelease: false`)
-- **Docker**: Required for Redis in caching tests
-
-### Commands
-
-```bash
-# 1. Restore (required before build)
-dotnet restore
-
-# 2. Build
-dotnet build --no-restore
-
-# 3. Start Redis (required before caching tests)
-docker run -d -p 6379:6379 --name cascap-redis redis
-
-# 4. Run tests — ALWAYS use --maxcpucount:1
-dotnet test --no-build --maxcpucount:1
-```
-
-> **CRITICAL**: Always use `--maxcpucount:1` — parallel execution causes failures due to `InlineData` and Redis `ClearOnStartup` property conflicts.
-
-### Expected Build Behaviour
-
-- Build produces nullability warnings (CS8604, CS8765) — these are **accepted and must not be "fixed"**.
-- Multi-target builds take ~15–20 seconds.
-
-## Project Configuration
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `Directory.Build.props` | C# 14.0, `ImplicitUsings`, `Nullable: enable`, `IsPackable: false` by default |
-| `Directory.Packages.props` | Central package version management (`ManagePackageVersionsCentrally: true`) |
-| `.editorconfig` | Code style rules (4-space indent, LF line endings, full formatting rules) |
-| `global.json` | SDK constraint — stable releases only |
-| `docker-compose.yml` | Redis and Redis UI (p3x-redis-ui) services |
-| `GitVersion.yml` | Semantic versioning configuration |
-
-### Suppressed Warnings
-
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `S125`, `NETSDK1233`
+# Copilot Instructions
 
 ## Code Quality Conventions
 
 ### Style (enforced by `.editorconfig`)
 
-- **Class-per-file**: Each class, record, struct, or enum should be in its own file. Nested private types used only by their enclosing class are exempt.
-- **Indentation**: 4 spaces, LF line endings
-- **Interfaces**: Must start with `I` (PascalCase)
+- **Class-per-file**: Each class, record, struct, or enum should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations.
+- **Indentation**: 4 spaces, LF line endings, insert final newline
+- **Interfaces**: Must start with `I` (PascalCase) and live in an Abstractions folder and an Abstractions namespace.
 - **Types/Methods/Properties**: PascalCase
 - **No `this.` prefix**: Qualification disabled
-- **Braces**: Allman style (`csharp_new_line_before_open_brace = all`)
-- **Expression-bodied members**: Preferred for accessors, properties, indexers, lambdas; **not** for constructors, methods, operators, local functions
+- **Implicit usings**: Enabled
+- **Nullable reference types**: Enabled
+- **C# Language Version**: 14.0
+- **Braces**: Allman style (`csharp_new_line_before_open_brace = all`). For `if`, `else`, `foreach`, `for`, `while`, and `using` statements whose body is a single statement, omit the curly braces to reduce vertical verbosity.
+- **Expression-bodied members**: Preferred for accessors, properties, indexers, lambdas; **not** for constructors, operators, or local functions. For methods, use an expression body (`=>`) when the method contains a single expression. If the combined method signature and expression would cause horizontal scrolling on smaller editor windows, place the `=>` and expression on the next line, indented.
+- **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
 - **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`)
 - **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
 - **Records**: Prefer `record` types with `get; init;` properties over classes where object comparison semantics are useful
+- **Constructors**: When injecting services use a 'Svc' suffix on the parameter name and its private field instead of 'Service' to make more concise.
+- **DI parameter ordering**: In constructors that accept dependency-injected services, parameters should be ordered: `ILogger` first, then any `IOptions<T>` / `IOptionsMonitor<T>`, then custom/application services.
+- **No magic strings**: Avoid using string literals as dictionary keys or lookup identifiers in multiple places. Instead, define a `const` field using `nameof()` so the key is a single point of change (e.g. `public const string SummaryValues = nameof(SummaryValues);`).
+- **Namespaces**: The convention is folder-based namespacing. However, the `Services` folder is exempt — sub-folders under `Services` do **not** automatically get a sub-namespace. When creating a new sub-folder under `Services`, ask the user whether the sub-folder should introduce a sub-namespace (present a yes/no choice) before proceeding.
+- **Namespace declarations**: File-scoped (not block-scoped). Using directives go above the namespace.
+- **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
+- **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
+
+### Suppressed Warnings
+
+Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `S125`, `NETSDK1233`
 
 ### XML Documentation
 
@@ -96,7 +37,14 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 - **Exception — test projects**: XML comments are required on classes, records, and properties but **not** on test methods.
 - **Document fully on the interface** — use `/// <inheritdoc/>` on implementing classes to avoid duplication.
 - When an enum is a public method parameter, use `<inheritdoc cref="EnumType" path="/summary"/>` in the `<param>` tag rather than repeating the enum's documentation.
-- Separate each property declaration with a blank line (including in records and classes with only auto-properties).
+- **Deep link referenced types**: When XML comments reference .NET classes, structs, interfaces, enums, or namespaces, use `<see cref="Fully.Qualified.TypeName" />` instead of plain text (e.g. `<see cref="Azure.Data.Tables.TableEntity" />`).
+- **Preserve hyperlinks**: Inline comment hyperlinks to external resources (e.g. blog posts, StackOverflow answers, GitHub issues) must never be deleted. When refactoring a comment into XML documentation, move the URL into a `<remarks>` block using `<see href="…" />` (e.g. `/// <remarks>See <see href="https://example.com" />.</remarks>`).
+
+### Logging
+
+- **`{ClassName}` first**: Every structured log message must include `{ClassName}` as the first template parameter, using `nameof(EnclosingClass)` as the argument (e.g. `_logger.LogInformation("{ClassName} something happened", nameof(MyService));`).
+- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{GroupAddress}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{GroupAddress}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
+- **No magic strings in log messages**: When a log message references an enum value, class name, or other identifiable symbol, pass it via `nameof()` as a template argument rather than embedding it as a literal string in the message template.
 
 ### Disposable Resources
 
@@ -106,67 +54,4 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 ### Multi-Targeting
 
-- Library code using APIs unavailable in netstandard2.0 must use `#if NET8_0_OR_GREATER` or similar guards.
-- `HttpClientBase` is entirely guarded behind `#if NET8_0_OR_GREATER`.
-- `CasCap.Common.Services` targets net8.0+ only (no netstandard2.0).
-
-## CI/CD Pipeline
-
-### GitHub Actions (`.github/workflows/ci.yml`)
-
-**Triggers**: Push (except `preview/**`), PRs to `main`, manual dispatch.
-
-**Jobs**:
-
-1. **lint** — Reusable workflow from `f2calv/gha-workflows`
-2. **versioning** — GitVersion-based semantic versioning
-3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--maxcpucount:1`
-4. **release** — GitHub release (main branch only, when tag doesn't already exist)
-
-## Making Changes
-
-### Adding Code
-
-1. Place code in the correct project by functionality
-2. Follow `.editorconfig` style rules
-3. Add XML documentation to all public API surface
-4. Add tests in the corresponding `.Tests` project
-5. Validate: `dotnet build --no-restore` → 0 errors
-6. Validate: `dotnet test --no-build --maxcpucount:1` → all pass
-
-### Adding Dependencies
-
-1. Add version to `Directory.Packages.props`
-2. Reference in `.csproj` **without** a version attribute:
-
-   ```xml
-   <PackageReference Include="PackageName" />
-   ```
-
-3. Run `dotnet restore`
-
-### Creating New Projects
-
-- Library projects inherit `Directory.Build.props` automatically
-- Set `<IsPackable>true</IsPackable>` explicitly only for NuGet packages
-- Test projects must **not** be packable (default) and must target `net8.0;net9.0;net10.0`
-
-## Validation Checklist
-
-- [ ] `dotnet restore` succeeds
-- [ ] `dotnet build --no-restore` completes with 0 errors
-- [ ] Redis is running (if testing caching)
-- [ ] `dotnet test --no-build --maxcpucount:1` passes all tests
-- [ ] Public API has XML documentation
-- [ ] Properties separated by blank lines
-- [ ] `ServiceProvider` instances are disposed in tests
-- [ ] No shared mutable static state in test helpers
-
-## Contributing
-
-1. Fork the repository and create a feature branch
-2. Follow all conventions documented above
-3. Run the full validation checklist before submitting a PR
-4. PRs target the `main` branch and require CI to pass
-5. Versioning is automated via GitVersion — do not manually edit version numbers
-6. When using Copilot to implement code quality or legibility improvements, update this file to capture any new conventions so they are applied consistently in future sessions
+- Library code using APIs unavailable in lower target frameworks must use `#if` preprocessor guards (e.g. `#if NET8_0_OR_GREATER`).

@@ -3,12 +3,12 @@
 /// <summary>
 /// Configuration options for the CasCap distributed caching system.
 /// </summary>
-public record CachingOptions
+public record CachingConfig
 {
     /// <summary>
     /// Configuration sub-section locator key.
     /// </summary>
-    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
+    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
 
     /// <summary>
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
@@ -37,17 +37,17 @@ public record CachingOptions
     /// <summary>
     /// Configuration options for the in-process <see cref="ILocalCache"/> memory cache.
     /// </summary>
-    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
+    public CacheParameters MemoryCache { get; set; } = new CacheParameters { SerializationType = SerializationType.None };
 
     /// <summary>
     /// Configuration options for the disk-based <see cref="ILocalCache"/> cache.
     /// </summary>
-    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerializationType = SerializationType.Json };
+    public CacheParameters DiskCache { get; set; } = new CacheParameters { SerializationType = SerializationType.Json };
 
     /// <summary>
     /// Configuration options for the <see cref="IRemoteCache"/> (Redis).
     /// </summary>
-    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerializationType = SerializationType.MessagePack };
+    public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialized files.

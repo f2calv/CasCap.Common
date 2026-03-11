@@ -5,6 +5,7 @@
 /// </summary>
 public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies that IO extension methods can create, append, and write files correctly.</summary>
     [Fact, Trait("Category", nameof(IO))]
     public async Task IO()
     {
