@@ -255,27 +255,19 @@ public class RedisCacheService : IRemoteCache
         //TODO: add additional Lua script examples into this array as and when required
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
-            LoadLuaScript(GetType().Assembly, resourceName);
+        {
+            var script = GetType().Assembly.GetManifestResourceString(resourceName);
+            if (script is null)
+                throw new GenericException($"Lua script '{resourceName}' is null or empty");
+            LoadLuaScript(resourceName, script);
+        }
     }
 
     private const string keyStringGetSetExpiryAsync = $"CasCap.Common.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
-    public LoadedLuaScript? LoadLuaScript(Assembly assembly, string scriptName)
+    public LoadedLuaScript? LoadLuaScript(string scriptName, string script)
     {
-        var script = string.Empty;
-        using (var stream = assembly.GetManifestResourceStream(scriptName))
-        {
-            if (stream is not null)
-            {
-                using var reader = new StreamReader(stream);
-                script = reader.ReadToEnd();
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(script))
-            throw new GenericException($"Lua script '{scriptName}' is null or empty");
-
         var prepared = LuaScript.Prepare(script);
         _logger.LogTrace("{ClassName} loading Lua script '{ScriptName}'", nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);

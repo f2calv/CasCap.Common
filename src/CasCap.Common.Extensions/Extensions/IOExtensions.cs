@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace CasCap.Common.Extensions;
 
@@ -189,5 +190,25 @@ public static class IOExtensions
             directoryCount++;
         }
         return (files, directoryCount);
+    }
+
+    /// <summary>
+    /// Loads a string from an embedded resource in the specified assembly.
+    /// </summary>
+    /// <param name="assembly">The assembly containing the embedded resource.</param>
+    /// <param name="fileName">The fully qualified name of the embedded resource file.</param>
+    /// <returns>The content of the embedded resource as a string, or an empty string if the resource is not found.</returns>
+    public static string? GetManifestResourceString(this Assembly assembly, string fileName)
+    {
+        string? prompt = null;
+        using (var stream = assembly.GetManifestResourceStream(fileName))
+        {
+            if (stream is not null)
+            {
+                using var reader = new StreamReader(stream);
+                prompt = reader.ReadToEnd();
+            }
+        }
+        return prompt;
     }
 }
