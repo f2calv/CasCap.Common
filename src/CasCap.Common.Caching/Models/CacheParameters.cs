@@ -3,7 +3,7 @@
 /// <summary>
 /// Configuration options for an individual cache layer (memory, disk or remote).
 /// </summary>
-public record CacheOptions
+public record CacheParameters
 {
     /// <summary>
     /// Whether this cache layer is enabled.

@@ -74,13 +74,13 @@ public static class ServiceCollectionExtensions
             configureOptions.Invoke(cachingConfig);
         }
 
-        //services.AddSingleton<IConfigureOptions<CachingOptions>>(s =>
+        //services.AddSingleton<IConfigureOptions<CachingConfig>>(s =>
         //{
         //    var configuration = s.GetService<IConfiguration?>();
-        //    return new ConfigureOptions<CachingOptions>(options => configuration?.Bind(CachingOptions.SectionKey, options));
+        //    return new ConfigureOptions<CachingConfig>(options => configuration?.Bind(CacheConfig.ConfigurationSectionName, options));
         //});
-        //services.AddOptions<CachingOptions>()
-        //    .Configure<IConfiguration>((options, configuration) => configuration.GetSection(CachingOptions.SectionKey).Bind(options));
+        //services.AddOptions<CachingConfig>()
+        //    .Configure<IConfiguration>((options, configuration) => configuration.GetSection(CacheConfig.ConfigurationSectionName).Bind(options));
 
         if (LocalCacheType == CacheType.Memory)
         {

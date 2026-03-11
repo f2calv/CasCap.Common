@@ -5,7 +5,7 @@
 /// housekeeping activities such as removing expired items from the <see cref="IRemoteCache.SlidingExpirations"/>
 /// collection.
 /// </summary>
-public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, IRemoteCache remoteCache, IOptions<CachingConfig> cachingOptions)
+public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, IRemoteCache remoteCache, IOptions<CachingConfig> cachingConfig)
 {
     /// <summary>
     /// Subscribes to Redis key expiration events and runs until cancellation, performing sliding expiration housekeeping.
@@ -14,7 +14,7 @@ public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, 
     {
         logger.LogInformation("{ClassName} starting", nameof(RemoteCacheExpiryService));
 
-        var channelName = $"__keyevent@{cachingOptions.Value.RemoteCache.DatabaseId}__:expired";
+        var channelName = $"__keyevent@{cachingConfig.Value.RemoteCache.DatabaseId}__:expired";
         var channel = RedisChannel.Literal(channelName);
         logger.LogDebug("{ClassName} subscribing to {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
             nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);

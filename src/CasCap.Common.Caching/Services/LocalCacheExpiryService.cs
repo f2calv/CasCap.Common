@@ -5,7 +5,7 @@
 /// <inheritdoc cref="DistributedCacheService.InvalidateLocalCache(string, CommandFlags)"/>
 /// </summary>
 public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
-    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingConfig> cachingOptions)
+    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingConfig> cachingConfig)
 {
     private long count = 0;
 
@@ -14,7 +14,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
     /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        if (!cachingOptions.Value.LocalCacheInvalidationEnabled) return;
+        if (!cachingConfig.Value.LocalCacheInvalidationEnabled) return;
 
         logger.LogInformation("{ClassName} starting", nameof(LocalCacheExpiryService));
 
@@ -82,7 +82,7 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
         var parts = clientNamePrefixedKey.Split([':'], 2);
         var clientName = parts[0];
         var key = parts[1];
-        if (!clientName.Equals(cachingOptions.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
+        if (!clientName.Equals(cachingConfig.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(key))
                 logger.LogDebug("{ClassName} cache key {Key} was invalidated by client {ClientName} now removed from {AbstractionName}",

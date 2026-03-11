@@ -7,7 +7,7 @@
 public class MemoryCacheService : ILocalCache
 {
     private readonly ILogger _logger;
-    private readonly CachingConfig _cachingOptions;
+    private readonly CachingConfig _cachingConfig;
     private readonly MemoryCache _localCache;
 
     /// <summary>
@@ -28,20 +28,20 @@ public class MemoryCacheService : ILocalCache
     /// <summary>
     /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.
     /// </summary>
-    public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingConfig> cachingOptions)
+    public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
-        _cachingOptions = cachingOptions.Value;
+        _cachingConfig = cachingConfig.Value;
         _localCache = new MemoryCache(new MemoryCacheOptions
         {
             //Clock,
             //CompactionPercentage
             //ExpirationScanFrequency
-            SizeLimit = _cachingOptions.MemoryCacheSizeLimit,
+            SizeLimit = _cachingConfig.MemoryCacheSizeLimit,
             //TrackLinkedCacheEntries
             //TrackStatistics
         });
-        if (_cachingOptions.MemoryCache.ClearOnStartup) DeleteAll();
+        if (_cachingConfig.MemoryCache.ClearOnStartup) DeleteAll();
     }
 
     /// <inheritdoc/>
@@ -62,7 +62,7 @@ public class MemoryCacheService : ILocalCache
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
-            .SetPriority(_cachingOptions.MemoryCacheItemPriority)
+            .SetPriority(_cachingConfig.MemoryCacheItemPriority)
             // Set cache entry size by extension method.
             .SetSize(1)
             // Add eviction callback

@@ -11,13 +11,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     {
         //Arrange
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
-            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
-            DiskCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
-            MemoryCache = new CacheOptions { ClearOnStartup = ClearOnStartup }
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            DiskCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            MemoryCache = new CacheParameters { ClearOnStartup = ClearOnStartup }
         };
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
         await using var serviceProvider = services.BuildServiceProvider();
         var source = new CancellationTokenSource();
         var cancellationToken = source.Token;
@@ -44,13 +44,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task SlidingExpirationTest_Async()
     {
         //Arrange
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType.Json },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
@@ -82,13 +82,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task AbsoluteExpirationTest_Async()
     {
         //Arrange
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType.Json },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
@@ -130,17 +130,17 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var expiry = TimeSpan.FromSeconds(10);
         var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MockDto(DateTime.UtcNow);
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions
+            RemoteCache = new CacheParameters
             {
                 SerializationType = RemoteCacheSerializationType,
                 ClearOnStartup = ClearOnStartup
             },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
         using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
@@ -208,13 +208,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var expiry = TimeSpan.FromSeconds(10);
         var expiration = DateTime.UtcNow.AddSeconds(10);
         var objInitial = new MockDto(DateTime.UtcNow);
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
 
@@ -278,13 +278,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task RemoteCacheSvc_LuaTest(SerializationType SerializationType, bool ClearOnStartup = true)
     {
         //Arrange
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheOptions { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
         var key = $"{Guid.NewGuid()}:{nameof(RemoteCacheSvc_LuaTest)}:{SerializationType}";
@@ -338,13 +338,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_Test)}:{SerializationType}";
         var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
-        var cachingOptions = new CachingOptions
+        var cachingConfig = new CachingConfig
         {
-            RemoteCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType },
-            DiskCache = new CacheOptions { ClearOnStartup = true, SerializationType = SerializationType },
-            MemoryCache = new CacheOptions { ClearOnStartup = true }
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            DiskCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            MemoryCache = new CacheParameters { ClearOnStartup = true }
         };
-        _ = services.AddCasCapCaching(cachingOptions, remoteCacheConnectionString, LocalCacheType);
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
         await using var serviceProvider = services.BuildServiceProvider();
         var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
         var localCache = serviceProvider.GetRequiredService<ILocalCache>();
@@ -417,10 +417,10 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         }
         else if (extensionType == 3)
         {
-            var cachingOptions = new CachingOptions
+            var cachingConfig = new CachingConfig
             {
             };
-            services.AddCasCapCaching(cachingOptions, LocalCacheType: LocalCacheType);
+            services.AddCasCapCaching(cachingConfig, LocalCacheType: LocalCacheType);
         }
         else if (extensionType == 4)
         {

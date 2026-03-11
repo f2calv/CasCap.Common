@@ -37,17 +37,17 @@ public record CachingConfig
     /// <summary>
     /// Configuration options for the in-process <see cref="ILocalCache"/> memory cache.
     /// </summary>
-    public CacheOptions MemoryCache { get; set; } = new CacheOptions { SerializationType = SerializationType.None };
+    public CacheParameters MemoryCache { get; set; } = new CacheParameters { SerializationType = SerializationType.None };
 
     /// <summary>
     /// Configuration options for the disk-based <see cref="ILocalCache"/> cache.
     /// </summary>
-    public CacheOptions DiskCache { get; set; } = new CacheOptions { SerializationType = SerializationType.Json };
+    public CacheParameters DiskCache { get; set; } = new CacheParameters { SerializationType = SerializationType.Json };
 
     /// <summary>
     /// Configuration options for the <see cref="IRemoteCache"/> (Redis).
     /// </summary>
-    public CacheOptions RemoteCache { get; set; } = new CacheOptions { SerializationType = SerializationType.MessagePack };
+    public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
     /// <summary>
     /// Specifies the root folder where the local disk cache will store serialized files.

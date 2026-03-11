@@ -7,28 +7,28 @@ public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly IConnectionMultiplexer _connectionMultiplexer;
-    private readonly CachingConfig _cachingOptions;
+    private readonly CachingConfig _cachingConfig;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
     /// </summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
-        IOptions<CachingConfig> cachingOptions)
+        IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
         _connectionMultiplexer = connectionMultiplexer;
-        _cachingOptions = cachingOptions.Value;
+        _cachingConfig = cachingConfig.Value;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
-        if (_cachingOptions.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
-        if (_cachingOptions.RemoteCache.ClearOnStartup) DeleteAll();
+        if (_cachingConfig.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
+        if (_cachingConfig.RemoteCache.ClearOnStartup) DeleteAll();
     }
 
     /// <inheritdoc/>
     public IConnectionMultiplexer Connection => _connectionMultiplexer;
 
     /// <inheritdoc/>
-    public IDatabase Db => Connection.GetDatabase(_cachingOptions.RemoteCache.DatabaseId);
+    public IDatabase Db => Connection.GetDatabase(_cachingConfig.RemoteCache.DatabaseId);
 
     /// <inheritdoc/>
     public ISubscriber Subscriber => Connection.GetSubscriber();
@@ -46,7 +46,7 @@ public class RedisCacheService : IRemoteCache
     /// Only works when connecting with ADMIN=true.
     /// </remarks>
     private void DeleteAll(CommandFlags flags = CommandFlags.None)
-        => Server.FlushDatabase(_cachingOptions.RemoteCache.DatabaseId, flags);
+        => Server.FlushDatabase(_cachingConfig.RemoteCache.DatabaseId, flags);
 
     /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)
@@ -158,7 +158,7 @@ public class RedisCacheService : IRemoteCache
         RedisValueWithExpiry o;
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
-            if (_cachingOptions.UseBuiltInLuaScripts)
+            if (_cachingConfig.UseBuiltInLuaScripts)
                 o = await StringGetSetExpiryAsync();
             else
             {
@@ -172,18 +172,18 @@ public class RedisCacheService : IRemoteCache
         {
             _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
                 nameof(RedisCacheService), typeof(T), key);
-            if (_cachingOptions.RemoteCache.SerializationType == SerializationType.Json)
+            if (_cachingConfig.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString()!;
                 tpl.cacheEntry = json.FromJson<T>();
             }
-            else if (_cachingOptions.RemoteCache.SerializationType == SerializationType.MessagePack)
+            else if (_cachingConfig.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = (byte[])o.Value!;
                 tpl.cacheEntry = bytes.FromMessagePack<T>();
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingOptions.RemoteCache.SerializationType)} {_cachingOptions.RemoteCache.SerializationType} is not supported!");
+                throw new NotSupportedException($"{nameof(_cachingConfig.RemoteCache.SerializationType)} {_cachingConfig.RemoteCache.SerializationType} is not supported!");
             if (o.Expiry.HasValue)
                 tpl.expiry = o.Expiry;
         }
