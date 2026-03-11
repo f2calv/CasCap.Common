@@ -66,6 +66,7 @@ public static class ParseExtensions
     /// </summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
+    /// <param name="kind">The <see cref="DateTimeKind"/> to assign to the resulting <see cref="DateTime"/>.</param>
     public static DateTime CsvStr2Date(this string f, DateTime? date = null, DateTimeKind kind = DateTimeKind.Utc)
     {
         DateTime dt;
