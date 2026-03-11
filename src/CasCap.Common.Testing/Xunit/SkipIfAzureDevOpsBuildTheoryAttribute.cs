@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfAzureDevOpsBuildTheoryAttribute : TheoryAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfAzureDevOpsBuildTheoryAttribute"/> class.</summary>
     public SkipIfAzureDevOpsBuildTheoryAttribute()
     {
         if (IsAzureDevOps())

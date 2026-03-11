@@ -20,6 +20,7 @@ public class FeatureFlagBgService<T> : BackgroundService
         _features = features;
     }
 
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();

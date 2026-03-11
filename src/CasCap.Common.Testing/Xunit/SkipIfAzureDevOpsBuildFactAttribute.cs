@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfAzureDevOpsBuildFactAttribute : FactAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfAzureDevOpsBuildFactAttribute"/> class.</summary>
     public SkipIfAzureDevOpsBuildFactAttribute()
     {
         if (IsAzureDevOps())
