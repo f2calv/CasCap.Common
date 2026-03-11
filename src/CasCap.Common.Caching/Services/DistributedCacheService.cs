@@ -4,10 +4,10 @@
 /// The <see cref="DistributedCacheService"/> uses both <see cref="ILocalCache"/> and <see cref="IRemoteCache"/>
 /// to implement <see cref="IDistributedCache"/>.
 /// </summary>
-public class DistributedCacheService(ILogger<DistributedCacheService> logger, IOptions<CachingOptions> cachingOptions,
+public class DistributedCacheService(ILogger<DistributedCacheService> logger, IOptions<CachingConfig> cachingOptions,
     IRemoteCache remoteCache, ILocalCache localCache) : IDistributedCache
 {
-    private readonly CachingOptions _cachingOptions = cachingOptions.Value;
+    private readonly CachingConfig _cachingOptions = cachingOptions.Value;
 
     /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;

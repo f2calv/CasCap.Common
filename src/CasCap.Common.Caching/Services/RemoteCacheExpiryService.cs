@@ -5,7 +5,7 @@
 /// housekeeping activities such as removing expired items from the <see cref="IRemoteCache.SlidingExpirations"/>
 /// collection.
 /// </summary>
-public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, IRemoteCache remoteCache, IOptions<CachingOptions> cachingOptions)
+public class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> logger, IRemoteCache remoteCache, IOptions<CachingConfig> cachingOptions)
 {
     /// <summary>
     /// Subscribes to Redis key expiration events and runs until cancellation, performing sliding expiration housekeeping.

@@ -3,12 +3,12 @@
 /// <summary>
 /// Configuration options for the CasCap distributed caching system.
 /// </summary>
-public record CachingOptions
+public record CachingConfig
 {
     /// <summary>
     /// Configuration sub-section locator key.
     /// </summary>
-    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingOptions)}";
+    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
 
     /// <summary>
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub

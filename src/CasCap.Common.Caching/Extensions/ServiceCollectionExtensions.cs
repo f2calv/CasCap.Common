@@ -23,25 +23,25 @@ public static class ServiceCollectionExtensions
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
-        string sectionName = CachingOptions.ConfigurationSectionName,
+        string sectionName = CachingConfig.ConfigurationSectionName,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
         => services.AddServices(configuration: configuration, sectionName, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
-    public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingOptions cachingOptions,
+    public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingConfig cachingConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(cachingOptions: cachingOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+        => services.AddServices(cachingConfig: cachingConfig, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
-    public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingOptions> configureOptions,
+    public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configureConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configureOptions: configureOptions, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+        => services.AddServices(configureOptions: configureConfig, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
-        string sectionName = CachingOptions.ConfigurationSectionName,
-        CachingOptions? cachingOptions = null,
-        Action<CachingOptions>? configureOptions = null,
+        string sectionName = CachingConfig.ConfigurationSectionName,
+        CachingConfig? cachingConfig = null,
+        Action<CachingConfig>? configureOptions = null,
         string? remoteCacheConnectionString = null,
         CacheType LocalCacheType = CacheType.Memory,
         CacheType RemoteCacheType = CacheType.Redis
@@ -50,28 +50,28 @@ public static class ServiceCollectionExtensions
         if (configuration is not null)
         {
             var configSection = configuration.GetSection(sectionName);
-            cachingOptions = configSection.Get<CachingOptions>();
-            if (cachingOptions is not null)
-                services.Configure<CachingOptions>(configSection);
+            cachingConfig = configSection.Get<CachingConfig>();
+            if (cachingConfig is not null)
+                services.Configure<CachingConfig>(configSection);
         }
-        else if (cachingOptions is not null)
+        else if (cachingConfig is not null)
         {
-            var options = Options.Options.Create(cachingOptions);
+            var options = Options.Options.Create(cachingConfig);
             services.AddSingleton(options);
-            //services.AddOptions<CachingOptions>()
+            //services.AddOptions<CachingConfig>()
             //    .Configure(options =>
             //    {
-            //        //options = cachingOptions;//this won't work
-            //        options.LoadBuiltInLuaScripts = cachingOptions.LoadBuiltInLuaScripts;
+            //        //options = cachingConfig;//this won't work
+            //        options.LoadBuiltInLuaScripts = cachingConfig.LoadBuiltInLuaScripts;
             //        // Overwrite default option values with the user provided options.
-            //        // options.ChannelName = cachingOptions.ChannelName;
+            //        // options.ChannelName = cachingConfig.ChannelName;
             //    });
         }
         else if (configureOptions is not null)
         {
             services.Configure(configureOptions);
-            cachingOptions = new();
-            configureOptions.Invoke(cachingOptions);
+            cachingConfig = new();
+            configureOptions.Invoke(cachingConfig);
         }
 
         //services.AddSingleton<IConfigureOptions<CachingOptions>>(s =>

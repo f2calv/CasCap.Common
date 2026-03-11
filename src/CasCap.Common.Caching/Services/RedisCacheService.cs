@@ -7,13 +7,13 @@ public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly IConnectionMultiplexer _connectionMultiplexer;
-    private readonly CachingOptions _cachingOptions;
+    private readonly CachingConfig _cachingOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
     /// </summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
-        IOptions<CachingOptions> cachingOptions)
+        IOptions<CachingConfig> cachingOptions)
     {
         _logger = logger;
         _connectionMultiplexer = connectionMultiplexer;

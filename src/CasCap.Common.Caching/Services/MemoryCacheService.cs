@@ -7,7 +7,7 @@
 public class MemoryCacheService : ILocalCache
 {
     private readonly ILogger _logger;
-    private readonly CachingOptions _cachingOptions;
+    private readonly CachingConfig _cachingOptions;
     private readonly MemoryCache _localCache;
 
     /// <summary>
@@ -28,7 +28,7 @@ public class MemoryCacheService : ILocalCache
     /// <summary>
     /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.
     /// </summary>
-    public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingOptions> cachingOptions)
+    public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingConfig> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;

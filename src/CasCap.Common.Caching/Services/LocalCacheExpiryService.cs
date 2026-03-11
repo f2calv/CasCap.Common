@@ -5,7 +5,7 @@
 /// <inheritdoc cref="DistributedCacheService.InvalidateLocalCache(string, CommandFlags)"/>
 /// </summary>
 public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
-    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingOptions> cachingOptions)
+    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingConfig> cachingOptions)
 {
     private long count = 0;
 

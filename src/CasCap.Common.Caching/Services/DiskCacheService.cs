@@ -7,7 +7,7 @@
 public class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
-    private readonly CachingOptions _cachingOptions;
+    private readonly CachingConfig _cachingOptions;
     private readonly string _diskCacheFolder;
 
     /// <summary>
@@ -33,7 +33,7 @@ public class DiskCacheService : ILocalCache
     /// <summary>
     /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
     /// </summary>
-    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingOptions> cachingOptions)
+    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingOptions)
     {
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
