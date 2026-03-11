@@ -1,7 +1,7 @@
-﻿namespace CasCap.Common.Exceptions;
+namespace CasCap.Common.Exceptions;
 
 /// <summary>
-/// An generic/catch-all custom exception.
+/// A generic/catch-all custom exception.
 /// </summary>
 public class GenericException : Exception
 {
