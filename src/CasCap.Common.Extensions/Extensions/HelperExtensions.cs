@@ -695,7 +695,9 @@ public static class HelperExtensions
         return rgx.Replace(thisString, replacement);
     }
 
-    private static readonly Regex rgx = new(cleanPattern, RegexOptions.Compiled);
+    private static readonly TimeSpan _regexTimeout = TimeSpan.FromSeconds(1);
+
+    private static readonly Regex rgx = new(cleanPattern, RegexOptions.Compiled, _regexTimeout);
 
     private const string cleanPattern = @"\t|\n|\r";
 
@@ -708,7 +710,7 @@ public static class HelperExtensions
         return thisString is not null && rgxEmail.IsMatch(thisString);
     }
 
-    private static readonly Regex rgxEmail = new(emailPattern, RegexOptions.Compiled);
+    private static readonly Regex rgxEmail = new(emailPattern, RegexOptions.Compiled, _regexTimeout);
 
     private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
 
@@ -775,9 +777,9 @@ public static class HelperExtensions
     /// </summary>
     public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
 
-    private static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled, _regexTimeout);
 
-    private static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled, _regexTimeout);
 
     private const string singleSpace = " ";
 
