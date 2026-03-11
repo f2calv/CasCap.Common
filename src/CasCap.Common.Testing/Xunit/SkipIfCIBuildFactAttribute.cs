@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfCIBuildFactAttribute : FactAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfCIBuildFactAttribute"/> class.</summary>
     public SkipIfCIBuildFactAttribute()
     {
         if (IsCI())

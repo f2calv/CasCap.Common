@@ -7,6 +7,7 @@ namespace CasCap.Common.Services;
 public abstract class HttpClientBase
 {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+    /// <summary>The logger instance used by this HTTP client base class.</summary>
     protected ILogger _logger;
 
     /// <summary>

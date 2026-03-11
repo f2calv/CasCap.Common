@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfGithubActionsBuildFactAttribute : FactAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfGithubActionsBuildFactAttribute"/> class.</summary>
     public SkipIfGithubActionsBuildFactAttribute()
     {
         if (IsGitHubActions())

@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfGithubActionsBuildTheoryAttribute : TheoryAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfGithubActionsBuildTheoryAttribute"/> class.</summary>
     public SkipIfGithubActionsBuildTheoryAttribute()
     {
         if (IsGitHubActions())

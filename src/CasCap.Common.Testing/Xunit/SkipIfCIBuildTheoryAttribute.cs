@@ -7,6 +7,7 @@
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfCIBuildTheoryAttribute : TheoryAttribute
 {
+    /// <summary>Initializes a new instance of the <see cref="SkipIfCIBuildTheoryAttribute"/> class.</summary>
     public SkipIfCIBuildTheoryAttribute()
     {
         if (IsCI())

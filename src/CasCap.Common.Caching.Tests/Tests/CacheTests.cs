@@ -5,6 +5,7 @@
 /// </summary>
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies that <see cref="CacheExpiryBgService"/> starts and stops correctly with configured caching options.</summary>
     [Theory, Trait("Category", nameof(BackgroundService))]
     [InlineData(SerializationType.Json, false, CacheType.Memory)]
     public async Task TestBgServices_Async(SerializationType SerializationType, bool ClearOnStartup, CacheType LocalCacheType)
@@ -40,6 +41,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //TODO: all
     }
 
+    /// <summary>Verifies that sliding expiration removes a cached entry after the expected delay.</summary>
     [Fact]
     public async Task SlidingExpirationTest_Async()
     {
@@ -78,6 +80,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Null(exists);
     }
 
+    /// <summary>Verifies that absolute expiration removes a cached entry after the expected delay.</summary>
     [Fact]
     public async Task AbsoluteExpirationTest_Async()
     {
@@ -114,6 +117,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Null(hasExpired);
     }
 
+    /// <summary>Verifies synchronous set and get operations against a remote cache with various serialization types and cache configurations.</summary>
     [Theory, Trait("Category", nameof(IRemoteCache))]
     [InlineData(SerializationType.Json, true, CacheType.Memory)]
     [InlineData(SerializationType.Json, false, CacheType.Memory)]
@@ -196,6 +200,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Equal(objInitial, objFromCache);
     }
 
+    /// <summary>Verifies asynchronous set and get operations against a remote cache with various serialization types.</summary>
     [Theory, Trait("Category", nameof(IRemoteCache))]
     [InlineData(SerializationType.Json, true)]
     [InlineData(SerializationType.Json, false)]
@@ -272,6 +277,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Equal(objInitial, objFromCache);
     }
 
+    /// <summary>Verifies Lua script–based cache operations including expiry retrieval and deletion against a remote cache.</summary>
     [Theory, Trait("Category", nameof(IRemoteCache))]
     [InlineData(SerializationType.Json)]
     [InlineData(SerializationType.MessagePack)]
@@ -327,6 +333,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.Null(shouldBeNull);
     }
 
+    /// <summary>Verifies <see cref="IDistributedCache"/> get, set and delete operations across local and remote cache layers.</summary>
     [Theory, Trait("Category", nameof(IDistributedCache))]
     [InlineData(SerializationType.Json, CacheType.Memory)]
     [InlineData(SerializationType.Json, CacheType.Disk)]
@@ -388,6 +395,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.True(isDeleted3);
     }
 
+    /// <summary>Verifies that the caching service collection extension methods register services correctly for various overloads.</summary>
     [Theory, Trait("Category", "ServiceCollection")]
     [InlineData(CacheType.Memory, 1)]
     [InlineData(CacheType.Memory, 2)]

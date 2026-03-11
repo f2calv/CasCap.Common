@@ -5,6 +5,7 @@
 /// </summary>
 public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies MessagePack serialization and deserialization matches the expected JSON representation.</summary>
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "MessagePack")]
     public void TestMessagePack()
     {
@@ -25,6 +26,7 @@ public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(t
         Assert.Equal(str1, str2);
     }
 
+    /// <summary>Verifies JSON serialization and deserialization matches the expected JSON representation.</summary>
     [Fact(Skip = "broken!"), Trait("Category", "Serialization"), Trait("Category", "Json")]
     public void TestJson()
     {

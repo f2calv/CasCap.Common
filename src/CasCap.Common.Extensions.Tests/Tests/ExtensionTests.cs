@@ -5,6 +5,7 @@
 /// </summary>
 public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    /// <summary>Verifies that a <see cref="DateTime"/> value can be round-tripped via Unix time milliseconds.</summary>
     [Fact]
     public void UnixTimeMS()
     {
@@ -19,6 +20,7 @@ public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testO
         Assert.Equal(dt.ToString(), utcNow.ToString());
     }
 
+    /// <summary>Verifies that decimal string values are correctly scaled to integers by <c>Decimal2Int</c>.</summary>
     [Fact, Trait("Category", "Parsing")]
     public void Decimal2Int()
     {
