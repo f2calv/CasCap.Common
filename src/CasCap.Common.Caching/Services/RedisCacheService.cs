@@ -25,16 +25,16 @@ public class RedisCacheService : IRemoteCache
     }
 
     /// <inheritdoc/>
-    public IConnectionMultiplexer Connection { get { return _connectionMultiplexer; } }
+    public IConnectionMultiplexer Connection => _connectionMultiplexer;
 
     /// <inheritdoc/>
-    public IDatabase Db { get { return Connection.GetDatabase(_cachingOptions.RemoteCache.DatabaseId); } }
+    public IDatabase Db => Connection.GetDatabase(_cachingOptions.RemoteCache.DatabaseId);
 
     /// <inheritdoc/>
-    public ISubscriber Subscriber { get { return Connection.GetSubscriber(); } }
+    public ISubscriber Subscriber => Connection.GetSubscriber();
 
     /// <inheritdoc/>
-    public IServer Server { get { return Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]); } }
+    public IServer Server => Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]);
 
     /// <inheritdoc/>
     public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];

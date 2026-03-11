@@ -23,7 +23,7 @@ public class MemoryCacheService : ILocalCache
     /// <summary>
     /// Raises the <see cref="PostEvictionEvent"/>.
     /// </summary>
-    protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) { PostEvictionEvent?.Invoke(this, args); }
+    protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) => PostEvictionEvent?.Invoke(this, args);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.

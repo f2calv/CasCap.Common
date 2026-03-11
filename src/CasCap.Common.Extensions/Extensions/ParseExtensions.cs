@@ -66,15 +66,15 @@ public static class ParseExtensions
     /// </summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
-    public static DateTime csvStr2Date(this string f, DateTime? date = null, DateTimeKind kind = DateTimeKind.Utc)
+    public static DateTime CsvStr2Date(this string f, DateTime? date = null, DateTimeKind kind = DateTimeKind.Utc)
     {
         DateTime dt;
         if (f.Length == 18)//"635990653080800000".Length
-            dt = new DateTime(f.decimal2long(), kind);
+            dt = new DateTime(f.Decimal2Long(), kind);
         else if (f.Length == 23 && DateTime.TryParse(f, out var _dt1))//"yyyy-MM-dd HH:mm:ss.fff".Length
             dt = _dt1;
         else if (f.Length == 14)//"63599065308080".Length
-            dt = new DateTime(f.decimal2long(4), kind);
+            dt = new DateTime(f.Decimal2Long(4), kind);
         else if (f.Length == 12 && date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var _dt2))//"HH:mm:ss.fff".Length
             dt = _dt2;
         else
@@ -87,7 +87,7 @@ public static class ParseExtensions
     /// </summary>
     /// <param name="date">The date to convert.</param>
     /// <returns>The tick count as a string.</returns>
-    public static string csvDate2Str(this DateTime date) => date.Ticks.ToString();
+    public static string CsvDate2Str(this DateTime date) => date.Ticks.ToString();
 
     private const char _zero = '0';
 
@@ -96,7 +96,7 @@ public static class ParseExtensions
     /// that string into the equivalent number.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int decimal2int(this string input, int exp = 0)
+    public static int Decimal2Int(this string input, int exp = 0)
     {
         //Debug.WriteLine($"input={input}, input.Length={input.Length}, dp={dp}");
         var decimalExists = false;
@@ -141,12 +141,12 @@ public static class ParseExtensions
     /// </summary>
     /// <param name="input">The string to parse.</param>
     /// <returns>The parsed decimal value.</returns>
-    public static decimal string2decimal(this string input)//TODO: make this fast and not just a bog standard decimal.TryParse
+    public static decimal String2Decimal(this string input)//TODO: make this fast and not just a bog standard decimal.TryParse
     {
         if (decimal.TryParse(input, out decimal val))
             return val;
         else
-            throw new GenericException($"{nameof(string2decimal)} issue! :/");
+            throw new GenericException($"{nameof(String2Decimal)} issue! :/");
     }
 
     /// <summary>
@@ -156,7 +156,7 @@ public static class ParseExtensions
     /// <param name="exp">The exponent (number of decimal places to shift).</param>
     /// <returns>The parsed long value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long decimal2long(this string input, int exp = 0)
+    public static long Decimal2Long(this string input, int exp = 0)
     {
         //Debug.WriteLine($"input={input}, input.Length={input.Length}, dp={dp}");
         var decimalExists = false;
@@ -202,7 +202,7 @@ public static class ParseExtensions
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting decimal value.</returns>
-    public static decimal int2decimal(this int input, int exp = 0)//uses of this should be *very* limited
+    public static decimal Int2Decimal(this int input, int exp = 0)//uses of this should be *very* limited
     {
         if (exp > 0)
             return input / (decimal)Pow(exp);
@@ -216,7 +216,7 @@ public static class ParseExtensions
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting double value.</returns>
-    public static double int2double(this int input, int exp = 0)
+    public static double Int2Double(this int input, int exp = 0)
     {
         if (exp > 0)
             return input / (double)Pow(exp);
