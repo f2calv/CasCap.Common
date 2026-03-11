@@ -1,5 +1,8 @@
 ﻿namespace CasCap.Common.Caching.Tests;
 
+/// <summary>
+/// Base class for caching integration tests, providing a Redis connection string constant.
+/// </summary>
 public abstract class TestBase(ITestOutputHelper testOutputHelper)
 {
     protected ITestOutputHelper _testOutputHelper = testOutputHelper;

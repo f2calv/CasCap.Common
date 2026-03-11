@@ -9,17 +9,22 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
     private readonly ConcurrentDictionary<string, TestLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <inheritdoc/>
     public ILogger CreateLogger(string categoryName)
     {
         return _loggers.GetOrAdd(categoryName, _ => new TestLogger(_testOutputHelper));
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Releases resources used by this provider.
+    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         // Cleanup

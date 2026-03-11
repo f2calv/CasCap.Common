@@ -189,9 +189,7 @@ public static class HelperExtensions
     /// Returns the number of seconds remaining until midnight (UTC).
     /// </summary>
     public static int SecondsTillMidnight(this DateTime dt)
-    {
-        return dt.SecondsTillMidnight(DateTime.UtcNow);
-    }
+        => dt.SecondsTillMidnight(DateTime.UtcNow);
     /// <summary>
     /// Returns the number of seconds remaining until midnight relative to the specified time.
     /// </summary>
@@ -349,24 +347,22 @@ public static class HelperExtensions
     /// Converts a nullable <see cref="DateTime"/> to its string representation using current culture info.
     /// </summary>
     public static string ToString(this DateTime? date)
-    {
-        return date.ToString(DateTimeFormatInfo.CurrentInfo);
-    }
+        => date.ToString(DateTimeFormatInfo.CurrentInfo);
 
     /// <summary>
     /// Converts a nullable <see cref="DateTime"/> to its string representation using the specified format.
     /// </summary>
     public static string ToString(this DateTime? date, string format)
-    {
-        return date.ToString(format, DateTimeFormatInfo.CurrentInfo);
-    }
+        => date.ToString(format, DateTimeFormatInfo.CurrentInfo);
 
     /// <summary>
     /// Converts a nullable <see cref="DateTime"/> to its string representation using the specified provider.
     /// </summary>
     public static string ToString(this DateTime? date, IFormatProvider provider)
     {
-        return date.ToString(provider);
+        if (date.HasValue)
+            return date.Value.ToString(provider);
+        return string.Empty;
     }
 
     /// <summary>
@@ -699,7 +695,7 @@ public static class HelperExtensions
         return rgx.Replace(thisString, replacement);
     }
 
-    private static Regex rgx { get { return new Regex(cleanPattern, RegexOptions.Compiled); } }
+    private static readonly Regex rgx = new(cleanPattern, RegexOptions.Compiled);
 
     private const string cleanPattern = @"\t|\n|\r";
 
@@ -712,7 +708,7 @@ public static class HelperExtensions
         return thisString is not null && rgxEmail.IsMatch(thisString);
     }
 
-    private static Regex rgxEmail { get { return new Regex(emailPattern, RegexOptions.Compiled); } }
+    private static readonly Regex rgxEmail = new(emailPattern, RegexOptions.Compiled);
 
     private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
 
@@ -769,7 +765,7 @@ public static class HelperExtensions
     /// <summary>
     /// Split a string by ';' characters. Accepts nulls :)
     /// </summary>
-    public static string[] split(this string _s, char sep = ';')
+    public static string[] Split(this string _s, char sep = ';')
     {
         return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
     }

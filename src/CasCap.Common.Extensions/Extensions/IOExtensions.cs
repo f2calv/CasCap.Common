@@ -17,10 +17,7 @@ public static class IOExtensions
     /// <param name="folderOrFile">The relative path to append.</param>
     /// <returns>The combined path.</returns>
     public static string Extend(this string root, string folderOrFile)
-    {
-        var path = Path.Combine(root, folderOrFile);
-        return path;
-    }
+        => Path.Combine(root, folderOrFile);
 
     //public static string ExtendAndCreateDirectory(this string root, string folderOrFile)
     //{
@@ -245,15 +242,10 @@ public static class IOExtensions
     /// <returns>The content of the embedded resource as a string, or an empty string if the resource is not found.</returns>
     public static string? GetManifestResourceString(this Assembly assembly, string fileName)
     {
-        string? prompt = null;
-        using (var stream = assembly.GetManifestResourceStream(fileName))
-        {
-            if (stream is not null)
-            {
-                using var reader = new StreamReader(stream);
-                prompt = reader.ReadToEnd();
-            }
-        }
-        return prompt;
+        using var stream = assembly.GetManifestResourceStream(fileName);
+        if (stream is null)
+            return null;
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }
