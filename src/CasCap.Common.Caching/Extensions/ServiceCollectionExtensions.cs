@@ -100,13 +100,11 @@ public static class ServiceCollectionExtensions
 #endif
             )
         {
-            if (RemoteCacheType == CacheType.Redis)
-            {
-                services.AddSingleton<IRemoteCache, RedisCacheService>();
-                services.AddSingleton<RemoteCacheExpiryService>();
-            }
-            else
+            if (RemoteCacheType != CacheType.Redis)
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
+
+            services.AddSingleton<IRemoteCache, RedisCacheService>();
+            services.AddSingleton<RemoteCacheExpiryService>();
             services.AddSingleton<IDistributedCache, DistributedCacheService>();
             services.AddSingleton<LocalCacheExpiryService>();
             services.AddHostedService<CacheExpiryBgService>();
