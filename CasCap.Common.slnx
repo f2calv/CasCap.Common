@@ -19,6 +19,7 @@
     <Project Path="src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj" />
     <Project Path="src/CasCap.Common.Extensions/CasCap.Common.Extensions.csproj" />
     <Project Path="src/CasCap.Common.Logging/CasCap.Common.Logging.csproj" />
+    <Project Path="src/CasCap.Common.Logging.Serilog/CasCap.Common.Logging.Serilog.csproj" />
     <Project Path="src/CasCap.Common.Net.Tests/CasCap.Common.Net.Tests.csproj" />
     <Project Path="src/CasCap.Common.Net/CasCap.Common.Net.csproj" />
     <Project Path="src/CasCap.Common.Serialization.Json/CasCap.Common.Serialization.Json.csproj" />
