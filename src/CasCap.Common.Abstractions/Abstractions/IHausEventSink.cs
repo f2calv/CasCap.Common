@@ -1,4 +1,4 @@
-namespace CasCap.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Defines a sink that can receive and retrieve events of type <typeparamref name="T"/>.

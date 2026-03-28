@@ -1,4 +1,4 @@
-﻿namespace CasCap.Abstractions;
+﻿namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Abstraction for a local (in-process) cache provider supporting get, set and delete operations.

@@ -1,4 +1,4 @@
-namespace CasCap.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Represents a blob with associated metadata.
