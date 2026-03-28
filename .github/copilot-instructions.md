@@ -24,6 +24,8 @@
 - **No magic strings**: Avoid using string literals as dictionary keys or lookup identifiers in multiple places. Instead, define a `const` field using `nameof()` so the key is a single point of change (e.g. `public const string SummaryValues = nameof(SummaryValues);`).
 - **Namespaces**: The convention is folder-based namespacing. However, the `Services` folder is exempt — sub-folders under `Services` do **not** automatically get a sub-namespace. When creating a new sub-folder under `Services`, ask the user whether the sub-folder should introduce a sub-namespace (present a yes/no choice) before proceeding.
 - **Namespace declarations**: File-scoped (not block-scoped). Using directives go above the namespace.
+- **Using directive ordering**: Pure alphabetical — do **not** place `System.*` first (`dotnet_sort_system_directives_first = false`). No blank line separators between groups (`dotnet_separate_import_directive_groups = false`). This applies to both regular `using` directives and `global using` directives in `GlobalUsings.cs`.
+- **Global usings file**: Every project must have a `GlobalUsings.cs` file located in the project root (not in a sub-folder). The file must always be named `GlobalUsings.cs`.
 - **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
 - **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
 
@@ -55,3 +57,8 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 ### Multi-Targeting
 
 - Library code using APIs unavailable in lower target frameworks must use `#if` preprocessor guards (e.g. `#if NET8_0_OR_GREATER`).
+
+### Copilot Workflow
+
+- **Test execution after refactoring**: After completing a refactoring, always prompt the user with a yes/no choice before running any tests. Do not automatically run tests. When prompting, offer a clickable yes/no UI option if the environment supports it.
+- **Preserve git history during renames/moves**: When renaming or relocating files, first perform the rename/move (preferably via `git mv`), then make content edits to the file in its new location/name. This two-step approach preserves git history across the rename. Do not delete-and-recreate files when a rename or move is the intent.
