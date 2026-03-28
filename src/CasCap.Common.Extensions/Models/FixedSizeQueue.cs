@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// A fixed-size queue that automatically dequeues the oldest items when the limit is reached.

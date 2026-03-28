@@ -1,4 +1,4 @@
-﻿namespace CasCap.Models;
+﻿namespace CasCap.Common.Models;
 
 /// <summary>
 /// Configuration options for an individual cache layer (memory, disk or remote).

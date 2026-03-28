@@ -1,4 +1,4 @@
-﻿namespace CasCap.Models;
+﻿namespace CasCap.Common.Models;
 
 /// <summary>
 /// Identifies the type of cache provider.
