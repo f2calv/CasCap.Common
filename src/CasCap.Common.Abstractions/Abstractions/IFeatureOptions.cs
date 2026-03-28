@@ -1,4 +1,6 @@
-﻿namespace CasCap.Common.Abstractions;
+﻿using Microsoft.Extensions.Hosting;
+
+namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Implement the <see cref="IFeatureOptions{T}"/> interface in conjunction with <see cref="IFeature{T}"/>

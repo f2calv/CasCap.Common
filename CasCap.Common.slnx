@@ -11,6 +11,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/CasCap.Common/">
+    <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" Id="1d6d4849-6e4f-4b02-a73f-f10046893493" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
