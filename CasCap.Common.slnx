@@ -14,6 +14,7 @@
     <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
+    <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj" />
     <Project Path="src/CasCap.Common.Extensions/CasCap.Common.Extensions.csproj" />
@@ -25,8 +26,5 @@
     <Project Path="src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj" />
     <Project Path="src/CasCap.Common.Services/CasCap.Common.Services.csproj" />
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
   </Folder>
 </Solution>
