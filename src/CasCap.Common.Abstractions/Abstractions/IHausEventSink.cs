@@ -11,7 +11,11 @@ public interface IHausEventSink<T> where T : class
     /// The default implementation is a no-op.
     /// </summary>
     /// <param name="cancellationToken">Token that signals when the application is shutting down.</param>
+#if NETSTANDARD2_0
+    Task InitializeAsync(CancellationToken cancellationToken);
+#else
     Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+#endif
 
     /// <summary>
     /// Writes a single event to the sink.
@@ -32,5 +36,9 @@ public interface IHausEventSink<T> where T : class
     /// </summary>
     /// <param name="validIds">The set of identifiers that should be retained.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+#if NETSTANDARD2_0
+    Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
+#else
     Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
+#endif
 }
