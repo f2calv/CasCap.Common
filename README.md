@@ -4,6 +4,8 @@
 [cascap.common.abstractions-url]: https://nuget.org/packages/CasCap.Common.Abstractions
 [cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
 [cascap.common.caching-url]: https://nuget.org/packages/CasCap.Common.Caching
+[cascap.common.configuration-badge]: https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue
+[cascap.common.configuration-url]: https://nuget.org/packages/CasCap.Common.Configuration
 [cascap.common.extensions-badge]: https://img.shields.io/nuget/v/CasCap.Common.Extensions?color=blue
 [cascap.common.extensions-url]: https://nuget.org/packages/CasCap.Common.Extensions
 [cascap.common.extensions.diagnostics.healthchecks-badge]: https://img.shields.io/nuget/v/CasCap.Common.Extensions.Diagnostics.HealthChecks?color=blue
@@ -23,12 +25,13 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 10 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
+A .NET class library repository containing 11 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | CasCap.Common.Abstractions                        | [![Nuget][cascap.common.abstractions-badge]][cascap.common.abstractions-url]                           |
 | CasCap.Common.Caching                             | [![Nuget][cascap.common.caching-badge]][cascap.common.caching-url]                                     |
+| CasCap.Common.Configuration                       | [![Nuget][cascap.common.configuration-badge]][cascap.common.configuration-url]                         |
 | CasCap.Common.Extensions                          | [![Nuget][cascap.common.extensions-badge]][cascap.common.extensions-url]                               |
 | CasCap.Common.Extensions.Diagnostics.HealthChecks | [![Nuget][cascap.common.extensions.diagnostics.healthchecks-badge]][cascap.common.extensions.diagnostics.healthchecks-url] |
 | CasCap.Common.Logging                             | [![Nuget][cascap.common.logging-badge]][cascap.common.logging-url]                                     |
@@ -44,6 +47,7 @@ A .NET class library repository containing 10 NuGet packages with helper functio
 |---------|-------------|---------|----------|
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IHausEventSink<T>`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache and Redis remote cache | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -71,6 +75,7 @@ graph TD
     Logging[CasCap.Common.Logging]
     Abstractions[CasCap.Common.Abstractions]
     Extensions[CasCap.Common.Extensions]
+    Configuration[CasCap.Common.Configuration]
     SerJson[CasCap.Common.Serialization.Json]
     SerMsgPack[CasCap.Common.Serialization.MessagePack]
     Net[CasCap.Common.Net]
@@ -80,6 +85,8 @@ graph TD
     Testing[CasCap.Common.Testing]
 
     Extensions --> Logging
+    Configuration --> Abstractions
+    Configuration --> Logging
     SerJson --> Extensions
     SerJson --> Logging
     SerMsgPack --> Logging

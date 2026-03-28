@@ -26,4 +26,7 @@
     <Project Path="src/CasCap.Common.Services/CasCap.Common.Services.csproj" />
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
+  </Folder>
 </Solution>
