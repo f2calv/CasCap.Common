@@ -1,0 +1,34 @@
+# CasCap.Common.Net
+
+Abstract base class and extensions for building typed `HttpClient` wrappers with built-in JSON serialization and error handling.
+
+## Purpose
+
+Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consistent surface for `GET`, `POST`, `PUT`, and `DELETE` operations with automatic JSON (de)serialization. Network-related extension methods for headers and query strings are also included. The `HttpClientBase` implementation is gated behind `#if NET8_0_OR_GREATER`.
+
+**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+
+### Services
+
+| Type | Description |
+| --- | --- |
+| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostBytesAsync`, `GetAsync`, `PutAsync`, `DeleteAsync` with error handling |
+
+### Extensions
+
+| Class | Key Methods |
+| --- | --- |
+| `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
+
+## Dependencies
+
+### NuGet Packages
+
+This project has no direct NuGet package references.
+
+### Project References
+
+| Project | Purpose |
+| --- | --- |
+| `CasCap.Common.Serialization.Json` | JSON serialization for request/response bodies |
+| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |

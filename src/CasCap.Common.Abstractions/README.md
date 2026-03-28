@@ -1,6 +1,6 @@
 # CasCap.Common.Abstractions
 
-Core interface definitions shared across the CasCap ecosystem. This project provides the foundational contracts that other CasCap libraries and applications maz depend upon.
+Core interface definitions shared across the CasCap ecosystem. This project provides the foundational contracts that other CasCap libraries and applications may depend upon.
 
 ## Purpose
 
