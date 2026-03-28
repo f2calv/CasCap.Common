@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for common MessagePack Serialization requirements.</Description>
-    <PackageTags>extensions,helpers,MessagePack</PackageTags>
+    <Description>MessagePack binary serialization helpers for fast, compact object serialization.</Description>
+    <PackageTags>extensions,helpers,messagepack,serialization,binary</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

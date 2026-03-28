@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library of custom healthchecks.</Description>
-    <PackageTags>extensions,helpers,healthchecks</PackageTags>
+    <Description>Custom ASP.NET Core health check base classes for monitoring HTTP endpoint availability.</Description>
+    <PackageTags>extensions,helpers,healthchecks,diagnostics,aspnetcore</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

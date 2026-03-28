@@ -7,8 +7,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for local and remote object caching.</Description>
-    <PackageTags>extensions,helpers,caching,redis</PackageTags>
+    <Description>Core interface definitions and abstractions shared across the CasCap ecosystem.</Description>
+    <PackageTags>abstractions,interfaces,contracts</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

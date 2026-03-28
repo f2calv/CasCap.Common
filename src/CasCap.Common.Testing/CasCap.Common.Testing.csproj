@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library which encapsulates common testing requirements.</Description>
-    <PackageTags>extensions,helpers,testing</PackageTags>
+    <Description>xUnit test infrastructure — logging redirection via Serilog and conditional-skip attributes for CI environments.</Description>
+    <PackageTags>extensions,helpers,testing,xunit,serilog</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

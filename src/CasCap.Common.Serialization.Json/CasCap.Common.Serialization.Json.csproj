@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for common Json Serialization requirements.</Description>
-    <PackageTags>extensions,helpers,Json</PackageTags>
+    <Description>System.Text.Json serialization helpers and custom JsonConverter implementations.</Description>
+    <PackageTags>extensions,helpers,json,serialization,system.text.json,converters</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
