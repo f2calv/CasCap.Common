@@ -1,15 +1,15 @@
-mode: MainLine
+mode: ContinuousDeployment
 branches:
   main:
     regex: ^main$
-    tag: ''
+    label: ''
   feature:
     regex: ^features?[/-]
-    tag: useBranchName
+    label: useBranchName
   preview:
     regex: ^preview?[/-]
-    tag: preview-{BranchName}
-    source-branches: ['main']
+    label: preview-{BranchName}
+    source-branches: [main]
 ignore:
   sha: []
 merge-message-formats: {}

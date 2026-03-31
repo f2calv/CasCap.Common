@@ -182,6 +182,7 @@ string? floor = null
 - **Major refactorings** (renames, project moves, DI restructuring, model type splits): when a rename or restructure touches type names, configuration sections, or project references, update every `README.md` that mentions the old names **in the same commit**. Do not leave stale references for a follow-up.
 - For large refactorings that touch multiple projects, review all impacted `README.md` files before opening the PR.
 - **Mermaid diagrams**: Use Mermaid diagrams in `README.md` files to illustrate NuGet package dependency graphs, GitHub Actions workflow chains, and .NET service/class hierarchies. These diagrams make complex relationships immediately visible and must be kept in sync with the code they describe.
+- **Markdown tables**: Table separator rows must use spaces around pipes to match the spaced style used in header and data rows (e.g. `| --- | --- |` not `|---|---|`). This prevents MD060 (table-column-style) warnings.
 
 ## Configuration
 

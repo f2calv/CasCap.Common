@@ -44,7 +44,7 @@ A .NET class library repository containing 11 NuGet packages with helper functio
 ## Libraries
 
 | Library | Description | Targets | Packable |
-|---------|-------------|---------|----------|
+| ------- | ----------- | ------- | -------- |
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IHausEventSink<T>`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache and Redis remote cache | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -60,7 +60,7 @@ A .NET class library repository containing 11 NuGet packages with helper functio
 ### Test Projects
 
 | Project | Targets |
-|---------|----------|
+| ------- | -------- |
 | [CasCap.Common.Caching.Tests](src/CasCap.Common.Caching.Tests/README.md) | net8.0; net9.0; net10.0 |
 | [CasCap.Common.Extensions.Tests](src/CasCap.Common.Extensions.Tests/README.md) | net8.0; net9.0; net10.0 |
 | [CasCap.Common.Net.Tests](src/CasCap.Common.Net.Tests/README.md) | net8.0; net9.0; net10.0 |
@@ -152,7 +152,7 @@ dotnet test --no-build --maxcpucount:1
 ### Key Files
 
 | File | Purpose |
-|------|----------|
+| ---- | -------- |
 | `Directory.Build.props` | C# 14.0, `ImplicitUsings`, `Nullable: enable`, `IsPackable: false` by default |
 | `Directory.Packages.props` | Central package version management (`ManagePackageVersionsCentrally: true`) |
 | `.editorconfig` | Code style rules (4-space indent, LF line endings, full formatting rules) |
