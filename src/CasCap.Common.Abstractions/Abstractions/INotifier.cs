@@ -26,4 +26,11 @@ public interface INotifier
     /// <param name="attachmentId">The attachment identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<byte[]?> GetAttachmentAsync(string attachmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists available groups for the specified account.
+    /// </summary>
+    /// <param name="account">The account identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<INotificationGroup[]?> ListGroupsAsync(string account, CancellationToken cancellationToken = default);
 }

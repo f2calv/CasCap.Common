@@ -11,6 +11,12 @@ public interface IReceivedNotification
     string Sender { get; }
 
     /// <summary>
+    /// The group identifier if the notification was sent to a group,
+    /// or <see langword="null"/> for direct messages.
+    /// </summary>
+    string? GroupId { get; }
+
+    /// <summary>
     /// The message text, or <see langword="null"/> for attachment-only notifications.
     /// </summary>
     string? Message { get; }
