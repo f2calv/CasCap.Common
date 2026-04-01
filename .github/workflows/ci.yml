@@ -13,9 +13,19 @@ on:
           - Debug
       push-preview:
         type: string
-        description: Push preview branch?
+        description: Push a pre-release NuGet package from a non-default branch?
         required: true
         default: "false"
+      execute-tests:
+        type: string
+        description: Execute unit tests?
+        required: false
+        default: "true"
+      package-filter:
+        type: string
+        description: Comma-separated package ID prefixes to push e.g. CasCap.Common.Caching
+        required: false
+        default: ''
   push:
     branches-ignore:
       - "preview/**"
@@ -51,7 +61,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ inputs.configuration }}
+          execute-tests: ${{ inputs.execute-tests }}
           push-preview: ${{ inputs.push-preview }}
+          package-filter: ${{ inputs.package-filter }}
           version: ${{ needs.versioning.outputs.version }}
           dotnet-test-args: --maxcpucount:1 #Note: disable parallel test execution due to InlineData and Redis ClearOnStartup property
 
