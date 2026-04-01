@@ -1,13 +1,15 @@
 ﻿namespace CasCap.Common.Extensions;
 
 /// <summary>
-/// TODO
+/// Extension methods for <see cref="CasCap.Common.Models.KubernetesProbeTypes" />.
 /// </summary>
 public static class KubernetesExtensions
 {
     /// <summary>
-    /// TODO
+    /// Converts the flags set on a <see cref="CasCap.Common.Models.KubernetesProbeTypes" /> value into an array of health-check tag strings.
     /// </summary>
+    /// <param name="e"><inheritdoc cref="CasCap.Common.Models.KubernetesProbeTypes" path="/summary"/></param>
+    /// <returns>An array of tag strings corresponding to the set flags.</returns>
     public static string[] GetTags(this KubernetesProbeTypes e)
     {
         var output = new List<string>();
