@@ -1,10 +1,15 @@
 # Copilot Instructions
 
-## Code Quality Conventions
+<!-- ── Synced section ─────────────────────────────────────────────────────
+     Everything above the "Project-Specific Overrides" heading is kept
+     identical across all CasCap repositories. Edit once, sync everywhere.
+     ──────────────────────────────────────────────────────────────────── -->
+
+## C# / .NET
 
 ### Style (enforced by `.editorconfig`)
 
-- **Class-per-file**: Each class, record, struct, or enum should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations.
+- **Class-per-file**: Each class, record, struct, or enum should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations. `IAppConfig` implementations (and their child/nested configuration classes) are also exempt — their filenames are conventionally prefixed with an underscore (e.g. `_AppConfig.cs` for `record AppConfig`). The underscore does **not** appear in the type name itself; it exists solely to group configuration files at the top of the file explorer via alphabetical ordering and to make them easy to identify at a glance.
 - **Indentation**: 4 spaces, LF line endings, insert final newline
 - **Interfaces**: Must start with `I` (PascalCase) and live in an Abstractions folder and an Abstractions namespace.
 - **Types/Methods/Properties**: PascalCase
@@ -15,6 +20,7 @@
 - **Braces**: Allman style (`csharp_new_line_before_open_brace = all`). For `if`, `else`, `foreach`, `for`, `while`, and `using` statements whose body is a single statement, omit the curly braces to reduce vertical verbosity.
 - **Expression-bodied members**: Preferred for accessors, properties, indexers, lambdas; **not** for constructors, operators, or local functions. For methods, use an expression body (`=>`) when the method contains a single expression. If the combined method signature and expression would cause horizontal scrolling on smaller editor windows, place the `=>` and expression on the next line, indented.
 - **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
+- **Async/Await**: Always await async method calls.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
 - **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`)
 - **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
@@ -24,6 +30,8 @@
 - **No magic strings**: Avoid using string literals as dictionary keys or lookup identifiers in multiple places. Instead, define a `const` field using `nameof()` so the key is a single point of change (e.g. `public const string SummaryValues = nameof(SummaryValues);`).
 - **Namespaces**: The convention is folder-based namespacing. However, the `Services` folder is exempt — sub-folders under `Services` do **not** automatically get a sub-namespace. When creating a new sub-folder under `Services`, ask the user whether the sub-folder should introduce a sub-namespace (present a yes/no choice) before proceeding.
 - **Namespace declarations**: File-scoped (not block-scoped). Using directives go above the namespace.
+- **Using directive ordering**: Pure alphabetical — do **not** place `System.*` first (`dotnet_sort_system_directives_first = false`). No blank line separators between groups (`dotnet_separate_import_directive_groups = false`). This applies to both regular `using` directives and `global using` directives in `GlobalUsings.cs`.
+- **Global usings file**: Every project must have a `GlobalUsings.cs` file located in the project root (not in a sub-folder). The file must always be named `GlobalUsings.cs`.
 - **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
 - **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
 
@@ -33,11 +41,12 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 ### XML Documentation
 
-- Every public class, record, method, property, and enum member should have an XML comment.
+- Every public or internal class, record, method, property, and enum member should have an XML comment.
 - **Exception — test projects**: XML comments are required on classes, records, and properties but **not** on test methods.
 - **Document fully on the interface** — use `/// <inheritdoc/>` on implementing classes to avoid duplication.
 - When an enum is a public method parameter, use `<inheritdoc cref="EnumType" path="/summary"/>` in the `<param>` tag rather than repeating the enum's documentation.
 - **Deep link referenced types**: When XML comments reference .NET classes, structs, interfaces, enums, or namespaces, use `<see cref="Fully.Qualified.TypeName" />` instead of plain text (e.g. `<see cref="Azure.Data.Tables.TableEntity" />`).
+- **Timespan config properties**: Any configuration property on an `IAppConfig` implementation that represents a duration (conventionally suffixed with `Ms`) must include a `<see cref="…"/>` deep link to every service class that consumes it in its XML documentation. This ties the property to its consumers and makes it easy to navigate from configuration to consuming code (e.g. `/// Used by <see cref="CasCap.Services.MyMonitorBgService"/>.`).
 - **Preserve hyperlinks**: Inline comment hyperlinks to external resources (e.g. blog posts, StackOverflow answers, GitHub issues) must never be deleted. When refactoring a comment into XML documentation, move the URL into a `<remarks>` block using `<see href="…" />` (e.g. `/// <remarks>See <see href="https://example.com" />.</remarks>`).
 
 ### Logging
@@ -55,3 +64,144 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 ### Multi-Targeting
 
 - Library code using APIs unavailable in lower target frameworks must use `#if` preprocessor guards (e.g. `#if NET8_0_OR_GREATER`).
+
+## MCP (Model Context Protocol)
+
+Feature libraries with `*QueryService` types decorated with `[McpServerToolType]` follow these conventions. Individual methods exposed to the Agent are decorated with `[McpServerTool]` and every such method — including currently commented-out candidates — must also carry a `[Description]` attribute on the method and on each of its parameters. Return-type objects and their nested types must have `[Description]` on every public property.
+
+### Pattern
+
+```csharp
+[McpServerTool]
+[Description("...")]
+public async Task<Foo> DoSomething(
+    [Description("...")] string bar,
+    CancellationToken cancellationToken = default)
+```
+
+> Note: `McpServerToolAttribute` (v1.1.0) has **no** `Description` property. The correct pattern is always two separate attributes: `[McpServerTool]` then `[Description(...)]`.
+
+### MCP `[Description]` text vs XML doc comments
+
+XML doc comments (`<summary>`, `<param>`, `<returns>`) are read by developers and tooling (IntelliSense, generated docs). They may contain `<see cref="..."/>` deep-links, `<remarks>` blocks, multi-sentence explanations, and coding-specific detail.
+
+`[Description]` text on MCP tools is **not** UI copy and is **not** a contract with humans. It is:
+
+- Contextual guidance for an LLM deciding **which tool to call** and **how to map arguments**
+- Never shown to end users
+- Not subject to grammar or localisation requirements
+
+Therefore MCP descriptions should be:
+
+- **Concise** — one sentence per method/parameter is usually enough
+- **Semantically rich** — include the key noun, verb, and any units or constraints the LLM needs (e.g. `"0=fully open, 100=fully closed"`, `"range 14–25"`)
+- **Disambiguation-first** — if two tools or parameters could be confused, the description must distinguish them
+- **Enum-aware** — when a parameter is typed as `string` but represents an enum, list **all valid values with a brief label** in the description text (the LLM cannot infer them from the type):
+
+```csharp
+[Description("Floor filter. Values: Ground, Upper, Basement, Attic.")]
+string? floor = null
+```
+
+- **No XML markup** — plain text only; `<see cref="..."/>` links are meaningless to an LLM
+- **No localization** — English only; multiple languages add noise without benefit
+
+### Checklist when adding or editing a `[McpServerTool]` method
+
+1. Add `[McpServerTool]` then `[Description("...")]` on the method — one sentence naming what it does.
+2. Add `[Description("...")]` on every non-`CancellationToken` parameter.
+3. For `string` parameters representing an enum: list all enum member names with a brief description each.
+4. For complex request-object parameters: summarise the key fields and their constraints in the description.
+5. Ensure every public property on the return type (and any nested types) has `[Description("...")]` with a concise label and unit/range where applicable.
+6. Keep XML `<summary>` comments intact — they serve a different audience and must not be replaced by or merged with `[Description]` text.
+
+## Cloud (Azure)
+
+- **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
+
+## GitHub Actions
+
+### General
+
+- Always leave **one blank line between steps** within a job for readability.
+- Pin actions to the **major version tag version by default** (e.g. `actions/checkout@v6`, `softprops/action-gh-release@v2`). Do not use SHA pinning or include minor/patch versions.
+- Set `fetch-depth: 0` on `actions/checkout` whenever GitVersion is used so it can read the full commit history. For lint-only workflows where history is unnecessary, `fetch-depth: 1` is acceptable.
+- Use explicit `permissions` blocks on every job; default to the minimum required (e.g. `contents: read`). Set global workflow-level permissions to `permissions: {}` (deny all) and grant per-job.
+
+### Step Naming
+
+- **One-liners**: When a step's `run` block is a single command, use that command (or a slightly abbreviated form) as the step `name` rather than a descriptive prose label (e.g. `name: npm install --global json5`, not `name: setup json5`).
+- **Multi-part setup**: When a setup requires multiple steps, name each step with a `(N of M)` suffix (e.g. `name: setup yq (1 of 3)`, `name: setup yq (2 of 3)`, `name: setup yq (3 of 3)`).
+- **Matrix-based names**: Include matrix variables in step names for identification (e.g. `name: test (${{ matrix.gv-source }}, ${{ matrix.gv-config }})`).
+
+### Naming Conventions
+
+- **Inputs/outputs**: kebab-case (e.g. `image-registry`, `tag-override`, `git-user-name`).
+- **Environment variables**: ALL_UPPERCASE with underscores (e.g. `IMAGE_REGISTRY`, `TAG_OVERRIDE`, `MANIFEST_PATHS`).
+- **Secrets**: ALL_UPPERCASE with underscores (e.g. `GITHUB_TOKEN`, `GH_PAT_GITOPS`, `NUGET_API_KEY`).
+
+### YAML Style
+
+- **2-space indentation** for all workflow and action YAML files.
+- Do not quote strings unless YAML requires it (e.g. values containing special characters, reserved words like `true`/`false`/`null`, or strings that could be misinterpreted as another type).
+- For `workflow_dispatch` string inputs that represent booleans, use quoted defaults (e.g. `default: 'true'`).
+- Use `|` (pipe) for multi-line `run` scripts. Use `>` for flowing multi-line description text.
+- One blank line between major YAML sections (`on:`, `env:`, `jobs:`). No blank lines within input/output lists.
+
+### Reusable Workflows
+
+- **File naming**: Prefix reusable workflow filenames with an underscore to distinguish them from top-level entry-point workflows (e.g. `_gitops-helm-update.yml`, `_deploy-maui-android.yml`).
+- **Same repo**: `uses: ./.github/workflows/_filename.yml`
+- **Cross-repo**: `uses: owner/repo/.github/workflows/filename.yml@v1`
+- Prefer `secrets: inherit` unless there is a specific reason to restrict secrets passed to the called workflow.
+
+### Composite Actions
+
+- Declare `shell: bash` explicitly on every `run` step — composite actions do not inherit a default shell.
+- Reference scripts relative to the action root using `${{ github.action_path }}/scripts/name.sh`.
+
+### Security
+
+- Deny all permissions at workflow level (`permissions: {}`), grant only what each job requires.
+- Skip bot-triggered runs conditionally: `if: github.actor != 'dependabot[bot]'`.
+- Pass tokens via `stdin` for registry logins (e.g. `echo "$TOKEN" | docker login --password-stdin`).
+- OCI registry, repository and tag values must be forced to lowercase (e.g. `${IMAGE_REGISTRY,,}`).
+
+### GitVersion
+
+- Always set `fetch-depth: 0` on checkout when GitVersion is in use.
+- Default config file is `GitVersion.yml` in the repository root.
+- Prefer `semVer` for tags and releases; use `fullSemVer` for display and pre-release identifiers.
+
+## Documentation
+
+### README Consistency
+
+- **Every project must have a `README.md`**: When adding a new `.csproj` project, create a `README.md` in the project directory as part of the same commit. Follow the existing pattern: Purpose → Services/Extensions → Configuration → Dependencies (NuGet packages table + Project references table).
+- Every project's `README.md` must stay in sync with its implementation. During any refactoring — and **always** before creating a new PR — scan each affected project's `README.md` for inconsistencies: outdated service names, missing or removed configuration options, stale dependency tables, or inaccurate flow diagrams. Update the README as part of the same change, not as a follow-up.
+- **Major refactorings** (renames, project moves, DI restructuring, model type splits): when a rename or restructure touches type names, configuration sections, or project references, update every `README.md` that mentions the old names **in the same commit**. Do not leave stale references for a follow-up.
+- For large refactorings that touch multiple projects, review all impacted `README.md` files before opening the PR.
+- **Mermaid diagrams**: Use Mermaid diagrams in `README.md` files to illustrate NuGet package dependency graphs, GitHub Actions workflow chains, and .NET service/class hierarchies. These diagrams make complex relationships immediately visible and must be kept in sync with the code they describe.
+- **Markdown tables**: Table separator rows must use spaces around pipes to match the spaced style used in header and data rows (e.g. `| --- | --- |` not `|---|---|`). This prevents MD060 (table-column-style) warnings.
+
+## Configuration
+
+### Configuration Sync
+
+- Configuration properties (e.g. polling delays, feature flags, thresholds) are defined with sensible defaults directly on the `IAppConfig` record/class. Having defaults in the record means the application works out-of-the-box, but every property can be overridden via `appsettings*.json` or directly with environment variables in Kubernetes deployments (using the standard `CasCap__SectionName__PropertyName` double-underscore convention).
+- When adding, renaming, or removing a property on any class or record that implements `IAppConfig` — or on any child/nested type reachable from such a class — update **all** `appsettings*.json` files (`appsettings.json`, `appsettings.Development.json`, and any other environment-specific variants) in the same commit. This includes adding new keys with sensible defaults, renaming keys to match the new property name, and removing keys for deleted properties. If the new property's record default is already the desired value for all environments, the `appsettings*.json` files do not need a new entry — only add one when an environment-specific override is required.
+
+## Copilot Workflow
+
+- **Test execution after refactoring**: After completing a refactoring, always prompt the user with a yes/no choice before running any tests. Do not automatically run tests. When prompting, offer a clickable yes/no UI option if the environment supports it.
+- **Preserve git history during renames/moves**: When renaming or relocating files, first perform the rename/move (preferably via `git mv`), then make content edits to the file in its new location/name. This two-step approach preserves git history across the rename. Do not delete-and-recreate files when a rename or move is the intent.
+
+## Misc
+
+- When detecting new conventions or patterns in the codebase, add them to this document and apply them retroactively where applicable.
+
+---
+
+## Project-Specific Overrides
+
+<!-- This section is excluded from cross-repository sync. Place any repo-specific rules below. -->

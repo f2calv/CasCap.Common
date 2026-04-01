@@ -4,13 +4,12 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace CasCap.Common.Extensions;
 
 /// <summary>
-/// General-purpose extension methods for collections, strings, dates and more.
+/// General-purpose extension methods for collections, dates and more.
 /// </summary>
 public static class HelperExtensions
 {
@@ -419,18 +418,6 @@ public static class HelperExtensions
     }
 
     /// <summary>
-    /// Combines a base URL with a relative URL, handling leading/trailing slashes.
-    /// </summary>
-    public static string UrlCombine(this string baseUrl, string relativeUrl)
-    {
-        baseUrl = baseUrl.TrimEnd('/');
-        relativeUrl ??= string.Empty;
-        relativeUrl = relativeUrl.TrimStart('~');
-        relativeUrl = relativeUrl.TrimStart('/');
-        return baseUrl + "/" + relativeUrl;
-    }
-
-    /// <summary>
     /// Joins a list of strings into a single string separated by <see cref="Environment.NewLine"/>.
     /// </summary>
     public static string List2String(this List<string> input)
@@ -438,16 +425,6 @@ public static class HelperExtensions
         var sb = new StringBuilder();
         foreach (var s in input) sb.Append(s + Environment.NewLine);
         return sb.ToString();
-    }
-
-    /// <summary>
-    /// Splits a string by line-break characters, yielding only non-empty lines.
-    /// </summary>
-    public static IEnumerable<string> String2List(this string input)
-    {
-        foreach (var s in input.Split(['\r', '\n']))
-            if (!string.IsNullOrWhiteSpace(s))
-                yield return s;
     }
 
     /// <summary>
@@ -666,55 +643,6 @@ public static class HelperExtensions
     }
 
     /// <summary>
-    /// Returns a substring capped at the specified length, optionally appending trailing dots.
-    /// </summary>
-    public static string SubstringSafe(this string thisString, int maxLength, bool includeTrailingDots = false)
-    {
-        if (thisString is not null && maxLength > 0)
-        {
-            var original = thisString;
-            if (includeTrailingDots && maxLength > 3)
-                maxLength += -3;
-            if (maxLength < thisString.Length)
-                thisString = thisString.Substring(0, maxLength);
-            thisString = thisString.Trim();
-            if (thisString.Length > 0 && thisString[thisString.Length - 1] == ',')
-                thisString = thisString.Substring(0, thisString.Length - 1);
-            if (includeTrailingDots && original.ToString().Length > maxLength)
-                thisString += "...";
-            return thisString;
-        }
-        return string.Empty;
-    }
-
-    /// <summary>
-    /// Removes tab, newline and carriage-return characters from the string.
-    /// </summary>
-    public static string Clean(this string thisString, string replacement = "")
-    {
-        return rgx.Replace(thisString, replacement);
-    }
-
-    private static readonly TimeSpan _regexTimeout = TimeSpan.FromSeconds(1);
-
-    private static readonly Regex rgx = new(cleanPattern, RegexOptions.Compiled, _regexTimeout);
-
-    private const string cleanPattern = @"\t|\n|\r";
-
-    /// <summary>
-    /// Determines whether the string is a valid email address.
-    /// </summary>
-    public static bool IsEmail(this string thisString)
-    {
-        //same as new aspNetEmail.EmailMessage().ValidateRegEx
-        return thisString is not null && rgxEmail.IsMatch(thisString);
-    }
-
-    private static readonly Regex rgxEmail = new(emailPattern, RegexOptions.Compiled, _regexTimeout);
-
-    private const string emailPattern = @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$";
-
-    /// <summary>
     /// GZip using integrated .NET compression library.
     /// </summary>
     public static byte[] Compress(this byte[] data)
@@ -741,15 +669,6 @@ public static class HelperExtensions
     }
 
     /// <summary>
-    /// Converts a UTF-8 string to its Base64 representation.
-    /// </summary>
-    public static string ToBase64(this string thisString)
-    {
-        var bytes = Encoding.UTF8.GetBytes(thisString);
-        return Convert.ToBase64String(bytes);
-    }
-
-    /// <summary>
     /// Converts a byte count to kilobytes.
     /// </summary>
     public static double GetSizeInKB(this long bytes) => bytes / 1024d;
@@ -765,31 +684,7 @@ public static class HelperExtensions
     public static double GetSizeInGB(this long bytes) => bytes.GetSizeInMB() / 1024;
 
     /// <summary>
-    /// Split a string by ';' characters. Accepts nulls :)
-    /// </summary>
-    public static string[] Split(this string _s, char sep = ';')
-    {
-        return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
-    }
-
-    /// <summary>
     /// Returns the last <paramref name="N"/> elements of the sequence.
     /// </summary>
     public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
-
-    private static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled, _regexTimeout);
-
-    private static readonly Regex rgxMultipleSpaces = new(@"\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled, _regexTimeout);
-
-    private const string singleSpace = " ";
-
-    /// <summary>
-    /// Strips characters that are non-conducive to being in a file name.
-    /// </summary>
-    public static string? Sanitize(this string? input, string replacement = singleSpace)
-    {
-        if (input is null) return input;
-        var sanitized = rgxSanitize.Replace(input, replacement);
-        return replacement == singleSpace ? rgxMultipleSpaces.Replace(sanitized, replacement) : sanitized;
-    }
 }

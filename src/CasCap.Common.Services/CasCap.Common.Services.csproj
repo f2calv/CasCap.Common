@@ -7,8 +7,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Helper library for services.</Description>
-    <PackageTags>extensions,helpers,services,feature flags</PackageTags>
+    <Description>Feature-flag background service launcher using bitwise AppMode flags to activate IFeature implementations.</Description>
+    <PackageTags>extensions,helpers,services,feature-flags,backgroundservice</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
   </ItemGroup>
 

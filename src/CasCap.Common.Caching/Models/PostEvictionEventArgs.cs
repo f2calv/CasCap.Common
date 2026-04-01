@@ -1,4 +1,4 @@
-﻿namespace CasCap.Models;
+﻿namespace CasCap.Common.Models;
 
 /// <summary>
 /// Event arguments raised after a cache entry is evicted from the local <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/>.

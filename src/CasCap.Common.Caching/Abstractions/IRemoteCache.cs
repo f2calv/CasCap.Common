@@ -1,4 +1,4 @@
-﻿namespace CasCap.Abstractions;
+﻿namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// The <see cref="IRemoteCache"/> interface abstracts core functionality that

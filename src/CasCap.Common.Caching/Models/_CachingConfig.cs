@@ -1,4 +1,4 @@
-﻿namespace CasCap.Models;
+﻿namespace CasCap.Common.Models;
 
 /// <summary>
 /// Configuration options for the CasCap distributed caching system.

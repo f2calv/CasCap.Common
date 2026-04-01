@@ -1,0 +1,10 @@
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Logging;
+global using Serilog;
+global using Serilog.Debugging;
+global using Serilog.Enrichers.Span;
+global using Serilog.Events;
+global using Serilog.Exceptions;
+global using Serilog.Extensions.Logging;
+global using Serilog.Sinks.SystemConsole.Themes;
+global using System.Runtime.InteropServices;

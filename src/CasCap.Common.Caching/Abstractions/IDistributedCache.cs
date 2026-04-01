@@ -1,4 +1,4 @@
-﻿namespace CasCap.Abstractions;
+﻿namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// The <see cref="IDistributedCache"/> is a wrapper around the <see cref="ILocalCache"/>
