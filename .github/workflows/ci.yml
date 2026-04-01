@@ -12,15 +12,13 @@ on:
           - Release
           - Debug
       push-preview:
-        type: string
+        type: boolean
         description: Push a pre-release NuGet package from a non-default branch?
-        required: true
-        default: "false"
+        default: false
       execute-tests:
-        type: string
+        type: boolean
         description: Execute unit tests?
-        required: false
-        default: "true"
+        default: true
       package-filter:
         type: string
         description: Comma-separated package ID prefixes to push e.g. CasCap.Common.Caching
