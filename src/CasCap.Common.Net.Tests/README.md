@@ -12,13 +12,13 @@ Verifies HTTP client base class behaviour and network extension methods — head
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Microsoft.NET.Test.Sdk` | 18.3.0 |
-| `xunit` | 2.9.3 |
-| `xunit.runner.visualstudio` | 3.1.5 |
-| `coverlet.collector` | 8.0.1 |
-| `coverlet.msbuild` | 8.0.1 |
+| Package |
+| --- |
+| [Microsoft.NET.Test.Sdk](https://www.nuget.org/packages/microsoft.net.test.sdk) |
+| [xunit](https://www.nuget.org/packages/xunit) |
+| [xunit.runner.visualstudio](https://www.nuget.org/packages/xunit.runner.visualstudio) |
+| [coverlet.collector](https://www.nuget.org/packages/coverlet.collector) |
+| [coverlet.msbuild](https://www.nuget.org/packages/coverlet.msbuild) |
 
 ### Project References
 

@@ -36,8 +36,8 @@ The only valid dependencies for this library are other Abstractions-style librar
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Microsoft.Extensions.Hosting.Abstractions` | 10.0.5 |
+| Package |
+| --- |
+| [Microsoft.Extensions.Hosting.Abstractions](https://www.nuget.org/packages/microsoft.extensions.hosting.abstractions) |
 
 This project has no project references.

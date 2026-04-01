@@ -18,9 +18,9 @@ Provides `HttpEndpointCheckBase`, an abstract `IHealthCheck` that simplifies wri
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions` | 10.0.5 |
+| Package |
+| --- |
+| [Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions](https://www.nuget.org/packages/microsoft.extensions.diagnostics.healthchecks.abstractions) |
 
 ### Project References
 

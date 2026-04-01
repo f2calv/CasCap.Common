@@ -24,11 +24,11 @@ Exposes a static `ApplicationLogging` class that holds an `ILoggerFactory` refer
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Microsoft.Extensions.Hosting.Abstractions` | 10.0.5 |
-| `Microsoft.Extensions.Logging.Abstractions` | 10.0.5 |
-| `Microsoft.Extensions.Logging.Console` | 10.0.5 |
-| `Microsoft.Extensions.Logging.Debug` | 10.0.5 |
+| Package |
+| --- |
+| [Microsoft.Extensions.Hosting.Abstractions](https://www.nuget.org/packages/microsoft.extensions.hosting.abstractions) |
+| [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/microsoft.extensions.logging.abstractions) |
+| [Microsoft.Extensions.Logging.Console](https://www.nuget.org/packages/microsoft.extensions.logging.console) |
+| [Microsoft.Extensions.Logging.Debug](https://www.nuget.org/packages/microsoft.extensions.logging.debug) |
 
 This project has no project references.

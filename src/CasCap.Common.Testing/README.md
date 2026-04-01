@@ -36,9 +36,9 @@ Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` vi
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Serilog.Sinks.XUnit` | 3.0.19 |
+| Package |
+| --- |
+| [Serilog.Sinks.XUnit](https://www.nuget.org/packages/serilog.sinks.xunit) |
 
 ### Project References
 

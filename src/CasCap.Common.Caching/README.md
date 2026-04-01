@@ -47,11 +47,11 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `StackExchange.Redis` | 2.12.8 |
-| `Microsoft.Extensions.Configuration.Json` | 10.0.5 |
-| `Microsoft.Extensions.Caching.Memory` | 10.0.5 |
+| Package |
+| --- |
+| [StackExchange.Redis](https://www.nuget.org/packages/stackexchange.redis) |
+| [Microsoft.Extensions.Configuration.Json](https://www.nuget.org/packages/microsoft.extensions.configuration.json) |
+| [Microsoft.Extensions.Caching.Memory](https://www.nuget.org/packages/microsoft.extensions.caching.memory) |
 
 ### Project References
 

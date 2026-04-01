@@ -18,10 +18,10 @@ Provides `ToMessagePack<T>()` and `FromMessagePack<T>()` extension methods for f
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `MessagePack` | 3.1.4 |
-| `MessagePackAnalyzer` | 3.1.4 |
+| Package |
+| --- |
+| [MessagePack](https://www.nuget.org/packages/messagepack) |
+| [MessagePackAnalyzer](https://www.nuget.org/packages/messagepackanalyzer) |
 
 ### Project References
 

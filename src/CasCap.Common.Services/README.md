@@ -30,10 +30,10 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Microsoft.Extensions.Hosting.Abstractions` | 10.0.5 |
-| `Microsoft.Extensions.Options.DataAnnotations` | 10.0.5 |
+| Package |
+| --- |
+| [Microsoft.Extensions.Hosting.Abstractions](https://www.nuget.org/packages/microsoft.extensions.hosting.abstractions) |
+| [Microsoft.Extensions.Options.DataAnnotations](https://www.nuget.org/packages/microsoft.extensions.options.dataannotations) |
 
 ### Project References
 

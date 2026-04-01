@@ -23,19 +23,19 @@ Provides a bootstrap logger for early startup logging and a composable `AddCasCa
 
 ### NuGet Packages
 
-| Package | Version |
-| --- | --- |
-| `Serilog` | 4.3.1 |
-| `Serilog.Enrichers.AssemblyName` | 2.0.0 |
-| `Serilog.Enrichers.Environment` | 3.0.1 |
-| `Serilog.Enrichers.Process` | 3.0.0 |
-| `Serilog.Enrichers.Span` | 3.1.0 |
-| `Serilog.Enrichers.Thread` | 4.0.0 |
-| `Serilog.Exceptions` | 8.4.0 |
-| `Serilog.Extensions.Hosting` | 10.0.0 |
-| `Serilog.Extensions.Logging` | 10.0.0 |
-| `Serilog.Settings.Configuration` | 10.0.0 |
-| `Serilog.Sinks.Console` | 6.1.1 |
+| Package |
+| --- |
+| [Serilog](https://www.nuget.org/packages/serilog) |
+| [Serilog.Enrichers.AssemblyName](https://www.nuget.org/packages/serilog.enrichers.assemblyname) |
+| [Serilog.Enrichers.Environment](https://www.nuget.org/packages/serilog.enrichers.environment) |
+| [Serilog.Enrichers.Process](https://www.nuget.org/packages/serilog.enrichers.process) |
+| [Serilog.Enrichers.Span](https://www.nuget.org/packages/serilog.enrichers.span) |
+| [Serilog.Enrichers.Thread](https://www.nuget.org/packages/serilog.enrichers.thread) |
+| [Serilog.Exceptions](https://www.nuget.org/packages/serilog.exceptions) |
+| [Serilog.Extensions.Hosting](https://www.nuget.org/packages/serilog.extensions.hosting) |
+| [Serilog.Extensions.Logging](https://www.nuget.org/packages/serilog.extensions.logging) |
+| [Serilog.Settings.Configuration](https://www.nuget.org/packages/serilog.settings.configuration) |
+| [Serilog.Sinks.Console](https://www.nuget.org/packages/serilog.sinks.console) |
 
 ### Project References
 
