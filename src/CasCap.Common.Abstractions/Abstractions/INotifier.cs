@@ -33,4 +33,21 @@ public interface INotifier
     /// <param name="account">The account identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<INotificationGroup[]?> ListGroupsAsync(string account, CancellationToken cancellationToken = default);
+
+    ///// <summary>
+    ///// Shows a typing indicator to the specified recipient, signalling that the bot is
+    ///// composing a response.
+    ///// </summary>
+    ///// <param name="account">The sender account identifier.</param>
+    ///// <param name="recipient">The recipient identifier (phone number or group ID).</param>
+    ///// <param name="cancellationToken">Cancellation token.</param>
+    //Task<bool> ShowTypingIndicatorAsync(string account, string recipient, CancellationToken cancellationToken = default);
+
+    ///// <summary>
+    ///// Hides the typing indicator for the specified recipient.
+    ///// </summary>
+    ///// <param name="account">The sender account identifier.</param>
+    ///// <param name="recipient">The recipient identifier (phone number or group ID).</param>
+    ///// <param name="cancellationToken">Cancellation token.</param>
+    //Task<bool> HideTypingIndicatorAsync(string account, string recipient, CancellationToken cancellationToken = default);
 }
