@@ -4,8 +4,9 @@ branches:
     regex: ^main$
     label: ''
   feature:
-    regex: ^features?[/-]
-    label: useBranchName
+    mode: ContinuousDelivery
+    regex: ^(features?|f2calv|copilot)[/-](?<BranchName>.+)
+    label: '{BranchName}'
   preview:
     regex: ^preview?[/-]
     label: preview-{BranchName}

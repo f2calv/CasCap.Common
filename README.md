@@ -12,6 +12,8 @@
 [cascap.common.extensions.diagnostics.healthchecks-url]: https://nuget.org/packages/CasCap.Common.Extensions.Diagnostics.HealthChecks
 [cascap.common.logging-badge]: https://img.shields.io/nuget/v/CasCap.Common.Logging?color=blue
 [cascap.common.logging-url]: https://nuget.org/packages/CasCap.Common.Logging
+[cascap.common.logging.serilog-badge]: https://img.shields.io/nuget/v/CasCap.Common.Logging.Serilog?color=blue
+[cascap.common.logging.serilog-url]: https://nuget.org/packages/CasCap.Common.Logging.Serilog
 [cascap.common.net-badge]: https://img.shields.io/nuget/v/CasCap.Common.Net?color=blue
 [cascap.common.net-url]: https://nuget.org/packages/CasCap.Common.Net
 [cascap.common.Serialization.json-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.Json?color=blue
@@ -25,7 +27,7 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 11 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
+A .NET class library repository containing 12 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -35,6 +37,7 @@ A .NET class library repository containing 11 NuGet packages with helper functio
 | CasCap.Common.Extensions                          | [![Nuget][cascap.common.extensions-badge]][cascap.common.extensions-url]                               |
 | CasCap.Common.Extensions.Diagnostics.HealthChecks | [![Nuget][cascap.common.extensions.diagnostics.healthchecks-badge]][cascap.common.extensions.diagnostics.healthchecks-url] |
 | CasCap.Common.Logging                             | [![Nuget][cascap.common.logging-badge]][cascap.common.logging-url]                                     |
+| CasCap.Common.Logging.Serilog                     | [![Nuget][cascap.common.logging.serilog-badge]][cascap.common.logging.serilog-url]                     |
 | CasCap.Common.Net                                 | [![Nuget][cascap.common.net-badge]][cascap.common.net-url]                                             |
 | CasCap.Common.Serialization.Json                  | [![Nuget][cascap.common.Serialization.json-badge]][cascap.common.Serialization.json-url]               |
 | CasCap.Common.Serialization.MessagePack           | [![Nuget][cascap.common.Serialization.messagepack-badge]][cascap.common.Serialization.messagepack-url] |
@@ -45,12 +48,13 @@ A .NET class library repository containing 11 NuGet packages with helper functio
 
 | Library | Description | Targets | Packable |
 | ------- | ----------- | ------- | -------- |
-| [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache and Redis remote cache | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Logging.Serilog**](src/CasCap.Common.Logging.Serilog/README.md) | Reusable Serilog configuration with standard enrichers, console sink, and health-check filtering | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase` abstract class for HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -73,6 +77,7 @@ Project reference relationships between libraries (NuGet-only dependencies omitt
 ```mermaid
 graph TD
     Logging[CasCap.Common.Logging]
+    LoggingSerilog[CasCap.Common.Logging.Serilog]
     Abstractions[CasCap.Common.Abstractions]
     Extensions[CasCap.Common.Extensions]
     Configuration[CasCap.Common.Configuration]
@@ -85,6 +90,7 @@ graph TD
     Testing[CasCap.Common.Testing]
 
     Extensions --> Logging
+    LoggingSerilog --> Logging
     Configuration --> Abstractions
     Configuration --> Logging
     SerJson --> Extensions
@@ -92,6 +98,7 @@ graph TD
     SerMsgPack --> Logging
     Net --> SerJson
     Net --> Logging
+    HealthChecks --> Extensions
     HealthChecks --> Logging
     Testing --> Logging
     Services --> Abstractions

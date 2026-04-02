@@ -55,6 +55,31 @@ public static class NetExtensions
         headers.Add(name, value);
     }
 
+    /// <summary>
+    /// Sets the <c>Authorization</c> header to HTTP Basic credentials derived from the
+    /// supplied <paramref name="username"/> and <paramref name="password"/>.
+    /// </summary>
+    /// <param name="client">The <see cref="HttpClient"/> to configure.</param>
+    /// <param name="username">The Basic authentication username.</param>
+    /// <param name="password">The Basic authentication password.</param>
+    public static void SetBasicAuth(this HttpClient client, string username, string password)
+    {
+        var base64 = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64);
+    }
+
+    /// <summary>
+    /// Returns the full HTTP Basic <c>Authorization</c> header value (e.g. <c>"Basic dXNlcjpwYXNz"</c>)
+    /// suitable for use with SignalR hub connections or other HTTP clients.
+    /// </summary>
+    /// <param name="username">The Basic authentication username.</param>
+    /// <param name="password">The Basic authentication password.</param>
+    public static string GetBasicAuthHeaderValue(string username, string password)
+    {
+        var base64 = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+        return $"Basic {base64}";
+    }
+
     //public static async Task<T?> ReadAsJsonAsync<T>(this HttpContent content)//for .NET Standard compatibility
     //{
     //    var json = await content.ReadAsStringAsync().ConfigureAwait(false);

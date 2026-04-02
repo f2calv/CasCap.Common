@@ -33,4 +33,31 @@ public interface INotifier
     /// <param name="account">The account identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<INotificationGroup[]?> ListGroupsAsync(string account, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Signals the recipient that the bot is actively processing a request.
+    /// </summary>
+    /// <param name="account">The sender account identifier.</param>
+    /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<bool> StartProcessingAsync(string account, string recipient, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Signals the recipient that the bot has finished processing.
+    /// </summary>
+    /// <param name="account">The sender account identifier.</param>
+    /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<bool> StopProcessingAsync(string account, string recipient, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a progress-update indicator (e.g. an emoji reaction) to a specific message.
+    /// </summary>
+    /// <param name="account">The sender account identifier.</param>
+    /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
+    /// <param name="reaction">The reaction emoji.</param>
+    /// <param name="targetAuthor">The author of the message being reacted to.</param>
+    /// <param name="timestamp">The timestamp of the target message.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<bool> SendProgressUpdateAsync(string account, string recipient, string reaction, string targetAuthor, long timestamp, CancellationToken cancellationToken = default);
 }

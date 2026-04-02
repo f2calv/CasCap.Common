@@ -27,6 +27,11 @@ public interface IReceivedNotification
     bool HasContent { get; }
 
     /// <summary>
+    /// The timestamp of the message as assigned by the sender, or <see langword="null"/> if unavailable.
+    /// </summary>
+    long? Timestamp { get; }
+
+    /// <summary>
     /// Attachments included with the notification, or <see langword="null"/> if none are present.
     /// </summary>
     IReadOnlyList<INotificationAttachment>? Attachments { get; }

@@ -18,6 +18,12 @@ This library contains no concrete implementations — only interfaces and abstra
 | `IEventSink<T>` | Generic event sink contract. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel |
 | `ILocalCache` | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
 | `IMyBlob` | Represents a blob with associated metadata (`bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
+| `INotifier` | Abstracts a notification service capable of sending and receiving messages with optional attachment support |
+| `INotificationMessage` | Represents an outgoing notification message (text, sender, recipients, attachments) |
+| `INotificationAttachment` | Metadata for an attachment received as part of a notification (`Id`, `ContentType`) |
+| `INotificationGroup` | Represents a named group in a notification service (`Id`, `Name`, members) |
+| `INotificationResponse` | Response returned after sending a notification (`Timestamp`) |
+| `IReceivedNotification` | Represents a notification received from an external messaging service (`Sender`, `GroupId`, `Message`, attachments) |
 
 ### `IEventSink<T>` Contract
 

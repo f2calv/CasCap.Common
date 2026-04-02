@@ -12,14 +12,23 @@ on:
           - Release
           - Debug
       push-preview:
+        type: boolean
+        description: Push a pre-release NuGet package from a non-default branch?
+        default: false
+      execute-tests:
+        type: boolean
+        description: Execute unit tests?
+        default: true
+      package-filter:
         type: string
-        description: Push preview branch?
-        required: true
-        default: "false"
+        description: Comma-separated package ID prefixes to push e.g. CasCap.Common.Caching
+        required: false
+        default: ''
   push:
     branches-ignore:
       - "preview/**"
     paths-ignore:
+      - .github/copilot-instructions.md
       - LICENSE
       - README.md
   pull_request:
@@ -50,7 +59,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ inputs.configuration }}
+          execute-tests: ${{ inputs.execute-tests }}
           push-preview: ${{ inputs.push-preview }}
+          package-filter: ${{ inputs.package-filter }}
           version: ${{ needs.versioning.outputs.version }}
           dotnet-test-args: --maxcpucount:1 #Note: disable parallel test execution due to InlineData and Redis ClearOnStartup property
 
