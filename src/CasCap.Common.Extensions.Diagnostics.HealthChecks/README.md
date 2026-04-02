@@ -26,4 +26,5 @@ Provides `HttpEndpointCheckBase`, an abstract `IHealthCheck` that simplifies wri
 
 | Project | Purpose |
 | --- | --- |
+| `CasCap.Common.Extensions` | General-purpose helper utilities |
 | `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
