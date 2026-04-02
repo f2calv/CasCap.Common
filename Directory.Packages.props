@@ -31,7 +31,7 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.XUnit" Version="3.0.19" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.12.8" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.12.14" />
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
     <PackageVersion Include="coverlet.msbuild" Version="8.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
