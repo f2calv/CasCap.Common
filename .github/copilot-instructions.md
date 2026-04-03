@@ -115,6 +115,31 @@ string? floor = null
 5. Ensure every public property on the return type (and any nested types) has `[Description("...")]` with a concise label and unit/range where applicable.
 6. Keep XML `<summary>` comments intact — they serve a different audience and must not be replaced by or merged with `[Description]` text.
 
+### Method naming
+
+.NET MCP servers convert PascalCase method names to `snake_case` for the tool registry. Both forms must read naturally and be unambiguous.
+
+- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetAppliance`, not `GetDevice`; `GetInverterSnapshot`, not `GetState`).
+- **Verb-first for actions**: `UnlockHouseDoor`, `ExecuteApplianceAction` — not `HouseDoorUnlock`.
+- **Get/List pairing**: Use `Get<Noun>` for a single-item lookup and `Get<Noun>s` (plural) for the list variant.
+- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Heating* over *HVAC*, *infrared* over *IR*).
+- **Read in snake_case**: Before committing, mentally convert the name — `GetInverterBatteryStorageRealtimeData` → `get_inverter_battery_storage_realtime_data` is too long; `GetInverterBatteryStatus` → `get_inverter_battery_status` is fine.
+
+### snake_case references
+
+When an `[McpServerTool]` method is renamed, search for its old `snake_case` form in:
+
+- `appsettings*.json` — `IncludeTools` / `ExcludeTools` arrays reference tools by snake_case name.
+- System prompt / instructions markdown files that may list tool names.
+
+### Description anti-patterns
+
+Avoid these in `[Description]` text:
+
+- **Return-type narration** — *"Returns the group names of affected shutters"* duplicates what the LLM already infers from the method signature.
+- **Restating parameter constraints on the method** — keep constraints on the parameter `[Description]`; the method description should say *what* the tool does, not *how* to fill in every field.
+- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a quick on/off overview use GetHouseLightSwitchStates"* on the full-detail tool).
+
 ## Cloud (Azure)
 
 - **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
