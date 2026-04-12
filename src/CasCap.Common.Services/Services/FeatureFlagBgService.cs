@@ -37,7 +37,9 @@ public class FeatureFlagBgService<T> : BackgroundService
         }
         if (tasks.IsNullOrEmpty())
             throw new GenericException("no features found to launch!");
-        await Task.WhenAll(tasks);
+        //await-await-WhenAny propagates the first faulted task immediately so the
+        //service crashes and the pod restarts rather than running in a degraded state.
+        await await Task.WhenAny(tasks);
         _logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService<T>));
     }
 }
