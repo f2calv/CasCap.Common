@@ -6,11 +6,11 @@
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="FeatureFlagBgService{T}"/> and binds <see cref="FeatureOptions{T}"/> from the specified configuration section.
+    /// Registers <see cref="FeatureFlagBgService{T}"/> and binds <see cref="FeatureConfig{T}"/> from the specified configuration section.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
-    /// <param name="sectionName">Configuration section name for <see cref="FeatureOptions{T}"/>.</param>
+    /// <param name="sectionName">Configuration section name for <see cref="FeatureConfig{T}"/>.</param>
     /// <param name="addGitMetadataService">
     /// When <see langword="true"/>, registers <see cref="GitMetadataBgService"/> as a hosted service
     /// that periodically logs git build metadata from environment variables.
@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         bool addGitMetadataService = false)
         where T : Enum
     {
-        services.AddOptionsWithValidateOnStart<FeatureOptions<T>>().BindConfiguration(sectionName).ValidateDataAnnotations();
+        services.AddOptionsWithValidateOnStart<FeatureConfig<T>>().BindConfiguration(sectionName).ValidateDataAnnotations();
         services.AddHostedService<FeatureFlagBgService<T>>();
 
         if (addGitMetadataService)

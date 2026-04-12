@@ -7,13 +7,13 @@ public class FeatureFlagBgService<T> : BackgroundService
     where T : Enum
 {
     private readonly ILogger _logger;
-    private readonly IFeatureOptions<T> _featureOptions;
+    private readonly IFeatureConfig<T> _featureOptions;
     private readonly IEnumerable<IFeature<T>> _features;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FeatureFlagBgService{T}"/> class.
     /// </summary>
-    public FeatureFlagBgService(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureOptions<T>> featureOptions, IEnumerable<IFeature<T>> features)
+    public FeatureFlagBgService(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features)
     {
         _logger = logger;
         _featureOptions = featureOptions.Value;
