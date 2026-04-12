@@ -2,7 +2,7 @@ namespace CasCap.Common.Models;
 
 /// <summary>Build metadata from the CI/CD pipeline.</summary>
 /// <remarks>Properties bind to environment variables injected by GitHub Actions and Helm deployments.</remarks>
-public record GitHub
+public record GitMetadata
 {
     /// <summary>Source repository name.</summary>
     public string GIT_REPOSITORY { get; init; } = Environment.GetEnvironmentVariable(nameof(GIT_REPOSITORY)) ?? "n/a";
