@@ -3,7 +3,7 @@
 /// <summary>
 /// Configuration options for the CasCap distributed caching system.
 /// </summary>
-public record CachingConfig
+public record CachingConfig : IAppConfig
 {
     /// <summary>
     /// Configuration sub-section locator key.
