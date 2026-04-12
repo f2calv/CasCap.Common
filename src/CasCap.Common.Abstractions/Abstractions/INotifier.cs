@@ -60,4 +60,12 @@ public interface INotifier
     /// <param name="timestamp">The timestamp of the target message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> SendProgressUpdateAsync(string account, string recipient, string reaction, string targetAuthor, long timestamp, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the display name on the account profile.
+    /// </summary>
+    /// <param name="account">The sender account identifier.</param>
+    /// <param name="displayName">The new display name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<bool> UpdateProfileNameAsync(string account, string displayName, CancellationToken cancellationToken = default);
 }
