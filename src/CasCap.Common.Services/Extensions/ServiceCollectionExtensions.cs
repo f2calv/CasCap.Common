@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     /// When <see langword="true"/>, registers <see cref="GitMetadataBgService"/> as a hosted service
     /// that periodically logs git build metadata from environment variables.
     /// </param>
-    public static void AddFeatureFlagService<T>(this IServiceCollection services, IConfiguration configuration, string sectionName,
+    public static IServiceCollection AddFeatureFlagService<T>(this IServiceCollection services, IConfiguration configuration, string sectionName,
         bool addGitMetadataService = false)
         where T : Enum
     {
@@ -27,5 +27,7 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<GitMetadata>();
             services.AddHostedService<GitMetadataBgService>();
         }
+
+        return services;
     }
 }
