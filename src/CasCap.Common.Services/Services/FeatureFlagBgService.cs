@@ -8,21 +8,17 @@
 public class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
     where T : Enum
 {
-    private readonly ILogger _logger = logger;
-    private readonly IFeatureConfig<T> _featureOptions = featureOptions.Value;
-    private readonly IEnumerable<IFeature<T>> _features = features;
-
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
-        _logger.LogInformation("{ClassName} starting", nameof(FeatureFlagBgService<T>));
-        var tasks = new List<Task>(_features.Count());
-        foreach (var feature in _features)
+        logger.LogInformation("{ClassName} starting", nameof(FeatureFlagBgService<T>));
+        var tasks = new List<Task>(features.Count());
+        foreach (var feature in features)
         {
-            if (_featureOptions.EnabledFeatures.HasFlag(feature.FeatureType))
+            if (featureOptions.Value.EnabledFeatures.HasFlag(feature.FeatureType))
             {
-                _logger.LogInformation("{ClassName} starting {FeatureName}",
+                logger.LogInformation("{ClassName} starting {FeatureName}",
                     nameof(FeatureFlagBgService<T>), feature.GetType().Name);
                 tasks.Add(feature.ExecuteAsync(stoppingToken));
             }
@@ -32,6 +28,6 @@ public class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IO
         //await-await-WhenAny propagates the first faulted task immediately so the
         //service crashes and the pod restarts rather than running in a degraded state.
         await await Task.WhenAny(tasks);
-        _logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService<T>));
+        logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService<T>));
     }
 }
