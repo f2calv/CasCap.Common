@@ -8,4 +8,7 @@ public interface IMetricsConfig
     /// Also used as the OTel <see cref="System.Diagnostics.Metrics.Meter"/> name.
     /// </summary>
     string MetricNamePrefix { get; }
+
+    /// <summary>OpenTelemetry service name reported to the OTEL collector.</summary>
+    string OtelServiceName { get; }
 }
