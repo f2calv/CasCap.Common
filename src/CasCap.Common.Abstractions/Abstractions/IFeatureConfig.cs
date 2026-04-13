@@ -7,8 +7,6 @@
 /// <typeparam name="T"></typeparam>
 public interface IFeatureConfig<T> where T : Enum
 {
-    /// <summary>
-    /// The types of feature which are enabled.
-    /// </summary>
-    public T AppMode { get; init; }
+    /// <summary>The bitwise combination of features that are enabled.</summary>
+    public T EnabledFeatures { get; init; }
 }

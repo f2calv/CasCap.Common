@@ -4,7 +4,7 @@ Feature-flag background service launcher and configuration abstractions.
 
 ## Purpose
 
-Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects bitwise `AppMode` flags at startup and launches the matching `IFeature<T>` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
+Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects bitwise `EnabledFeatures` flags at startup and launches the matching `IFeature<T>` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
@@ -12,7 +12,7 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Type | Description |
 | --- | --- |
-| `FeatureFlagBgService<T>` | Generic `BackgroundService` that resolves and executes `IFeature<T>` implementations whose `FeatureType` matches the configured `AppMode` flags |
+| `FeatureFlagBgService<T>` | Generic `BackgroundService` that resolves and executes `IFeature<T>` implementations whose `FeatureType` matches the configured `EnabledFeatures` flags |
 
 ### Extensions
 
@@ -24,7 +24,7 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Type | Description |
 | --- | --- |
-| `FeatureOptions<T>` | Record carrying the enabled `AppMode` flags — bound from configuration via `IOptions<FeatureOptions<T>>` |
+| `FeatureConfig<T>` | Record carrying the `EnabledFeatures` flags - bound from configuration via `IOptions<FeatureConfig<T>>` |
 
 ## Dependencies
 
@@ -39,5 +39,5 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Project | Purpose |
 | --- | --- |
-| `CasCap.Common.Abstractions` | `IFeature<T>`, `IFeatureOptions<T>`, `IAppConfig` contracts |
+| `CasCap.Common.Abstractions` | `IFeature<T>`, `IFeatureConfig<T>`, `IAppConfig` contracts |
 | `CasCap.Common.Extensions` | General-purpose helper utilities |

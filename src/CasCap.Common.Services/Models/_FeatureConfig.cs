@@ -9,5 +9,5 @@ public record FeatureConfig<T> : IAppConfig, IFeatureConfig<T>
 
     /// <inheritdoc/>
     [Required]
-    public required T AppMode { get; init; }
+    public required T EnabledFeatures { get; init; }
 }
