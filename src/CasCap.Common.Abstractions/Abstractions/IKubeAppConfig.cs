@@ -10,7 +10,7 @@ namespace CasCap.Common.Abstractions;
 /// services needing only Kubernetes identity information can depend on this lightweight
 /// abstraction instead of the full configuration type.
 /// </remarks>
-public interface IKubeApp
+public interface IKubeAppConfig
 {
     /// <summary>Kubernetes node name the pod is scheduled on.</summary>
     string? NodeName { get; }
