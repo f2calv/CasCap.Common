@@ -4,26 +4,17 @@
 /// Test DTO for cache serialization round-trip tests.
 /// </summary>
 [MessagePackObject(true)]
-public class MockDto
+public class MockDto(DateTime someDateTimeUtc)
 {
-    /// <summary>
-    /// Initializes a new instance with the specified UTC timestamp.
-    /// </summary>
-    public MockDto(DateTime someDateTimeUtc)
-    {
-        SomeDateTimeUtc = someDateTimeUtc;
-        SomeId = 1337;
-    }
-
     /// <summary>
     /// Unique identifier.
     /// </summary>
-    public int SomeId { get; init; }
+    public int SomeId { get; init; } = 1337;
 
     /// <summary>
     /// Test property.
     /// </summary>
-    public DateTime SomeDateTimeUtc { get; init; }
+    public DateTime SomeDateTimeUtc { get; init; } = someDateTimeUtc;
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

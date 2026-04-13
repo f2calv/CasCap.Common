@@ -5,22 +5,12 @@
 /// implementations and launches those whose <see cref="IFeature{T}.FeatureType"/> is present
 /// in the configured <see cref="IFeatureConfig{T}.EnabledFeatures"/> bitmask.
 /// </summary>
-public class FeatureFlagBgService<T> : BackgroundService
+public class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
     where T : Enum
 {
-    private readonly ILogger _logger;
-    private readonly IFeatureConfig<T> _featureOptions;
-    private readonly IEnumerable<IFeature<T>> _features;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="FeatureFlagBgService{T}"/> class.
-    /// </summary>
-    public FeatureFlagBgService(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features)
-    {
-        _logger = logger;
-        _featureOptions = featureOptions.Value;
-        _features = features;
-    }
+    private readonly ILogger _logger = logger;
+    private readonly IFeatureConfig<T> _featureOptions = featureOptions.Value;
+    private readonly IEnumerable<IFeature<T>> _features = features;
 
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

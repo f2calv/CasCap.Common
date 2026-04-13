@@ -5,13 +5,13 @@
 /// </summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class SkipIfAzureDevOpsBuildFactAttribute : FactAttribute
+public sealed class SkipIfAzureDevOpsBuildFactAttribute() : FactAttribute
 {
-    /// <summary>Initializes a new instance of the <see cref="SkipIfAzureDevOpsBuildFactAttribute"/> class.</summary>
-    public SkipIfAzureDevOpsBuildFactAttribute()
+    /// <inheritdoc/>
+    public override string? Skip
     {
-        if (IsAzureDevOps())
-            Skip = "Ignore test when running an Azure DevOps build";
+        get => IsAzureDevOps() ? "Ignore test when running an Azure DevOps build" : base.Skip;
+        set => base.Skip = value;
     }
 
     private static bool IsAzureDevOps() => Environment.GetEnvironmentVariable("TF_BUILD") is not null;
