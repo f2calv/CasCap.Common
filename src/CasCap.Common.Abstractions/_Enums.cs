@@ -1,4 +1,16 @@
-﻿namespace CasCap.Common.Models;
+using System.ComponentModel;
+
+namespace CasCap.Common.Abstractions;
+
+/// <summary>Authentication method used to connect to Azure Blob Storage.</summary>
+public enum AzureAuthType
+{
+    /// <summary>Authenticate using a connection string.</summary>
+    ConnectionString,
+
+    /// <summary>Authenticate using an Azure <c>TokenCredential</c>.</summary>
+    TokenCredential,
+}
 
 /// <summary>
 /// Different types of Kubernetes container health probes.
