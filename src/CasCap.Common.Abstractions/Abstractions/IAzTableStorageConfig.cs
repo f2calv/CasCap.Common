@@ -4,7 +4,7 @@ namespace CasCap.Common.Abstractions;
 /// Exposes Azure Table Storage connection properties so that feature-specific
 /// configuration records can be consumed through a common abstraction.
 /// </summary>
-public interface IAzTableStorage
+public interface IAzTableStorageConfig
 {
     /// <summary>
     /// Azure Table Storage connection string or endpoint URI.

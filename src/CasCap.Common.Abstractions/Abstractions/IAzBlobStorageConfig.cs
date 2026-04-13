@@ -4,7 +4,7 @@ namespace CasCap.Common.Abstractions;
 /// Exposes Azure Blob Storage connection properties so that feature-specific
 /// configuration records can be consumed through a common abstraction.
 /// </summary>
-public interface IAzBlobStorage
+public interface IAzBlobStorageConfig
 {
     /// <summary>
     /// Azure Blob Storage connection string or endpoint URI.
