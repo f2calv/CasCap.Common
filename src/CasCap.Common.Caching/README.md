@@ -43,6 +43,55 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 | `SerializationType` | `None`, `Json`, `MessagePack` |
 | `ExpirationSyncType` | `None`, `ExpireViaPubSub`, `ExtendRemoteExpiry` |
 
+## Service Architecture
+
+Multi-tier caching infrastructure with cache-aside pattern:
+
+```mermaid
+flowchart TD
+    CLIENT["Application Code"]
+    
+    subgraph CachingServices["Caching Services"]
+        DIST["DistributedCacheService<br/>(Multi-tier orchestrator)"]
+        
+        subgraph LocalCaches["Local Cache Implementations"]
+            MEM["MemoryCacheService<br/>(IMemoryCache)"]
+            DISK["DiskCacheService<br/>(File system)"]
+        end
+        
+        subgraph RemoteCaches["Remote Cache"]
+            REDIS["RedisCacheService<br/>(StackExchange.Redis)"]
+        end
+        
+        subgraph BackgroundServices["Background Services"]
+            EXPIRY_BG["CacheExpiryBgService"]
+            LOCAL_EXP["LocalCacheExpiryService"]
+            REMOTE_EXP["RemoteCacheExpiryService"]
+        end
+    end
+    
+    REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
+    LOCK["AsyncDuplicateLock<br/>(Prevent thundering herd)"]
+    
+    CLIENT --> DIST
+    DIST --> MEM
+    DIST --> DISK
+    DIST --> REDIS
+    DIST -.uses.-> LOCK
+    
+    REDIS <--> REDIS_SERVER
+    
+    EXPIRY_BG --> LOCAL_EXP
+    EXPIRY_BG --> REMOTE_EXP
+    
+    REDIS_SERVER -."Pub/Sub expiry sync".-> LOCAL_EXP
+    REDIS_SERVER -."Pub/Sub expiry sync".-> REMOTE_EXP
+    
+    LOCAL_EXP -.expires.-> MEM
+    LOCAL_EXP -.expires.-> DISK
+    REMOTE_EXP -.expires.-> REDIS
+```
+
 ## Dependencies
 
 ### NuGet Packages

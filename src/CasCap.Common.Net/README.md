@@ -20,6 +20,52 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 | --- | --- |
 | `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
 
+## Class Hierarchy
+
+Abstract base class pattern for typed HTTP clients:
+
+```mermaid
+classDiagram
+    direction TB
+    
+    HttpClientBase <|-- YourCustomClient
+    HttpClientBase <|-- AnotherApiClient
+    
+    class HttpClientBase {
+        <<abstract>>
+        #HttpClient HttpClient
+        #ILogger Logger
+        +PostJsonAsync~T~(uri, body) Task~T~
+        +PostBytesAsync(uri, bytes) Task~HttpResponseMessage~
+        +GetAsync~T~(uri) Task~T~
+        +PutAsync~T~(uri, body) Task~T~
+        +DeleteAsync(uri) Task~HttpResponseMessage~
+        #HandleError(response) void
+    }
+    
+    class YourCustomClient {
+        +GetUsers() Task~User[]~
+        +CreateUser(user) Task~User~
+        +UpdateUser(id, user) Task~User~
+        +DeleteUser(id) Task
+    }
+    
+    class AnotherApiClient {
+        +GetData() Task~Data~
+        +PostData(data) Task~Result~
+    }
+    
+    HttpClientBase ..> ILogger : uses
+    HttpClientBase ..> HttpClient : uses
+```
+
+**Usage Pattern:**
+
+1. Inherit from `HttpClientBase`
+2. Inject `HttpClient` and `ILogger` via constructor
+3. Use built-in methods (`GetAsync`, `PostJsonAsync`, etc.) for API calls
+4. Override `HandleError` for custom error handling
+
 ## Dependencies
 
 ### NuGet Packages

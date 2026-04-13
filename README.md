@@ -70,7 +70,7 @@ A .NET class library repository containing 12 NuGet packages with helper functio
 | [CasCap.Common.Net.Tests](src/CasCap.Common.Net.Tests/README.md) | net8.0; net9.0; net10.0 |
 | [CasCap.Common.Serialization.Tests](src/CasCap.Common.Serialization.Tests/README.md) | net8.0; net9.0; net10.0 |
 
-### Dependency Graph
+## Dependency Graph
 
 Project reference relationships between libraries (NuGet-only dependencies omitted).
 
