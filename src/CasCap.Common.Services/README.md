@@ -13,12 +13,19 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 | Type | Description |
 | --- | --- |
 | `FeatureFlagBgService<T>` | Generic `BackgroundService` that resolves and executes `IFeature<T>` implementations whose `FeatureType` matches the configured `EnabledFeatures` flags |
+| `GitMetadataBgService` | Background service that periodically logs git build metadata (repository, tag, branch, commit) from environment variables to aid debugging |
 
 ### Extensions
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddFeatureFlagService()` | Registers `FeatureFlagBgService<T>` and its options into the DI container |
+| `ServiceCollectionExtensions.AddFeatureFlagService<T>()` | Registers `FeatureFlagBgService<T>` and binds `FeatureConfig<T>` from configuration. Optionally registers `GitMetadataBgService` when `addGitMetadataService=true` |
+
+### Models
+
+| Type | Description |
+| --- | --- |
+| `GitMetadata` | Build metadata record from the CI/CD pipeline — properties bind to environment variables injected by GitHub Actions and Helm deployments (repository, branch, commit, tag, workflow name, run ID, run number) |
 
 ### Configuration
 
