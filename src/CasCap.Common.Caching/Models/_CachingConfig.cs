@@ -5,10 +5,8 @@
 /// </summary>
 public record CachingConfig : IAppConfig
 {
-    /// <summary>
-    /// Configuration sub-section locator key.
-    /// </summary>
-    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(CachingConfig)}";
+    /// <inheritdoc/>
+    public static string ConfigurationSectionName => $"{nameof(CasCap)}:{nameof(CachingConfig)}";
 
     /// <summary>
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub

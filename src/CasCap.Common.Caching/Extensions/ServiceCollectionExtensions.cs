@@ -26,9 +26,10 @@ public static class ServiceCollectionExtensions
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
-        string sectionName = CachingConfig.ConfigurationSectionName,
+        string? sectionName = null,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
+        sectionName ??= CachingConfig.ConfigurationSectionName;
         services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Bind(configuration.GetSection(sectionName))
             .ValidateDataAnnotations();
