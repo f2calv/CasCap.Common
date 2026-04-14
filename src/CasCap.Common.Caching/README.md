@@ -4,7 +4,7 @@ Multi-tier distributed caching library implementing the cache-aside pattern with
 
 ## Purpose
 
-Provides a complete caching infrastructure with local (in-process) and remote (Redis) cache tiers, synchronised expiration via Redis Pub/Sub, and configurable serialization (JSON or MessagePack). Includes background services for cache expiry management and an async duplicate-lock mechanism to prevent thundering-herd scenarios.
+Provides a complete caching infrastructure with local (in-process) and remote (Redis) cache tiers, synchronised expiration via Redis Pub/Sub, and configurable serialization (JSON or MessagePack). Includes background services for cache expiry management, an async duplicate-lock mechanism to prevent thundering-herd scenarios, and optional Redis-based distributed locking via RedLock.net.
 
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
@@ -32,7 +32,8 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Type | Description |
 | --- | --- |
-| `CachingConfig` | Main configuration record — `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode` |
+| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `EnableDistributedLocking`, `RedisKeyFormat`, `Redlock` |
+| `RedlockConfig` | Timing parameters for Redis distributed locks — `ExpiryMs`, `WaitMs`, `RetryMs` |
 | `CacheParameters` | Per-layer cache configuration (TTL, size limits) |
 
 ### Enums
@@ -72,21 +73,23 @@ flowchart TD
     
     REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
     LOCK["AsyncDuplicateLock<br/>(Prevent thundering herd)"]
-    
+    REDLOCK["IDistributedLockFactory<br/>(RedLock.net — optional)"]
+
     CLIENT --> DIST
     DIST --> MEM
     DIST --> DISK
     DIST --> REDIS
     DIST -.uses.-> LOCK
-    
+
     REDIS <--> REDIS_SERVER
-    
+    REDLOCK -."Redlock algorithm".-> REDIS_SERVER
+
     EXPIRY_BG --> LOCAL_EXP
     EXPIRY_BG --> REMOTE_EXP
-    
+
     REDIS_SERVER -."Pub/Sub expiry sync".-> LOCAL_EXP
     REDIS_SERVER -."Pub/Sub expiry sync".-> REMOTE_EXP
-    
+
     LOCAL_EXP -.expires.-> MEM
     LOCAL_EXP -.expires.-> DISK
     REMOTE_EXP -.expires.-> REDIS
@@ -102,6 +105,7 @@ flowchart TD
 | [Microsoft.Extensions.Configuration.Json](https://www.nuget.org/packages/microsoft.extensions.configuration.json) |
 | [Microsoft.Extensions.Options.ConfigurationExtensions](https://www.nuget.org/packages/microsoft.extensions.options.configurationextensions) |
 | [Microsoft.Extensions.Options.DataAnnotations](https://www.nuget.org/packages/microsoft.extensions.options.dataannotations) |
+| [RedLock.net](https://www.nuget.org/packages/redlock.net) |
 | [StackExchange.Redis](https://www.nuget.org/packages/stackexchange.redis) |
 
 ### Project References

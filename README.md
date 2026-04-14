@@ -49,7 +49,7 @@ A .NET class library repository containing 12 NuGet packages with helper functio
 | Library | Description | Targets | Packable |
 | ------- | ----------- | ------- | -------- |
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache and Redis remote cache | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
