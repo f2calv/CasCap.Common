@@ -252,7 +252,7 @@ public class RedisCacheService : IRemoteCache
 
     private void LoadBuiltInLuaScripts()
     {
-        //TODO: add additional Lua script examples into this array as and when required
+        //Note: add additional Lua script examples into this array as and when required
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
         {

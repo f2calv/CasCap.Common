@@ -5,9 +5,11 @@
 /// to implement <see cref="IDistributedCache"/>.
 /// </summary>
 public class DistributedCacheService(ILogger<DistributedCacheService> logger, IOptions<CachingConfig> cachingConfig,
-    IRemoteCache remoteCache, ILocalCache localCache) : IDistributedCache
+    IOptions<RedlockConfig> redlockConfig, IRemoteCache remoteCache, ILocalCache localCache,
+    IDistributedLockFactory? distributedLockFactory = null) : IDistributedCache
 {
     private readonly CachingConfig _cachingConfig = cachingConfig.Value;
+    private readonly RedlockConfig _redlockConfig = redlockConfig.Value;
 
     /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
@@ -51,14 +53,44 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             //if cacheEntry is still null so now create it
             if (cacheEntry is null && createItem is not null)
             {
-                //we lock here to prevent multiple creations occurring at the same time in the current application
-                //TODO: integrate Redlock here?
-                using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
+                if (_cachingConfig.EnableDistributedLocking && distributedLockFactory is not null)
                 {
-                    // Key not in cache, so get data.
-                    cacheEntry = await createItem();
-                    if (cacheEntry is not null)
-                        await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags);
+                    //acquire a distributed lock to prevent multiple instances populating the same key
+                    var (expiry, wait, retry) = _redlockConfig.GetTimings();
+                    using var redLock = await distributedLockFactory.CreateLockAsync(key, expiry, wait, retry).ConfigureAwait(false);
+                    if (redLock.IsAcquired)
+                    {
+                        //double-check: another instance may have populated the cache while we waited for the lock
+                        cacheEntry = localCache.Get<T>(key);
+                        if (cacheEntry is null && _cachingConfig.RemoteCache.IsEnabled)
+                        {
+                            var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
+                            if (tpl != default && tpl.cacheEntry is not null)
+                            {
+                                cacheEntry = tpl.cacheEntry;
+                                localCache.Set(key, cacheEntry, tpl.expiry);
+                            }
+                        }
+                        if (cacheEntry is null)
+                        {
+                            cacheEntry = await createItem();
+                            if (cacheEntry is not null)
+                                await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags);
+                        }
+                    }
+                    else
+                        logger.LogWarning("{ClassName} failed to acquire distributed lock for {Key}",
+                            nameof(DistributedCacheService), key);
+                }
+                else
+                {
+                    //fall back to in-process lock to prevent thundering herd within the current application
+                    using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
+                    {
+                        cacheEntry = await createItem();
+                        if (cacheEntry is not null)
+                            await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags);
+                    }
                 }
             }
         }

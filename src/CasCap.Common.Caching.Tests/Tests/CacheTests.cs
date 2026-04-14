@@ -395,6 +395,72 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.True(isDeleted3);
     }
 
+    /// <summary>Verifies the distributed locking cache-miss path acquires a Redlock, calls the factory delegate, and caches the result.</summary>
+    [Theory, Trait("Category", nameof(IDistributedCache))]
+    [InlineData(SerializationType.Json, CacheType.Memory)]
+    [InlineData(SerializationType.Json, CacheType.Disk)]
+    [InlineData(SerializationType.MessagePack, CacheType.Memory)]
+    [InlineData(SerializationType.MessagePack, CacheType.Disk)]
+    public async Task DistCacheSvc_DistributedLocking_Test(SerializationType SerializationType, CacheType LocalCacheType)
+    {
+        //Arrange
+        var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_DistributedLocking_Test)}:{SerializationType}";
+        var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
+        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var cachingConfig = new CachingConfig
+        {
+            EnableDistributedLocking = true,
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            DiskCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            MemoryCache = new CacheParameters { ClearOnStartup = true }
+        };
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
+        await using var serviceProvider = services.BuildServiceProvider();
+        var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
+        var localCache = serviceProvider.GetRequiredService<ILocalCache>();
+        var lockFactory = serviceProvider.GetRequiredService<IDistributedLockFactory>();
+
+        //Act
+        //verify key does not exist
+        var shouldBeNull = await distCacheSvc.Get<MockDto>(key);
+
+        //cache-miss with factory delegate — exercises the distributed lock path
+        var factoryCallCount = 0;
+        var objFromCacheA = await distCacheSvc.Get(key, async () =>
+        {
+            Interlocked.Increment(ref factoryCallCount);
+            return await MockApiService.GetAsync();
+        }, absoluteExpiration: absoluteExpiration);
+
+        //second call should hit local cache, factory must not be invoked again
+        var objFromCacheB = await distCacheSvc.Get(key, async () =>
+        {
+            Interlocked.Increment(ref factoryCallCount);
+            return await MockApiService.GetAsync();
+        });
+
+        //delete from local to force remote retrieval under the double-check path
+        var isDeletedLocal = localCache.Delete(key);
+        var objFromCacheC = await distCacheSvc.Get<MockDto>(key);
+
+        //cleanup
+        var isDeleted = await distCacheSvc.Delete(key);
+        var objFromCacheD = await distCacheSvc.Get<MockDto>(key);
+
+        //Assert
+        Assert.Null(shouldBeNull);
+        Assert.NotNull(lockFactory);
+        Assert.NotNull(objFromCacheA);
+        Assert.NotNull(objFromCacheB);
+        Assert.Equal(objFromCacheA, objFromCacheB);
+        Assert.Equal(1, factoryCallCount);
+        Assert.True(isDeletedLocal);
+        Assert.NotNull(objFromCacheC);
+        Assert.Equal(objFromCacheA, objFromCacheC);
+        Assert.True(isDeleted);
+        Assert.Null(objFromCacheD);
+    }
+
     /// <summary>Verifies that the caching service collection extension methods register services correctly for various overloads.</summary>
     [Theory, Trait("Category", "ServiceCollection")]
     [InlineData(CacheType.Memory, 1)]

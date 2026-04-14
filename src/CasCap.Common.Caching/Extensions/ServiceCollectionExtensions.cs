@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods to setup local/remote/distributed Caching services.
@@ -83,6 +83,9 @@ public static class ServiceCollectionExtensions
         bool enableDistributedLocking = false,
         string redisKeyFormat = "RedLock:{0}")
     {
+        //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
+        services.AddOptions<RedlockConfig>();
+
         if (LocalCacheType == CacheType.Memory)
         {
             //services.AddMemoryCache();//now added via MemoryCacheService

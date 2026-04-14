@@ -12,7 +12,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Service | Description |
 | --- | --- |
-| `DistributedCacheService` | Multi-tier cache orchestrator — reads from local first, falls back to Redis, and populates both tiers on miss |
+| `DistributedCacheService` | Multi-tier cache orchestrator — reads from local first, falls back to Redis, and populates both tiers on miss. Supports opt-in Redis-based distributed locking (Redlock) to prevent thundering herd across instances |
 | `RedisCacheService` | `IRemoteCache` implementation wrapping StackExchange.Redis with optional Lua script support |
 | `MemoryCacheService` | `ILocalCache` implementation backed by `IMemoryCache` |
 | `DiskCacheService` | `ILocalCache` implementation persisting cache entries to disk |
@@ -33,7 +33,8 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 | Type | Description |
 | --- | --- |
 | `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `EnableDistributedLocking`, `RedisKeyFormat`, `Redlock` |
-| `RedlockConfig` | Timing parameters for Redis distributed locks — `ExpiryMs`, `WaitMs`, `RetryMs` |
+| `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
+| `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
 | `CacheParameters` | Per-layer cache configuration (TTL, size limits) |
 
 ### Enums
@@ -80,6 +81,7 @@ flowchart TD
     DIST --> DISK
     DIST --> REDIS
     DIST -.uses.-> LOCK
+    DIST -."opt-in distributed lock".-> REDLOCK
 
     REDIS <--> REDIS_SERVER
     REDLOCK -."Redlock algorithm".-> REDIS_SERVER
