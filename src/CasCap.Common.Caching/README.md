@@ -53,26 +53,26 @@ Multi-tier caching infrastructure with cache-aside pattern:
 ```mermaid
 flowchart TD
     CLIENT["Application Code"]
-    
+
     subgraph CachingServices["Caching Services"]
         DIST["DistributedCacheService<br/>(Multi-tier orchestrator)"]
-        
+
         subgraph LocalCaches["Local Cache Implementations"]
             MEM["MemoryCacheService<br/>(IMemoryCache)"]
             DISK["DiskCacheService<br/>(File system)"]
         end
-        
+
         subgraph RemoteCaches["Remote Cache"]
             REDIS["RedisCacheService<br/>(StackExchange.Redis)"]
         end
-        
+
         subgraph BackgroundServices["Background Services"]
             EXPIRY_BG["CacheExpiryBgService"]
             LOCAL_EXP["LocalCacheExpiryService"]
             REMOTE_EXP["RemoteCacheExpiryService"]
         end
     end
-    
+
     REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
     LOCK["AsyncDuplicateLock<br/>(Prevent thundering herd)"]
     REDLOCK["IDistributedLockFactory<br/>(RedLock.net — optional)"]

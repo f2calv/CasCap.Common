@@ -37,7 +37,7 @@ Configuration bootstrapping flow with layered sources:
 ```mermaid
 flowchart TD
     START["ConfigurationBuilder"]
-    
+
     subgraph StandardConfig["AddStandardConfiguration()"]
         BASE["SetBasePath(contentRoot)"]
         APPSETTINGS["appsettings.json"]
@@ -45,28 +45,28 @@ flowchart TD
         ENV_VARS["Environment Variables"]
         SECRETS["User Secrets<br/>(Development only)"]
     end
-    
+
     subgraph KeyVaultConfig["AddKeyVaultConfiguration()"]
         PARTIAL["Partial Build Config"]
         EXTRACT["Extract Key Vault URI<br/>+ TokenCredential"]
         KV["Azure Key Vault<br/>(secrets override)"]
     end
-    
+
     subgraph Binding["IOptions Binding"]
         VALIDATE["AddCasCapConfiguration<TConfig>()<br/>ValidateDataAnnotations<br/>ValidateOnStart"]
         OPTIONS["IOptions<TConfig><br/>(DI injectable)"]
     end
-    
+
     START --> BASE
     BASE --> APPSETTINGS
     APPSETTINGS --> ENV_FILE
     ENV_FILE --> ENV_VARS
     ENV_VARS --> SECRETS
-    
+
     SECRETS --> PARTIAL
     PARTIAL --> EXTRACT
     EXTRACT -."if URI present".-> KV
-    
+
     KV --> VALIDATE
     SECRETS -."if no Key Vault".-> VALIDATE
     VALIDATE --> OPTIONS

@@ -27,10 +27,10 @@ Abstract base class pattern for typed HTTP clients:
 ```mermaid
 classDiagram
     direction TB
-    
+
     HttpClientBase <|-- YourCustomClient
     HttpClientBase <|-- AnotherApiClient
-    
+
     class HttpClientBase {
         <<abstract>>
         #HttpClient HttpClient
@@ -42,19 +42,19 @@ classDiagram
         +DeleteAsync(uri) Task~HttpResponseMessage~
         #HandleError(response) void
     }
-    
+
     class YourCustomClient {
         +GetUsers() Task~User[]~
         +CreateUser(user) Task~User~
         +UpdateUser(id, user) Task~User~
         +DeleteUser(id) Task
     }
-    
+
     class AnotherApiClient {
         +GetData() Task~Data~
         +PostData(data) Task~Result~
     }
-    
+
     HttpClientBase ..> ILogger : uses
     HttpClientBase ..> HttpClient : uses
 ```
