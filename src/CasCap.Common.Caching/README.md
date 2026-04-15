@@ -34,6 +34,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 | --- | --- |
 | `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `EnableDistributedLocking`, `RedisKeyFormat`, `Redlock` |
 | `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
+| `RedlockProfiles` | Well-known profile name constants — `CacheMiss`, `LeaderElection` |
 | `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
 | `CacheParameters` | Per-layer cache configuration (TTL, size limits) |
 
@@ -95,6 +96,131 @@ flowchart TD
     LOCAL_EXP -.expires.-> MEM
     LOCAL_EXP -.expires.-> DISK
     REMOTE_EXP -.expires.-> REDIS
+```
+
+## Configuration Examples
+
+All configuration lives under the `CasCap:CachingConfig` section in `appsettings.json`. Properties omitted from the JSON use their record defaults.
+
+### Minimal — local memory cache only
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false"
+    }
+  }
+}
+```
+
+### Redis remote cache with JSON serialization
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "RemoteCache": {
+        "SerializationType": "Json"
+      }
+    }
+  }
+}
+```
+
+### Distributed locking enabled (cache-miss protection)
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "EnableDistributedLocking": true,
+      "RemoteCache": {
+        "SerializationType": "Json"
+      }
+    }
+  }
+}
+```
+
+### Distributed locking with custom Redlock profiles
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "EnableDistributedLocking": true,
+      "RemoteCache": {
+        "SerializationType": "Json"
+      },
+      "Redlock": {
+        "ExpiryMs": 5000,
+        "WaitMs": 5000,
+        "RetryMs": 250,
+        "Profiles": {
+          "LeaderElection": {
+            "ExpiryMs": 30000,
+            "WaitMs": 60000,
+            "RetryMs": 5000
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Fully configured — production-style deployment
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "redis-sentinel:26379,serviceName=mymaster,abortConnect=false,connectTimeout=1000",
+      "EnableDistributedLocking": true,
+      "RedisKeyFormat": "Production:RedLock:{0}",
+      "MemoryCacheSizeLimit": 500,
+      "UseBuiltInLuaScripts": true,
+      "DiskCacheFolder": "/var/cache/cascap",
+      "ExpirationSyncMode": "ExpireViaPubSub",
+      "MemoryCache": {
+        "IsEnabled": true,
+        "ClearOnStartup": false,
+        "SerializationType": "None"
+      },
+      "DiskCache": {
+        "IsEnabled": false,
+        "SerializationType": "Json"
+      },
+      "RemoteCache": {
+        "IsEnabled": true,
+        "DatabaseId": 1,
+        "ClearOnStartup": false,
+        "SerializationType": "MessagePack"
+      },
+      "Redlock": {
+        "ExpiryMs": 5000,
+        "WaitMs": 5000,
+        "RetryMs": 250,
+        "Profiles": {
+          "LeaderElection": {
+            "ExpiryMs": 30000,
+            "WaitMs": 60000,
+            "RetryMs": 5000
+          },
+          "LongRunningJob": {
+            "ExpiryMs": 120000,
+            "WaitMs": 30000,
+            "RetryMs": 10000
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
 ## Dependencies
