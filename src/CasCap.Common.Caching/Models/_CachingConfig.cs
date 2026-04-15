@@ -67,10 +67,13 @@ public record CachingConfig : IAppConfig
     /// <summary>Enables registration of <see cref="IDistributedLockFactory"/> for Redis-based distributed locking.</summary>
     public bool DistributedLockingEnabled { get; set; } = false;
 
-    /// <summary>Format string for Redis distributed lock keys.</summary>
-    /// <remarks>Defaults to <c>RedLock:{0}</c>. The <c>{0}</c> placeholder is replaced with the lock resource name.</remarks>
-    public string RedisKeyFormat { get; init; } = "RedLock:{0}";
+    /// <summary>Format string applied to all general cache keys across local and remote cache layers.</summary>
+    /// <remarks>Defaults to <c>{0}</c> (no transformation). Use e.g. <c>MyApp:{0}</c> to namespace cache keys.</remarks>
+    public string CacheKeyFormat { get; set; } = "{0}";
 
     /// <summary>Timing parameters for Redis distributed locks (Redlock algorithm).</summary>
     public RedlockConfig Redlock { get; set; } = new();
+
+    /// <summary>Applies <see cref="CacheKeyFormat"/> to the given <paramref name="key"/>.</summary>
+    public string FormatCacheKey(string key) => string.Format(CacheKeyFormat, key);
 }

@@ -21,6 +21,10 @@ public record RedlockConfig
     /// <remarks>Defaults to <c>250</c> ms. Used by <see cref="CasCap.Common.Services.DistributedCacheService"/>.</remarks>
     public int RetryMs { get; init; } = 250;
 
+    /// <summary>Format string for Redis distributed lock keys.</summary>
+    /// <remarks>Defaults to <c>RedLock:{0}</c>. The <c>{0}</c> placeholder is replaced with the lock resource name.</remarks>
+    public string RedisKeyFormat { get; init; } = "RedLock:{0}";
+
     /// <summary>Named timing profiles for different distributed lock use cases.</summary>
     /// <remarks>
     /// Includes a built-in <see cref="RedlockProfiles.LeaderElection"/> profile by default.

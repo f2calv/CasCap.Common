@@ -2,7 +2,7 @@
 
 <!-- ── Synced section ─────────────────────────────────────────────────────
      Everything above the "Project-Specific Overrides" heading is kept
-     identical across all CasCap repositories. Edit once, sync everywhere.
+     identical across all f2calv repositories. Edit once, sync everywhere.
      ──────────────────────────────────────────────────────────────────── -->
 
 ## C# / .NET
@@ -50,6 +50,9 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 - **Deep link referenced types**: When XML comments reference .NET classes, structs, interfaces, enums, or namespaces, use `<see cref="Fully.Qualified.TypeName" />` instead of plain text (e.g. `<see cref="Azure.Data.Tables.TableEntity" />`).
 - **Timespan config properties**: Any configuration property on an `IAppConfig` implementation that represents a duration (conventionally suffixed with `Ms`) must include a `<see cref="…"/>` deep link to every service class that consumes it in its XML documentation. This ties the property to its consumers and makes it easy to navigate from configuration to consuming code (e.g. `/// Used by <see cref="CasCap.Services.MyMonitorBgService"/>.`).
 - **Preserve hyperlinks**: Inline comment hyperlinks to external resources (e.g. blog posts, StackOverflow answers, GitHub issues) must never be deleted. When refactoring a comment into XML documentation, move the URL into a `<remarks>` block using `<see href="…" />` (e.g. `/// <remarks>See <see href="https://example.com" />.</remarks>`).
+- **Summary brevity**: Keep `<summary>` concise — one to two short sentences that define the type or member. Move implementation details, usage notes, background context, or examples into `<remarks>`. If a `<summary>` exceeds roughly two lines and reads more like a paragraph than a definition, split the extra content into `<remarks>`.
+- **Defaults in `<remarks>`**: "Defaults to …" text must live in `<remarks>`, not `<summary>`. The default value is an implementation detail and does not help define the member.
+- **One-line `<summary>` and/or `<remarks>`**: When a summary/remark fits on a single line (roughly ≤ 120 characters), collapse it to `/// <summary>Text here.</summary>` instead of the three-line block form.
 
 ### Logging
 

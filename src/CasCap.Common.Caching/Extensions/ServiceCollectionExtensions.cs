@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
-            redisKeyFormat: cachingConfig.RedisKeyFormat);
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
@@ -59,13 +59,14 @@ public static class ServiceCollectionExtensions
                 options.LocalCacheInvalidationEnabled = cachingConfig.LocalCacheInvalidationEnabled;
                 options.ExpirationSyncMode = cachingConfig.ExpirationSyncMode;
                 options.DistributedLockingEnabled = cachingConfig.DistributedLockingEnabled;
+                options.CacheKeyFormat = cachingConfig.CacheKeyFormat;
                 options.Redlock = cachingConfig.Redlock;
             });
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cachingConfig.Redlock));
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
-            redisKeyFormat: cachingConfig.RedisKeyFormat);
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>

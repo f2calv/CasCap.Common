@@ -32,8 +32,8 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Type | Description |
 | --- | --- |
-| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `RedisKeyFormat`, `Redlock` |
-| `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
+| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `CacheKeyFormat`, `Redlock` |
+| `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. `RedisKeyFormat` for lock key prefixing. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
 | `RedlockProfiles` | Well-known profile name constants — `CacheMiss`, `LeaderElection` |
 | `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
 | `CacheParameters` | Per-layer cache configuration (TTL, size limits) |
@@ -181,7 +181,7 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
     "CachingConfig": {
       "RemoteCacheConnectionString": "redis-sentinel:26379,serviceName=mymaster,abortConnect=false,connectTimeout=1000",
       "DistributedLockingEnabled": true,
-      "RedisKeyFormat": "Production:RedLock:{0}",
+      "CacheKeyFormat": "Production:{0}",
       "MemoryCacheSizeLimit": 500,
       "UseBuiltInLuaScripts": true,
       "DiskCacheFolder": "/var/cache/cascap",
@@ -200,9 +200,10 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
         "DatabaseId": 1,
         "ClearOnStartup": false,
         "SerializationType": "MessagePack"
-      },
-      "Redlock": {
-        "ExpiryMs": 5000,
+        },
+        "Redlock": {
+          "RedisKeyFormat": "Production:RedLock:{0}",
+          "ExpiryMs": 5000,
         "WaitMs": 5000,
         "RetryMs": 250,
         "Profiles": {

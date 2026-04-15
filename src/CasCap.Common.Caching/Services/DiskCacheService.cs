@@ -42,9 +42,12 @@ public class DiskCacheService : ILocalCache
         if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
     }
 
+    private string FormatKey(string key) => _cachingConfig.FormatCacheKey(key);
+
     /// <inheritdoc/>
     public T? Get<T>(string key)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);//this must happen first!
         T? cacheEntry = default;
         var isExpired = TryGetExpiration(key, out var slidingExpiration, out var absoluteExpiration);
@@ -83,6 +86,7 @@ public class DiskCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);//this must happen first!
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
@@ -156,6 +160,7 @@ public class DiskCacheService : ILocalCache
 #endif
     public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken cancellationToken = default) where T : class
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);
         T? cacheEntry = default;
         if (File.Exists(key))
@@ -194,6 +199,7 @@ public class DiskCacheService : ILocalCache
     /// <inheritdoc/>
     public bool Delete(string key)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);
         if (File.Exists(key))
         {

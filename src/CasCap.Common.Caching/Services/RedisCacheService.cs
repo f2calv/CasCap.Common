@@ -36,6 +36,8 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public IServer Server => Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]);
 
+    private string FormatKey(string key) => _cachingConfig.FormatCacheKey(key);
+
     /// <inheritdoc/>
     public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
 
@@ -50,11 +52,11 @@ public class RedisCacheService : IRemoteCache
 
     /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)
-        => _Get(key, flags);
+        => _Get(FormatKey(key), flags);
 
     /// <inheritdoc/>
     public byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None)
-        => (byte[]?)_Get(key, flags);
+        => (byte[]?)_Get(FormatKey(key), flags);
 
     private RedisValue _Get(string key, CommandFlags flags = CommandFlags.None)
         => TryGetExpiration(key, out var slidingExpiration)
@@ -63,11 +65,11 @@ public class RedisCacheService : IRemoteCache
 
     /// <inheritdoc/>
     public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
-        => await _GetAsync(key, flags);
+        => await _GetAsync(FormatKey(key), flags);
 
     /// <inheritdoc/>
     public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
-        => (byte[]?)(await _GetAsync(key, flags));
+        => (byte[]?)(await _GetAsync(FormatKey(key), flags));
 
     private async Task<RedisValue> _GetAsync(string key, CommandFlags flags = CommandFlags.None)
         => TryGetExpiration(key, out var slidingExpiration)
@@ -77,6 +79,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
@@ -85,6 +88,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Set(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSet(key, value, slidingExpiration, false, flags: flags);
@@ -93,6 +97,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
@@ -101,6 +106,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         UpdateExpirations(key, ref slidingExpiration, absoluteExpiration);
         return Db.StringSetAsync(key, value, slidingExpiration, false, flags: flags);
@@ -109,6 +115,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
+        key = FormatKey(key);
         if (TryGetExpiration(key, out var slidingExpiration))
             return Db.KeyExpireAsync(key, slidingExpiration, flags: flags);
         return Task.FromResult(false);
@@ -138,6 +145,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public bool Delete(string key, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         SlidingExpirations.TryRemove(key, out var _);
         return Db.KeyDelete(key, flags);
     }
@@ -145,6 +153,7 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public Task<bool> DeleteAsync(string key, CommandFlags flags = CommandFlags.None)
     {
+        key = FormatKey(key);
         SlidingExpirations.TryRemove(key, out var _);
         return Db.KeyDeleteAsync(key, flags);
     }
@@ -153,6 +162,7 @@ public class RedisCacheService : IRemoteCache
     public async Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithExpiryAsync<T>(
         string key, CommandFlags flags = CommandFlags.None, bool updateSlidingExpirationIfExists = true, [CallerMemberName] string caller = "")
     {
+        key = FormatKey(key);
         (TimeSpan? expiry, T? cacheEntry) tpl = default;
 
         RedisValueWithExpiry o;
