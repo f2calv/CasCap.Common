@@ -22,7 +22,7 @@
 - **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
 - **Async/Await**: Always await async method calls.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
-- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`)
+- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`). Use primary constructor parameters directly in the class body — do **not** assign them to private or protected fields (e.g. avoid `private ILogger _logger = logger;`). When the parameter list exceeds a comfortable single-line width, wrap to one parameter per line with the closing parenthesis and base/interface clause on their own line.
 - **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
 - **Records**: Prefer `record` types with `get; init;` properties over classes where object comparison semantics are useful
 - **Constructors**: When injecting services use a 'Svc' suffix on the parameter name and its private field instead of 'Service' to make more concise.
@@ -34,6 +34,8 @@
 - **Global usings file**: Every project must have a `GlobalUsings.cs` file located in the project root (not in a sub-folder). The file must always be named `GlobalUsings.cs`.
 - **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
 - **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
+- **Boolean property naming**: Boolean configuration properties should use `{Feature}{State}` suffix form (past-participle or adjective describing state), not an imperative-verb prefix. Properties describe state; methods describe actions (e.g. `DistributedLockingEnabled`, `LocalCacheInvalidationEnabled` — not `EnableDistributedLocking`).
+- **Constants extraction**: When a configuration record accumulates `const` fields that serve as well-known keys, profile names, or identifiers (not bindable configuration properties), extract them into a dedicated `static class` in the same namespace (e.g. `RedlockProfiles` for `RedlockConfig`). This keeps config records focused on their bindable data shape and the constants discoverable via a single type.
 
 ### Suppressed Warnings
 
@@ -207,6 +209,7 @@ Avoid these in `[Description]` text:
 - **Major refactorings** (renames, project moves, DI restructuring, model type splits): when a rename or restructure touches type names, configuration sections, or project references, update every `README.md` that mentions the old names **in the same commit**. Do not leave stale references for a follow-up.
 - For large refactorings that touch multiple projects, review all impacted `README.md` files before opening the PR.
 - **Markdown tables**: Table separator rows must use spaces around pipes to match the spaced style used in header and data rows (e.g. `| --- | --- |` not `|---|---|`). This prevents MD060 (table-column-style) warnings.
+- **Configuration examples in library READMEs**: Library projects that expose `IAppConfig` records should include a `## Configuration Examples` section in their `README.md` with `appsettings.json` snippets progressing from minimal configuration through to fully configured. This documents the configuration surface area and provides copy-paste-ready templates for consumers.
 
 ### Mermaid Diagrams
 

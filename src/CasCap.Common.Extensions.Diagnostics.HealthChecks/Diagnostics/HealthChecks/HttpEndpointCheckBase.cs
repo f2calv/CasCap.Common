@@ -20,9 +20,6 @@ public abstract class HttpEndpointCheckBase(
 
     private volatile bool _connectionActive = initialConnectionActive;
 
-    /// <summary>The logger instance used by this health check.</summary>
-    protected /*readonly */ILogger _logger = logger;
-
     /// <summary>
     /// Indicates whether the most recent health check probe succeeded.
     /// </summary>
@@ -35,7 +32,7 @@ public abstract class HttpEndpointCheckBase(
     /// <inheritdoc/>
     public virtual async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("{ClassName} healthcheck executing...", GetType().Name);
+        logger.LogInformation("{ClassName} healthcheck executing...", GetType().Name);
         var result = await IsAccessible(healthCheckConfig, cancellationToken);
         if (result)
         {
@@ -70,7 +67,7 @@ public abstract class HttpEndpointCheckBase(
     {
         requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
         healthCheckExpectedHttpStatusCodes ??= DefaultExpectedStatusCodes;
-        _logger.LogDebug("{ClassName} health check executing", nameof(HttpEndpointCheckBase));
+        logger.LogDebug("{ClassName} health check executing", nameof(HttpEndpointCheckBase));
         HttpResponseMessage? result = null;
         try
         {
@@ -79,31 +76,31 @@ public abstract class HttpEndpointCheckBase(
         catch (HttpRequestException ex)
         {
             // Handle timeout.
-            _logger.LogWarning(ex, "{ClassName} failure", nameof(HttpEndpointCheckBase));
+            logger.LogWarning(ex, "{ClassName} failure", nameof(HttpEndpointCheckBase));
         }
         // Filter by InnerException.
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
             // Handle timeout.
-            _logger.LogDebug(ex, "{ClassName} timed out", nameof(HttpEndpointCheckBase));
+            logger.LogDebug(ex, "{ClassName} timed out", nameof(HttpEndpointCheckBase));
         }
         catch (TaskCanceledException ex)
         {
             // Handle cancellation.
-            _logger.LogWarning(ex, "{ClassName} canceled", nameof(HttpEndpointCheckBase));
+            logger.LogWarning(ex, "{ClassName} canceled", nameof(HttpEndpointCheckBase));
         }
         catch (Exception ex)
         {
-            _logger.LogTrace(ex, "{ClassName} http endpoint failure", nameof(HttpEndpointCheckBase));
+            logger.LogTrace(ex, "{ClassName} http endpoint failure", nameof(HttpEndpointCheckBase));
         }
         if (result is not null && healthCheckExpectedHttpStatusCodes.Contains((int)result.StatusCode))
         {
-            _logger.LogDebug("{ClassName} {RequestUri} is accessible", nameof(HttpEndpointCheckBase), requestUri);
+            logger.LogDebug("{ClassName} {RequestUri} is accessible", nameof(HttpEndpointCheckBase), requestUri);
             return true;
         }
         else
         {
-            _logger.LogDebug("{ClassName} {RequestUri} is inaccessible", nameof(HttpEndpointCheckBase), requestUri);
+            logger.LogDebug("{ClassName} {RequestUri} is inaccessible", nameof(HttpEndpointCheckBase), requestUri);
             return false;
         }
     }
