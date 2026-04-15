@@ -409,7 +409,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
         var cachingConfig = new CachingConfig
         {
-            EnableDistributedLocking = true,
+            DistributedLockingEnabled = true,
             RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
             DiskCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
             MemoryCache = new CacheParameters { ClearOnStartup = true }
