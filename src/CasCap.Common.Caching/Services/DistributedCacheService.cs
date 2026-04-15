@@ -53,7 +53,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             //if cacheEntry is still null so now create it
             if (cacheEntry is null && createItem is not null)
             {
-                if (_cachingConfig.EnableDistributedLocking && distributedLockFactory is not null)
+                if (_cachingConfig.DistributedLockingEnabled && distributedLockFactory is not null)
                 {
                     //acquire a distributed lock to prevent multiple instances populating the same key
                     var (expiry, wait, retry) = _redlockConfig.GetTimings();

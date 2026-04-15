@@ -65,7 +65,7 @@ public record CachingConfig : IAppConfig
     public ExpirationSyncType ExpirationSyncMode { get; set; } = ExpirationSyncType.None;
 
     /// <summary>Enables registration of <see cref="IDistributedLockFactory"/> for Redis-based distributed locking.</summary>
-    public bool EnableDistributedLocking { get; set; } = false;
+    public bool DistributedLockingEnabled { get; set; } = false;
 
     /// <summary>Format string for Redis distributed lock keys.</summary>
     /// <remarks>Defaults to <c>RedLock:{0}</c>. The <c>{0}</c> placeholder is replaced with the lock resource name.</remarks>

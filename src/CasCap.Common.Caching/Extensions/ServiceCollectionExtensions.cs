@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
         var cachingConfig = section.Get<CachingConfig>() ?? new CachingConfig();
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
-            enableDistributedLocking: cachingConfig.EnableDistributedLocking,
+            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.RedisKeyFormat);
     }
 
@@ -58,13 +58,13 @@ public static class ServiceCollectionExtensions
                 options.RemoteCache = cachingConfig.RemoteCache;
                 options.LocalCacheInvalidationEnabled = cachingConfig.LocalCacheInvalidationEnabled;
                 options.ExpirationSyncMode = cachingConfig.ExpirationSyncMode;
-                options.EnableDistributedLocking = cachingConfig.EnableDistributedLocking;
+                options.DistributedLockingEnabled = cachingConfig.DistributedLockingEnabled;
                 options.Redlock = cachingConfig.Redlock;
             });
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cachingConfig.Redlock));
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
-            enableDistributedLocking: cachingConfig.EnableDistributedLocking,
+            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.RedisKeyFormat);
     }
 
@@ -80,7 +80,7 @@ public static class ServiceCollectionExtensions
         string? remoteCacheConnectionString,
         CacheType LocalCacheType,
         CacheType RemoteCacheType = CacheType.Redis,
-        bool enableDistributedLocking = false,
+        bool distributedLockingEnabled = false,
         string redisKeyFormat = "RedLock:{0}")
     {
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
@@ -116,7 +116,7 @@ public static class ServiceCollectionExtensions
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
-            if (enableDistributedLocking)
+            if (distributedLockingEnabled)
             {
                 var rlMuxer = (RedLockMultiplexer)multiplexer;
                 rlMuxer.RedisKeyFormat = redisKeyFormat;
