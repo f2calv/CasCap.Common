@@ -2,9 +2,7 @@ using System.Net;
 
 namespace CasCap.Common.Abstractions;
 
-/// <summary>
-/// Exposes Kubernetes-specific runtime properties of the running pod or node.
-/// </summary>
+/// <summary>Exposes Kubernetes-specific runtime properties of the running pod or node.</summary>
 /// <remarks>
 /// Implement on your application configuration record (e.g. <c>AppConfig</c>) so that
 /// services needing only Kubernetes identity information can depend on this lightweight

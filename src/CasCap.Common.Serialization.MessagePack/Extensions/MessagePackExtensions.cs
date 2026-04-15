@@ -1,17 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for MessagePack serialization and deserialization.
-/// </summary>
+/// <summary>Extension methods for MessagePack serialization and deserialization.</summary>
 public static class MessagePackExtensions
 {
     private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(MessagePackExtensions));
 
-    /// <summary>
-    /// Serializes the specified object to a MessagePack byte array.
-    /// </summary>
+    /// <summary>Serializes the specified object to a MessagePack byte array.</summary>
     public static byte[] ToMessagePack<T>(this T data)
     {
         data = data ?? throw new ArgumentNullException(paramName: nameof(data));
@@ -35,9 +31,7 @@ public static class MessagePackExtensions
     //    return MessagePackSerializer.Serialize(data, lz4Options);
     //}
 
-    /// <summary>
-    /// Deserializes a MessagePack byte array to an instance of <typeparamref name="T"/>.
-    /// </summary>
+    /// <summary>Deserializes a MessagePack byte array to an instance of <typeparamref name="T"/>.</summary>
     public static T FromMessagePack<T>(this byte[] bytes/*, MessagePack.Resolvers.StandardResolver.Instance*/)
     {
         bytes = bytes ?? throw new ArgumentNullException(paramName: nameof(bytes));

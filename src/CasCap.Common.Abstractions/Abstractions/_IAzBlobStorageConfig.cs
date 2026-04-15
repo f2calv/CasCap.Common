@@ -6,9 +6,7 @@ namespace CasCap.Common.Abstractions;
 /// </summary>
 public interface IAzBlobStorageConfig
 {
-    /// <summary>
-    /// Azure Blob Storage connection string or endpoint URI.
-    /// </summary>
+    /// <summary>Azure Blob Storage connection string or endpoint URI.</summary>
     /// <remarks>
     /// When a <c>TokenCredential</c> is supplied this value is treated as a plain endpoint URI
     /// (e.g. <c>https://account.blob.core.windows.net</c>).

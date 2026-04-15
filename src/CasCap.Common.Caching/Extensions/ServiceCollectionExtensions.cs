@@ -11,9 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </remarks>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Add all necessary services to enable the CasCap distributed caching API.
-    /// </summary>
+    /// <summary>Add all necessary services to enable the CasCap distributed caching API.</summary>
     /// <param name="services">The service collection to add caching services to.</param>
     /// <param name="remoteCacheConnectionString">Redis connection string. When <c>null</c>, only local caching is enabled.</param>
     /// <param name="LocalCacheType"><inheritdoc cref="CacheType" path="/summary"/></param>

@@ -1,8 +1,6 @@
 namespace Serilog;
 
-/// <summary>
-/// Extension methods for configuring Serilog with standard CasCap defaults.
-/// </summary>
+/// <summary>Extension methods for configuring Serilog with standard CasCap defaults.</summary>
 public static class SerilogExtensions
 {
     private static readonly object _lock = new();

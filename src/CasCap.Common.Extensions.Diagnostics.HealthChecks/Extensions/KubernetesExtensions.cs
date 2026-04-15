@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Extensions;
+namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for <see cref="CasCap.Common.Abstractions.KubernetesProbeTypes" />.
-/// </summary>
+/// <summary>Extension methods for <see cref="CasCap.Common.Abstractions.KubernetesProbeTypes" />.</summary>
 public static class KubernetesExtensions
 {
     /// <summary>

@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Xunit;
+namespace CasCap.Common.Xunit;
 
-/// <summary>
-/// Skips the theory when running in any CI environment (Azure DevOps or GitHub Actions).
-/// </summary>
+/// <summary>Skips the theory when running in any CI environment (Azure DevOps or GitHub Actions).</summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfCIBuildTheoryAttribute() : TheoryAttribute

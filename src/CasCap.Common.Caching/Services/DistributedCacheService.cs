@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DistributedCacheService"/> uses both <see cref="ILocalCache"/> and <see cref="IRemoteCache"/>
@@ -8,15 +8,10 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     IOptions<RedlockConfig> redlockConfig, IRemoteCache remoteCache, ILocalCache localCache,
     IDistributedLockFactory? distributedLockFactory = null) : IDistributedCache
 {
-    private readonly CachingConfig _cachingConfig = cachingConfig.Value;
-    private readonly RedlockConfig _redlockConfig = redlockConfig.Value;
-
     /// <inheritdoc/>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
 
-    /// <summary>
-    /// Raises the <see cref="PostEvictionEvent"/>.
-    /// </summary>
+    /// <summary>Raises the <see cref="PostEvictionEvent"/>.</summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) => PostEvictionEvent?.Invoke(this, args);
 
     //TODO: store a summary of all cached items in a local lookup dictionary?
@@ -36,7 +31,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         {
             logger.LogTrace("{ClassName} unable to retrieve {Key} object type {Type} from {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
-            if (_cachingConfig.RemoteCache.IsEnabled)
+            if (cachingConfig.Value.RemoteCache.IsEnabled)
             {
                 var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
                 if (tpl != default && tpl.cacheEntry is not null)
@@ -53,16 +48,16 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             //if cacheEntry is still null so now create it
             if (cacheEntry is null && createItem is not null)
             {
-                if (_cachingConfig.DistributedLockingEnabled && distributedLockFactory is not null)
+                if (cachingConfig.Value.DistributedLockingEnabled && distributedLockFactory is not null)
                 {
                     //acquire a distributed lock to prevent multiple instances populating the same key
-                    var (expiry, wait, retry) = _redlockConfig.GetTimings();
+                    var (expiry, wait, retry) = redlockConfig.Value.GetTimings();
                     using var redLock = await distributedLockFactory.CreateLockAsync(key, expiry, wait, retry).ConfigureAwait(false);
                     if (redLock.IsAcquired)
                     {
                         //double-check: another instance may have populated the cache while we waited for the lock
                         cacheEntry = localCache.Get<T>(key);
-                        if (cacheEntry is null && _cachingConfig.RemoteCache.IsEnabled)
+                        if (cacheEntry is null && cachingConfig.Value.RemoteCache.IsEnabled)
                         {
                             var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags);
                             if (tpl != default && tpl.cacheEntry is not null)
@@ -98,7 +93,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         {
             logger.LogTrace("{ClassName} retrieved {Key} object type {Type} from {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
-            if (_cachingConfig.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
+            if (cachingConfig.Value.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
                 await remoteCache.ExtendSlidingExpirationAsync(key);
         }
         return cacheEntry;
@@ -112,24 +107,24 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     public async Task Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None) where T : class
     {
-        if (_cachingConfig.RemoteCache.IsEnabled)
+        if (cachingConfig.Value.RemoteCache.IsEnabled)
         {
             logger.LogTrace("{ClassName} storing {Key} object type {Type} in {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(IRemoteCache));
-            if (_cachingConfig.RemoteCache.SerializationType == SerializationType.Json)
+            if (cachingConfig.Value.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = cacheEntry.ToJson();
                 _ = await remoteCache.SetAsync(key, json, slidingExpiration, absoluteExpiration, flags: flags);
                 await InvalidateLocalCache(key);
             }
-            else if (_cachingConfig.RemoteCache.SerializationType == SerializationType.MessagePack)
+            else if (cachingConfig.Value.RemoteCache.SerializationType == SerializationType.MessagePack)
             {
                 var bytes = cacheEntry.ToMessagePack();
                 _ = await remoteCache.SetAsync(key, bytes, slidingExpiration, absoluteExpiration, flags: flags);
                 await InvalidateLocalCache(key);
             }
             else
-                throw new NotSupportedException($"{nameof(_cachingConfig.RemoteCache.SerializationType)} {_cachingConfig.RemoteCache.SerializationType} is not supported!");
+                throw new NotSupportedException($"{nameof(cachingConfig.Value.RemoteCache.SerializationType)} {cachingConfig.Value.RemoteCache.SerializationType} is not supported!");
         }
 
         localCache.Set(key, cacheEntry, slidingExpiration);
@@ -140,7 +135,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     {
         var result1 = localCache.Delete(key);
         var result2 = false;
-        if (_cachingConfig.RemoteCache.IsEnabled)
+        if (cachingConfig.Value.RemoteCache.IsEnabled)
             result2 = await remoteCache.DeleteAsync(key, flags);
         await InvalidateLocalCache(key);
         return result1 || result2;
@@ -153,10 +148,10 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// </summary>
     private async Task InvalidateLocalCache(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
-        if (_cachingConfig.RemoteCache.IsEnabled && _cachingConfig.LocalCacheInvalidationEnabled)
+        if (cachingConfig.Value.RemoteCache.IsEnabled && cachingConfig.Value.LocalCacheInvalidationEnabled)
         {
             _ = await remoteCache.Subscriber.PublishAsync(RedisChannel.Literal(nameof(LocalCacheExpiryService)),
-                $"{_cachingConfig.PubSubPrefix}:{key}", flags);
+                $"{cachingConfig.Value.PubSubPrefix}:{key}", flags);
             logger.LogTrace("{ClassName} sent {AbstractionName} expiration message for {Key} via pub/sub",
                 nameof(DistributedCacheService), nameof(ILocalCache), key);
         }
@@ -167,13 +162,13 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     {
         var localCount = localCache.DeleteAll();
         long remoteCount = 0;
-        if (_cachingConfig.RemoteCache.IsEnabled)
+        if (cachingConfig.Value.RemoteCache.IsEnabled)
         {
             var server = remoteCache.Server;
             const int batchSize = 1000;
             var batch = new List<RedisKey>(batchSize);
 
-            foreach (var key in server.Keys(_cachingConfig.RemoteCache.DatabaseId, pageSize: batchSize))
+            foreach (var key in server.Keys(cachingConfig.Value.RemoteCache.DatabaseId, pageSize: batchSize))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 batch.Add(key);

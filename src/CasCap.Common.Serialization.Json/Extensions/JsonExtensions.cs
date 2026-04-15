@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Extension methods for JSON serialization and deserialization using <see cref="System.Text.Json.JsonSerializer"/>.
@@ -7,14 +7,10 @@ public static class JsonExtensions
 {
     private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonExtensions));
 
-    /// <summary>
-    /// Serializes the specified object to a JSON string using default options.
-    /// </summary>
+    /// <summary>Serializes the specified object to a JSON string using default options.</summary>
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 
-    /// <summary>
-    /// Serializes the specified object to a JSON string using the given <paramref name="options"/>.
-    /// </summary>
+    /// <summary>Serializes the specified object to a JSON string using the given <paramref name="options"/>.</summary>
     public static string ToJson(this object obj, JsonSerializerOptions? options)
     {
         obj = obj ?? throw new ArgumentNullException(paramName: nameof(obj));
@@ -29,9 +25,7 @@ public static class JsonExtensions
         }
     }
 
-    /// <summary>
-    /// Deserializes a JSON string to an instance of <typeparamref name="T"/> using default options.
-    /// </summary>
+    /// <summary>Deserializes a JSON string to an instance of <typeparamref name="T"/> using default options.</summary>
     public static T? FromJson<T>(this string json) => json.FromJson<T>(options: null);
 
     /// <summary>
@@ -73,12 +67,8 @@ public static class JsonExtensions
         return false;
     }
 
-    /// <summary>
-    /// Converts a jagged <see cref="List{T}"/> of lists to a two-dimensional array.
-    /// </summary>
-    /// <remarks>
-    /// Adapted from <see href="https://stackoverflow.com/a/26291720/3744182"/>.
-    /// </remarks>
+    /// <summary>Converts a jagged <see cref="List{T}"/> of lists to a two-dimensional array.</summary>
+    /// <remarks>Adapted from <see href="https://stackoverflow.com/a/26291720/3744182"/>.</remarks>
     public static T[,] To2D<T>(this List<List<T>> source)
     {
         // Adapted from this answer https://stackoverflow.com/a/26291720/3744182

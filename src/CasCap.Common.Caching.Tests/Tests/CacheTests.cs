@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Caching.Tests;
+namespace CasCap.Common.Caching.Tests;
 
-/// <summary>
-/// Integration tests with a dependency on a running Redis instance.
-/// </summary>
+/// <summary>Integration tests with a dependency on a running Redis instance.</summary>
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that <see cref="CacheExpiryBgService"/> starts and stops correctly with configured caching options.</summary>
@@ -11,7 +9,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
     public async Task TestBgServices_Async(SerializationType SerializationType, bool ClearOnStartup, CacheType LocalCacheType)
     {
         //Arrange
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         var cachingConfig = new CachingConfig
         {
             RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
@@ -51,7 +49,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             UseBuiltInLuaScripts = true,
             RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
@@ -90,7 +88,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             UseBuiltInLuaScripts = true,
             RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
         };
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
@@ -143,7 +141,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
                 ClearOnStartup = ClearOnStartup
             },
         };
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
         using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
@@ -218,7 +216,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             UseBuiltInLuaScripts = true,
             RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
@@ -289,7 +287,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             UseBuiltInLuaScripts = true,
             RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
         };
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
         await using var serviceProvider = services.BuildServiceProvider();
         var remoteCache = serviceProvider.GetRequiredService<IRemoteCache>();
@@ -344,7 +342,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_Test)}:{SerializationType}";
         var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         var cachingConfig = new CachingConfig
         {
             RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
@@ -406,7 +404,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Arrange
         var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_DistributedLocking_Test)}:{SerializationType}";
         var absoluteExpiration = Debugger.IsAttached ? DateTimeOffset.UtcNow.AddSeconds(60) : DateTimeOffset.UtcNow.AddSeconds(5);
-        var services = new ServiceCollection().AddXUnitLogging(_testOutputHelper);
+        var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         var cachingConfig = new CachingConfig
         {
             DistributedLockingEnabled = true,

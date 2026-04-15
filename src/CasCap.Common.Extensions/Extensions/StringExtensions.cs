@@ -3,14 +3,10 @@ using System.Text.RegularExpressions;
 
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for <see cref="string"/>.
-/// </summary>
+/// <summary>Extension methods for <see cref="string"/>.</summary>
 public static class StringExtensions
 {
-    /// <summary>
-    /// Converts a PascalCase name to snake_case (e.g. <c>GetAllState</c> → <c>get_all_state</c>).
-    /// </summary>
+    /// <summary>Converts a PascalCase name to snake_case (e.g. <c>GetAllState</c> → <c>get_all_state</c>).</summary>
     /// <param name="name">The PascalCase input string.</param>
     /// <returns>The snake_case equivalent.</returns>
     public static string ToSnakeCase(this string name)
@@ -31,9 +27,7 @@ public static class StringExtensions
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Combines a base URL with a relative URL, handling leading/trailing slashes.
-    /// </summary>
+    /// <summary>Combines a base URL with a relative URL, handling leading/trailing slashes.</summary>
     public static string UrlCombine(this string baseUrl, string relativeUrl)
     {
         baseUrl = baseUrl.TrimEnd('/');
@@ -43,9 +37,7 @@ public static class StringExtensions
         return baseUrl + "/" + relativeUrl;
     }
 
-    /// <summary>
-    /// Splits a string by line-break characters, yielding only non-empty lines.
-    /// </summary>
+    /// <summary>Splits a string by line-break characters, yielding only non-empty lines.</summary>
     public static IEnumerable<string> String2List(this string input)
     {
         foreach (var s in input.Split(['\r', '\n']))
@@ -53,9 +45,7 @@ public static class StringExtensions
                 yield return s;
     }
 
-    /// <summary>
-    /// Returns a substring capped at the specified length, optionally appending trailing dots.
-    /// </summary>
+    /// <summary>Returns a substring capped at the specified length, optionally appending trailing dots.</summary>
     public static string SubstringSafe(this string thisString, int maxLength, bool includeTrailingDots = false)
     {
         if (thisString is not null && maxLength > 0)
@@ -75,43 +65,33 @@ public static class StringExtensions
         return string.Empty;
     }
 
-    /// <summary>
-    /// Removes tab, newline and carriage-return characters from the string.
-    /// </summary>
+    /// <summary>Removes tab, newline and carriage-return characters from the string.</summary>
     public static string Clean(this string thisString, string replacement = "")
     {
         return rgxClean.Replace(thisString, replacement);
     }
 
-    /// <summary>
-    /// Determines whether the string is a valid email address.
-    /// </summary>
+    /// <summary>Determines whether the string is a valid email address.</summary>
     public static bool IsEmail(this string thisString)
     {
         //same as new aspNetEmail.EmailMessage().ValidateRegEx
         return thisString is not null && rgxEmail.IsMatch(thisString);
     }
 
-    /// <summary>
-    /// Converts a UTF-8 string to its Base64 representation.
-    /// </summary>
+    /// <summary>Converts a UTF-8 string to its Base64 representation.</summary>
     public static string ToBase64(this string thisString)
     {
         var bytes = Encoding.UTF8.GetBytes(thisString);
         return Convert.ToBase64String(bytes);
     }
 
-    /// <summary>
-    /// Split a string by ';' characters. Accepts nulls :)
-    /// </summary>
+    /// <summary>Split a string by ';' characters. Accepts nulls :)</summary>
     public static string[] Split(this string _s, char sep = ';')
     {
         return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
     }
 
-    /// <summary>
-    /// Strips characters that are non-conducive to being in a file name.
-    /// </summary>
+    /// <summary>Strips characters that are non-conducive to being in a file name.</summary>
     public static string? Sanitize(this string? input, string replacement = SingleSpace)
     {
         if (input is null) return input;

@@ -1,13 +1,9 @@
-﻿namespace CasCap.Common.Extensions;
+namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods to assist with common Caching tasks.
-/// </summary>
+/// <summary>Extension methods to assist with common Caching tasks.</summary>
 public static class CachingExtensions
 {
-    /// <summary>
-    /// Calculates the relative expiration <see cref="TimeSpan"/> from an integer.
-    /// </summary>
+    /// <summary>Calculates the relative expiration <see cref="TimeSpan"/> from an integer.</summary>
     public static TimeSpan? GetExpirationFromSeconds(this int ttl)
     {
         TimeSpan? expiry = null;
@@ -27,9 +23,7 @@ public static class CachingExtensions
             throw new NotSupportedException($"{nameof(absoluteExpiration)} is requested for key {key} but {absoluteExpiration} is already expired!");
     }
 
-    /// <summary>
-    /// Serializes an object using the specified <see cref="SerializationType"/>.
-    /// </summary>
+    /// <summary>Serializes an object using the specified <see cref="SerializationType"/>.</summary>
     internal static byte[] SerializeToBytes<T>(this T obj, SerializationType serializationType) where T : class
         => serializationType switch
         {
@@ -38,9 +32,7 @@ public static class CachingExtensions
             _ => throw new NotSupportedException($"{nameof(serializationType)} {serializationType} is not supported!")
         };
 
-    /// <summary>
-    /// Deserializes an object from a byte array using the specified <see cref="SerializationType"/>.
-    /// </summary>
+    /// <summary>Deserializes an object from a byte array using the specified <see cref="SerializationType"/>.</summary>
     internal static T? DeserializeFromBytes<T>(this byte[] bytes, SerializationType serializationType)
         => serializationType switch
         {
@@ -49,9 +41,7 @@ public static class CachingExtensions
             _ => throw new NotSupportedException($"{nameof(serializationType)} {serializationType} is not supported!")
         };
 
-    /// <summary>
-    /// Deserializes an object from a string using the specified <see cref="SerializationType"/>.
-    /// </summary>
+    /// <summary>Deserializes an object from a string using the specified <see cref="SerializationType"/>.</summary>
     internal static T? DeserializeFromString<T>(this string value, SerializationType serializationType)
         => serializationType switch
         {

@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Net.Tests;
+namespace CasCap.Common.Net.Tests;
 
-/// <summary>
-/// Base class for HTTP client tests, providing xUnit logging and configuration.
-/// </summary>
+/// <summary>Base class for HTTP client tests, providing xUnit logging and configuration.</summary>
 public abstract class TestBase : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;

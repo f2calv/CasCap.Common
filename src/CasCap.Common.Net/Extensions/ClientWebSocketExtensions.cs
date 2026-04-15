@@ -5,9 +5,7 @@ namespace CasCap.Common.Extensions;
 /// <summary>Convenience helpers for <see cref="ClientWebSocket"/>.</summary>
 public static class ClientWebSocketExtensions
 {
-    /// <summary>
-    /// Sets the <c>Authorization</c> header to HTTP Basic on a <see cref="ClientWebSocket"/>.
-    /// </summary>
+    /// <summary>Sets the <c>Authorization</c> header to HTTP Basic on a <see cref="ClientWebSocket"/>.</summary>
     /// <remarks>WebSocket counterpart of <see cref="NetExtensions.SetBasicAuth(HttpClient, string, string)"/>.</remarks>
     /// <param name="ws">The <see cref="ClientWebSocket"/> to configure.</param>
     /// <param name="username">The Basic authentication username.</param>

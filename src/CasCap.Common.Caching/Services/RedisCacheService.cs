@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="RedisCacheService"/> acts as a wrapper around key functionality of the <see cref="StackExchange.Redis"/> library.
@@ -6,18 +6,16 @@
 public class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
-    private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly CachingConfig _cachingConfig;
+    private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RedisCacheService"/> class.
-    /// </summary>
-    public RedisCacheService(ILogger<RedisCacheService> logger, IConnectionMultiplexer connectionMultiplexer,
-        IOptions<CachingConfig> cachingConfig)
+    /// <summary>Initializes a new instance of the <see cref="RedisCacheService"/> class.</summary>
+    public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingConfig> cachingConfig,
+        IConnectionMultiplexer connectionMultiplexer)
     {
         _logger = logger;
-        _connectionMultiplexer = connectionMultiplexer;
         _cachingConfig = cachingConfig.Value;
+        _connectionMultiplexer = connectionMultiplexer;
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
         //configuration.ResolveDns = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_COMPOSE"), out var _);
         if (_cachingConfig.UseBuiltInLuaScripts) LoadBuiltInLuaScripts();
@@ -41,12 +39,8 @@ public class RedisCacheService : IRemoteCache
     /// <inheritdoc/>
     public ConcurrentDictionary<string, TimeSpan> SlidingExpirations { get; set; } = [];
 
-    /// <summary>
-    /// Delete all items in the Redis database.
-    /// </summary>
-    /// <remarks>
-    /// Only works when connecting with ADMIN=true.
-    /// </remarks>
+    /// <summary>Delete all items in the Redis database.</summary>
+    /// <remarks>Only works when connecting with ADMIN=true.</remarks>
     private void DeleteAll(CommandFlags flags = CommandFlags.None)
         => Server.FlushDatabase(_cachingConfig.RemoteCache.DatabaseId, flags);
 

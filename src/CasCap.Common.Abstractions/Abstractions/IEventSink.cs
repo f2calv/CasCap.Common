@@ -1,8 +1,6 @@
 namespace CasCap.Common.Abstractions;
 
-/// <summary>
-/// Defines a sink that can receive and retrieve events of type <typeparamref name="T"/>.
-/// </summary>
+/// <summary>Defines a sink that can receive and retrieve events of type <typeparamref name="T"/>.</summary>
 /// <typeparam name="T">The event type handled by this sink.</typeparam>
 public interface IEventSink<T> where T : class
 {
@@ -17,14 +15,10 @@ public interface IEventSink<T> where T : class
     Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 #endif
 
-    /// <summary>
-    /// Writes a single event to the sink.
-    /// </summary>
+    /// <summary>Writes a single event to the sink.</summary>
     Task WriteEvent(T @event, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Retrieves events from the sink, optionally filtered by <paramref name="id"/>.
-    /// </summary>
+    /// <summary>Retrieves events from the sink, optionally filtered by <paramref name="id"/>.</summary>
     /// <param name="id">Optional identifier to filter events.</param>
     /// <param name="limit">Maximum number of events to return. Defaults to <c>1000</c>.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

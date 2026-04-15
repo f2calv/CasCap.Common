@@ -1,8 +1,6 @@
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for binding and validating <see cref="IAppConfig"/> configuration sections.
-/// </summary>
+/// <summary>Extension methods for binding and validating <see cref="IAppConfig"/> configuration sections.</summary>
 public static class ConfigurationServiceCollectionExtensions
 {
     /// <summary>

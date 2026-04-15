@@ -3,16 +3,12 @@ using System.Reflection;
 
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for file and directory I/O operations.
-/// </summary>
+/// <summary>Extension methods for file and directory I/O operations.</summary>
 public static class IOExtensions
 {
     private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(IOExtensions));
 
-    /// <summary>
-    /// Combines a root path with a relative folder or file path.
-    /// </summary>
+    /// <summary>Combines a root path with a relative folder or file path.</summary>
     /// <param name="root">The root directory path.</param>
     /// <param name="folderOrFile">The relative path to append.</param>
     /// <returns>The combined path.</returns>
@@ -27,9 +23,7 @@ public static class IOExtensions
     //    return directory;
     //}
 
-    /// <summary>
-    /// Writes all bytes to the specified path, creating the directory if it does not exist.
-    /// </summary>
+    /// <summary>Writes all bytes to the specified path, creating the directory if it does not exist.</summary>
     /// <param name="path">The file path to write to.</param>
     /// <param name="bytes">The byte content to write.</param>
     public static void WriteAllBytes(this string path, byte[] bytes)
@@ -44,9 +38,7 @@ public static class IOExtensions
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
-    /// <summary>
-    /// Writes all text to the specified path, creating the directory if it does not exist.
-    /// </summary>
+    /// <summary>Writes all text to the specified path, creating the directory if it does not exist.</summary>
     /// <param name="path">The file path to write to.</param>
     /// <param name="str">The string content to write.</param>
     [Obsolete("Switch to WriteAllTextAsync")]
@@ -85,9 +77,7 @@ public static class IOExtensions
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
-    /// <summary>
-    /// Appends text to the specified file, creating the file and directory if they do not exist.
-    /// </summary>
+    /// <summary>Appends text to the specified file, creating the file and directory if they do not exist.</summary>
     /// <param name="path">The file path to append to.</param>
     /// <param name="content">The content to append.</param>
     public static void AppendTextFile(this string path, string content)
@@ -119,9 +109,7 @@ public static class IOExtensions
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");
     }
 
-    /// <summary>
-    /// Reads all non-empty lines from the specified text file.
-    /// </summary>
+    /// <summary>Reads all non-empty lines from the specified text file.</summary>
     /// <param name="path">The file path to read from.</param>
     /// <returns>A list of non-empty lines from the file.</returns>
     public static List<string> ReadTextFile(this string path)
@@ -153,9 +141,7 @@ public static class IOExtensions
         return output;
     }
 
-    /// <summary>
-    /// Does a Path.Combine() and creates the destination directory if not existing
-    /// </summary>
+    /// <summary>Does a Path.Combine() and creates the destination directory if not existing</summary>
     public static string GetLocalPath(this string basePath, string relativePath)
     {
         var path = basePath.Extend(relativePath);
@@ -171,9 +157,7 @@ public static class IOExtensions
 
     private static HashSet<string> directories { get; set; } = [];
 
-    /// <summary>
-    /// Recursively calculates the total size of all files in the specified folder.
-    /// </summary>
+    /// <summary>Recursively calculates the total size of all files in the specified folder.</summary>
     /// <param name="folder">The folder path to calculate the size of.</param>
     /// <returns>The total size in bytes.</returns>
     public static float CalculateFolderSize(this string folder)
@@ -211,9 +195,7 @@ public static class IOExtensions
         return folderSize;
     }
 
-    /// <summary>
-    /// Deletes all files and subdirectories in the specified folder.
-    /// </summary>
+    /// <summary>Deletes all files and subdirectories in the specified folder.</summary>
     /// <param name="folder">The folder path to clean.</param>
     /// <returns>A tuple containing the count of deleted files and directories.</returns>
     public static (int files, int directories) Deltree(this string folder)
@@ -234,9 +216,7 @@ public static class IOExtensions
         return (files, directoryCount);
     }
 
-    /// <summary>
-    /// Loads a string from an embedded resource in the specified assembly.
-    /// </summary>
+    /// <summary>Loads a string from an embedded resource in the specified assembly.</summary>
     /// <param name="assembly">The assembly containing the embedded resource.</param>
     /// <param name="fileName">The fully qualified name of the embedded resource file.</param>
     /// <returns>The content of the embedded resource as a string, or an empty string if the resource is not found.</returns>

@@ -1,13 +1,9 @@
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for parsing strings and numeric types.
-/// </summary>
+/// <summary>Extension methods for parsing strings and numeric types.</summary>
 public static class ParseExtensions
 {
-    /// <summary>
-    /// Returns the number of decimal places in the specified <see cref="double"/> value.
-    /// </summary>
+    /// <summary>Returns the number of decimal places in the specified <see cref="double"/> value.</summary>
     /// <param name="val">The value to inspect.</param>
     /// <returns>The number of decimal places.</returns>
     public static int GetDecimalCount(this double val)
@@ -19,9 +15,7 @@ public static class ParseExtensions
         return i;
     }
 
-    /// <summary>
-    /// Returns the number of decimal places in the specified <see cref="decimal"/> value.
-    /// </summary>
+    /// <summary>Returns the number of decimal places in the specified <see cref="decimal"/> value.</summary>
     /// <param name="val">The value to inspect.</param>
     /// <returns>The number of decimal places.</returns>
     public static int GetDecimalCount(this decimal val)
@@ -32,9 +26,7 @@ public static class ParseExtensions
         return i;
     }
 
-    /// <summary>
-    /// Returns the number of decimal places in the specified string representation of a number.
-    /// </summary>
+    /// <summary>Returns the number of decimal places in the specified string representation of a number.</summary>
     /// <param name="val">The string value to inspect.</param>
     /// <returns>The number of decimal places.</returns>
     public static int GetDecimalCount(this string val)
@@ -61,9 +53,7 @@ public static class ParseExtensions
     }
 #endif
 
-    /// <summary>
-    /// Use when converting a DateTime value from a string to an actual DateTime.
-    /// </summary>
+    /// <summary>Use when converting a DateTime value from a string to an actual DateTime.</summary>
     /// <param name="f">supports 1) Ticks, 2) ISO 8601 &amp; 3) Time without the Date</param>
     /// <param name="date">Pass in the DateOnly here when Ticks string dosn't contain it for brevity.</param>
     /// <param name="kind">The <see cref="DateTimeKind"/> to assign to the resulting <see cref="DateTime"/>.</param>
@@ -83,9 +73,7 @@ public static class ParseExtensions
         return dt;
     }
 
-    /// <summary>
-    /// Converts a <see cref="DateTime"/> to its tick count string representation.
-    /// </summary>
+    /// <summary>Converts a <see cref="DateTime"/> to its tick count string representation.</summary>
     /// <param name="date">The date to convert.</param>
     /// <returns>The tick count as a string.</returns>
     public static string CsvDate2Str(this DateTime date) => date.Ticks.ToString();
@@ -137,9 +125,7 @@ public static class ParseExtensions
         return output;
     }
 
-    /// <summary>
-    /// Parses the input string as a <see cref="decimal"/>.
-    /// </summary>
+    /// <summary>Parses the input string as a <see cref="decimal"/>.</summary>
     /// <param name="input">The string to parse.</param>
     /// <returns>The parsed decimal value.</returns>
     public static decimal String2Decimal(this string input)//TODO: make this fast and not just a bog standard decimal.TryParse
@@ -150,9 +136,7 @@ public static class ParseExtensions
             throw new GenericException($"{nameof(String2Decimal)} issue! :/");
     }
 
-    /// <summary>
-    /// Fast parser that converts a string-ified decimal to its <see cref="long"/> equivalent.
-    /// </summary>
+    /// <summary>Fast parser that converts a string-ified decimal to its <see cref="long"/> equivalent.</summary>
     /// <param name="input">The string to parse.</param>
     /// <param name="exp">The exponent (number of decimal places to shift).</param>
     /// <returns>The parsed long value.</returns>
@@ -197,9 +181,7 @@ public static class ParseExtensions
         return output;
     }
 
-    /// <summary>
-    /// Converts an <see cref="int"/> to a <see cref="decimal"/> by dividing by 10^exp.
-    /// </summary>
+    /// <summary>Converts an <see cref="int"/> to a <see cref="decimal"/> by dividing by 10^exp.</summary>
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting decimal value.</returns>
@@ -211,9 +193,7 @@ public static class ParseExtensions
             return input;
     }
 
-    /// <summary>
-    /// Converts an <see cref="int"/> to a <see cref="double"/> by dividing by 10^exp.
-    /// </summary>
+    /// <summary>Converts an <see cref="int"/> to a <see cref="double"/> by dividing by 10^exp.</summary>
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting double value.</returns>

@@ -6,9 +6,7 @@ namespace CasCap.Common.Abstractions;
 /// </summary>
 public interface IAzTableStorageConfig
 {
-    /// <summary>
-    /// Azure Table Storage connection string or endpoint URI.
-    /// </summary>
+    /// <summary>Azure Table Storage connection string or endpoint URI.</summary>
     /// <remarks>
     /// When a <c>TokenCredential</c> is supplied this value is treated as a plain endpoint URI
     /// (e.g. <c>https://account.table.core.windows.net</c>).

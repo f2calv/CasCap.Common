@@ -1,14 +1,10 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+namespace Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// Extension methods for registering xUnit test logging services.
-/// </summary>
+/// <summary>Extension methods for registering xUnit test logging services.</summary>
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds logging providers that route output to xUnit's <see cref="ITestOutputHelper"/>.
-    /// </summary>
+    /// <summary>Adds logging providers that route output to xUnit's <see cref="ITestOutputHelper"/>.</summary>
     /// <param name="services">The service collection to add logging to.</param>
     /// <param name="testOutputHelper">The xUnit test output helper instance.</param>
     /// <returns>The service collection.</returns>

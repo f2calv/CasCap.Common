@@ -1,19 +1,13 @@
-﻿namespace CasCap.Common.Caching.Tests;
+namespace CasCap.Common.Caching.Tests;
 
-/// <summary>
-/// Test DTO for cache serialization round-trip tests.
-/// </summary>
+/// <summary>Test DTO for cache serialization round-trip tests.</summary>
 [MessagePackObject(true)]
 public class MockDto(DateTime someDateTimeUtc)
 {
-    /// <summary>
-    /// Unique identifier.
-    /// </summary>
+    /// <summary>Unique identifier.</summary>
     public int SomeId { get; init; } = 1337;
 
-    /// <summary>
-    /// Test property.
-    /// </summary>
+    /// <summary>Test property.</summary>
     public DateTime SomeDateTimeUtc { get; init; } = someDateTimeUtc;
 
     /// <inheritdoc/>

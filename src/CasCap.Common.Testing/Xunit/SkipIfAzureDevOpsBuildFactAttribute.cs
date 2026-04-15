@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Xunit;
+namespace CasCap.Common.Xunit;
 
-/// <summary>
-/// Skips the test when running in an Azure DevOps build.
-/// </summary>
+/// <summary>Skips the test when running in an Azure DevOps build.</summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SkipIfAzureDevOpsBuildFactAttribute() : FactAttribute

@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Diagnostics.HealthChecks;
+namespace CasCap.Common.Diagnostics.HealthChecks;
 
 /// <summary>
 /// Base class for health checks that verify HTTP endpoint accessibility.
@@ -20,9 +20,7 @@ public abstract class HttpEndpointCheckBase(
 
     private volatile bool _connectionActive = initialConnectionActive;
 
-    /// <summary>
-    /// Indicates whether the most recent health check probe succeeded.
-    /// </summary>
+    /// <summary>Indicates whether the most recent health check probe succeeded.</summary>
     public bool ConnectionActive
     {
         get => _connectionActive;

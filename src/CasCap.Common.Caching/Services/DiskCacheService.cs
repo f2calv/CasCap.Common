@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
@@ -15,9 +15,7 @@ public class DiskCacheService : ILocalCache
     /// When we retrieve a previously cached item we must re-use the sliding sliding expiration again
     /// to update <see cref="_absoluteExpirations"/> with the absolute expiration.
     /// </summary>
-    /// <remarks>
-    /// TODO: also cache this collection locally and reload on startup!
-    /// </remarks>
+    /// <remarks>TODO: also cache this collection locally and reload on startup!</remarks>
     private readonly ConcurrentDictionary<string, TimeSpan> _slidingExpirations = [];
 
     /// <summary>
@@ -30,9 +28,7 @@ public class DiskCacheService : ILocalCache
     /// </remarks>
     private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="DiskCacheService"/> class.</summary>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
@@ -137,12 +133,8 @@ public class DiskCacheService : ILocalCache
         return absoluteExpiration.HasValue && absoluteExpiration.Value.DateTime < DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Converts a Redis cache key into a valid file path.
-    /// </summary>
-    /// <remarks>
-    /// TODO: need to use more comprehensive regex here for the instead of search/replace.
-    /// </remarks>
+    /// <summary>Converts a Redis cache key into a valid file path.</summary>
+    /// <remarks>TODO: need to use more comprehensive regex here for the instead of search/replace.</remarks>
     private string ConvertKeyToFilePath(string key)
     {
         if (string.IsNullOrWhiteSpace(_diskCacheFolder))

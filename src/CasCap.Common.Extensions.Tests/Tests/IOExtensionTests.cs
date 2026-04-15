@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Extensions.Tests;
+namespace CasCap.Common.Extensions.Tests;
 
-/// <summary>
-/// Tests for IO extension methods.
-/// </summary>
+/// <summary>Tests for IO extension methods.</summary>
 public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that IO extension methods can create, append, and write files correctly.</summary>

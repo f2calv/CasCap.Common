@@ -2,15 +2,11 @@ using System.ComponentModel;
 
 namespace CasCap.Common.Abstractions;
 
-/// <summary>
-/// Different types of Kubernetes container health probes.
-/// </summary>
+/// <summary>Different types of Kubernetes container health probes.</summary>
 [Flags]
 public enum KubernetesProbeTypes
 {
-    /// <summary>
-    /// Disabled
-    /// </summary>
+    /// <summary>Disabled</summary>
     None = 0,
     /// <summary>
     /// Readiness indicates if the app is running normally but isn't ready to receive requests.

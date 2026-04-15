@@ -1,8 +1,6 @@
 namespace CasCap.Common.Models;
 
-/// <summary>
-/// A fixed-size queue that automatically dequeues the oldest items when the limit is reached.
-/// </summary>
+/// <summary>A fixed-size queue that automatically dequeues the oldest items when the limit is reached.</summary>
 /// <remarks>See <see href="https://stackoverflow.com/questions/5852863/fixed-size-queue-which-automatically-dequeues-old-values-upon-new-enques"/>.</remarks>
 /// <typeparam name="T">The type of elements in the queue.</typeparam>
 [Serializable]
@@ -15,9 +13,7 @@ public class FixedSizedQueue<T> : IReadOnlyCollection<T>
     /// <inheritdoc/>
     public int Count { get { lock (_lock) { return _queue.Count; } } }
 
-    /// <summary>
-    /// The maximum number of items the queue can hold.
-    /// </summary>
+    /// <summary>The maximum number of items the queue can hold.</summary>
     public int Limit { get; }
 
     /// <summary>
@@ -62,9 +58,7 @@ public class FixedSizedQueue<T> : IReadOnlyCollection<T>
         Limit = _queue.Count;
     }
 
-    /// <summary>
-    /// Adds an item to the queue, dequeuing the oldest items if the limit is exceeded.
-    /// </summary>
+    /// <summary>Adds an item to the queue, dequeuing the oldest items if the limit is exceeded.</summary>
     /// <param name="obj">The item to enqueue.</param>
     public void Enqueue(T obj)
     {
@@ -77,9 +71,7 @@ public class FixedSizedQueue<T> : IReadOnlyCollection<T>
         }
     }
 
-    /// <summary>
-    /// Removes all items from the queue.
-    /// </summary>
+    /// <summary>Removes all items from the queue.</summary>
     public void Clear()
     {
         lock (_lock)

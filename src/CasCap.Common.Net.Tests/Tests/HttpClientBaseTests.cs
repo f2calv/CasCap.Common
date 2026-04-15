@@ -4,9 +4,7 @@ using CasCap.Common.Services;
 using System.Text;
 using System.Text.Json;
 
-/// <summary>
-/// Tests for <see cref="HttpClientBase"/> protected HTTP methods.
-/// </summary>
+/// <summary>Tests for <see cref="HttpClientBase"/> protected HTTP methods.</summary>
 public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     private static TestHttpClient CreateClient(MockHandler handler)

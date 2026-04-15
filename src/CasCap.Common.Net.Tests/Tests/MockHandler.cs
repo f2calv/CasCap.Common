@@ -3,9 +3,7 @@ namespace CasCap.Common.Net.Tests;
 using System.Text;
 using System.Text.Json;
 
-/// <summary>
-/// Mock <see cref="HttpMessageHandler"/> for testing HTTP requests without a real server.
-/// </summary>
+/// <summary>Mock <see cref="HttpMessageHandler"/> for testing HTTP requests without a real server.</summary>
 public class MockHandler : HttpMessageHandler
 {
     private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _handler;
@@ -19,9 +17,7 @@ public class MockHandler : HttpMessageHandler
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         => _handler(request, cancellationToken);
 
-    /// <summary>
-    /// Creates a handler that returns a JSON-serialized payload.
-    /// </summary>
+    /// <summary>Creates a handler that returns a JSON-serialized payload.</summary>
     public static MockHandler ForJson<T>(T payload, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         return new MockHandler((_, _) =>
@@ -35,9 +31,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that returns a JSON-serialized payload with custom response headers.
-    /// </summary>
+    /// <summary>Creates a handler that returns a JSON-serialized payload with custom response headers.</summary>
     public static MockHandler ForJsonWithHeaders<T>(T payload, params (string name, string value)[] headers)
     {
         return new MockHandler((_, _) =>
@@ -69,9 +63,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that returns a raw string response.
-    /// </summary>
+    /// <summary>Creates a handler that returns a raw string response.</summary>
     public static MockHandler ForRawString(string content, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         return new MockHandler((_, _) =>
@@ -84,9 +76,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that returns a raw string error response.
-    /// </summary>
+    /// <summary>Creates a handler that returns a raw string error response.</summary>
     public static MockHandler ForRawError(HttpStatusCode statusCode, string content)
     {
         return new MockHandler((_, _) =>
@@ -99,9 +89,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that returns raw bytes.
-    /// </summary>
+    /// <summary>Creates a handler that returns raw bytes.</summary>
     public static MockHandler ForRawBytes(byte[] bytes, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         return new MockHandler((_, _) =>
@@ -114,9 +102,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that invokes a capture callback before returning a JSON response.
-    /// </summary>
+    /// <summary>Creates a handler that invokes a capture callback before returning a JSON response.</summary>
     public static MockHandler WithCapture<T>(Func<HttpRequestMessage, Task> capture, T payload)
     {
         return new MockHandler(async (req, _) =>
@@ -131,9 +117,7 @@ public class MockHandler : HttpMessageHandler
         });
     }
 
-    /// <summary>
-    /// Creates a handler that delays before returning a JSON response.
-    /// </summary>
+    /// <summary>Creates a handler that delays before returning a JSON response.</summary>
     public static MockHandler WithDelay<T>(TimeSpan delay, T payload)
     {
         return new MockHandler(async (_, ct) =>

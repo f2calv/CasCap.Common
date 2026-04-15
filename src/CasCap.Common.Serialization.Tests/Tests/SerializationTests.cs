@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Serialization.Tests;
+namespace CasCap.Common.Serialization.Tests;
 
-/// <summary>
-/// Tests for JSON and MessagePack serialization helpers.
-/// </summary>
+/// <summary>Tests for JSON and MessagePack serialization helpers.</summary>
 public class SerializationTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies MessagePack serialization and deserialization matches the expected JSON representation.</summary>

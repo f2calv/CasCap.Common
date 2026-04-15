@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Models;
+namespace CasCap.Common.Models;
 
-/// <summary>
-/// Configuration options for the CasCap distributed caching system.
-/// </summary>
+/// <summary>Configuration options for the CasCap distributed caching system.</summary>
 public record CachingConfig : IAppConfig
 {
     /// <inheritdoc/>
@@ -16,14 +14,11 @@ public record CachingConfig : IAppConfig
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
     /// channel so that the current instance doesn't take any action on self-generated messages.
     /// </summary>
-    /// <remarks>
-    /// This prefix can be customized.
-    /// </remarks>
+    /// <remarks>This prefix can be customized.</remarks>
     public string PubSubPrefix { get; init; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
 
-    /// <summary>
-    /// Gets or sets the maximum size of the cache, default is no limit.
-    /// </summary>
+    /// <summary>Gets or sets the maximum size of the cache.</summary>
+    /// <remarks>Defaults to no limit (<see langword="null"/>).</remarks>
     public int? MemoryCacheSizeLimit { get; set; } = null;
 
     /// <summary>
@@ -31,34 +26,22 @@ public record CachingConfig : IAppConfig
     /// </summary>
     public CacheItemPriority MemoryCacheItemPriority { get; set; } = CacheItemPriority.Normal;
 
-    /// <summary>
-    /// Enables loading of built-in Lua scripts into Redis on startup.
-    /// </summary>
+    /// <summary>Enables loading of built-in Lua scripts into Redis on startup.</summary>
     public bool UseBuiltInLuaScripts { get; set; } = false;
 
-    /// <summary>
-    /// Configuration options for the in-process <see cref="ILocalCache"/> memory cache.
-    /// </summary>
+    /// <summary>Configuration options for the in-process <see cref="ILocalCache"/> memory cache.</summary>
     public CacheParameters MemoryCache { get; set; } = new CacheParameters { SerializationType = SerializationType.None };
 
-    /// <summary>
-    /// Configuration options for the disk-based <see cref="ILocalCache"/> cache.
-    /// </summary>
+    /// <summary>Configuration options for the disk-based <see cref="ILocalCache"/> cache.</summary>
     public CacheParameters DiskCache { get; set; } = new CacheParameters { SerializationType = SerializationType.Json };
 
-    /// <summary>
-    /// Configuration options for the <see cref="IRemoteCache"/> (Redis).
-    /// </summary>
+    /// <summary>Configuration options for the <see cref="IRemoteCache"/> (Redis).</summary>
     public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
-    /// <summary>
-    /// Specifies the root folder where the local disk cache will store serialized files.
-    /// </summary>
+    /// <summary>Specifies the root folder where the local disk cache will store serialized files.</summary>
     public string DiskCacheFolder { get; init; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 
-    /// <summary>
-    /// Enables pub/sub-based invalidation of local cache entries across distributed clients.
-    /// </summary>
+    /// <summary>Enables pub/sub-based invalidation of local cache entries across distributed clients.</summary>
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 
     /// <summary>Controls how local sliding expirations are synchronized with the remote cache.</summary>

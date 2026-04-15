@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Extensions;
+namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for registering feature flag services.
-/// </summary>
+/// <summary>Extension methods for registering feature flag services.</summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>

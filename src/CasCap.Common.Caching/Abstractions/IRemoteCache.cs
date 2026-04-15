@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// The <see cref="IRemoteCache"/> interface abstracts core functionality that
@@ -11,14 +11,10 @@
 /// </remarks>
 public interface IRemoteCache
 {
-    /// <summary>
-    /// Exposes the <see cref="IConnectionMultiplexer"/> for the currently active Redis connection.
-    /// </summary>
+    /// <summary>Exposes the <see cref="IConnectionMultiplexer"/> for the currently active Redis connection.</summary>
     IConnectionMultiplexer Connection { get; }
 
-    /// <summary>
-    /// Exposes the Redis <see cref="IDatabase"/> from the currently active Redis connection.
-    /// </summary>
+    /// <summary>Exposes the Redis <see cref="IDatabase"/> from the currently active Redis connection.</summary>
     IDatabase Db { get; }
 
     /// <summary>
@@ -31,14 +27,10 @@ public interface IRemoteCache
     /// </summary>
     IServer Server { get; }
 
-    /// <summary>
-    /// Get object from cache casting it to a <see cref="string"/> upon retrieval.
-    /// </summary>
+    /// <summary>Get object from cache casting it to a <see cref="string"/> upon retrieval.</summary>
     string? Get(string key, CommandFlags flags = CommandFlags.None);
 
-    /// <summary>
-    /// Get object from cache casting it to a <see cref="byte"/> array upon retrieval.
-    /// </summary>
+    /// <summary>Get object from cache casting it to a <see cref="byte"/> array upon retrieval.</summary>
     byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None);
 
     /// <inheritdoc cref="Get(string, CommandFlags)"/>
@@ -47,15 +39,11 @@ public interface IRemoteCache
     /// <inheritdoc cref="GetBytes(string, CommandFlags)"/>
     Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None);
 
-    /// <summary>
-    /// Add a <see cref="byte"/> array to the cache.
-    /// </summary>
+    /// <summary>Add a <see cref="byte"/> array to the cache.</summary>
     bool Set(string key, byte[] value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None);
 
-    /// <summary>
-    /// Add a <see cref="string"/> object to the cache.
-    /// </summary>
+    /// <summary>Add a <see cref="string"/> object to the cache.</summary>
     bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None);
 
@@ -67,14 +55,10 @@ public interface IRemoteCache
     Task<bool> SetAsync(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None);
 
-    /// <summary>
-    /// If a sliding expiration was ever set for a cached item, this then extends it.
-    /// </summary>
+    /// <summary>If a sliding expiration was ever set for a cached item, this then extends it.</summary>
     Task<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget);
 
-    /// <summary>
-    /// Delete an object from the cache.
-    /// </summary>
+    /// <summary>Delete an object from the cache.</summary>
     bool Delete(string key, CommandFlags flags = CommandFlags.None);
 
     /// <inheritdoc cref="Delete(string, CommandFlags)"/>
@@ -98,14 +82,10 @@ public interface IRemoteCache
     Task<(TimeSpan? expiry, T? cacheEntry)> GetCacheEntryWithExpiryAsync<T>
         (string key, CommandFlags flags = CommandFlags.None, bool updateSlidingExpirationIfExists = true, [CallerMemberName] string caller = "");
 
-    /// <summary>
-    /// Exposes a dictionary of LuaScripts to allow management of scripts during connection.
-    /// </summary>
+    /// <summary>Exposes a dictionary of LuaScripts to allow management of scripts during connection.</summary>
     Dictionary<string, LoadedLuaScript> LuaScripts { get; set; }
 
-    /// <summary>
-    /// Loads a custom script into the <see cref="LuaScripts"/> collection.
-    /// </summary>
+    /// <summary>Loads a custom script into the <see cref="LuaScripts"/> collection.</summary>
     /// <param name="scriptName">Should be of the form "Namespace.Class.ScriptName.lua", e.g. CasCap.Resources.MyScript.lua</param>
     /// <param name="script">The actual Lua script text to be loaded.</param>
     LoadedLuaScript? LoadLuaScript(string scriptName, string script);
