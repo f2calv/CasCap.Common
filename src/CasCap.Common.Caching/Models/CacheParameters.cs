@@ -7,6 +7,7 @@ public record CacheParameters
     public bool IsEnabled { get; init; } = true;
 
     /// <summary>The Redis database index to use for the remote cache.</summary>
+    [Range(0, 15)]
     public int DatabaseId { get; init; } = 0;
 
     /// <summary>Whether to clear all cached items when the service starts.</summary>
