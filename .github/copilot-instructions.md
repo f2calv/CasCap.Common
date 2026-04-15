@@ -2,7 +2,7 @@
 
 <!-- ── Synced section ─────────────────────────────────────────────────────
      Everything above the "Project-Specific Overrides" heading is kept
-     identical across all CasCap repositories. Edit once, sync everywhere.
+     identical across all f2calv repositories. Edit once, sync everywhere.
      ──────────────────────────────────────────────────────────────────── -->
 
 ## C# / .NET
@@ -22,7 +22,7 @@
 - **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
 - **Async/Await**: Always await async method calls.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
-- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`)
+- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`). Use primary constructor parameters directly in the class body — do **not** assign them to private or protected fields (e.g. avoid `private ILogger _logger = logger;`). **Exception**: abstract base classes that expose a `protected` field for derived types (e.g. `protected ILogger _logger = logger;` where subclasses pass the value via `: base(logger)`) are exempt — the field must be accessible to inheritors. For `IOptions<T>` / `IOptionsMonitor<T>` parameters, access `.Value` / `.CurrentValue` inline each time rather than caching to a field (e.g. `cachingConfig.Value.SomeProperty`). When the parameter list exceeds a comfortable single-line width, wrap to one parameter per line with the closing parenthesis and base/interface clause on their own line.
 - **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
 - **Records**: Prefer `record` types with `get; init;` properties over classes where object comparison semantics are useful
 - **Constructors**: When injecting services use a 'Svc' suffix on the parameter name and its private field instead of 'Service' to make more concise.
@@ -34,6 +34,8 @@
 - **Global usings file**: Every project must have a `GlobalUsings.cs` file located in the project root (not in a sub-folder). The file must always be named `GlobalUsings.cs`.
 - **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
 - **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
+- **Boolean property naming**: Boolean configuration properties should use `{Feature}{State}` suffix form (past-participle or adjective describing state), not an imperative-verb prefix. Properties describe state; methods describe actions (e.g. `DistributedLockingEnabled`, `LocalCacheInvalidationEnabled` — not `EnableDistributedLocking`).
+- **Constants extraction**: When a configuration record accumulates `const` fields that serve as well-known keys, profile names, or identifiers (not bindable configuration properties), extract them into a dedicated `static class` in the same namespace (e.g. `RedlockProfiles` for `RedlockConfig`). This keeps config records focused on their bindable data shape and the constants discoverable via a single type.
 
 ### Suppressed Warnings
 
@@ -48,6 +50,9 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 - **Deep link referenced types**: When XML comments reference .NET classes, structs, interfaces, enums, or namespaces, use `<see cref="Fully.Qualified.TypeName" />` instead of plain text (e.g. `<see cref="Azure.Data.Tables.TableEntity" />`).
 - **Timespan config properties**: Any configuration property on an `IAppConfig` implementation that represents a duration (conventionally suffixed with `Ms`) must include a `<see cref="…"/>` deep link to every service class that consumes it in its XML documentation. This ties the property to its consumers and makes it easy to navigate from configuration to consuming code (e.g. `/// Used by <see cref="CasCap.Services.MyMonitorBgService"/>.`).
 - **Preserve hyperlinks**: Inline comment hyperlinks to external resources (e.g. blog posts, StackOverflow answers, GitHub issues) must never be deleted. When refactoring a comment into XML documentation, move the URL into a `<remarks>` block using `<see href="…" />` (e.g. `/// <remarks>See <see href="https://example.com" />.</remarks>`).
+- **Summary brevity**: Keep `<summary>` concise — one to two short sentences that define the type or member. Move implementation details, usage notes, background context, or examples into `<remarks>`. If a `<summary>` exceeds roughly two lines and reads more like a paragraph than a definition, split the extra content into `<remarks>`.
+- **Defaults in `<remarks>`**: "Defaults to …" text must live in `<remarks>`, not `<summary>`. The default value is an implementation detail and does not help define the member.
+- **One-line `<summary>` and/or `<remarks>`**: When a summary/remark fits on a single line (roughly ≤ 120 characters), collapse it to `/// <summary>Text here.</summary>` instead of the three-line block form.
 
 ### Logging
 
@@ -115,6 +120,31 @@ string? floor = null
 5. Ensure every public property on the return type (and any nested types) has `[Description("...")]` with a concise label and unit/range where applicable.
 6. Keep XML `<summary>` comments intact — they serve a different audience and must not be replaced by or merged with `[Description]` text.
 
+### Method naming
+
+.NET MCP servers convert PascalCase method names to `snake_case` for the tool registry. Both forms must read naturally and be unambiguous.
+
+- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetAppliance`, not `GetDevice`; `GetInverterSnapshot`, not `GetState`).
+- **Verb-first for actions**: `UnlockHouseDoor`, `ExecuteApplianceAction` — not `HouseDoorUnlock`.
+- **Get/List pairing**: Use `Get<Noun>` for a single-item lookup and `Get<Noun>s` (plural) for the list variant.
+- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Heating* over *HVAC*, *infrared* over *IR*).
+- **Read in snake_case**: Before committing, mentally convert the name — `GetInverterBatteryStorageRealtimeData` → `get_inverter_battery_storage_realtime_data` is too long; `GetInverterBatteryStatus` → `get_inverter_battery_status` is fine.
+
+### snake_case references
+
+When an `[McpServerTool]` method is renamed, search for its old `snake_case` form in:
+
+- `appsettings*.json` — `IncludeTools` / `ExcludeTools` arrays reference tools by snake_case name.
+- System prompt / instructions markdown files that may list tool names.
+
+### Description anti-patterns
+
+Avoid these in `[Description]` text:
+
+- **Return-type narration** — *"Returns the group names of affected shutters"* duplicates what the LLM already infers from the method signature.
+- **Restating parameter constraints on the method** — keep constraints on the parameter `[Description]`; the method description should say *what* the tool does, not *how* to fill in every field.
+- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a quick on/off overview use GetHouseLightSwitchStates"* on the full-detail tool).
+
 ## Cloud (Azure)
 
 - **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
@@ -181,8 +211,62 @@ string? floor = null
 - Every project's `README.md` must stay in sync with its implementation. During any refactoring — and **always** before creating a new PR — scan each affected project's `README.md` for inconsistencies: outdated service names, missing or removed configuration options, stale dependency tables, or inaccurate flow diagrams. Update the README as part of the same change, not as a follow-up.
 - **Major refactorings** (renames, project moves, DI restructuring, model type splits): when a rename or restructure touches type names, configuration sections, or project references, update every `README.md` that mentions the old names **in the same commit**. Do not leave stale references for a follow-up.
 - For large refactorings that touch multiple projects, review all impacted `README.md` files before opening the PR.
-- **Mermaid diagrams**: Use Mermaid diagrams in `README.md` files to illustrate NuGet package dependency graphs, GitHub Actions workflow chains, and .NET service/class hierarchies. These diagrams make complex relationships immediately visible and must be kept in sync with the code they describe.
 - **Markdown tables**: Table separator rows must use spaces around pipes to match the spaced style used in header and data rows (e.g. `| --- | --- |` not `|---|---|`). This prevents MD060 (table-column-style) warnings.
+- **Configuration examples in library READMEs**: Library projects that expose `IAppConfig` records should include a `## Configuration Examples` section in their `README.md` with `appsettings.json` snippets progressing from minimal configuration through to fully configured. This documents the configuration surface area and provides copy-paste-ready templates for consumers.
+
+### Mermaid Diagrams
+
+Use Mermaid diagrams in `README.md` files to visualize complex relationships and flows. Choose the appropriate diagram type:
+
+#### Diagram Type Selection
+
+- **`flowchart`**: Sequential processes, data flow, event flow, service orchestration, CI/CD pipelines
+  - Direction: Use `TD` (top-down) for vertical flows; `LR` (left-right) for wide workflows
+  - Example: Data moving from device → monitor service → broker → processor → sinks
+
+- **`graph`**: Relationships, dependencies, hierarchies (non-sequential)
+  - Direction: Use `TD` for dependency trees; `LR` for peer relationships
+  - Example: NuGet package dependencies, project references, Helm chart hierarchies
+
+- **`classDiagram`**: C# class hierarchies, inheritance, composition
+  - Shows: Inheritance (`<|--`), composition (`*--`), aggregation (`o--`), association (`-->`), dependency (`..>`)
+  - Example: Service class inheritance, interface implementation
+
+- **`sequenceDiagram`**: Time-based interactions between components
+  - Shows: Method calls, async operations, timing
+  - Example: Request/response flows, background service timing
+
+#### Standard Headings
+
+Use these consistent heading patterns before Mermaid diagrams:
+
+| Heading | Use For |
+| --- | --- |
+| `## Data Flow` | How data moves through the system (device → service → storage) |
+| `## Event Flow` | Event-driven processing (pub/sub, channels, streams) |
+| `## Service Architecture` | How services interact (SignalR hubs, background services, API clients) |
+| `## Dependency Graph` | Package/project dependencies, references |
+| `## Class Hierarchy` | C# class structures, inheritance trees |
+| `## Deployment Flow` | CI/CD pipelines, GitHub Actions workflows, Helm/K8s deployments |
+| `## Configuration Hierarchy` | IAppConfig structure, nested configuration objects |
+
+#### Styling Guidelines
+
+- **Subgraphs**: Group related components (e.g., `subgraph Monitor["MonitorBgService"]`)
+- **Custom styling**: Define `classDef` for highlighting (e.g., owned vs. third-party actions)
+- **Node shapes**:
+  - `[ ]` rectangle (default) - services, components
+  - `([ ])` stadium - entry/exit points
+  - `[( )]` cylinder - databases, storage
+  - `{ }` diamond - decision points
+  - `(( ))` circle - events
+
+#### Synchronization
+
+- Mermaid diagrams must stay in sync with code during refactoring
+- When renaming services, update corresponding diagram nodes
+- When adding/removing dependencies, update dependency graphs
+- Review all `README.md` diagrams before creating PRs
 
 ## Configuration
 
@@ -193,12 +277,13 @@ string? floor = null
 
 ## Copilot Workflow
 
-- **Test execution after refactoring**: After completing a refactoring, always prompt the user with a yes/no choice before running any tests. Do not automatically run tests. When prompting, offer a clickable yes/no UI option if the environment supports it.
+- **Test execution**: Never run tests automatically — they may be integration tests requiring extra setup. Always prompt (ideally with a visual yes/no button) before running any tests.
 - **Preserve git history during renames/moves**: When renaming or relocating files, first perform the rename/move (preferably via `git mv`), then make content edits to the file in its new location/name. This two-step approach preserves git history across the rename. Do not delete-and-recreate files when a rename or move is the intent.
 
 ## Misc
 
 - When detecting new conventions or patterns in the codebase, add them to this document and apply them retroactively where applicable.
+- When multiple `copilot-instructions.md` files are available in the workspace, keep them in sync based on the common guidelines in the synced section.
 
 ---
 

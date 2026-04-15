@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Feature-flag background service launcher using bitwise AppMode flags to activate IFeature implementations.</Description>
+    <Description>Feature-flag background service launcher using bitwise EnabledFeatures flags to activate IFeature implementations.</Description>
     <PackageTags>extensions,helpers,services,feature-flags,backgroundservice</PackageTags>
   </PropertyGroup>
 

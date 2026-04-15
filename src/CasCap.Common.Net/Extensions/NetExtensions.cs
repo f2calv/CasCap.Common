@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Extensions;
+namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for HTTP headers, query strings and request utilities.
-/// </summary>
+/// <summary>Extension methods for HTTP headers, query strings and request utilities.</summary>
 public static class NetExtensions
 {
     /// <summary>
@@ -15,9 +13,7 @@ public static class NetExtensions
         return null;
     }
 
-    /// <summary>
-    /// Converts a <see cref="NameValueCollection"/> to a URL-encoded query string.
-    /// </summary>
+    /// <summary>Converts a <see cref="NameValueCollection"/> to a URL-encoded query string.</summary>
     public static string ToQueryString(this NameValueCollection nvc)
     {
         var array = (from key in nvc.AllKeys
@@ -45,9 +41,7 @@ public static class NetExtensions
                 headers.AddOrOverwrite(header.Key, header.Value);
     }
 
-    /// <summary>
-    /// Adds a name/value to the headers, if header name already exists the value is overwritten.
-    /// </summary>
+    /// <summary>Adds a name/value to the headers, if header name already exists the value is overwritten.</summary>
     public static void AddOrOverwrite(this HttpRequestHeaders headers, string name, string value)
     {
         if (headers.TryGetValues(name, out var _))

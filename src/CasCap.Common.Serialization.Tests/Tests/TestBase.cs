@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Serialization.Tests;
+namespace CasCap.Common.Serialization.Tests;
 
-/// <summary>
-/// Base class for serialization tests, providing xUnit logging.
-/// </summary>
+/// <summary>Base class for serialization tests, providing xUnit logging.</summary>
 public abstract class TestBase : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;

@@ -3,19 +3,13 @@ using System.Reflection;
 
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// Extension methods for <see cref="System.Enum"/> types.
-/// </summary>
+/// <summary>Extension methods for <see cref="System.Enum"/> types.</summary>
 public static class EnumExtensions
 {
-    /// <summary>
-    /// Gets all items for an enum value.
-    /// </summary>
+    /// <summary>Gets all items for an enum value.</summary>
     public static IEnumerable<TENum> GetAllItems<TENum>() where TENum : Enum => (TENum[])Enum.GetValues(typeof(TENum));
 
-    /// <summary>
-    /// Gets all combinations of a flags enum up to twice the highest defined value.
-    /// </summary>
+    /// <summary>Gets all combinations of a flags enum up to twice the highest defined value.</summary>
     /// <typeparam name="TEnum">A flags <see cref="Enum"/> type.</typeparam>
     /// <returns>All possible flag combination values.</returns>
     public static IEnumerable<TEnum> GetAllCombinations<TEnum>() where TEnum : Enum
@@ -30,16 +24,12 @@ public static class EnumExtensions
         }
     }
 
-    /// <summary>
-    /// Handy to find originating method name when debugging.
-    /// </summary>
+    /// <summary>Handy to find originating method name when debugging.</summary>
     public static string GetCallingMethodName([CallerMemberName] string caller = "") => caller;
 
     private static Dictionary<Enum, string> enumStringValues = new();
 
-    /// <summary>
-    /// Returns the cached string representation of the specified <see cref="Enum"/> value.
-    /// </summary>
+    /// <summary>Returns the cached string representation of the specified <see cref="Enum"/> value.</summary>
     /// <param name="myEnum">The enum value.</param>
     /// <returns>The cached string representation.</returns>
     public static string ToStringCached(this Enum myEnum)
@@ -72,9 +62,7 @@ public static class EnumExtensions
 #pragma warning restore CS8603 // Possible null reference return.
     }
 
-    /// <summary>
-    /// Determines whether the enum value has any of the specified flags set.
-    /// </summary>
+    /// <summary>Determines whether the enum value has any of the specified flags set.</summary>
     /// <typeparam name="TEnum">A flags <see cref="Enum"/> type.</typeparam>
     /// <param name="value">The enum value to test.</param>
     /// <param name="flags">The list of flags to test against.</param>

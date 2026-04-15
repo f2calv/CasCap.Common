@@ -10,6 +10,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <!-- Exclude test projects from XML documentation requirements -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('Test'))">
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Author>Alex Vincent</Author>
   </PropertyGroup>
@@ -41,9 +46,13 @@
     <!-- IDE0079 - Remove unnecessary suppression -->
     <!-- IDE0042 - Variable declaration can be deconstructed -->
     <!-- CS0162 - Unreachable code detected. -->
+    <!-- CS1574 - XML comment has cref attribute that could not be resolved -->
     <!-- S125 - Remove this commented out code. -->
     <!-- NETSDK1233 - Targeting .NET 10.0 or higher in Visual Studio 2022 XX.XX is not supported. -->
-    <NoWarn>IDE1006;IDE0079;IDE0042;CS0162;S125;NETSDK1233</NoWarn>
+    <!-- NU1901 - Package has a known low severity vulnerability. -->
+    <!-- NU1902 - Package has a known moderate severity vulnerability. -->
+    <!-- NU1903 - Package has a known high severity vulnerability. -->
+    <NoWarn>IDE1006;IDE0079;IDE0042;CS0162;CS1574;S125;NETSDK1233;NU1901;NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

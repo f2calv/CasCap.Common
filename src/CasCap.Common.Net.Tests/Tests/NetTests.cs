@@ -1,8 +1,6 @@
 namespace CasCap.Common.Net.Tests;
 
-/// <summary>
-/// Tests for <see cref="NetExtensions"/> methods.
-/// </summary>
+/// <summary>Tests for <see cref="NetExtensions"/> methods.</summary>
 public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that a single key-value pair is formatted as a query string.</summary>

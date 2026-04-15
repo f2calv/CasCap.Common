@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="MemoryCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
@@ -10,24 +10,16 @@ public class MemoryCacheService : ILocalCache
     private readonly CachingConfig _cachingConfig;
     private readonly MemoryCache _localCache;
 
-    /// <summary>
-    /// Keeps track of all cached items by key.
-    /// </summary>
+    /// <summary>Keeps track of all cached items by key.</summary>
     private readonly ConcurrentDictionary<string, int> _cacheKeys = [];
 
-    /// <summary>
-    /// Event fires when an object is evicted from the <see cref="MemoryCache"/>.
-    /// </summary>
+    /// <summary>Event fires when an object is evicted from the <see cref="MemoryCache"/>.</summary>
     public event EventHandler<PostEvictionEventArgs>? PostEvictionEvent;
 
-    /// <summary>
-    /// Raises the <see cref="PostEvictionEvent"/>.
-    /// </summary>
+    /// <summary>Raises the <see cref="PostEvictionEvent"/>.</summary>
     protected virtual void OnRaisePostEvictionEvent(PostEvictionEventArgs args) => PostEvictionEvent?.Invoke(this, args);
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MemoryCacheService"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="MemoryCacheService"/> class.</summary>
     public MemoryCacheService(ILogger<MemoryCacheService> logger, IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
@@ -44,9 +36,12 @@ public class MemoryCacheService : ILocalCache
         if (_cachingConfig.MemoryCache.ClearOnStartup) DeleteAll();
     }
 
+    private string FormatKey(string key) => _cachingConfig.FormatCacheKey(key);
+
     /// <inheritdoc/>
     public T? Get<T>(string key)
     {
+        key = FormatKey(key);
         if (_localCache.TryGetValue(key, out T? cacheEntry))
             _logger.LogTrace("{ClassName} retrieved object with {Key} from {ApiName}",
                 nameof(MemoryCacheService), key, nameof(MemoryCache));
@@ -59,6 +54,7 @@ public class MemoryCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
+        key = FormatKey(key);
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         var options = new MemoryCacheEntryOptions()
             // Pin to cache.
@@ -93,6 +89,7 @@ public class MemoryCacheService : ILocalCache
     /// <inheritdoc/>
     public bool Delete(string key)
     {
+        key = FormatKey(key);
         _localCache.TryGetValue(key, out object? cacheEntry);
         if (cacheEntry is not null)
         {
@@ -114,7 +111,11 @@ public class MemoryCacheService : ILocalCache
         var i = 0L;
         foreach (var cacheKey in _cacheKeys.Keys)
         {
-            if (Delete(cacheKey)) i++;
+            _localCache.Remove(cacheKey);
+            _cacheKeys.TryRemove(cacheKey, out _);
+            _logger.LogTrace("{ClassName} deleted object with {Key} from {ApiName}",
+                nameof(MemoryCacheService), cacheKey, nameof(MemoryCache));
+            i++;
         }
         return i;
     }

@@ -6,53 +6,39 @@ namespace CasCap.Common.Abstractions;
 /// </summary>
 public interface INotifier
 {
-    /// <summary>
-    /// Sends a notification message to the specified recipients.
-    /// </summary>
+    /// <summary>Sends a notification message to the specified recipients.</summary>
     /// <param name="message">The outgoing notification message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<INotificationResponse?> SendAsync(INotificationMessage message, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Receives pending notifications for the specified account.
-    /// </summary>
+    /// <summary>Receives pending notifications for the specified account.</summary>
     /// <param name="account">The account identifier to poll for incoming messages.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<IReceivedNotification[]?> ReceiveAsync(string account, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Downloads the raw bytes of an attachment by its identifier.
-    /// </summary>
+    /// <summary>Downloads the raw bytes of an attachment by its identifier.</summary>
     /// <param name="attachmentId">The attachment identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<byte[]?> GetAttachmentAsync(string attachmentId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Lists available groups for the specified account.
-    /// </summary>
+    /// <summary>Lists available groups for the specified account.</summary>
     /// <param name="account">The account identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<INotificationGroup[]?> ListGroupsAsync(string account, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Signals the recipient that the bot is actively processing a request.
-    /// </summary>
+    /// <summary>Signals the recipient that the bot is actively processing a request.</summary>
     /// <param name="account">The sender account identifier.</param>
     /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> StartProcessingAsync(string account, string recipient, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Signals the recipient that the bot has finished processing.
-    /// </summary>
+    /// <summary>Signals the recipient that the bot has finished processing.</summary>
     /// <param name="account">The sender account identifier.</param>
     /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> StopProcessingAsync(string account, string recipient, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Sends a progress-update indicator (e.g. an emoji reaction) to a specific message.
-    /// </summary>
+    /// <summary>Sends a progress-update indicator (e.g. an emoji reaction) to a specific message.</summary>
     /// <param name="account">The sender account identifier.</param>
     /// <param name="recipient">The recipient identifier (phone number or group ID).</param>
     /// <param name="reaction">The reaction emoji.</param>
@@ -60,4 +46,10 @@ public interface INotifier
     /// <param name="timestamp">The timestamp of the target message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<bool> SendProgressUpdateAsync(string account, string recipient, string reaction, string targetAuthor, long timestamp, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates the display name on the account profile.</summary>
+    /// <param name="account">The sender account identifier.</param>
+    /// <param name="displayName">The new display name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<bool> UpdateProfileNameAsync(string account, string displayName, CancellationToken cancellationToken = default);
 }

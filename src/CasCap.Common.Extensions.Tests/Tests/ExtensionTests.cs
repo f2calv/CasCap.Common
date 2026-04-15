@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Extensions.Tests;
+namespace CasCap.Common.Extensions.Tests;
 
-/// <summary>
-/// Tests for common extension methods.
-/// </summary>
+/// <summary>Tests for common extension methods.</summary>
 public class ExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that a <see cref="DateTime"/> value can be round-tripped via Unix time milliseconds.</summary>

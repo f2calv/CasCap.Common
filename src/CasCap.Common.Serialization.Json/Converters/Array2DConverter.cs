@@ -1,10 +1,8 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace CasCap.Common.Converters;
 
-/// <summary>
-/// <inheritdoc cref="JsonExtensions.To2D{T}(List{List{T}})"/>
-/// </summary>
+/// <summary><inheritdoc cref="JsonExtensions.To2D{T}(List{List{T}})"/></summary>
 /// <remarks>
 /// <see href="https://stackoverflow.com/questions/66280645/how-can-i-serialize-a-double-2d-array-to-json-using-system-text-json"/>
 /// </remarks>

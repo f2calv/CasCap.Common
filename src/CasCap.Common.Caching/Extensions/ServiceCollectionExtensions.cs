@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods to setup local/remote/distributed Caching services.
@@ -11,76 +11,79 @@
 /// </remarks>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Add all necessary services to enable the CasCap distributed caching API.
-    /// </summary>
+    /// <summary>Add all necessary services to enable the CasCap distributed caching API.</summary>
     /// <param name="services">The service collection to add caching services to.</param>
     /// <param name="remoteCacheConnectionString">Redis connection string. When <c>null</c>, only local caching is enabled.</param>
     /// <param name="LocalCacheType"><inheritdoc cref="CacheType" path="/summary"/></param>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+    {
+        services.AddOptions<CachingConfig>();
+        return services.AddServices(remoteCacheConnectionString, LocalCacheType);
+    }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
-        string sectionName = CachingConfig.ConfigurationSectionName,
+        string? sectionName = null,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configuration: configuration, sectionName, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+    {
+        sectionName ??= CachingConfig.ConfigurationSectionName;
+        var section = configuration.GetSection(sectionName);
+        services.AddOptionsWithValidateOnStart<CachingConfig>()
+            .Bind(section)
+            .ValidateDataAnnotations();
+        services.AddOptions<RedlockConfig>()
+            .Bind(section.GetSection(nameof(CachingConfig.Redlock)));
+        var cachingConfig = section.Get<CachingConfig>() ?? new CachingConfig();
+        var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
+        return services.AddServices(connStr, LocalCacheType,
+            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
+    }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingConfig cachingConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(cachingConfig: cachingConfig, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+    {
+        services.AddOptions<CachingConfig>()
+            .Configure(options =>
+            {
+                options.MemoryCacheSizeLimit = cachingConfig.MemoryCacheSizeLimit;
+                options.MemoryCacheItemPriority = cachingConfig.MemoryCacheItemPriority;
+                options.UseBuiltInLuaScripts = cachingConfig.UseBuiltInLuaScripts;
+                options.MemoryCache = cachingConfig.MemoryCache;
+                options.DiskCache = cachingConfig.DiskCache;
+                options.RemoteCache = cachingConfig.RemoteCache;
+                options.LocalCacheInvalidationEnabled = cachingConfig.LocalCacheInvalidationEnabled;
+                options.ExpirationSyncMode = cachingConfig.ExpirationSyncMode;
+                options.DistributedLockingEnabled = cachingConfig.DistributedLockingEnabled;
+                options.CacheKeyFormat = cachingConfig.CacheKeyFormat;
+                options.Redlock = cachingConfig.Redlock;
+            });
+        services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cachingConfig.Redlock));
+        var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
+        return services.AddServices(connStr, LocalCacheType,
+            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
+    }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configureConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-        => services.AddServices(configureOptions: configureConfig, remoteCacheConnectionString: remoteCacheConnectionString, LocalCacheType: LocalCacheType);
+    {
+        services.Configure(configureConfig);
+        return services.AddServices(remoteCacheConnectionString, LocalCacheType);
+    }
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
-        IConfiguration? configuration = null,
-        string sectionName = CachingConfig.ConfigurationSectionName,
-        CachingConfig? cachingConfig = null,
-        Action<CachingConfig>? configureOptions = null,
-        string? remoteCacheConnectionString = null,
-        CacheType LocalCacheType = CacheType.Memory,
-        CacheType RemoteCacheType = CacheType.Redis
-        )
+        string? remoteCacheConnectionString,
+        CacheType LocalCacheType,
+        CacheType RemoteCacheType = CacheType.Redis,
+        bool distributedLockingEnabled = false,
+        string redisKeyFormat = "RedLock:{0}")
     {
-        if (configuration is not null)
-        {
-            var configSection = configuration.GetSection(sectionName);
-            cachingConfig = configSection.Get<CachingConfig>();
-            if (cachingConfig is not null)
-                services.Configure<CachingConfig>(configSection);
-        }
-        else if (cachingConfig is not null)
-        {
-            var options = Options.Options.Create(cachingConfig);
-            services.AddSingleton(options);
-            //services.AddOptions<CachingConfig>()
-            //    .Configure(options =>
-            //    {
-            //        //options = cachingConfig;//this won't work
-            //        options.LoadBuiltInLuaScripts = cachingConfig.LoadBuiltInLuaScripts;
-            //        // Overwrite default option values with the user provided options.
-            //        // options.ChannelName = cachingConfig.ChannelName;
-            //    });
-        }
-        else if (configureOptions is not null)
-        {
-            services.Configure(configureOptions);
-            cachingConfig = new();
-            configureOptions.Invoke(cachingConfig);
-        }
-
-        //services.AddSingleton<IConfigureOptions<CachingConfig>>(s =>
-        //{
-        //    var configuration = s.GetService<IConfiguration?>();
-        //    return new ConfigureOptions<CachingConfig>(options => configuration?.Bind(CacheConfig.ConfigurationSectionName, options));
-        //});
-        //services.AddOptions<CachingConfig>()
-        //    .Configure<IConfiguration>((options, configuration) => configuration.GetSection(CacheConfig.ConfigurationSectionName).Bind(options));
+        //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
+        services.AddOptions<RedlockConfig>();
 
         if (LocalCacheType == CacheType.Memory)
         {
@@ -111,6 +114,14 @@ public static class ServiceCollectionExtensions
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+            if (distributedLockingEnabled)
+            {
+                var rlMuxer = (RedLockMultiplexer)multiplexer;
+                rlMuxer.RedisKeyFormat = redisKeyFormat;
+                var redLockFactory = RedLockFactory.Create([rlMuxer]);
+                services.AddSingleton<IDistributedLockFactory>(redLockFactory);
+            }
 
             //We return the ConnectionMultiplexer so it can be reused by other services requiring a Redis connection.
             return multiplexer;

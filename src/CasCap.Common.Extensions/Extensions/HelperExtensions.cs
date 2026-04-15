@@ -8,19 +8,13 @@ using System.Xml.Serialization;
 
 namespace CasCap.Common.Extensions;
 
-/// <summary>
-/// General-purpose extension methods for collections, dates and more.
-/// </summary>
+/// <summary>General-purpose extension methods for collections, dates and more.</summary>
 public static class HelperExtensions
 {
-    /// <summary>
-    /// Checks if the current host environment name is 'Integration'.
-    /// </summary>
+    /// <summary>Checks if the current host environment name is 'Integration'.</summary>
     public static bool IsIntegration(this IHostEnvironment env) => env.IsEnvironment("Integration");
 
-    /// <summary>
-    /// Checks if the current host environment name is 'Test'.
-    /// </summary>
+    /// <summary>Checks if the current host environment name is 'Test'.</summary>
     public static bool IsTest(this IHostEnvironment env) => env.IsEnvironment("Test");
 
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
@@ -44,9 +38,7 @@ public static class HelperExtensions
     //}
     #endregion
 
-    /// <summary>
-    /// Deserializes an XML string into an instance of <typeparamref name="T"/>.
-    /// </summary>
+    /// <summary>Deserializes an XML string into an instance of <typeparamref name="T"/>.</summary>
     /// <typeparam name="T">The target type.</typeparam>
     /// <param name="input">The XML string.</param>
     /// <returns>The deserialized object, or <see langword="null"/> if deserialization fails.</returns>
@@ -57,9 +49,7 @@ public static class HelperExtensions
         return (T?)ser.Deserialize(sr);
     }
 
-    /// <summary>
-    /// Deserializes a byte array containing XML into an instance of <typeparamref name="T"/>.
-    /// </summary>
+    /// <summary>Deserializes a byte array containing XML into an instance of <typeparamref name="T"/>.</summary>
     /// <typeparam name="T">The target type.</typeparam>
     /// <param name="bytes">The byte array containing XML data.</param>
     /// <returns>The deserialized object, or <see langword="null"/> if deserialization fails.</returns>
@@ -70,9 +60,7 @@ public static class HelperExtensions
         return (T?)ser.Deserialize(ms);
     }
 
-    /// <summary>
-    /// Splits a list into batches of the specified size.
-    /// </summary>
+    /// <summary>Splits a list into batches of the specified size.</summary>
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="objects">The source list.</param>
     /// <param name="batchSize">The maximum number of items per batch.</param>
@@ -117,9 +105,7 @@ public static class HelperExtensions
         return d1;
     }
 
-    /// <summary>
-    /// Adds all entries from one <see cref="Dictionary{TKey, TValue}"/> to another.
-    /// </summary>
+    /// <summary>Adds all entries from one <see cref="Dictionary{TKey, TValue}"/> to another.</summary>
     public static Dictionary<T, V> AddRange<T, V>(this Dictionary<T, V> d1, Dictionary<T, V> d2) where T : notnull
     {
         foreach (var z in d2)
@@ -127,9 +113,7 @@ public static class HelperExtensions
         return d1;
     }
 
-    /// <summary>
-    /// Adds all elements from a <see cref="List{T}"/> to the <see cref="HashSet{T}"/>.
-    /// </summary>
+    /// <summary>Adds all elements from a <see cref="List{T}"/> to the <see cref="HashSet{T}"/>.</summary>
     public static HashSet<T> AddRange<T>(this HashSet<T> hs, List<T> l)
     {
         foreach (var z in l)
@@ -137,9 +121,7 @@ public static class HelperExtensions
         return hs;
     }
 
-    /// <summary>
-    /// Adds all elements from an <see cref="IEnumerable{T}"/> to the <see cref="HashSet{T}"/>.
-    /// </summary>
+    /// <summary>Adds all elements from an <see cref="IEnumerable{T}"/> to the <see cref="HashSet{T}"/>.</summary>
     public static HashSet<T> AddRange<T>(this HashSet<T> hs, IEnumerable<T> l)
     {
         foreach (var z in l)
@@ -147,9 +129,7 @@ public static class HelperExtensions
         return hs;
     }
 
-    /// <summary>
-    /// Adds all elements from another <see cref="HashSet{T}"/> to the <see cref="HashSet{T}"/>.
-    /// </summary>
+    /// <summary>Adds all elements from another <see cref="HashSet{T}"/> to the <see cref="HashSet{T}"/>.</summary>
     public static HashSet<T> AddRange<T>(this HashSet<T> hs, HashSet<T> l)
     {
         foreach (var z in l)
@@ -157,9 +137,7 @@ public static class HelperExtensions
         return hs;
     }
 
-    /// <summary>
-    /// Converts an <see cref="IEnumerable{T}"/> to a <see cref="HashSet{T}"/>.
-    /// </summary>
+    /// <summary>Converts an <see cref="IEnumerable{T}"/> to a <see cref="HashSet{T}"/>.</summary>
     public static HashSet<T> ToHashSet<T>(this IEnumerable<T> l)//can remove if we use .net standard 2.1?
     {
         var hs = new HashSet<T>();
@@ -168,9 +146,7 @@ public static class HelperExtensions
         return hs;
     }
 
-    /// <summary>
-    /// Returns all dates between the start and end date (exclusive of start, inclusive of end).
-    /// </summary>
+    /// <summary>Returns all dates between the start and end date (exclusive of start, inclusive of end).</summary>
     public static List<DateTime> GetMissingDates(this DateTime dtStart, DateTime dtEnd)
     {
         //TODO: plug in known holidays dates somehow?
@@ -179,28 +155,20 @@ public static class HelperExtensions
         return missingDates.ToList();
     }
 
-    /// <summary>
-    /// Checks if a struct has been instantiated.
-    /// </summary>
+    /// <summary>Checks if a struct has been instantiated.</summary>
     public static bool IsNull<T>(this T source) where T : struct => source.Equals(default(T));
 
-    /// <summary>
-    /// Returns the number of seconds remaining until midnight (UTC).
-    /// </summary>
+    /// <summary>Returns the number of seconds remaining until midnight (UTC).</summary>
     public static int SecondsTillMidnight(this DateTime dt)
         => dt.SecondsTillMidnight(DateTime.UtcNow);
-    /// <summary>
-    /// Returns the number of seconds remaining until midnight relative to the specified time.
-    /// </summary>
+    /// <summary>Returns the number of seconds remaining until midnight relative to the specified time.</summary>
     public static int SecondsTillMidnight(this DateTime dt, DateTime now)
     {
         var ts = dt.Date.AddDays(1) - now;
         return (int)ts.TotalSeconds;//does this round-up?
     }
 
-    /// <summary>
-    /// Returns a human-readable string representing the time difference between two dates.
-    /// </summary>
+    /// <summary>Returns a human-readable string representing the time difference between two dates.</summary>
     public static string GetTimeDifference(this DateTime dtiStart, DateTime dtiEnd,
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
@@ -208,9 +176,7 @@ public static class HelperExtensions
         return ts.GetTimeDifference(includeSeconds, includeMinutes, includeHours, includeDays, includeMilliseconds);
     }
 
-    /// <summary>
-    /// Returns a human-readable string representing the specified <see cref="TimeSpan"/>.
-    /// </summary>
+    /// <summary>Returns a human-readable string representing the specified <see cref="TimeSpan"/>.</summary>
     public static string GetTimeDifference(this TimeSpan ts,
         bool includeSeconds = true, bool includeMinutes = true, bool includeHours = true, bool includeDays = true, bool includeMilliseconds = false)
     {
@@ -227,20 +193,14 @@ public static class HelperExtensions
         return sb.ToString().Trim();
     }
 
-    /// <summary>
-    /// Represent a date in "yyyy-MM-dd" format
-    /// </summary>
+    /// <summary>Represent a date in "yyyy-MM-dd" format</summary>
     public static string To_yyyy_MM_dd(this DateTime thisDateTime) => thisDateTime.ToString("yyyy-MM-dd");
 
 #if NET8_0_OR_GREATER
-    /// <summary>
-    /// Converts a Unix timestamp in seconds to a <see cref="DateTime"/>.
-    /// </summary>
+    /// <summary>Converts a Unix timestamp in seconds to a <see cref="DateTime"/>.</summary>
     public static DateTime FromUnixTime(this long seconds) => DateTime.UnixEpoch.AddSeconds(seconds);
 
-    /// <summary>
-    /// Converts a Unix timestamp in milliseconds to a <see cref="DateTime"/>.
-    /// </summary>
+    /// <summary>Converts a Unix timestamp in milliseconds to a <see cref="DateTime"/>.</summary>
     public static DateTime FromUnixTimeMs(this long milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
 
     /// <summary>
@@ -249,51 +209,35 @@ public static class HelperExtensions
     public static DateTime FromUnixTimeMs(this double milliseconds) => DateTime.UnixEpoch.AddMilliseconds(milliseconds);
 #endif
 
-    /// <summary>
-    /// Converts a <see cref="DateTime"/> to a Unix timestamp in seconds.
-    /// </summary>
+    /// <summary>Converts a <see cref="DateTime"/> to a Unix timestamp in seconds.</summary>
     public static long ToUnixTime(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
-    /// <summary>
-    /// Converts a <see cref="DateTime"/> to a Unix timestamp in milliseconds.
-    /// </summary>
+    /// <summary>Converts a <see cref="DateTime"/> to a Unix timestamp in milliseconds.</summary>
     public static long ToUnixTimeMs(this DateTime dt) => dt.ToUnixTime() * 1000;
 
-    /// <summary>
-    /// Determines whether the specified date falls on a weekend.
-    /// </summary>
+    /// <summary>Determines whether the specified date falls on a weekend.</summary>
     public static bool IsWeekend(this DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
-    /// <summary>
-    /// Determines whether the specified date falls on a weekday.
-    /// </summary>
+    /// <summary>Determines whether the specified date falls on a weekday.</summary>
     public static bool IsWeekday(this DateTime date) => !date.IsWeekend();
 
-    /// <summary>
-    /// Sets a <see cref="DateTime"/> to be <see cref="DateTimeKind.Utc"/>.
-    /// </summary>
+    /// <summary>Sets a <see cref="DateTime"/> to be <see cref="DateTimeKind.Utc"/>.</summary>
     public static DateTime ToUtc(this DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
-    /// <summary>
-    /// Formats a <see cref="DateTime"/> as a time string if today, otherwise as a date string.
-    /// </summary>
+    /// <summary>Formats a <see cref="DateTime"/> as a time string if today, otherwise as a date string.</summary>
     public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss")
     {
         return thisDateTime.ToString(thisDateTime.Date == DateTime.UtcNow.Date ? timeFormat : dateFormat);
     }
 
-    /// <summary>
-    /// truncate milliseconds off a .net datetime
-    /// </summary>
+    /// <summary>truncate milliseconds off a .net datetime</summary>
     public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan)
     {
         if (timeSpan == TimeSpan.Zero) return dateTime; // Or could throw an ArgumentException
         return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
     }
 
-    /// <summary>
-    /// Returns the first day of the week containing the specified date.
-    /// </summary>
+    /// <summary>Returns the first day of the week containing the specified date.</summary>
     public static DateTime FirstDayOfWeek(this DateTime dt, DayOfWeek startOfWeek)
     {
         var diff = dt.DayOfWeek - startOfWeek;
@@ -301,9 +245,7 @@ public static class HelperExtensions
         return dt.AddDays(-1 * diff).Date;
     }
 
-    /// <summary>
-    /// Adds the specified number of weekdays (skipping weekends) to the date.
-    /// </summary>
+    /// <summary>Adds the specified number of weekdays (skipping weekends) to the date.</summary>
     public static DateTime AddWeekdays(this DateTime date, int days)
     {
         var sign = days < 0 ? -1 : 1;
@@ -318,27 +260,19 @@ public static class HelperExtensions
         return date;
     }
 
-    /// <summary>
-    /// Returns the first day of the month for the specified date.
-    /// </summary>
+    /// <summary>Returns the first day of the month for the specified date.</summary>
     public static DateTime FirstDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
         => new(date.Year, date.Month, 1, 0, 0, 0, kind);
 
-    /// <summary>
-    /// Returns the last day of the month for the specified date.
-    /// </summary>
+    /// <summary>Returns the last day of the month for the specified date.</summary>
     public static DateTime LastDayOfMonth(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
         => new(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month), 0, 0, 0, kind);
 
-    /// <summary>
-    /// Returns the last day of the year for the specified date.
-    /// </summary>
+    /// <summary>Returns the last day of the year for the specified date.</summary>
     public static DateTime LastDayOfYear(this DateTime date, DateTimeKind kind = DateTimeKind.Utc)
         => new DateTime(date.Year, 12, 1, 0, 0, 0, kind).LastDayOfMonth();
 
-    /// <summary>
-    /// Returns the absolute difference in months between two dates.
-    /// </summary>
+    /// <summary>Returns the absolute difference in months between two dates.</summary>
     public static int MonthDifference(this DateTime lValue, DateTime rValue)
         => Math.Abs(lValue.Month - rValue.Month + 12 * (lValue.Year - rValue.Year));
 
@@ -375,14 +309,10 @@ public static class HelperExtensions
             return string.Empty;
     }
 
-    /// <summary>
-    /// Returns a human-readable relative date string (e.g. "2 days ago").
-    /// </summary>
+    /// <summary>Returns a human-readable relative date string (e.g. "2 days ago").</summary>
     public static string ToRelativeDateString(this DateTime date) => GetRelativeDateValue(date, DateTime.UtcNow);
 
-    /// <summary>
-    /// Returns a human-readable relative date string compared to <see cref="DateTime.UtcNow"/>.
-    /// </summary>
+    /// <summary>Returns a human-readable relative date string compared to <see cref="DateTime.UtcNow"/>.</summary>
     public static string ToRelativeDateStringUtc(this DateTime date) => GetRelativeDateValue(date, DateTime.UtcNow);
 
     private static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
@@ -408,18 +338,14 @@ public static class HelperExtensions
             return "less than a minute ago";
     }
 
-    /// <summary>
-    /// Generates a sequence of consecutive dates starting from the specified date.
-    /// </summary>
+    /// <summary>Generates a sequence of consecutive dates starting from the specified date.</summary>
     public static IEnumerable<DateTime> ToArray(this DateTime input, int length = 1)
     {
         length = length > 0 ? length : 1;
         return Enumerable.Range(0, length).Select(a => input.AddDays(a));
     }
 
-    /// <summary>
-    /// Joins a list of strings into a single string separated by <see cref="Environment.NewLine"/>.
-    /// </summary>
+    /// <summary>Joins a list of strings into a single string separated by <see cref="Environment.NewLine"/>.</summary>
     public static string List2String(this List<string> input)
     {
         var sb = new StringBuilder();
@@ -453,9 +379,7 @@ public static class HelperExtensions
 
     private static Dictionary<string, object> dEnumLookup { get; set; } = [];
 
-    /// <summary>
-    /// UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?
-    /// </summary>
+    /// <summary>UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?</summary>
 #pragma warning disable IDE0060 // Remove unused parameter
     public static T ParseEnumFAST<T>(this string value, [CallerMemberName] string caller = "")
     {
@@ -471,9 +395,7 @@ public static class HelperExtensions
     }
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    /// <summary>
-    /// Parses a string value into the specified <see cref="Enum"/> type (case-insensitive).
-    /// </summary>
+    /// <summary>Parses a string value into the specified <see cref="Enum"/> type (case-insensitive).</summary>
     public static T ParseEnum<T>(this string value) where T : struct =>
 #if NET9_0_OR_GREATER
         Enum.Parse<T>(value, true);
@@ -481,9 +403,7 @@ public static class HelperExtensions
         (T)Enum.Parse(typeof(T), value, true);
 #endif
 
-    /// <summary>
-    /// Attempts to parse a string value into the specified <see cref="Enum"/> type.
-    /// </summary>
+    /// <summary>Attempts to parse a string value into the specified <see cref="Enum"/> type.</summary>
     public static bool TryParseEnum<T>(this string value, out T resultInputType, bool ignoreCase = true)
         where T : struct
     {
@@ -497,9 +417,7 @@ public static class HelperExtensions
             return false;
     }
 
-    /// <summary>
-    /// Returns a random value from the dictionary.
-    /// </summary>
+    /// <summary>Returns a random value from the dictionary.</summary>
     public static V GetRandomDValue<T, V>(this Dictionary<T, V> d) where T : notnull
     {
         var keyList = new List<T>(d.Keys);
@@ -508,19 +426,13 @@ public static class HelperExtensions
         return d[randomKey];
     }
 
-    /// <summary>
-    /// Determines whether the <see cref="IEnumerable{T}"/> is <see langword="null"/> or empty.
-    /// </summary>
+    /// <summary>Determines whether the <see cref="IEnumerable{T}"/> is <see langword="null"/> or empty.</summary>
     public static bool IsNullOrEmpty<T>(this IEnumerable<T>? data) => data is null || !data.Any();
 
-    /// <summary>
-    /// Determines whether the <see cref="List{T}"/> is <see langword="null"/> or empty.
-    /// </summary>
+    /// <summary>Determines whether the <see cref="List{T}"/> is <see langword="null"/> or empty.</summary>
     public static bool IsNullOrEmpty<T>(this List<T>? data) => data is null || data.Count == 0;
 
-    /// <summary>
-    /// Determines whether the array is <see langword="null"/> or empty.
-    /// </summary>
+    /// <summary>Determines whether the array is <see langword="null"/> or empty.</summary>
     public static bool IsNullOrEmpty<T>(this T[]? data) => data is null || data.Length == 0;
 
     /// <summary>
@@ -533,14 +445,10 @@ public static class HelperExtensions
     /// </summary>
     public static bool IsAny<T>(this List<T> data) => data is not null && data.Count > 0;
 
-    /// <summary>
-    /// Determines whether the array is not <see langword="null"/> and contains elements.
-    /// </summary>
+    /// <summary>Determines whether the array is not <see langword="null"/> and contains elements.</summary>
     public static bool IsAny<T>(this T[] data) => data is not null && data.Length > 0;
 
-    /// <summary>
-    /// Parses a string to a <see cref="bool"/>, treating "1" as <see langword="true"/>.
-    /// </summary>
+    /// <summary>Parses a string to a <see cref="bool"/>, treating "1" as <see langword="true"/>.</summary>
     public static bool ToBoolean(this string input)
     {
         if (input == "1") input = "true";
@@ -551,14 +459,10 @@ public static class HelperExtensions
     }
 
     #region ParseDecimal
-    /// <summary>
-    /// Parses a string to a <see cref="decimal"/>.
-    /// </summary>
+    /// <summary>Parses a string to a <see cref="decimal"/>.</summary>
     public static decimal ToDecimal(this string input) => ParseDecimal(input);
 
-    /// <summary>
-    /// Parses a string to a nullable <see cref="decimal"/>.
-    /// </summary>
+    /// <summary>Parses a string to a nullable <see cref="decimal"/>.</summary>
 #pragma warning disable IDE0060 // Remove unused parameter
     public static decimal? ToDecimal(this string input, bool nullable) => ParseDecimal(input);
 #pragma warning restore IDE0060 // Remove unused parameter
@@ -575,9 +479,7 @@ public static class HelperExtensions
     #region ParseInt
     //public static int ToInt(this object input) => ParseInt(input);
 
-    /// <summary>
-    /// Parses a string to an <see cref="int"/>.
-    /// </summary>
+    /// <summary>Parses a string to an <see cref="int"/>.</summary>
     public static int ToInt(this string input) => ParseInt(input);
 
     //public static int ToInt(this object input, ref int result)
@@ -603,14 +505,10 @@ public static class HelperExtensions
     #endregion
 
     #region ParseDateTime
-    /// <summary>
-    /// Parses an object to a <see cref="DateTime"/>.
-    /// </summary>
+    /// <summary>Parses an object to a <see cref="DateTime"/>.</summary>
     public static DateTime ToDateTime(this object input) => ParseDateTime(input);
 
-    /// <summary>
-    /// Parses an object to a <see cref="DateTime"/> and returns only the date component.
-    /// </summary>
+    /// <summary>Parses an object to a <see cref="DateTime"/> and returns only the date component.</summary>
     public static DateTime ToDate(this object input) => ParseDateTime(input).Date;
 
     private static DateTime ParseDateTime(object input) => ParseDateTime((input ?? string.Empty).ToString()!);
@@ -631,9 +529,7 @@ public static class HelperExtensions
     }
     #endregion
 
-    /// <summary>
-    /// Splits an array into chunks of the specified size.
-    /// </summary>
+    /// <summary>Splits an array into chunks of the specified size.</summary>
     public static IEnumerable<IEnumerable<T>> Split<T>(this T[] array, int size)
     {
         for (var i = 0; i < (float)array.Length / size; i++)
@@ -642,9 +538,7 @@ public static class HelperExtensions
         }
     }
 
-    /// <summary>
-    /// GZip using integrated .NET compression library.
-    /// </summary>
+    /// <summary>GZip using integrated .NET compression library.</summary>
     public static byte[] Compress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;
@@ -655,9 +549,7 @@ public static class HelperExtensions
         return compressedStream.ToArray();
     }
 
-    /// <summary>
-    /// UnGZip using integrated .NET compression library.
-    /// </summary>
+    /// <summary>UnGZip using integrated .NET compression library.</summary>
     public static byte[] Decompress(this byte[] data)
     {
         if (data.IsNullOrEmpty()) return data;
@@ -668,23 +560,15 @@ public static class HelperExtensions
         return resultStream.ToArray();
     }
 
-    /// <summary>
-    /// Converts a byte count to kilobytes.
-    /// </summary>
+    /// <summary>Converts a byte count to kilobytes.</summary>
     public static double GetSizeInKB(this long bytes) => bytes / 1024d;
 
-    /// <summary>
-    /// Converts a byte count to megabytes.
-    /// </summary>
+    /// <summary>Converts a byte count to megabytes.</summary>
     public static double GetSizeInMB(this long bytes) => bytes.GetSizeInKB() / 1024;
 
-    /// <summary>
-    /// Converts a byte count to gigabytes.
-    /// </summary>
+    /// <summary>Converts a byte count to gigabytes.</summary>
     public static double GetSizeInGB(this long bytes) => bytes.GetSizeInMB() / 1024;
 
-    /// <summary>
-    /// Returns the last <paramref name="N"/> elements of the sequence.
-    /// </summary>
+    /// <summary>Returns the last <paramref name="N"/> elements of the sequence.</summary>
     public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int N) => source.Skip(Math.Max(0, source.Count() - N));
 }

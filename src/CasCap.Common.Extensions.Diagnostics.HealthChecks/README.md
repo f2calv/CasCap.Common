@@ -14,6 +14,12 @@ Provides `HttpEndpointCheckBase`, an abstract `IHealthCheck` that simplifies wri
 | --- | --- |
 | `HttpEndpointCheckBase` | Abstract base class — accepts `ILogger` and `HttpClient`, exposes `IsAccessible()` for derived implementations |
 
+### Extensions
+
+| Class | Key Methods |
+| --- | --- |
+| `KubernetesExtensions` | `GetTags(KubernetesProbeTypes)` — converts the flags set on a `KubernetesProbeTypes` value into an array of health-check tag strings |
+
 ## Dependencies
 
 ### NuGet Packages
@@ -26,5 +32,6 @@ Provides `HttpEndpointCheckBase`, an abstract `IHealthCheck` that simplifies wri
 
 | Project | Purpose |
 | --- | --- |
+| `CasCap.Common.Abstractions` | `KubernetesProbeTypes` enum and related abstractions |
 | `CasCap.Common.Extensions` | General-purpose helper utilities |
 | `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |

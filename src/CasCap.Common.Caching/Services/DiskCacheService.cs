@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
@@ -15,9 +15,7 @@ public class DiskCacheService : ILocalCache
     /// When we retrieve a previously cached item we must re-use the sliding sliding expiration again
     /// to update <see cref="_absoluteExpirations"/> with the absolute expiration.
     /// </summary>
-    /// <remarks>
-    /// TODO: also cache this collection locally and reload on startup!
-    /// </remarks>
+    /// <remarks>TODO: also cache this collection locally and reload on startup!</remarks>
     private readonly ConcurrentDictionary<string, TimeSpan> _slidingExpirations = [];
 
     /// <summary>
@@ -30,9 +28,7 @@ public class DiskCacheService : ILocalCache
     /// </remarks>
     private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DiskCacheService"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="DiskCacheService"/> class.</summary>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig)
     {
         _logger = logger;
@@ -42,9 +38,12 @@ public class DiskCacheService : ILocalCache
         if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
     }
 
+    private string FormatKey(string key) => _cachingConfig.FormatCacheKey(key);
+
     /// <inheritdoc/>
     public T? Get<T>(string key)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);//this must happen first!
         T? cacheEntry = default;
         var isExpired = TryGetExpiration(key, out var slidingExpiration, out var absoluteExpiration);
@@ -83,6 +82,7 @@ public class DiskCacheService : ILocalCache
     /// <inheritdoc/>
     public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);//this must happen first!
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
         _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
@@ -133,12 +133,8 @@ public class DiskCacheService : ILocalCache
         return absoluteExpiration.HasValue && absoluteExpiration.Value.DateTime < DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Converts a Redis cache key into a valid file path.
-    /// </summary>
-    /// <remarks>
-    /// TODO: need to use more comprehensive regex here for the instead of search/replace.
-    /// </remarks>
+    /// <summary>Converts a Redis cache key into a valid file path.</summary>
+    /// <remarks>TODO: need to use more comprehensive regex here for the instead of search/replace.</remarks>
     private string ConvertKeyToFilePath(string key)
     {
         if (string.IsNullOrWhiteSpace(_diskCacheFolder))
@@ -156,6 +152,7 @@ public class DiskCacheService : ILocalCache
 #endif
     public async Task<T?> GetAsync<T>(string key, Func<Task<T>>? createItem = null, CancellationToken cancellationToken = default) where T : class
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);
         T? cacheEntry = default;
         if (File.Exists(key))
@@ -194,6 +191,7 @@ public class DiskCacheService : ILocalCache
     /// <inheritdoc/>
     public bool Delete(string key)
     {
+        key = FormatKey(key);
         key = ConvertKeyToFilePath(key);
         if (File.Exists(key))
         {

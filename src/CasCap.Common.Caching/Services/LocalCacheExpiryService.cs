@@ -4,8 +4,8 @@
 /// When a change to a cached item is effected by the <see cref="IDistributedCache"/> this service comes into action.
 /// <inheritdoc cref="DistributedCacheService.InvalidateLocalCache(string, CommandFlags)"/>
 /// </summary>
-public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger,
-    IRemoteCache remoteCache, ILocalCache localCache, IOptions<CachingConfig> cachingConfig)
+public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger, IOptions<CachingConfig> cachingConfig,
+    IRemoteCache remoteCache, ILocalCache localCache)
 {
     private long count = 0;
 

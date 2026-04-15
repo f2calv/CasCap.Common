@@ -1,8 +1,6 @@
-﻿namespace CasCap.Common.Models;
+namespace CasCap.Common.Models;
 
-/// <summary>
-/// Identifies the type of cache provider.
-/// </summary>
+/// <summary>Identifies the type of cache provider.</summary>
 public enum CacheType
 {
     /// <summary>No cache.</summary>
@@ -17,9 +15,7 @@ public enum CacheType
     //Postgres
 }
 
-/// <summary>
-/// Identifies the serialization format used for cache entries.
-/// </summary>
+/// <summary>Identifies the serialization format used for cache entries.</summary>
 public enum SerializationType
 {
     /// <summary>No serialization (in-memory objects only).</summary>
@@ -45,8 +41,6 @@ public enum ExpirationSyncType
     /// Let the <see cref="LocalCacheExpiryService"/> handle the expiration event on other connected clients.
     /// </summary>
     ExpireViaPubSub = 1,
-    /// <summary>
-    /// Extend remote expiry by setting an updated expiry time on the cached item.
-    /// </summary>
+    /// <summary>Extend remote expiry by setting an updated expiry time on the cached item.</summary>
     ExtendRemoteExpiry = 2
 }
