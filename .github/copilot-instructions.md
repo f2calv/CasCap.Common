@@ -58,8 +58,10 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 ### Logging
 
 - **`{ClassName}` first**: Every structured log message must include `{ClassName}` as the first template parameter, using `nameof(EnclosingClass)` as the argument (e.g. `_logger.LogInformation("{ClassName} something happened", nameof(MyService));`).
-- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{GroupAddress}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{GroupAddress}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
+- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{RecordCount}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{RecordCount}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
+- **No `.Value` suffix bleed**: When logging a value accessed via `options.Value.PropertyName` (primary constructor `IOptions<T>` pattern), the template parameter name must **not** inherit the `.Value` segment and must **not** use a `Val` suffix either. Properties are already well-named — use the property name directly as the template parameter (e.g. `{ServiceFamily}` for `config.Value.ServiceFamily`).
 - **No magic strings in log messages**: When a log message references an enum value, class name, or other identifiable symbol, pass it via `nameof()` as a template argument rather than embedding it as a literal string in the message template.
+- **Avoid `nameof()` as label-only template parameters**: Do not use `nameof()` to inject property/type names as separate structured log parameters just to avoid a literal label — this clutters structured log output (Grafana, Loki, OpenTelemetry) with useless fields. Instead, use the property name as plain text in the message template and reserve `{Braces}` for actual values. E.g. `"{ClassName} ServiceFamily={ServiceFamily}"` with args `nameof(MyService), config.Value.ServiceFamily` — not `"{ClassName} {ServiceFamily}={ServiceFamilyValue}"` with args `nameof(MyService), nameof(MyConfig.ServiceFamily), config.Value.ServiceFamily`.
 
 ### Disposable Resources
 
@@ -105,8 +107,8 @@ Therefore MCP descriptions should be:
 - **Enum-aware** — when a parameter is typed as `string` but represents an enum, list **all valid values with a brief label** in the description text (the LLM cannot infer them from the type):
 
 ```csharp
-[Description("Floor filter. Values: Ground, Upper, Basement, Attic.")]
-string? floor = null
+[Description("Status filter. Values: Active, Suspended, Cancelled, Expired.")]
+string? status = null
 ```
 
 - **No XML markup** — plain text only; `<see cref="..."/>` links are meaningless to an LLM
@@ -125,11 +127,11 @@ string? floor = null
 
 .NET MCP servers convert PascalCase method names to `snake_case` for the tool registry. Both forms must read naturally and be unambiguous.
 
-- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetAppliance`, not `GetDevice`; `GetInverterSnapshot`, not `GetState`).
-- **Verb-first for actions**: `UnlockHouseDoor`, `ExecuteApplianceAction` — not `HouseDoorUnlock`.
+- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetOrder`, not `GetItem`; `GetCustomerAddress`, not `GetAddress`).
+- **Verb-first for actions**: `CancelSubscription`, `ExecutePayment` — not `SubscriptionCancel`.
 - **Get/List pairing**: Use `Get<Noun>` for a single-item lookup and `Get<Noun>s` (plural) for the list variant.
-- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Heating* over *HVAC*, *infrared* over *IR*).
-- **Read in snake_case**: Before committing, mentally convert the name — `GetInverterBatteryStorageRealtimeData` → `get_inverter_battery_storage_realtime_data` is too long; `GetInverterBatteryStatus` → `get_inverter_battery_status` is fine.
+- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Payment* over *Settlement*, *retry* over *exponential backoff*).
+- **Read in snake_case**: Before committing, mentally convert the name — `GetCustomerSubscriptionPaymentHistory` → `get_customer_subscription_payment_history` is too long; `GetCustomerPaymentStatus` → `get_customer_payment_status` is fine.
 
 ### snake_case references
 
@@ -142,13 +144,37 @@ When an `[McpServerTool]` method is renamed, search for its old `snake_case` for
 
 Avoid these in `[Description]` text:
 
-- **Return-type narration** — *"Returns the group names of affected shutters"* duplicates what the LLM already infers from the method signature.
+- **Return-type narration** — *"Returns the names of affected records"* duplicates what the LLM already infers from the method signature.
 - **Restating parameter constraints on the method** — keep constraints on the parameter `[Description]`; the method description should say *what* the tool does, not *how* to fill in every field.
-- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a quick on/off overview use GetHouseLightSwitchStates"* on the full-detail tool).
+- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a summary overview use GetOrderSummary"* on the full-detail tool).
 
 ## Cloud (Azure)
 
 - **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
+
+### Redis Key Naming
+
+When a project uses a feature enum (e.g. `AppFeature`) to gate services, derive the domain segment of every Redis key from the **lowercase enum member name** so that key prefixes stay tightly coupled to the feature taxonomy (e.g. `AppFeature.Billing` → `billing:`, `AppFeature.Notifications` → `notifications:`).
+
+- **All lowercase**, colon-separated segments: `{domain}:{type}:{detail}`.
+- **Domain** — derived from the feature enum member name via `nameof(AppFeature.Member).ToLowerInvariant()`. Cross-feature keys use a functional domain (e.g. `comms`, `lock`, `stats`).
+- **Standard type segments**:
+
+| Segment | Redis Type | Purpose |
+| --- | --- | --- |
+| `snapshot` | Hash | Current state (field per entity) |
+| `series` | Sorted Set | Time-series readings (score = UTC ticks) |
+| `stream` | Stream | Event/message streams |
+| `cache` | String | Temporary data with TTL |
+| `lock` | String | Distributed locks (Redlock) |
+| `stats` | Hash | Observability / call counters with TTL |
+
+- **Detail** — further qualifiers such as entity IDs, date partitions (`{yyMMdd}`, `{yyyy-MM-dd}`), or sub-categories (e.g. `values`, `timestamps`).
+- **Consumer groups** — use `{domain}:{role}` format (e.g. `billing:processors`, `comms:agents`).
+- **Stats keys** — date-partitioned with a 7-day TTL: `stats:{domain}:{yyyy-MM-dd}`. Hash fields are the method or operation names.
+- **Lock keys** — `lock:{domain}:{resource}` format string, configured via `RedisKeyFormat` in `appsettings.json`.
+- **Config-driven keys**: Snapshot and series key names should be stored in `appsettings.json` per-sink settings (via a settings dictionary), not hardcoded in service code. This allows key migration by config change alone.
+- **Key sync on rename**: When renaming Redis keys, update `appsettings*.json`, Lua scripts, and any C# code that constructs or references the old key name in the same commit. Existing Redis data under the old key will be orphaned — treat key renames as a fresh-start migration.
 
 ## GitHub Actions
 
