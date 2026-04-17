@@ -61,6 +61,10 @@ public record CachingConfig : IAppConfig
     [ValidateObjectMembers]
     public RedlockConfig Redlock { get; set; } = new();
 
+    /// <summary>Kubernetes health check probe type for the Redis connection.</summary>
+    /// <remarks>Defaults to <see cref="KubernetesProbeTypes.Liveness"/>.</remarks>
+    public KubernetesProbeTypes HealthCheckRedis { get; init; } = KubernetesProbeTypes.Liveness;
+
     /// <summary>Applies <see cref="CacheKeyFormat"/> to the given <paramref name="key"/>.</summary>
     public string FormatCacheKey(string key) => string.Format(CacheKeyFormat, key);
 }
