@@ -13,7 +13,8 @@ This library contains no concrete implementations — only interfaces and abstra
 | Interface | Description |
 | --- | --- |
 | `IAppConfig` | Marker interface implemented by all application configuration records to allow easy identification and generic constraint usage |
-| `IFeature<T>` | Identifies a service launched via a bitwise feature-flag enum — exposes the `FeatureType` property and an `ExecuteAsync` entry point |
+| `IBgFeature` | Identifies a feature-gated background service — exposes a string `FeatureName` and `ExecuteAsync` entry point. Matched case-insensitively against the enabled features set at startup |
+| `IFeature<T>` | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
 | `IEventSink<T>` | Generic event sink contract. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel |
 | `ILocalCache` | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
 | `IMyBlob` | Represents a blob with associated metadata (`bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
@@ -25,7 +26,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | `IReceivedNotification` | Represents a notification received from an external messaging service (`Sender`, `GroupId`, `Message`, attachments) |
 | `IAzBlobStorageConfig` | Exposes Azure Blob Storage connection properties (endpoint/connection string, container name, health check probe type) for feature-specific configuration records |
 | `IAzTableStorageConfig` | Exposes Azure Table Storage connection properties (endpoint/connection string, health check probe type) for feature-specific configuration records |
-| `IFeatureConfig<T>` | Pairs with `IFeature<T>` to carry the enabled `EnabledFeatures` flags into the `BackgroundService` launcher |
+| `IFeatureConfig<T>` | **[Obsolete]** Pairs with `IFeature<T>` to carry the enabled `EnabledFeatures` flags into the `BackgroundService` launcher |
 | `IKubeAppConfig` | Exposes Kubernetes-specific runtime properties (node name, pod name, namespace, pod IP, service account name) |
 | `IMetricsConfig` | Exposes OpenTelemetry metric configuration (metric name prefix, OTel service name) |
 

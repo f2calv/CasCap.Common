@@ -2,7 +2,7 @@ namespace CasCap.Common.Services;
 
 /// <summary>Dumps build information to the log to aid debugging.</summary>
 /// <remarks>
-/// Registered as a hosted service by <see cref="ServiceCollectionExtensions.AddFeatureFlagService{T}"/>
+/// Registered as a hosted service by <see cref="ServiceCollectionExtensions.AddFeatureFlagService(IReadOnlySet{string}, bool)"/>
 /// when <c>addGitMetadataService</c> is <see langword="true"/>.
 /// </remarks>
 public class GitMetadataBgService(ILogger<GitMetadataBgService> logger, GitMetadata gitMetadata) : BackgroundService
