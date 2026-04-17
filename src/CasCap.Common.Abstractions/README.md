@@ -36,6 +36,34 @@ This library contains no concrete implementations — only interfaces and abstra
 | --- | --- |
 | `KubernetesProbeTypes` | `[Flags]` enum for Kubernetes container health probe types: `None`, `Readiness`, `Liveness`, `Startup` |
 
+### Configuration Types
+
+| Type | Description |
+| --- | --- |
+| `ApiAuthConfig` | Basic authentication settings for a REST API (`Username`, `Password`) |
+| `SinkConfig` | Dictionary of `SinkTypeAttribute` name → `SinkConfigParams` |
+| `SinkConfigParams` | Per-sink settings: `Enabled`, and a `Settings` dictionary for sink-specific key/value settings |
+| `SinkSettingKeys` | Compile-time constants for common sink setting keys |
+
+### Event Models
+
+| Type | Description |
+| --- | --- |
+| `CommsEvent` | A comms stream entry with `Source`, `Message`, `TimestampUtc`, and optional `JsonPayload` for AI agent context |
+
+### Attributes
+
+| Attribute | Description |
+| --- | --- |
+| `SinkTypeAttribute` | Decorates `IEventSink<T>` implementations with a string type name (e.g. `"Redis"`, `"AzureTables"`, `"Console"`) used by `AddEventSinks()` for discovery |
+
+### Extension Methods
+
+| Method | Description |
+| --- | --- |
+| `IServiceCollection.AddEventSinks<T>(SinkConfig, Assembly)` | Discovers and registers all `IEventSink<T>` implementations in the supplied assembly whose `SinkTypeAttribute` name is enabled in `SinkConfig` |
+| `KubernetesProbeTypes.GetTags()` | Returns the string health-check tag array for a probe type (`"ready"`, `"live"`, `"startup"`) |
+
 ### `IEventSink<T>` Contract
 
 ```csharp
