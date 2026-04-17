@@ -13,5 +13,6 @@ global using RedLockNet.SERedis;
 global using RedLockNet.SERedis.Configuration;
 global using StackExchange.Redis;
 global using System.Collections.Concurrent;
+global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Runtime.CompilerServices;

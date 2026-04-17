@@ -1,3 +1,7 @@
+#if NET8_0_OR_GREATER
+using HealthChecks.Redis;
+#endif
+
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -38,7 +42,8 @@ public static class ServiceCollectionExtensions
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
-            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
+            healthCheckRedis: cachingConfig.HealthCheckRedis);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
@@ -80,7 +85,8 @@ public static class ServiceCollectionExtensions
         CacheType LocalCacheType,
         CacheType RemoteCacheType = CacheType.Redis,
         bool distributedLockingEnabled = false,
-        string redisKeyFormat = "RedLock:{0}")
+        string redisKeyFormat = "RedLock:{0}",
+        KubernetesProbeTypes healthCheckRedis = KubernetesProbeTypes.None)
     {
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
         services.AddOptions<RedlockConfig>();
@@ -114,6 +120,12 @@ public static class ServiceCollectionExtensions
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+#if NET8_0_OR_GREATER
+            if (healthCheckRedis != KubernetesProbeTypes.None)
+                services.AddHealthChecks()
+                    .AddRedis(multiplexer, tags: healthCheckRedis.GetTags());
+#endif
 
             if (distributedLockingEnabled)
             {

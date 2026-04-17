@@ -30,12 +30,15 @@ public record CachingConfig : IAppConfig
     public bool UseBuiltInLuaScripts { get; set; } = false;
 
     /// <summary>Configuration options for the in-process <see cref="ILocalCache"/> memory cache.</summary>
+    [ValidateObjectMembers]
     public CacheParameters MemoryCache { get; set; } = new CacheParameters { SerializationType = SerializationType.None };
 
     /// <summary>Configuration options for the disk-based <see cref="ILocalCache"/> cache.</summary>
+    [ValidateObjectMembers]
     public CacheParameters DiskCache { get; set; } = new CacheParameters { SerializationType = SerializationType.Json };
 
     /// <summary>Configuration options for the <see cref="IRemoteCache"/> (Redis).</summary>
+    [ValidateObjectMembers]
     public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
     /// <summary>Specifies the root folder where the local disk cache will store serialized files.</summary>
@@ -55,7 +58,12 @@ public record CachingConfig : IAppConfig
     public string CacheKeyFormat { get; set; } = "{0}";
 
     /// <summary>Timing parameters for Redis distributed locks (Redlock algorithm).</summary>
+    [ValidateObjectMembers]
     public RedlockConfig Redlock { get; set; } = new();
+
+    /// <summary>Kubernetes health check probe type for the Redis connection.</summary>
+    /// <remarks>Defaults to <see cref="KubernetesProbeTypes.Liveness"/>.</remarks>
+    public KubernetesProbeTypes HealthCheckRedis { get; init; } = KubernetesProbeTypes.Liveness;
 
     /// <summary>Applies <see cref="CacheKeyFormat"/> to the given <paramref name="key"/>.</summary>
     public string FormatCacheKey(string key) => string.Format(CacheKeyFormat, key);

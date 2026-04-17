@@ -4,7 +4,9 @@ Feature-flag background service launcher and configuration abstractions.
 
 ## Purpose
 
-Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects bitwise `EnabledFeatures` flags at startup and launches the matching `IFeature<T>` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
+Contains `FeatureFlagBgService`, a `BackgroundService` that inspects the configured `FeatureFlagConfig.EnabledFeatures` set at startup and launches the matching `IBgFeature` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
+
+The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but marked `[Obsolete]`.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
@@ -12,14 +14,16 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Type | Description |
 | --- | --- |
-| `FeatureFlagBgService<T>` | Generic `BackgroundService` that resolves and executes `IFeature<T>` implementations whose `FeatureType` matches the configured `EnabledFeatures` flags |
+| `FeatureFlagBgService` | `BackgroundService` that resolves and executes `IBgFeature` implementations whose `FeatureName` is present in the configured `FeatureFlagConfig.EnabledFeatures` set (or `IBgFeature.AlwaysEnabled`) |
+| `FeatureFlagBgService<T>` | **[Obsolete]** Generic predecessor that used a bitwise enum via `IFeature<T>.FeatureType` |
 | `GitMetadataBgService` | Background service that periodically logs git build metadata (repository, tag, branch, commit) from environment variables to aid debugging |
 
 ### Extensions
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddFeatureFlagService<T>()` | Registers `FeatureFlagBgService<T>` and binds `FeatureConfig<T>` from configuration. Optionally registers `GitMetadataBgService` when `addGitMetadataService=true` |
+| `ServiceCollectionExtensions.AddFeatureFlagService()` | Registers `FeatureFlagBgService` and configures `FeatureFlagConfig` from a set of enabled feature name strings. Optionally registers `GitMetadataBgService` when `addGitMetadataService=true` |
+| `ServiceCollectionExtensions.AddFeatureFlagService<T>()` | **[Obsolete]** Bridge overload that converts a flags enum to a `HashSet<string>` and delegates to the non-generic overload |
 
 ### Models
 
@@ -31,7 +35,8 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Type | Description |
 | --- | --- |
-| `FeatureConfig<T>` | Record carrying the `EnabledFeatures` flags - bound from configuration via `IOptions<FeatureConfig<T>>` |
+| `FeatureFlagConfig` | Configuration class carrying the `EnabledFeatures` string set — configured via `IOptions<FeatureFlagConfig>` |
+| `FeatureConfig<T>` | **[Obsolete]** Record carrying the `EnabledFeatures` flags — bound from configuration via `IOptions<FeatureConfig<T>>` |
 
 ## Dependencies
 
@@ -46,5 +51,5 @@ Contains `FeatureFlagBgService<T>`, a generic `BackgroundService` that inspects 
 
 | Project | Purpose |
 | --- | --- |
-| `CasCap.Common.Abstractions` | `IFeature<T>`, `IFeatureConfig<T>`, `IAppConfig` contracts |
+| `CasCap.Common.Abstractions` | `IBgFeature`, `IAppConfig` contracts |
 | `CasCap.Common.Extensions` | General-purpose helper utilities |

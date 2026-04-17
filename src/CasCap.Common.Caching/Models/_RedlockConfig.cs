@@ -11,14 +11,17 @@ public record RedlockConfig
 {
     /// <summary>Lock expiry time in milliseconds.</summary>
     /// <remarks>Defaults to <c>5000</c> ms. Used by <see cref="CasCap.Common.Services.DistributedCacheService"/>.</remarks>
+    [Range(1, int.MaxValue)]
     public int ExpiryMs { get; init; } = 5_000;
 
     /// <summary>Maximum wait time to acquire the lock in milliseconds.</summary>
     /// <remarks>Defaults to <c>5000</c> ms. Used by <see cref="CasCap.Common.Services.DistributedCacheService"/>.</remarks>
+    [Range(1, int.MaxValue)]
     public int WaitMs { get; init; } = 5_000;
 
     /// <summary>Retry interval in milliseconds when the lock is not available.</summary>
     /// <remarks>Defaults to <c>250</c> ms. Used by <see cref="CasCap.Common.Services.DistributedCacheService"/>.</remarks>
+    [Range(1, int.MaxValue)]
     public int RetryMs { get; init; } = 250;
 
     /// <summary>Format string for Redis distributed lock keys.</summary>

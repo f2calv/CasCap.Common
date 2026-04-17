@@ -24,7 +24,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddCasCapCaching()` | Registers all caching services into the DI container |
+| `ServiceCollectionExtensions.AddCasCapCaching()` | Registers all caching services into the DI container. When `CachingConfig.HealthCheckRedis` is not `None`, also registers a Redis connectivity health check tagged with the configured Kubernetes probe type(s) |
 | `CachingExtensions` | Helper methods for cache key formatting and serialization |
 | `AsyncDuplicateLock` | Prevents duplicate concurrent cache population for the same key |
 
@@ -32,7 +32,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Type | Description |
 | --- | --- |
-| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `CacheKeyFormat`, `Redlock` |
+| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `CacheKeyFormat`, `HealthCheckRedis`, `Redlock` |
 | `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. `RedisKeyFormat` for lock key prefixing. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
 | `RedlockProfiles` | Well-known profile name constants — `CacheMiss`, `LeaderElection` |
 | `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
@@ -236,6 +236,7 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
 | [Microsoft.Extensions.Options.DataAnnotations](https://www.nuget.org/packages/microsoft.extensions.options.dataannotations) |
 | [RedLock.net](https://www.nuget.org/packages/redlock.net) |
 | [StackExchange.Redis](https://www.nuget.org/packages/stackexchange.redis) |
+| [AspNetCore.HealthChecks.Redis](https://www.nuget.org/packages/aspnetcore.healthchecks.redis) |
 
 ### Project References
 
@@ -246,3 +247,4 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
 | `CasCap.Common.Serialization.Json` | JSON serialization for cache values |
 | `CasCap.Common.Serialization.MessagePack` | MessagePack serialization for cache values |
 | `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+| `CasCap.Common.Extensions.Diagnostics.HealthChecks` | Kubernetes probe tag helpers (`KubernetesProbeTypes.GetTags()`) |

@@ -9,7 +9,7 @@
 
 ### Style (enforced by `.editorconfig`)
 
-- **Class-per-file**: Each class, record, struct, or enum should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations. `IAppConfig` implementations (and their child/nested configuration classes) are also exempt — their filenames are conventionally prefixed with an underscore (e.g. `_AppConfig.cs` for `record AppConfig`). The underscore does **not** appear in the type name itself; it exists solely to group configuration files at the top of the file explorer via alphabetical ordering and to make them easy to identify at a glance.
+- **Class-per-file**: Each top-level type — class (including `static class`), record, struct, interface, or enum — should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). This includes companion/constants classes: a `static class FooConstants` must live in `FooConstants.cs`, not alongside the interface it relates to. Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations. `IAppConfig` implementations (and their child/nested configuration classes) are also exempt — their filenames are conventionally prefixed with an underscore (e.g. `_AppConfig.cs` for `record AppConfig`). The underscore does **not** appear in the type name itself; it exists solely to group configuration files at the top of the file explorer via alphabetical ordering and to make them easy to identify at a glance. **Generic types**: Encode type parameters in the filename using curly braces — `Foo{T}.cs` for `Foo<T>`, `Bar{T,U}.cs` for `Bar<T, U>` (following the Microsoft .NET runtime convention). Underscore-prefixed config files follow the same pattern: `_FeatureConfig{T}.cs` for `FeatureConfig<T>`.
 - **Indentation**: 4 spaces, LF line endings, insert final newline
 - **Interfaces**: Must start with `I` (PascalCase) and live in an Abstractions folder and an Abstractions namespace.
 - **Types/Methods/Properties**: PascalCase
@@ -36,6 +36,8 @@
 - **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
 - **Boolean property naming**: Boolean configuration properties should use `{Feature}{State}` suffix form (past-participle or adjective describing state), not an imperative-verb prefix. Properties describe state; methods describe actions (e.g. `DistributedLockingEnabled`, `LocalCacheInvalidationEnabled` — not `EnableDistributedLocking`).
 - **Constants extraction**: When a configuration record accumulates `const` fields that serve as well-known keys, profile names, or identifiers (not bindable configuration properties), extract them into a dedicated `static class` in the same namespace (e.g. `RedlockProfiles` for `RedlockConfig`). This keeps config records focused on their bindable data shape and the constants discoverable via a single type.
+- **Enums vs string constants**: Use `enum` types for closed sets of choices within a single assembly or tightly-coupled projects where compile-time safety, IntelliSense, and `switch` exhaustiveness are valuable. For values that cross library boundaries — configuration keys matched in `appsettings.json`, feature flags parsed from environment variables, dictionary keys used across independently-versioned packages, or identifiers exposed via MCP / REST — prefer a `static class` of `const string` fields using `nameof()` (e.g. `FeatureNames`, `SinkTypes`). String constants are configuration-friendly, JSON-serialisable without converters, and allow consumers to reference well-known values without taking a dependency on the defining enum's assembly. When a set of string constants needs startup validation, expose a static `IReadOnlySet<string> ValidNames` built via reflection over the class's own `const` fields so new members register automatically.
+- **Validation attributes on configuration properties**: Configuration properties bound from `appsettings.json` or environment variables must use appropriate `System.ComponentModel.DataAnnotations` validation attributes to enforce correctness at startup (e.g. `[Url]` on URI strings, `[Range(1, 65535)]` on TCP ports, `[MinLength(1)]` on passwords/secrets/identifiers, `[Range(1, int.MaxValue)]` on millisecond timings, `[Range(0.0, 1.0)]` on percentage/ratio values, `[Phone]` on phone numbers). When a property carries multiple attributes from the same family (e.g. `[Required]` and `[Range]`, or `[Required]` and `[Url]`), inline them on a single line (`[Required, Range(1, 65535)]`) rather than stacking one per line. Attributes from different families (e.g. `[Required, Url]` vs. `[JsonPropertyName]`) remain on separate lines. Nested complex-object properties should carry `[ValidateObjectMembers]` so recursive validation applies.
 
 ### Suppressed Warnings
 
@@ -57,8 +59,10 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 ### Logging
 
 - **`{ClassName}` first**: Every structured log message must include `{ClassName}` as the first template parameter, using `nameof(EnclosingClass)` as the argument (e.g. `_logger.LogInformation("{ClassName} something happened", nameof(MyService));`).
-- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{GroupAddress}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{GroupAddress}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
+- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{RecordCount}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{RecordCount}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
+- **No `.Value` suffix bleed**: When logging a value accessed via `options.Value.PropertyName` (primary constructor `IOptions<T>` pattern), the template parameter name must **not** inherit the `.Value` segment and must **not** use a `Val` suffix either. Properties are already well-named — use the property name directly as the template parameter (e.g. `{ServiceFamily}` for `config.Value.ServiceFamily`).
 - **No magic strings in log messages**: When a log message references an enum value, class name, or other identifiable symbol, pass it via `nameof()` as a template argument rather than embedding it as a literal string in the message template.
+- **Avoid `nameof()` as label-only template parameters**: Do not use `nameof()` to inject property/type names as separate structured log parameters just to avoid a literal label — this clutters structured log output (Grafana, Loki, OpenTelemetry) with useless fields. Instead, use the property name as plain text in the message template and reserve `{Braces}` for actual values. E.g. `"{ClassName} ServiceFamily={ServiceFamily}"` with args `nameof(MyService), config.Value.ServiceFamily` — not `"{ClassName} {ServiceFamily}={ServiceFamilyValue}"` with args `nameof(MyService), nameof(MyConfig.ServiceFamily), config.Value.ServiceFamily`.
 
 ### Disposable Resources
 
@@ -104,8 +108,8 @@ Therefore MCP descriptions should be:
 - **Enum-aware** — when a parameter is typed as `string` but represents an enum, list **all valid values with a brief label** in the description text (the LLM cannot infer them from the type):
 
 ```csharp
-[Description("Floor filter. Values: Ground, Upper, Basement, Attic.")]
-string? floor = null
+[Description("Status filter. Values: Active, Suspended, Cancelled, Expired.")]
+string? status = null
 ```
 
 - **No XML markup** — plain text only; `<see cref="..."/>` links are meaningless to an LLM
@@ -124,11 +128,11 @@ string? floor = null
 
 .NET MCP servers convert PascalCase method names to `snake_case` for the tool registry. Both forms must read naturally and be unambiguous.
 
-- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetAppliance`, not `GetDevice`; `GetInverterSnapshot`, not `GetState`).
-- **Verb-first for actions**: `UnlockHouseDoor`, `ExecuteApplianceAction` — not `HouseDoorUnlock`.
+- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetOrder`, not `GetItem`; `GetCustomerAddress`, not `GetAddress`).
+- **Verb-first for actions**: `CancelSubscription`, `ExecutePayment` — not `SubscriptionCancel`.
 - **Get/List pairing**: Use `Get<Noun>` for a single-item lookup and `Get<Noun>s` (plural) for the list variant.
-- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Heating* over *HVAC*, *infrared* over *IR*).
-- **Read in snake_case**: Before committing, mentally convert the name — `GetInverterBatteryStorageRealtimeData` → `get_inverter_battery_storage_realtime_data` is too long; `GetInverterBatteryStatus` → `get_inverter_battery_status` is fine.
+- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Payment* over *Settlement*, *retry* over *exponential backoff*).
+- **Read in snake_case**: Before committing, mentally convert the name — `GetCustomerSubscriptionPaymentHistory` → `get_customer_subscription_payment_history` is too long; `GetCustomerPaymentStatus` → `get_customer_payment_status` is fine.
 
 ### snake_case references
 
@@ -141,13 +145,37 @@ When an `[McpServerTool]` method is renamed, search for its old `snake_case` for
 
 Avoid these in `[Description]` text:
 
-- **Return-type narration** — *"Returns the group names of affected shutters"* duplicates what the LLM already infers from the method signature.
+- **Return-type narration** — *"Returns the names of affected records"* duplicates what the LLM already infers from the method signature.
 - **Restating parameter constraints on the method** — keep constraints on the parameter `[Description]`; the method description should say *what* the tool does, not *how* to fill in every field.
-- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a quick on/off overview use GetHouseLightSwitchStates"* on the full-detail tool).
+- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a summary overview use GetOrderSummary"* on the full-detail tool).
 
 ## Cloud (Azure)
 
 - **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
+
+### Redis Key Naming
+
+When a project uses a feature enum (e.g. `AppFeature`) to gate services, derive the domain segment of every Redis key from the **lowercase enum member name** so that key prefixes stay tightly coupled to the feature taxonomy (e.g. `AppFeature.Billing` → `billing:`, `AppFeature.Notifications` → `notifications:`).
+
+- **All lowercase**, colon-separated segments: `{domain}:{type}:{detail}`.
+- **Domain** — derived from the feature enum member name via `nameof(AppFeature.Member).ToLowerInvariant()`. Cross-feature keys use a functional domain (e.g. `comms`, `lock`, `stats`).
+- **Standard type segments**:
+
+| Segment | Redis Type | Purpose |
+| --- | --- | --- |
+| `snapshot` | Hash | Current state (field per entity) |
+| `series` | Sorted Set | Time-series readings (score = UTC ticks) |
+| `stream` | Stream | Event/message streams |
+| `cache` | String | Temporary data with TTL |
+| `lock` | String | Distributed locks (Redlock) |
+| `stats` | Hash | Observability / call counters with TTL |
+
+- **Detail** — further qualifiers such as entity IDs, date partitions (`{yyMMdd}`, `{yyyy-MM-dd}`), or sub-categories (e.g. `values`, `timestamps`).
+- **Consumer groups** — use `{domain}:{role}` format (e.g. `billing:processors`, `comms:agents`).
+- **Stats keys** — date-partitioned with a 7-day TTL: `stats:{domain}:{yyyy-MM-dd}`. Hash fields are the method or operation names.
+- **Lock keys** — `lock:{domain}:{resource}` format string, configured via `RedisKeyFormat` in `appsettings.json`.
+- **Config-driven keys**: Snapshot and series key names should be stored in `appsettings.json` per-sink settings (via a settings dictionary), not hardcoded in service code. This allows key migration by config change alone.
+- **Key sync on rename**: When renaming Redis keys, update `appsettings*.json`, Lua scripts, and any C# code that constructs or references the old key name in the same commit. Existing Redis data under the old key will be orphaned — treat key renames as a fresh-start migration.
 
 ## GitHub Actions
 
