@@ -14,7 +14,7 @@ public record CommsEvent
 {
     /// <summary>
     /// Identifies the subsystem that produced the event (e.g. <c>"KnxStateChange"</c>,
-    /// <c>"DoorBird"</c>, <c>"DynDns"</c>).
+    /// <c>"DoorBird"</c>, <c>"DDns"</c>).
     /// </summary>
     public required string Source { get; init; }
 
