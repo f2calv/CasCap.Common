@@ -13,7 +13,7 @@ public static class SinkServiceCollectionExtensions
 {
     /// <summary>
     /// Well-known keyed-service key for the primary event sink — the sink whose query
-    /// interfaces (e.g. <c>IBuderusQuery</c>) are the canonical resolution target.
+    /// interfaces are the canonical resolution target.
     /// </summary>
     public const string PrimarySinkKey = "Primary";
 
@@ -26,7 +26,7 @@ public static class SinkServiceCollectionExtensions
     /// Scans the provided <paramref name="assemblies"/> for classes decorated with
     /// <see cref="SinkTypeAttribute"/> that implement <see cref="IEventSink{T}"/> and registers those
     /// whose <see cref="SinkTypeAttribute.SinkType"/> is enabled in the provided <see cref="SinkConfig"/>.
-    /// When a newly registered sink implements domain-specific interfaces (e.g. <c>IBuderusQuery</c>)
+    /// When a newly registered sink implements domain-specific query interfaces
     /// that a previously registered sink also implements, the earlier sink is automatically replaced
     /// so that only the latest writer survives for event processing.
     /// </summary>

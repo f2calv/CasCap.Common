@@ -7,7 +7,7 @@ namespace CasCap.Common.Abstractions;
 /// <remarks>
 /// The property names defined here must be kept in sync with the corresponding keys
 /// in all <c>appsettings*.json</c> files and any overriding environment variables.
-/// Domain-specific keys live in their respective projects (e.g. <c>KnxSinkKeys</c>, <c>HausSinkKeys</c>).
+/// Domain-specific keys live in their respective consumer projects.
 /// </remarks>
 public static class SinkSettingKeys
 {
