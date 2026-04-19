@@ -13,7 +13,7 @@ public static class SinkServiceCollectionExtensions
 {
     /// <summary>
     /// Well-known keyed-service key for the primary event sink — the sink whose query
-    /// interfaces (e.g. <c>IBuderusQuery</c>) are the canonical resolution target.
+    /// interfaces are the canonical resolution target.
     /// </summary>
     public const string PrimarySinkKey = "Primary";
 
@@ -26,7 +26,7 @@ public static class SinkServiceCollectionExtensions
     /// Scans the provided <paramref name="assemblies"/> for classes decorated with
     /// <see cref="SinkTypeAttribute"/> that implement <see cref="IEventSink{T}"/> and registers those
     /// whose <see cref="SinkTypeAttribute.SinkType"/> is enabled in the provided <see cref="SinkConfig"/>.
-    /// When a newly registered sink implements domain-specific interfaces (e.g. <c>IBuderusQuery</c>)
+    /// When a newly registered sink implements domain-specific query interfaces
     /// that a previously registered sink also implements, the earlier sink is automatically replaced
     /// so that only the latest writer survives for event processing.
     /// </summary>
@@ -50,6 +50,11 @@ public static class SinkServiceCollectionExtensions
         var registeredSinks = new List<Type>();
         var sinkInterfaceType = typeof(IEventSink<TEvent>);
         var eventTypeName = typeof(TEvent).Name;
+
+        // Track ALL descriptors added per sink type so replacements within the same call
+        // can fully remove the predecessor — including factory-forwarding descriptors that
+        // have ImplementationType = null and are invisible to the ImplementationType-based scan.
+        var descriptorsBySink = new Dictionary<Type, List<ServiceDescriptor>>();
 
         var sinkTypes = assemblies
             .SelectMany(a => a.GetTypes())
@@ -79,14 +84,36 @@ public static class SinkServiceCollectionExtensions
             {
                 foreach (var iface in extraInterfaces)
                 {
-                    var replaced = services
+                    // Remove sinks registered within THIS call — tracked descriptors let us
+                    // remove factory-forwarding registrations that lack ImplementationType.
+                    var replacedTracked = descriptorsBySink.Keys
+                        .Where(t => t != sinkType && iface.IsAssignableFrom(t))
+                        .ToList();
+
+                    foreach (var replacedType in replacedTracked)
+                    {
+                        foreach (var sd in descriptorsBySink[replacedType])
+                            services.Remove(sd);
+
+                        registeredSinks.Remove(replacedType);
+                        descriptorsBySink.Remove(replacedType);
+                        logger?.LogInformation("{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})",
+                            nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, replacedType.Name, iface.Name);
+                    }
+
+                    // Remove sinks registered BEFORE this call (e.g. from a different assembly
+                    // or the fallback Memory sink). Only keyed registrations with ImplementationType
+                    // are discoverable; their factory forwardings use the "Primary" key which will
+                    // be re-registered below, so they remain functional.
+                    var replacedExternal = services
                         .Where(sd => sd.ServiceType == sinkInterfaceType
                             && sd.ImplementationType is not null
                             && sd.ImplementationType != sinkType
+                            && !descriptorsBySink.ContainsKey(sd.ImplementationType)
                             && iface.IsAssignableFrom(sd.ImplementationType))
                         .ToList();
 
-                    foreach (var sd in replaced)
+                    foreach (var sd in replacedExternal)
                     {
                         services.Remove(sd);
                         registeredSinks.Remove(sd.ImplementationType!);
@@ -96,24 +123,38 @@ public static class SinkServiceCollectionExtensions
                 }
             }
 
-            services.AddKeyedSingleton(sinkInterfaceType, attr.SinkType, sinkType);
-            services.AddSingleton(sinkInterfaceType, sp =>
+            var newDescriptors = new List<ServiceDescriptor>();
+
+            var keyedDesc = new ServiceDescriptor(sinkInterfaceType, attr.SinkType, sinkType, ServiceLifetime.Singleton);
+            services.Add(keyedDesc);
+            newDescriptors.Add(keyedDesc);
+
+            var fwdDesc = ServiceDescriptor.Singleton(sinkInterfaceType, sp =>
                 sp.GetRequiredKeyedService<IEventSink<TEvent>>(attr.SinkType));
+            services.Add(fwdDesc);
+            newDescriptors.Add(fwdDesc);
+
             registeredSinks.Add(sinkType);
 
             // Register domain-specific interfaces as forwarding singletons and set the Primary keyed alias
             if (extraInterfaces.Count > 0)
             {
-                services.AddKeyedSingleton(sinkInterfaceType, PrimarySinkKey, (sp, _) =>
+                var primaryDesc = ServiceDescriptor.KeyedSingleton(sinkInterfaceType, PrimarySinkKey, (sp, _) =>
                     sp.GetRequiredKeyedService<IEventSink<TEvent>>(attr.SinkType));
+                services.Add(primaryDesc);
+                newDescriptors.Add(primaryDesc);
 
                 foreach (var iface in extraInterfaces)
                 {
-                    services.AddSingleton(iface, sp => sp.GetRequiredKeyedService<IEventSink<TEvent>>(attr.SinkType));
+                    var ifaceDesc = ServiceDescriptor.Singleton(iface, sp => sp.GetRequiredKeyedService<IEventSink<TEvent>>(attr.SinkType));
+                    services.Add(ifaceDesc);
+                    newDescriptors.Add(ifaceDesc);
                     logger?.LogInformation("{ClassName} {EventType} sink {SinkType} registered as {Interface}",
                         nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, iface.Name);
                 }
             }
+
+            descriptorsBySink[sinkType] = newDescriptors;
 
             logger?.LogInformation("{ClassName} {EventType} sink {SinkType} ({SinkClass}) registered",
                 nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sinkType.Name);

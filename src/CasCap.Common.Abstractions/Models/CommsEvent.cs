@@ -2,9 +2,9 @@
 namespace CasCap.Common.Abstractions;
 
 /// <summary>
-/// Represents a key event written to a Redis Stream for consumption by the
-/// <c>Comms</c> feature instance. The CommsAgent reads these
-/// events and decides whether (and how) to relay them to the Signal group.
+/// Represents a key event written to a Redis Stream for consumption by a
+/// communications feature. An agent reads these events and decides whether
+/// (and how) to relay them to a notification group.
 /// </summary>
 /// <remarks>
 /// Only significant, human/LLM-readable events are written to the stream.
@@ -13,14 +13,14 @@ namespace CasCap.Common.Abstractions;
 public record CommsEvent
 {
     /// <summary>
-    /// Identifies the subsystem that produced the event (e.g. <c>"KnxStateChange"</c>,
-    /// <c>"DoorBird"</c>, <c>"DynDns"</c>).
+    /// Identifies the subsystem that produced the event (e.g. <c>"SensorUpdate"</c>,
+    /// <c>"DeviceAlert"</c>, <c>"ScheduledTask"</c>).
     /// </summary>
     public required string Source { get; init; }
 
     /// <summary>
     /// Human/LLM-readable description of the event, suitable for direct inclusion
-    /// in a CommsAgent prompt.
+    /// in an agent prompt.
     /// </summary>
     public required string Message { get; init; }
 
