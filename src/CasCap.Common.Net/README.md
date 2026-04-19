@@ -19,6 +19,7 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 | Class | Key Methods |
 | --- | --- |
 | `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
+| `HttpClientBuilderResilienceExtensions` | `AddStandardResilience()` — adds retry, circuit breaker, and timeout via `Microsoft.Extensions.Http.Resilience` with structured logging |
 
 ## Class Hierarchy
 
@@ -70,7 +71,9 @@ classDiagram
 
 ### NuGet Packages
 
-This project has no direct NuGet package references.
+| Package | Purpose |
+| --- | --- |
+| `Microsoft.Extensions.Http.Resilience` | Standard resilience handler (retry, circuit breaker, timeout) for `IHttpClientBuilder` (net8.0+ only) |
 
 ### Project References
 
