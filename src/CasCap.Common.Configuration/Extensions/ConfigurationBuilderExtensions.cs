@@ -32,6 +32,7 @@ public static class ConfigurationBuilderExtensions
                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
                .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
+               .AddJsonFile($"appsettings.Local.{environmentName}.json", optional: true, reloadOnChange: true)
                .AddEnvironmentVariables();
 
         if (assembly is not null)
