@@ -27,7 +27,7 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 12 NuGet packages with helper functions, extensions, utilities, and abstract classes for .NET applications.
+A .NET class library repository containing 13 libraries (12 NuGet packages) with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -49,6 +49,7 @@ A .NET class library repository containing 12 NuGet packages with helper functio
 | Library | Description | Targets | Packable |
 | ------- | ----------- | ------- | -------- |
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ❌ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -88,6 +89,7 @@ graph TD
     Services[CasCap.Common.Services]
     HealthChecks[CasCap.Common.Extensions.Diagnostics.HealthChecks]
     Testing[CasCap.Common.Testing]
+    AI[CasCap.Common.AI]
 
     Extensions --> Logging
     LoggingSerilog --> Logging
@@ -108,6 +110,10 @@ graph TD
     Caching --> SerJson
     Caching --> SerMsgPack
     Caching --> Logging
+    AI --> Abstractions
+    AI --> Caching
+    AI --> Extensions
+    AI --> LoggingSerilog
 ```
 
 Test project relationships:
@@ -169,7 +175,7 @@ dotnet test --no-build --maxcpucount:1
 
 ### Suppressed Warnings
 
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `S125`, `NETSDK1233`
+Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `CS1574`, `S125`, `NETSDK1233`, `NU1901`, `NU1902`, `NU1903`
 
 ## CI/CD Pipeline
 

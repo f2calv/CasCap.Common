@@ -307,6 +307,7 @@ Use these consistent heading patterns before Mermaid diagrams:
 
 - **Test execution**: Never run tests automatically — they may be integration tests requiring extra setup. Always prompt (ideally with a visual yes/no button) before running any tests.
 - **Preserve git history during renames/moves**: When renaming or relocating files, first perform the rename/move (preferably via `git mv`), then make content edits to the file in its new location/name. This two-step approach preserves git history across the rename. Do not delete-and-recreate files when a rename or move is the intent.
+- **Build after refactoring**: After any refactoring, build the **entire solution** (not just the affected project) to catch edge-case compilation errors in dependent projects. When multiple `.sln` / `.slnx` files exist, prefer the one with a `.Debug.slnx` suffix.
 
 ## Misc
 

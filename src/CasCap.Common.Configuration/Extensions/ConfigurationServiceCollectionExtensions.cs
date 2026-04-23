@@ -71,17 +71,30 @@ public static class ConfigurationServiceCollectionExtensions
     /// Reads and returns a <typeparamref name="TConfig"/> instance from its
     /// <see cref="IAppConfig.ConfigurationSectionName"/> configuration section.
     /// </summary>
-    /// <remarks>Does not register anything in DI — use <see cref="AddCasCapConfiguration{TConfig}(IServiceCollection, Action{TConfig}?)"/> for that.</remarks>
+    /// <remarks>
+    /// Does not register anything in DI — use <see cref="AddCasCapConfiguration{TConfig}(IServiceCollection, Action{TConfig}?)"/> for that.
+    /// Runs <see cref="Validator.ValidateObject(object, ValidationContext, bool)"/> eagerly so that
+    /// callers consuming the config before the host starts still get the same validation
+    /// that <c>ValidateOnStart</c> would provide.
+    /// </remarks>
     /// <typeparam name="TConfig">The configuration type implementing <see cref="IAppConfig"/>.</typeparam>
     /// <param name="configuration">The root <see cref="IConfiguration"/> to read from.</param>
     /// <returns>The bound configuration instance.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the configuration section is missing or cannot be bound.
     /// </exception>
+    /// <exception cref="ValidationException">
+    /// Thrown when the bound configuration fails data-annotation validation.
+    /// </exception>
     public static TConfig GetCasCapConfiguration<TConfig>(this IConfiguration configuration)
-        where TConfig : class, IAppConfig =>
-        configuration.GetSection(TConfig.ConfigurationSectionName).Get<TConfig>()
+        where TConfig : class, IAppConfig
+    {
+        var config = configuration.GetSection(TConfig.ConfigurationSectionName).Get<TConfig>()
             ?? throw new InvalidOperationException(
                 $"Configuration section '{TConfig.ConfigurationSectionName}' is missing or empty.");
+
+        Validator.ValidateObject(config, new ValidationContext(config), validateAllProperties: true);
+        return config;
+    }
 #endif
 }
