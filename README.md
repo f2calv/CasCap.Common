@@ -2,6 +2,8 @@
 
 [cascap.common.abstractions-badge]: https://img.shields.io/nuget/v/CasCap.Common.Abstractions?color=blue
 [cascap.common.abstractions-url]: https://nuget.org/packages/CasCap.Common.Abstractions
+[cascap.common.ai-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI?color=blue
+[cascap.common.ai-url]: https://nuget.org/packages/CasCap.Common.AI
 [cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
 [cascap.common.caching-url]: https://nuget.org/packages/CasCap.Common.Caching
 [cascap.common.configuration-badge]: https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue
@@ -27,11 +29,12 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 13 libraries (12 NuGet packages) with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
+A .NET class library repository containing 13 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | CasCap.Common.Abstractions                        | [![Nuget][cascap.common.abstractions-badge]][cascap.common.abstractions-url]                           |
+| CasCap.Common.AI                                  | [![Nuget][cascap.common.ai-badge]][cascap.common.ai-url]                                               |
 | CasCap.Common.Caching                             | [![Nuget][cascap.common.caching-badge]][cascap.common.caching-url]                                     |
 | CasCap.Common.Configuration                       | [![Nuget][cascap.common.configuration-badge]][cascap.common.configuration-url]                         |
 | CasCap.Common.Extensions                          | [![Nuget][cascap.common.extensions-badge]][cascap.common.extensions-url]                               |
@@ -49,7 +52,7 @@ A .NET class library repository containing 13 libraries (12 NuGet packages) with
 | Library | Description | Targets | Packable |
 | ------- | ----------- | ------- | -------- |
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ❌ |
+| [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |

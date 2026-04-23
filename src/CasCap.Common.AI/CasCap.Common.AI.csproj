@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
   </PropertyGroup>
 
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
     <Description>AI and LLM integration abstractions for OpenAI, Ollama, and Model Context Protocol.</Description>
     <PackageTags>ai,openai,ollama,mcp,llm,home-automation,agentic</PackageTags>
   </PropertyGroup>
