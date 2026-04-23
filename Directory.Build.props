@@ -25,7 +25,6 @@
     <IsPackable>false</IsPackable>
 
     <Authors>Alex Vincent</Authors>
-    <Copyright>Alex Vincent</Copyright>
     <!-- <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile> -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
