@@ -232,6 +232,7 @@ public static class AgentExtensions
 
             chatClientBuilder = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions
                 {
+                    Endpoint = provider.Endpoint,
                     NetworkTimeout = Timeout.InfiniteTimeSpan,
                 })
                 .GetChatClient(provider.ModelName)
