@@ -1271,10 +1271,15 @@ public static class AgentExtensions
         {
             result = await next(context, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            Log.Error(ex, "{ClassName} Function {FunctionName} threw an exception", nameof(AgentExtensions), context.Function.Name);
-            throw;
+            Log.Error(ex, "{ClassName} Function {FunctionName} threw an exception",
+                nameof(AgentExtensions), context.Function.Name);
+            return $"Error: tool '{context.Function.Name}' failed — {ex.GetType().Name}: {ex.Message}";
         }
         var resultPreview = result switch
         {
