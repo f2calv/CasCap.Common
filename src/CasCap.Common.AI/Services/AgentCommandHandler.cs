@@ -1,5 +1,3 @@
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace CasCap.Services;

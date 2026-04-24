@@ -116,4 +116,43 @@ public static class StringExtensions
     private const string SingleSpace = " ";
 
     #endregion
+
+    /// <summary>Masks the middle digits of a phone number, preserving the country code prefix and last two digits.</summary>
+    /// <remarks>E.g. <c>+441234567890</c> → <c>+44******90</c>.</remarks>
+    public static string MaskPhoneNumber(this string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber) || phoneNumber.Length < 6)
+            return phoneNumber;
+
+        var prefixLen = phoneNumber[0] == '+' ? 3 : 2;
+        const int suffixLen = 2;
+        var maskLen = phoneNumber.Length - prefixLen - suffixLen;
+        if (maskLen <= 0)
+            return phoneNumber;
+
+#if NET8_0_OR_GREATER
+        var digits = phoneNumber.AsSpan();
+        return string.Concat(digits[..prefixLen], new string('*', maskLen), digits[^suffixLen..]);
+#else
+        return phoneNumber.Substring(0, prefixLen)
+            + new string('*', maskLen)
+            + phoneNumber.Substring(phoneNumber.Length - suffixLen);
+#endif
+    }
+
+    /// <summary>Masks the domain of a URI, preserving the scheme and subdomain.</summary>
+    /// <remarks>E.g. <c>https://subdomain.domain.com/</c> → <c>https://subdomain.***</c>.</remarks>
+    public static string MaskEndpoint(this Uri? endpoint)
+    {
+        if (endpoint is null)
+            return string.Empty;
+
+        var host = endpoint.Host;
+        var dotIndex = host.IndexOf('.');
+        if (dotIndex < 0)
+            return $"{endpoint.Scheme}://***";
+
+        var subdomain = host.Substring(0, dotIndex);
+        return $"{endpoint.Scheme}://{subdomain}.***";
+    }
 }
