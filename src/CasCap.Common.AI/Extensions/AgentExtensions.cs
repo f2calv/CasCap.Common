@@ -382,7 +382,7 @@ public static class AgentExtensions
     {
         var sw = Stopwatch.StartNew();
         Log.Information("{ClassName} RunAnalysisAsync starting for agent {AgentName}, model={ModelName}, endpoint={Endpoint}",
-            nameof(AgentExtensions), agentConfig.Name, provider.ModelName, provider.Endpoint);
+            nameof(AgentExtensions), agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
 
         // Set up ambient attachment accumulator so sub-agent tool invocations can bubble up images.
         var isTopLevel = _ambientAttachments.Value is null;
@@ -413,7 +413,7 @@ public static class AgentExtensions
             .Select(tc => tc.Text)
             .Where(t => !string.IsNullOrWhiteSpace(t)));
         var formattedResult = $"Model: {provider.ModelName}" + Environment.NewLine
-            + $"Endpoint: {provider.Endpoint}" + Environment.NewLine
+            + $"Endpoint: {provider.Endpoint.MaskEndpoint()}" + Environment.NewLine
             + $"Output: {outputText}" + Environment.NewLine
             + $"Duration: {elapsed}";
 

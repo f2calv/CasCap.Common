@@ -133,4 +133,20 @@ public static class StringExtensions
 
         return string.Concat(digits[..prefixLen], new string('*', maskLen), digits[^suffixLen..]);
     }
+
+    /// <summary>Masks the domain of a URI, preserving the scheme and subdomain.</summary>
+    /// <remarks>E.g. <c>https://llama-cpp.as34013.net/</c> → <c>https://llama-cpp.***</c>.</remarks>
+    public static string MaskEndpoint(this Uri? endpoint)
+    {
+        if (endpoint is null)
+            return string.Empty;
+
+        var host = endpoint.Host;
+        var dotIndex = host.IndexOf('.');
+        if (dotIndex < 0)
+            return $"{endpoint.Scheme}://***";
+
+        var subdomain = host[..dotIndex];
+        return $"{endpoint.Scheme}://{subdomain}.***";
+    }
 }
