@@ -116,4 +116,21 @@ public static class StringExtensions
     private const string SingleSpace = " ";
 
     #endregion
+
+    /// <summary>Masks the middle digits of a phone number, preserving the country code prefix and last two digits.</summary>
+    /// <remarks>E.g. <c>+447801438982</c> → <c>+44******82</c>.</remarks>
+    public static string MaskPhoneNumber(this string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber) || phoneNumber.Length < 6)
+            return phoneNumber;
+
+        var digits = phoneNumber.AsSpan();
+        var prefixLen = digits[0] == '+' ? 3 : 2;
+        const int suffixLen = 2;
+        var maskLen = digits.Length - prefixLen - suffixLen;
+        if (maskLen <= 0)
+            return phoneNumber;
+
+        return string.Concat(digits[..prefixLen], new string('*', maskLen), digits[^suffixLen..]);
+    }
 }
