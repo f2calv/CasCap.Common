@@ -15,3 +15,4 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics;
 global using System.Reflection;
 global using System.Text;
+global using Microsoft.Agents.AI;

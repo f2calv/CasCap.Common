@@ -1,5 +1,3 @@
-using Microsoft.Agents.AI;
-
 namespace CasCap.Extensions;
 
 /// <summary>
