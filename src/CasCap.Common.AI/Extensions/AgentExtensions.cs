@@ -1281,12 +1281,50 @@ public static class AgentExtensions
                 nameof(AgentExtensions), context.Function.Name);
             return $"Error: tool '{context.Function.Name}' failed — {ex.GetType().Name}: {ex.Message}";
         }
+
+        // Strip image blobs to prevent context overflow.
+        // Image bytes serialised as base64 text in FunctionResultContent consume massive token counts
+        // (a 30 KB JPEG → ~42 K chars → ~32 K tokens). Extract the image as an ambient attachment and
+        // return metadata-only so the LLM sees a compact result instead of raw base64 text.
+        if (result is JsonElement je
+            && je.ValueKind is JsonValueKind.Object
+            && je.TryGetProperty("hasImage", out var hasImg) && hasImg.GetBoolean()
+            && je.TryGetProperty("bytes", out var bytesEl) && bytesEl.ValueKind is JsonValueKind.String)
+        {
+            var base64 = bytesEl.GetString();
+            if (!string.IsNullOrEmpty(base64))
+            {
+                var fileName = je.TryGetProperty("blobName", out var nameProp) ? nameProp.GetString() : null;
+                var sizeKb = base64.Length * 3 / 4 / 1024;
+
+                Log.Information("{ClassName} stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
+                    nameof(AgentExtensions), context.Function.Name, sizeKb);
+
+                _ambientAttachments.Value?.Add(new AgentRunAttachment
+                {
+                    Base64Content = base64,
+                    MimeType = "image/jpeg",
+                    FileName = fileName,
+                });
+
+                // Return compact metadata-only result for the LLM.
+                using var doc = JsonDocument.Parse(JsonSerializer.Serialize(new
+                {
+                    hasImage = true,
+                    blobName = fileName,
+                    sizeInBytes = base64.Length * 3 / 4,
+                    note = $"Image captured (~{sizeKb}KB JPEG). The image will be delivered to the user as an attachment.",
+                }));
+                result = doc.RootElement.Clone();
+            }
+        }
+
         var resultPreview = result switch
         {
             string s when s.Length > 500 => $"{s[..500]}... ({s.Length} chars)",
-            JsonElement je => je.ToString().Length > 500
-                ? $"{je.ToString()[..500]}... ({je.ToString().Length} chars)"
-                : je.ToString(),
+            JsonElement jsonEl => jsonEl.ToString().Length > 500
+                ? $"{jsonEl.ToString()[..500]}... ({jsonEl.ToString().Length} chars)"
+                : jsonEl.ToString(),
             _ => result?.ToString()
         };
         Log.Debug("{ClassName} Function Call Result: {Result}",
