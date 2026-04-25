@@ -61,11 +61,11 @@ public static class ParseExtensions
     {
         DateTime dt;
         if (f.Length == 18)//"635990653080800000".Length
-            dt = new DateTime(f.Decimal2long(), kind);
+            dt = new DateTime(f.Decimal2Long(), kind);
         else if (f.Length == 23 && DateTime.TryParse(f, out var _dt1))//"yyyy-MM-dd HH:mm:ss.fff".Length
             dt = _dt1;
         else if (f.Length == 14)//"63599065308080".Length
-            dt = new DateTime(f.Decimal2long(4), kind);
+            dt = new DateTime(f.Decimal2Long(4), kind);
         else if (f.Length == 12 && date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var _dt2))//"HH:mm:ss.fff".Length
             dt = _dt2;
         else
@@ -141,7 +141,7 @@ public static class ParseExtensions
     /// <param name="exp">The exponent (number of decimal places to shift).</param>
     /// <returns>The parsed long value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long Decimal2long(this string input, int exp = 0)
+    public static long Decimal2Long(this string input, int exp = 0)
     {
         //Debug.WriteLine($"input={input}, input.Length={input.Length}, dp={dp}");
         var decimalExists = false;
