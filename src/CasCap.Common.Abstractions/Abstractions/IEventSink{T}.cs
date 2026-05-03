@@ -2,7 +2,7 @@ namespace CasCap.Common.Abstractions;
 
 /// <summary>Defines a sink that can receive and retrieve events of type <typeparamref name="T"/>.</summary>
 /// <typeparam name="T">The event type handled by this sink.</typeparam>
-public interface IEventSink<T> where T : class
+public interface IEventSink<T> where T : class, new()
 {
     /// <summary>
     /// Performs any one-time initialization required by the sink (e.g. starting background flush loops).
