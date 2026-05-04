@@ -62,7 +62,7 @@ A .NET class library repository containing 14 NuGet packages with helper functio
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging.Serilog**](src/CasCap.Common.Logging.Serilog/README.md) | Reusable Serilog configuration with standard enrichers, console sink, and health-check filtering | net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase` abstract class for HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase`, `BasicAuthenticationHandler`, HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.OpenTelemetry**](src/CasCap.Common.OpenTelemetry/README.md) | Reusable OpenTelemetry configuration with standard metrics, traces, and log exporters via OTLP gRPC | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -106,6 +106,7 @@ graph TD
     SerJson --> Extensions
     SerJson --> Logging
     SerMsgPack --> Logging
+    Net --> Abstractions
     Net --> SerJson
     Net --> Logging
     HealthChecks --> Extensions
