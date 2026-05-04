@@ -7,10 +7,15 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <Description>Helper library for common HttpClient/WebAPI requirements.</Description>
-    <PackageTags>extensions,helpers,httpclient,webapi</PackageTags>
+    <PackageTags>extensions,helpers,httpclient,webapi,authentication</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CasCap.Common.Serialization.Json\CasCap.Common.Serialization.Json.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
   </ItemGroup>

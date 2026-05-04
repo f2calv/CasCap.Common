@@ -19,7 +19,7 @@ public static class SinkServiceCollectionExtensions
 
     /// <inheritdoc cref="AddEventSinks{TEvent}(IServiceCollection, SinkConfig, ILoggerFactory?, Assembly[])"/>
     public static List<Type> AddEventSinks<TEvent>(this IServiceCollection services, SinkConfig sinkOptions, params Assembly[] assemblies)
-        where TEvent : class, new()
+        where TEvent : class
         => AddEventSinks<TEvent>(services, sinkOptions, loggerFactory: null, assemblies);
 
     /// <summary>
@@ -44,7 +44,7 @@ public static class SinkServiceCollectionExtensions
         SinkConfig sinkOptions,
         ILoggerFactory? loggerFactory,
         params Assembly[] assemblies)
-        where TEvent : class, new()
+        where TEvent : class
     {
         var logger = loggerFactory?.CreateLogger(nameof(SinkServiceCollectionExtensions));
         var registeredSinks = new List<Type>();
