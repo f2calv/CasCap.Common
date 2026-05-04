@@ -13,6 +13,7 @@ Provides a bootstrap logger for early startup logging and a composable `AddCasCa
 | Extension | Description |
 | --- | --- |
 | `SerilogExtensions.GetBootstrapLogger()` | Creates a bootstrap console logger and wires `ApplicationLogging.LoggerFactory` |
+| `SerilogWebApplicationBuilderExtensions.InitializeSerilog(builder, categoryName)` | Thread-safe one-shot Serilog initialization on a `WebApplicationBuilder` via `UseSerilog` + `AddCasCapDefaults` |
 | `LoggerConfiguration.AddCasCapDefaults(IConfiguration)` | Applies standard enrichers, console sink, health-check filter, and config binding |
 
 ### Enrichers Included
