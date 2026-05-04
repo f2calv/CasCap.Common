@@ -18,6 +18,8 @@
 [cascap.common.logging.serilog-url]: https://nuget.org/packages/CasCap.Common.Logging.Serilog
 [cascap.common.net-badge]: https://img.shields.io/nuget/v/CasCap.Common.Net?color=blue
 [cascap.common.net-url]: https://nuget.org/packages/CasCap.Common.Net
+[cascap.common.opentelemetry-badge]: https://img.shields.io/nuget/v/CasCap.Common.OpenTelemetry?color=blue
+[cascap.common.opentelemetry-url]: https://nuget.org/packages/CasCap.Common.OpenTelemetry
 [cascap.common.Serialization.json-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.Json?color=blue
 [cascap.common.Serialization.json-url]: https://nuget.org/packages/CasCap.Common.Serialization.Json
 [cascap.common.Serialization.messagepack-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.MessagePack?color=blue
@@ -29,7 +31,7 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 13 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
+A .NET class library repository containing 14 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -42,6 +44,7 @@ A .NET class library repository containing 13 NuGet packages with helper functio
 | CasCap.Common.Logging                             | [![Nuget][cascap.common.logging-badge]][cascap.common.logging-url]                                     |
 | CasCap.Common.Logging.Serilog                     | [![Nuget][cascap.common.logging.serilog-badge]][cascap.common.logging.serilog-url]                     |
 | CasCap.Common.Net                                 | [![Nuget][cascap.common.net-badge]][cascap.common.net-url]                                             |
+| CasCap.Common.OpenTelemetry                        | [![Nuget][cascap.common.opentelemetry-badge]][cascap.common.opentelemetry-url]                         |
 | CasCap.Common.Serialization.Json                  | [![Nuget][cascap.common.Serialization.json-badge]][cascap.common.Serialization.json-url]               |
 | CasCap.Common.Serialization.MessagePack           | [![Nuget][cascap.common.Serialization.messagepack-badge]][cascap.common.Serialization.messagepack-url] |
 | CasCap.Common.Services                            | [![Nuget][cascap.common.services-badge]][cascap.common.services-url]                                   |
@@ -59,7 +62,8 @@ A .NET class library repository containing 13 NuGet packages with helper functio
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging.Serilog**](src/CasCap.Common.Logging.Serilog/README.md) | Reusable Serilog configuration with standard enrichers, console sink, and health-check filtering | net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase` abstract class for HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase`, `BasicAuthenticationHandler`, HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.OpenTelemetry**](src/CasCap.Common.OpenTelemetry/README.md) | Reusable OpenTelemetry configuration with standard metrics, traces, and log exporters via OTLP gRPC | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Services**](src/CasCap.Common.Services/README.md) | `FeatureFlagBgService<T>` and `IFeature<T>` abstractions | net8.0; net9.0; net10.0 | ✅ |
@@ -93,6 +97,7 @@ graph TD
     HealthChecks[CasCap.Common.Extensions.Diagnostics.HealthChecks]
     Testing[CasCap.Common.Testing]
     AI[CasCap.Common.AI]
+    OTel[CasCap.Common.OpenTelemetry]
 
     Extensions --> Logging
     LoggingSerilog --> Logging
@@ -101,6 +106,7 @@ graph TD
     SerJson --> Extensions
     SerJson --> Logging
     SerMsgPack --> Logging
+    Net --> Abstractions
     Net --> SerJson
     Net --> Logging
     HealthChecks --> Extensions
@@ -117,6 +123,9 @@ graph TD
     AI --> Caching
     AI --> Extensions
     AI --> LoggingSerilog
+    OTel --> Abstractions
+    OTel --> LoggingSerilog
+    OTel --> Services
 ```
 
 Test project relationships:

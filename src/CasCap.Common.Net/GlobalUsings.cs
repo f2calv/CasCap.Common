@@ -1,4 +1,5 @@
-﻿global using CasCap.Common.Extensions;
+﻿global using CasCap.Common.Abstractions;
+global using CasCap.Common.Extensions;
 global using Microsoft.Extensions.Logging;
 global using System;
 global using System.Collections.Generic;
