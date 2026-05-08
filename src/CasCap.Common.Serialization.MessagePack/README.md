@@ -2,6 +2,12 @@
 
 MessagePack binary serialization helpers using the MessagePack-CSharp library.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Serialization.MessagePack
+```
+
 ## Purpose
 
 Provides `ToMessagePack<T>()` and `FromMessagePack<T>()` extension methods for fast, compact binary serialization. The MessagePack analyzer is included as a development dependency to enforce correct attribute usage at build time.

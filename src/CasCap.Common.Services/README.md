@@ -2,6 +2,12 @@
 
 Feature-flag background service launcher and configuration abstractions.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Services
+```
+
 ## Purpose
 
 Contains `FeatureFlagBgService`, a `BackgroundService` that inspects the configured `FeatureFlagConfig.EnabledFeatures` set at startup and launches the matching `IBgFeature` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.

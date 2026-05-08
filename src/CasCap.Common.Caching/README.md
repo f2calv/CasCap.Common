@@ -2,6 +2,12 @@
 
 Multi-tier distributed caching library implementing the cache-aside pattern with support for Memory, Disk, and Redis cache layers.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Caching
+```
+
 ## Purpose
 
 Provides a complete caching infrastructure with local (in-process) and remote (Redis) cache tiers, synchronised expiration via Redis Pub/Sub, and configurable serialization (JSON or MessagePack). Includes background services for cache expiry management, an async duplicate-lock mechanism to prevent thundering-herd scenarios, and optional Redis-based distributed locking via RedLock.net.

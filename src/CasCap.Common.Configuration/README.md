@@ -2,6 +2,12 @@
 
 Configuration bootstrapping helpers for .NET applications — standard `IConfiguration` pipeline setup, Azure Key Vault integration, and validated `IOptions<T>` binding for `IAppConfig` records.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration
+```
+
 ## Purpose
 
 Provides a standardised way to build the configuration pipeline (appsettings.json, environment overrides, environment variables, user secrets, Azure Key Vault) and to bind configuration sections to `IAppConfig` record types with DataAnnotations validation on startup.

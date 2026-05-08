@@ -2,6 +2,12 @@
 
 Static logging abstraction via `ApplicationLogging`, providing a globally accessible `ILoggerFactory` for contexts where constructor injection is unavailable.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Logging
+```
+
 ## Purpose
 
 Exposes a static `ApplicationLogging` class that holds an `ILoggerFactory` reference and `CreateLogger` convenience methods. An `AddStaticLogging()` extension on `IServiceProvider` wires the DI-registered factory into the static accessor at application startup.

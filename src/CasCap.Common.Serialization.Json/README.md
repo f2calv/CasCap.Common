@@ -2,6 +2,12 @@
 
 `System.Text.Json` serialization helpers and custom `JsonConverter` implementations.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Serialization.Json
+```
+
 ## Purpose
 
 Provides convenient `ToJson()` / `FromJson()` extension methods and a library of custom converters for common serialization scenarios such as epoch timestamps, 2-D array round-tripping, and string-to-int coercion.

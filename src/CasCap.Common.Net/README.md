@@ -2,6 +2,12 @@
 
 Abstract base class, extensions, and authentication handlers for building typed `HttpClient` wrappers and securing ASP.NET Core APIs.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Net
+```
+
 ## Purpose
 
 Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consistent surface for `GET`, `POST`, `PUT`, and `DELETE` operations with automatic JSON (de)serialization. Network-related extension methods for headers and query strings are also included. Additionally provides `BasicAuthenticationHandler` for HTTP Basic authentication against `ApiAuthConfig`. The `HttpClientBase` and `BasicAuthenticationHandler` implementations are gated behind `#if NET8_0_OR_GREATER`.

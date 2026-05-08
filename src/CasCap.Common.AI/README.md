@@ -2,6 +2,12 @@
 
 AI agent framework infrastructure — agent creation, session management, MCP tool/prompt resolution, chat history compaction, and slash-command handling.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.AI
+```
+
 ## Purpose
 
 Provides the shared infrastructure for building multi-agent AI systems with support for multiple providers (Azure OpenAI, OpenAI, Ollama), automatic MCP tool discovery from `[McpServerTool]`-decorated service types, sub-agent delegation (fan-out pattern), persistent session state, and context-window compaction for edge GPU devices.

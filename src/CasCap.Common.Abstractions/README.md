@@ -2,6 +2,12 @@
 
 Core interface definitions shared across the CasCap ecosystem. This project provides the foundational contracts that other CasCap libraries and applications may depend upon.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Abstractions
+```
+
 ## Purpose
 
 This library contains no concrete implementations — only interfaces and abstractions that define the contracts between components.
