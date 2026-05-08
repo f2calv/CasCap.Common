@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Result object returned by the <c>get_poll_status</c> MCP tool, summarising the

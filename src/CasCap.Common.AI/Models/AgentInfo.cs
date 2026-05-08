@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>MCP-friendly projection of <see cref="AgentConfig"/> (excludes instructions and settings).</summary>
 public record AgentInfo

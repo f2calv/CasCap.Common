@@ -1,8 +1,8 @@
-using CasCap.Extensions;
+using CasCap.Common.Extensions;
 using Microsoft.Extensions.AI;
 using Serilog;
 
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// An <see cref="IChatReducer"/> that strips <see cref="FunctionCallContent"/> and

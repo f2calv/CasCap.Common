@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Infrastructure configuration for an AI provider (connection details, model, auth).

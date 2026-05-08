@@ -1,4 +1,4 @@
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Summary of a single entry in the <see cref="Microsoft.Agents.AI.AgentSessionStateBag"/>.</summary>
 /// <param name="Key">The StateBag key name.</param>

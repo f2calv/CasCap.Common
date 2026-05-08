@@ -1,4 +1,4 @@
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Redis-backed session store for persistent agent sessions.</summary>
 /// <remarks>

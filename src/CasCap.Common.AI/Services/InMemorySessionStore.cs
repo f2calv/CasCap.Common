@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Volatile in-memory session store for interactive console sessions.</summary>
 /// <remarks>

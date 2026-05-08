@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Lightweight descriptor for an MCP prompt discovered from either a remote

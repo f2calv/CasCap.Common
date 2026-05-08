@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Slash-commands that can be entered at a console prompt or sent via a messaging interface

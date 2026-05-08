@@ -5,7 +5,7 @@ using OpenAI;
 using System.ClientModel;
 using System.Text.Json;
 
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Extension methods for <see cref="AIAgent"/> that simplify creating agents and running inference

@@ -1,4 +1,4 @@
-namespace CasCap.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>Persistence abstraction for serialised agent session state.</summary>
 /// <remarks>

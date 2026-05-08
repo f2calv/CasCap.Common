@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// In-memory implementation of <see cref="IPollTracker"/> that tracks active polls

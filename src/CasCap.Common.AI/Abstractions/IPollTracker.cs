@@ -1,4 +1,4 @@
-namespace CasCap.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Tracks active polls created by the agent and records incoming votes so

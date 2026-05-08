@@ -1,9 +1,7 @@
-global using CasCap.Abstractions;
 global using CasCap.Common.Abstractions;
 global using CasCap.Common.Extensions;
-global using CasCap.Extensions;
-global using CasCap.Models;
-global using CasCap.Services;
+global using CasCap.Common.Models;
+global using CasCap.Common.Services;
 global using Microsoft.Agents.AI;
 global using Microsoft.Extensions.AI;
 global using Microsoft.Extensions.DependencyInjection;
