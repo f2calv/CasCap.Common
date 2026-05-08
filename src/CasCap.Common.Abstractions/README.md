@@ -30,6 +30,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | `INotificationGroup` | Represents a named group in a notification service (`Id`, `Name`, members) |
 | `INotificationResponse` | Response returned after sending a notification (`Timestamp`) |
 | `IReceivedNotification` | Represents a notification received from an external messaging service (`Sender`, `GroupId`, `Message`, attachments) |
+| `IHttpAuditStore` | Abstraction for persisting HTTP audit entries (net8.0+ only) |
 | `IAzBlobStorageConfig` | Exposes Azure Blob Storage connection properties (endpoint/connection string, container name, health check probe type) for feature-specific configuration records |
 | `IAzTableStorageConfig` | Exposes Azure Table Storage connection properties (endpoint/connection string, health check probe type) for feature-specific configuration records |
 | `IFeatureConfig<T>` | **[Obsolete]** Pairs with `IFeature<T>` to carry the enabled `EnabledFeatures` flags into the `BackgroundService` launcher |
@@ -50,6 +51,12 @@ This library contains no concrete implementations — only interfaces and abstra
 | `SinkConfig` | Dictionary of `SinkTypeAttribute` name → `SinkConfigParams` |
 | `SinkConfigParams` | Per-sink settings: `Enabled`, and a `Settings` dictionary for sink-specific key/value settings |
 | `SinkSettingKeys` | Compile-time constants for common sink setting keys |
+
+### Models
+
+| Type | Description |
+| --- | --- |
+| `HttpAuditEntry` | Represents a single HTTP request/response audit record — `Source`, `HttpMethod`, `RequestUri`, `StatusCode`, `ElapsedMs`, `RequestBody`, `ResponseBody` (net8.0+ only) |
 
 ### Event Models
 

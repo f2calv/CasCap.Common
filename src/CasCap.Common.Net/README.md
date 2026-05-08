@@ -26,12 +26,21 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 | --- | --- |
 | `BasicAuthenticationHandler` | ASP.NET Core authentication handler validating HTTP Basic credentials against `ApiAuthConfig` (net8.0+ only) |
 
+### HTTP Auditing
+
+| Type | Description |
+| --- | --- |
+| `HttpAuditHandler` | `DelegatingHandler` that captures HTTP request/response pairs and persists them via `IHttpAuditStore` (net8.0+ only) |
+| `HttpAuditSource` | Defines the `HttpRequestOptionsKey` used to tag requests with a logical source name |
+| `FileHttpAuditStore` | Lightweight file-based `IHttpAuditStore` that writes each audit entry as an individual JSON file organised into daily sub-folders (`yyyy-MM-dd`) |
+
 ### Extensions
 
 | Class | Key Methods |
 | --- | --- |
 | `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
 | `HttpClientBuilderResilienceExtensions` | `AddStandardResilience()` — adds retry, circuit breaker, and timeout via `Microsoft.Extensions.Http.Resilience` with structured logging |
+| `HttpClientBuilderAuditExtensions` | `AddHttpAuditing(sourceName)` — adds `HttpAuditHandler` to the HTTP client pipeline to capture request/response audit entries (net8.0+ only) |
 
 ## Class Hierarchy
 

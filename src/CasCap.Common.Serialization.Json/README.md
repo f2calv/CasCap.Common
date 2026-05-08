@@ -28,6 +28,7 @@ Provides convenient `ToJson()` / `FromJson()` extension methods and a library of
 | `ColumnCleanerConverter` | Strips unwanted characters from column names during deserialization |
 | `MicrosecondEpochConverter` | Converts microsecond Unix epoch timestamps to `DateTime` |
 | `MillisecondEpochConverter` | Converts millisecond Unix epoch timestamps to `DateTime` |
+| `RawJsonStringConverter` | Writes `string` values as raw JSON when valid, avoiding double-encoding of serialised payloads (net8.0+ only) |
 | `StringToIntConverter` | Coerces JSON string values to `int` |
 | `UtcJsonDateTimeConverter` | Ensures `DateTime` values are always treated as UTC |
 
