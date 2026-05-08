@@ -2,6 +2,12 @@
 
 General-purpose extension methods and helper utilities for .NET applications.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Extensions
+```
+
 ## Purpose
 
 Provides commonly-used extension methods for enums, parsing, I/O, collections, and XML — used as a foundational utility library across the CasCap ecosystem.

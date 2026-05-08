@@ -2,6 +2,12 @@
 
 xUnit test infrastructure — logging redirection and conditional-skip attributes for CI environments.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Testing
+```
+
 ## Purpose
 
 Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via Serilog, plus `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions.

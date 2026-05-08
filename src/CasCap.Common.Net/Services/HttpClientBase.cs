@@ -107,9 +107,6 @@ public abstract class HttpClientBase
         return await HandleResult<TResult, TError>(response, cts.Token);
     }
 
-    /// <summary>Optional directory path for writing debug JSON response files. Disabled when empty.</summary>
-    protected virtual string JsonDebugPath { get; set; } = string.Empty;
-
     private static CancellationTokenSource CreateLinkedCts(TimeSpan? timeout, CancellationToken cancellationToken)
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -135,12 +132,6 @@ public abstract class HttpClientBase
             else
             {
                 var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(json) && !string.IsNullOrWhiteSpace(JsonDebugPath) && Path.Exists(JsonDebugPath))
-                {
-                    var fileName = $"{DateTime.UtcNow.To_yyyy_MM_dd()}-{DateTime.UtcNow.Ticks}-{typeof(TResult)}.json";
-                    var path = Path.Combine(JsonDebugPath, fileName);
-                    await path.WriteAllTextAsync(json, cancellationToken);
-                }
                 tpl.result = json.FromJson<TResult>();
             }
             tpl.error = default;

@@ -1,4 +1,4 @@
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Shared helpers for parsing and executing <see cref="ChatCommand"/> slash-commands.

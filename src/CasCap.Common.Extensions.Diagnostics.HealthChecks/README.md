@@ -2,6 +2,12 @@
 
 Custom ASP.NET Core health check base classes for monitoring HTTP endpoint availability.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Extensions.Diagnostics.HealthChecks
+```
+
 ## Purpose
 
 Provides `HttpEndpointCheckBase`, an abstract `IHealthCheck` that simplifies writing health checks for external HTTP endpoints. Derived classes only need to supply the target URL; the base class handles the HTTP call, timeout, and result mapping.

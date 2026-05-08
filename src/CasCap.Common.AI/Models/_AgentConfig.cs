@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Behavioral configuration for a named AI agent: instructions, prompt, reasoning, tools and prompts.

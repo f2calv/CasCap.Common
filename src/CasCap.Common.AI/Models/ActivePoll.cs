@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Represents an active poll being tracked for vote results.

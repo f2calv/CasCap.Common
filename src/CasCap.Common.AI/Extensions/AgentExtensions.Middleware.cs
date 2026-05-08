@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Chat client, agent run, and function-calling middleware plus audio transcoding.</summary>
 public static partial class AgentExtensions

@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>Represents a binary attachment produced by a tool during an agent run.</summary>
 public sealed record AgentRunAttachment

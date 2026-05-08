@@ -2,6 +2,12 @@
 
 `System.Text.Json` serialization helpers and custom `JsonConverter` implementations.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Serialization.Json
+```
+
 ## Purpose
 
 Provides convenient `ToJson()` / `FromJson()` extension methods and a library of custom converters for common serialization scenarios such as epoch timestamps, 2-D array round-tripping, and string-to-int coercion.
@@ -22,6 +28,7 @@ Provides convenient `ToJson()` / `FromJson()` extension methods and a library of
 | `ColumnCleanerConverter` | Strips unwanted characters from column names during deserialization |
 | `MicrosecondEpochConverter` | Converts microsecond Unix epoch timestamps to `DateTime` |
 | `MillisecondEpochConverter` | Converts millisecond Unix epoch timestamps to `DateTime` |
+| `RawJsonStringConverter` | Writes `string` values as raw JSON when valid, avoiding double-encoding of serialised payloads (net8.0+ only) |
 | `StringToIntConverter` | Coerces JSON string values to `int` |
 | `UtcJsonDateTimeConverter` | Ensures `DateTime` values are always treated as UTC |
 

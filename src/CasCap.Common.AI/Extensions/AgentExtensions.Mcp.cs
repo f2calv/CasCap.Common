@@ -1,6 +1,6 @@
 using ModelContextProtocol.Client;
 
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>MCP client connectivity, prompt discovery, and prompt filtering.</summary>
 public static partial class AgentExtensions

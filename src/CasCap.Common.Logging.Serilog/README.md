@@ -2,6 +2,12 @@
 
 Reusable Serilog configuration with standard enrichers, console sink, and health-check filtering built on top of `CasCap.Common.Logging`.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Logging.Serilog
+```
+
 ## Purpose
 
 Provides a bootstrap logger for early startup logging and a composable `AddCasCapDefaults` extension on `LoggerConfiguration` that applies the standard CasCap Serilog pipeline: platform-aware console sink, common enrichers, health-check noise filter, and `appsettings.json` binding.

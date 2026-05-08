@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>MCP-friendly projection of <see cref="ProviderConfig"/> (excludes sensitive fields).</summary>
 public record ProviderInfo

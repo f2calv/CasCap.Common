@@ -1,4 +1,4 @@
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>OpenTelemetry registration extensions for ASP.NET Core applications.</summary>
 public static class OpenTelemetryExtensions

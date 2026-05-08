@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace CasCap.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Shared handler for <see cref="ChatCommand"/> slash-commands and agent session management.</summary>
 /// <remarks>

@@ -2,6 +2,12 @@
 
 Reusable OpenTelemetry configuration with standard metrics, traces, and log exporters via OTLP gRPC, built on top of `CasCap.Common.Abstractions` and `CasCap.Common.Logging.Serilog`.
 
+## Installation
+
+```bash
+dotnet add package CasCap.Common.OpenTelemetry
+```
+
 ## Purpose
 
 Provides a single `InitializeOpenTelemetry` extension method on `WebApplicationBuilder` that registers the full OpenTelemetry pipeline (metrics, traces, and logs) with standard ASP.NET Core instrumentations. Configuration is driven by `IMetricsConfig` — the OTLP endpoint, service name, and metric prefix are all sourced from the application's configuration record.

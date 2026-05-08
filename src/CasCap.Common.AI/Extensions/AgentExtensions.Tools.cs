@@ -1,4 +1,4 @@
-namespace CasCap.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Tool discovery, filtering, and sub-agent delegation tool creation.</summary>
 public static partial class AgentExtensions

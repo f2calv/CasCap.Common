@@ -38,7 +38,7 @@ public static class MessagePackExtensions
         try
         {
             T obj = MessagePackSerializer.Deserialize<T>(bytes);
-            //_logger.LogTrace("{ClassName} deserialized object {typeof} from {count} bytes",
+            //_logger.LogTrace("{ClassName} deserialized object {typeof} from {Count} bytes",
             //    nameof(MessagePackSerializationHelpers), typeof(T), bytes.Length);
             return obj;
         }

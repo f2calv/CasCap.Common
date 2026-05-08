@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Slash-commands that can be entered at a console prompt or sent via a messaging interface
@@ -26,7 +26,7 @@ public enum ChatCommand
     [Description("/session bypass")]
     SessionBypass,
 
-    /// <summary>Reduces the active session to the newest N messages, discarding older history. Usage: /session compact {count}</summary>
+    /// <summary>Reduces the active session to the newest N messages, discarding older history. Usage: /session compact {Count}</summary>
     [Description("/session compact")]
     SessionCompact,
 

@@ -1,4 +1,4 @@
-namespace CasCap.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>
 /// Identifies a single source of MCP prompts for an agent, with optional include/exclude

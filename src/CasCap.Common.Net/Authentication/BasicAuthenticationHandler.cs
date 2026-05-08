@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-namespace CasCap.Authentication;
+namespace CasCap.Common.Authentication;
 
 /// <summary>
 /// ASP.NET Core authentication handler that validates HTTP Basic credentials

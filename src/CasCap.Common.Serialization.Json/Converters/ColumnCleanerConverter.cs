@@ -1,5 +1,5 @@
-﻿/*
-namespace CasCap.Models;
+/*
+namespace CasCap.Common.Models;
 
 public class ColumnCleanerConverter : JsonConverter
 {

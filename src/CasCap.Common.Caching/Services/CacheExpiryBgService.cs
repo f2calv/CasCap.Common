@@ -11,7 +11,9 @@ public class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
     {
         await Task.Yield();
         logger.LogInformation("{ClassName} starting", nameof(CacheExpiryBgService));
-        await Task.WhenAll(
+        // await-await-WhenAny propagates the first faulted task immediately so the
+        // service crashes and the pod restarts rather than running in a degraded state.
+        await await Task.WhenAny(
             localCacheExpirySvc.ExecuteAsync(stoppingToken),
             remoteCacheExpirySvc.ExecuteAsync(stoppingToken));
         logger.LogInformation("{ClassName} exiting", nameof(CacheExpiryBgService));
