@@ -28,7 +28,7 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
 }
 
 [ExcludeFromCodeCoverage]
-class TestLogger(ITestOutputHelper output) : ILogger
+private class TestLogger(ITestOutputHelper output) : ILogger
 {
     private readonly List<LogEntry> _entries = [];
 
@@ -42,12 +42,19 @@ class TestLogger(ITestOutputHelper output) : ILogger
     {
         var entry = new LogEntry(logLevel, formatter(state, exception));
         _entries.Add(entry);
-        output.WriteLine(entry.ToString());
+        try
+        {
+            output.WriteLine(entry.ToString());
+        }
+        catch (InvalidOperationException)
+        {
+            //xUnit throws when no test is active (e.g. during async disposal)
+        }
     }
 }
 
 [ExcludeFromCodeCoverage]
-class LogEntry(LogLevel level, string message)
+private class LogEntry(LogLevel level, string message)
 {
     public DateTime Timestamp { get; } = DateTime.Now;
 
