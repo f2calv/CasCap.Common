@@ -28,7 +28,7 @@ public class TestLogProvider(ITestOutputHelper testOutputHelper) : ILoggerProvid
 }
 
 [ExcludeFromCodeCoverage]
-private class TestLogger(ITestOutputHelper output) : ILogger
+class TestLogger(ITestOutputHelper output) : ILogger
 {
     private readonly List<LogEntry> _entries = [];
 
@@ -54,7 +54,7 @@ private class TestLogger(ITestOutputHelper output) : ILogger
 }
 
 [ExcludeFromCodeCoverage]
-private class LogEntry(LogLevel level, string message)
+class LogEntry(LogLevel level, string message)
 {
     public DateTime Timestamp { get; } = DateTime.Now;
 
