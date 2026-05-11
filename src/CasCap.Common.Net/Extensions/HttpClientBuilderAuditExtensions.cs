@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using CasCap.Common.Auditing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CasCap.Common.Extensions;
 
@@ -18,6 +19,7 @@ public static class HttpClientBuilderAuditExtensions
     /// <returns>The <see cref="IHttpClientBuilder"/> for further chaining.</returns>
     public static IHttpClientBuilder AddHttpAuditing(this IHttpClientBuilder builder, string sourceName)
     {
+        builder.Services.TryAddSingleton<IHttpAuditStore, NullHttpAuditStore>();
         builder.Services.AddTransient<HttpAuditHandler>();
         builder.AddHttpMessageHandler(() => new HttpAuditSourceHandler(sourceName));
         builder.AddHttpMessageHandler<HttpAuditHandler>();
