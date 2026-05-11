@@ -21,7 +21,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | `IAppConfig` | Marker interface implemented by all application configuration records to allow easy identification and generic constraint usage |
 | `IBgFeature` | Identifies a feature-gated background service — exposes a string `FeatureName` and `ExecuteAsync` entry point. Matched case-insensitively against the enabled features set at startup |
 | `IFeature<T>` | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
-| `IEventSink<T>` | Generic event sink contract. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel |
+| `IEventSink<T>` | Generic event sink contract (unconstrained — accepts both reference and value types). Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel |
 | `ILocalCache` | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
 | `IMyBlob` | Represents a blob with associated metadata (`bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
 | `INotifier` | Abstracts a notification service capable of sending and receiving messages with optional attachment support |
