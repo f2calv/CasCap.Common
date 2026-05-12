@@ -5,7 +5,11 @@ public class ParseEnumConverter<TEnum> : JsonConverter<TEnum> where TEnum : stru
 {
     /// <inheritdoc/>
     public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+#if NETSTANDARD2_0
+        (TEnum)Enum.Parse(typeof(TEnum), reader.GetString()!, true);
+#else
         Enum.Parse<TEnum>(reader.GetString()!, true);
+#endif
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options) =>
