@@ -20,5 +20,9 @@ public record ApiAuthConfig : IAppConfig
     /// </summary>
     [Required, MinLength(1)]
     public required string Password { get; init; }
+
+    /// <summary>Request path prefixes that bypass authentication entirely.</summary>
+    /// <remarks>Defaults to <c>/healthz</c> for Kubernetes liveness/readiness probes.</remarks>
+    public string[] AnonymousPathPrefixes { get; init; } = ["/healthz"];
 }
 #endif
