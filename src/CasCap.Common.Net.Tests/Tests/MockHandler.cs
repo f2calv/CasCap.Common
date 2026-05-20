@@ -22,7 +22,7 @@ public class MockHandler : HttpMessageHandler
     {
         return new MockHandler((_, _) =>
         {
-            var json = JsonSerializer.Serialize(payload);
+            var json = payload.ToJson();
             var response = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -36,7 +36,7 @@ public class MockHandler : HttpMessageHandler
     {
         return new MockHandler((_, _) =>
         {
-            var json = JsonSerializer.Serialize(payload);
+            var json = payload.ToJson();
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -54,7 +54,7 @@ public class MockHandler : HttpMessageHandler
     {
         return new MockHandler((_, _) =>
         {
-            var json = JsonSerializer.Serialize(errorPayload);
+            var json = errorPayload.ToJson();
             var response = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -108,7 +108,7 @@ public class MockHandler : HttpMessageHandler
         return new MockHandler(async (req, _) =>
         {
             await capture(req);
-            var json = JsonSerializer.Serialize(payload);
+            var json = payload.ToJson();
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -123,7 +123,7 @@ public class MockHandler : HttpMessageHandler
         return new MockHandler(async (_, ct) =>
         {
             await Task.Delay(delay, ct);
-            var json = JsonSerializer.Serialize(payload);
+            var json = payload.ToJson();
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
