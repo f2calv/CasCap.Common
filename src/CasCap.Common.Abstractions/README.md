@@ -47,7 +47,7 @@ This library contains no concrete implementations — only interfaces and abstra
 
 | Type | Description |
 | --- | --- |
-| `ApiAuthConfig` | Basic authentication settings for a REST API (`Username`, `Password`) |
+| `ApiAuthConfig` | Basic authentication settings for a REST API (`Username`, `Password`, `AnonymousPathPrefixes`) |
 | `SinkConfig` | Dictionary of `SinkTypeAttribute` name → `SinkConfigParams` |
 | `SinkConfigParams` | Per-sink settings: `Enabled`, and a `Settings` dictionary for sink-specific key/value settings |
 | `SinkSettingKeys` | Compile-time constants for common sink setting keys |
