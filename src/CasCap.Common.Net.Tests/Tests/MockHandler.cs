@@ -18,7 +18,7 @@ public class MockHandler : HttpMessageHandler
         => _handler(request, cancellationToken);
 
     /// <summary>Creates a handler that returns a JSON-serialized payload.</summary>
-    public static MockHandler ForJson<T>(T payload, HttpStatusCode statusCode = HttpStatusCode.OK)
+    public static MockHandler ForJson<T>(T payload, HttpStatusCode statusCode = HttpStatusCode.OK) where T : notnull
     {
         return new MockHandler((_, _) =>
         {
@@ -32,7 +32,7 @@ public class MockHandler : HttpMessageHandler
     }
 
     /// <summary>Creates a handler that returns a JSON-serialized payload with custom response headers.</summary>
-    public static MockHandler ForJsonWithHeaders<T>(T payload, params (string name, string value)[] headers)
+    public static MockHandler ForJsonWithHeaders<T>(T payload, params (string name, string value)[] headers) where T : notnull
     {
         return new MockHandler((_, _) =>
         {
@@ -50,7 +50,7 @@ public class MockHandler : HttpMessageHandler
     /// <summary>
     /// Creates a handler that returns a JSON-serialized error payload with the specified status code.
     /// </summary>
-    public static MockHandler ForError<T>(HttpStatusCode statusCode, T errorPayload)
+    public static MockHandler ForError<T>(HttpStatusCode statusCode, T errorPayload) where T : notnull
     {
         return new MockHandler((_, _) =>
         {
@@ -103,7 +103,7 @@ public class MockHandler : HttpMessageHandler
     }
 
     /// <summary>Creates a handler that invokes a capture callback before returning a JSON response.</summary>
-    public static MockHandler WithCapture<T>(Func<HttpRequestMessage, Task> capture, T payload)
+    public static MockHandler WithCapture<T>(Func<HttpRequestMessage, Task> capture, T payload) where T : notnull
     {
         return new MockHandler(async (req, _) =>
         {
@@ -118,7 +118,7 @@ public class MockHandler : HttpMessageHandler
     }
 
     /// <summary>Creates a handler that delays before returning a JSON response.</summary>
-    public static MockHandler WithDelay<T>(TimeSpan delay, T payload)
+    public static MockHandler WithDelay<T>(TimeSpan delay, T payload) where T : notnull
     {
         return new MockHandler(async (_, ct) =>
         {
