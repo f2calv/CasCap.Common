@@ -125,6 +125,42 @@ public static class ParseExtensions
         return output;
     }
 
+    /// <summary>Span-based overload that avoids substring allocations.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Decimal2Int(this ReadOnlySpan<char> input, int exp = 0)
+    {
+        var decimalExists = false;
+        var output = 0;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var digit = input[i];
+            if (digit != 46)
+            {
+                output = output * 10 + (digit - _zero);
+                if (decimalExists)
+                {
+                    exp--;
+                    if (exp == 0) break;
+                }
+            }
+            else
+            {
+                decimalExists = true;
+                if (exp == 0) break;
+            }
+        }
+        output = exp switch
+        {
+            0 => output,
+            1 => output *= 10,
+            2 => output *= 100,
+            3 => output *= 1000,
+            4 => output *= 10000,
+            _ => output *= Pow(exp)
+        };
+        return output;
+    }
+
     /// <summary>Parses the input string as a <see cref="decimal"/>.</summary>
     /// <param name="input">The string to parse.</param>
     /// <returns>The parsed decimal value.</returns>
@@ -178,6 +214,72 @@ public static class ParseExtensions
             _ => output *= Pow(exp)
         };
         //Debug.WriteLine($"output={output}");
+        return output;
+    }
+
+    /// <summary>Span-based overload that avoids substring allocations.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long Decimal2Long(this ReadOnlySpan<char> input, int exp = 0)
+    {
+        var decimalExists = false;
+        var output = 0L;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var digit = input[i];
+            if (digit != 46)
+            {
+                output = output * 10 + (digit - _zero);
+                if (decimalExists)
+                {
+                    exp--;
+                    if (exp == 0) break;
+                }
+            }
+            else
+            {
+                decimalExists = true;
+                if (exp == 0) break;
+            }
+        }
+        output = exp switch
+        {
+            0 => output,
+            1 => output *= 10,
+            2 => output *= 100,
+            3 => output *= 1000,
+            4 => output *= 10000,
+            _ => output *= Pow(exp)
+        };
+        return output;
+    }
+
+    /// <summary>Parses ASCII byte digits to <see cref="int"/>, stopping at a decimal point.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Decimal2Int(this ReadOnlySpan<byte> input)
+    {
+        var output = 0;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var b = input[i];
+            if (b == (byte)'.')
+                break;
+            output = output * 10 + (b - '0');
+        }
+        return output;
+    }
+
+    /// <summary>Parses ASCII byte digits to <see cref="long"/>, stopping at a decimal point.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long Decimal2Long(this ReadOnlySpan<byte> input)
+    {
+        var output = 0L;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var b = input[i];
+            if (b == (byte)'.')
+                break;
+            output = output * 10 + (b - '0');
+        }
         return output;
     }
 
