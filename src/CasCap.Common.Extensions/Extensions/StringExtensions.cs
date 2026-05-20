@@ -155,4 +155,11 @@ public static class StringExtensions
         var subdomain = host.Substring(0, dotIndex);
         return $"{endpoint.Scheme}://{subdomain}.***";
     }
+
+    /// <summary>Trims, collapses newlines to single spaces, and removes double-spaces.</summary>
+    public static string NormalizeWhitespace(this string input) =>
+        input.Trim()
+             .Replace("\r\n", " ")
+             .Replace("\n", " ")
+             .Replace("  ", " ");
 }

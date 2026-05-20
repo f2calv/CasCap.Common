@@ -61,6 +61,14 @@ public record CachingConfig : IAppConfig
     [ValidateObjectMembers]
     public RedlockConfig Redlock { get; set; } = new();
 
+    /// <summary>Disables cache-aside logic in <see cref="IDistributedCache"/>.</summary>
+    /// <remarks>
+    /// Defaults to <see langword="false"/>. When <see langword="true"/>, <c>Get</c> bypasses all cache layers
+    /// and invokes the factory delegate directly, <c>Set</c> and <c>Delete</c> become no-ops.
+    /// Useful for integration testing where no Redis connection is available.
+    /// </remarks>
+    public bool CacheAsideDisabled { get; set; } = false;
+
     /// <summary>Kubernetes health check probe type for the Redis connection.</summary>
     /// <remarks>Defaults to <see cref="KubernetesProbeTypes.Liveness"/>.</remarks>
     public KubernetesProbeTypes HealthCheckRedis { get; init; } = KubernetesProbeTypes.Liveness;

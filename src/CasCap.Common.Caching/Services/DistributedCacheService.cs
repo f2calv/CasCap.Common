@@ -26,6 +26,9 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     public async Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None) where T : class
     {
+        if (cachingConfig.Value.CacheAsideDisabled)
+            return createItem is not null ? await createItem() : default;
+
         T? cacheEntry = localCache.Get<T>(key);
         if (cacheEntry is null)
         {
@@ -107,6 +110,9 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     public async Task Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None) where T : class
     {
+        if (cachingConfig.Value.CacheAsideDisabled)
+            return;
+
         if (cachingConfig.Value.RemoteCache.IsEnabled)
         {
             logger.LogTrace("{ClassName} storing {Key} object type {Type} in {ObjectName}",
@@ -133,6 +139,9 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     public async Task<bool> Delete(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
+        if (cachingConfig.Value.CacheAsideDisabled)
+            return false;
+
         var result1 = localCache.Delete(key);
         var result2 = false;
         if (cachingConfig.Value.RemoteCache.IsEnabled)
@@ -160,6 +169,9 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
     /// <inheritdoc/>
     public async Task<long> DeleteAll(CommandFlags flags = CommandFlags.None, CancellationToken cancellationToken = default)
     {
+        if (cachingConfig.Value.CacheAsideDisabled)
+            return 0;
+
         var localCount = localCache.DeleteAll();
         long remoteCount = 0;
         if (cachingConfig.Value.RemoteCache.IsEnabled)

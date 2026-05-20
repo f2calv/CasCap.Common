@@ -251,13 +251,13 @@ public static partial class AgentExtensions
                 });
 
                 // Return compact metadata-only result for the LLM.
-                using var doc = JsonDocument.Parse(JsonSerializer.Serialize(new
+                using var doc = JsonDocument.Parse(new
                 {
                     hasImage = true,
                     blobName = fileName,
                     sizeInBytes = base64.Length * 3 / 4,
                     note = $"Image captured (~{sizeKb}KB JPEG). The image will be delivered to the user as an attachment.",
-                }));
+                }.ToJson());
                 result = doc.RootElement.Clone();
             }
         }

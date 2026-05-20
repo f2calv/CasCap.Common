@@ -86,8 +86,20 @@ public static class ParseExtensions
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Decimal2Int(this string input, int exp = 0)
+        => input.AsSpan().Decimal2Int(exp);
+
+    /// <summary>
+    /// Span-based fast parser that converts a string-ified decimal to its <see cref="int"/> equivalent.
+    /// </summary>
+    /// <remarks>
+    /// Iterates character-by-character treating ASCII '.' (46) as the decimal separator.
+    /// When <paramref name="exp"/> is 0 the result is truncated at the decimal point.
+    /// When <paramref name="exp"/> is positive, that many fractional digits are consumed and the
+    /// result is scaled by 10^remaining-exp (e.g. "123.45" with exp=2 → 12345).
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Decimal2Int(this ReadOnlySpan<char> input, int exp = 0)
     {
-        //Debug.WriteLine($"input={input}, input.Length={input.Length}, dp={dp}");
         var decimalExists = false;
         var output = 0;
         for (var i = 0; i < input.Length; i++)
@@ -98,7 +110,7 @@ public static class ParseExtensions
                 output = output * 10 + (digit - _zero);
                 if (decimalExists)
                 {
-                    //there are decimal places so reduce the dp value accordingly
+                    // there are decimal places so reduce the exp value accordingly
                     exp--;
                     if (exp == 0) break;
                 }
@@ -106,11 +118,8 @@ public static class ParseExtensions
             else
             {
                 decimalExists = true;
-                if (exp == 0) break;//we don't care about anything after the decimal point
-                                    //var strLenRemaining = input.Length - 1 - i;
-                                    //Debug.WriteLine($"decimalPos={decimalPos}, strLenRemaining={strLenRemaining}");
+                if (exp == 0) break; // we don't care about anything after the decimal point
             }
-            //Debug.WriteLine($"index i={i}, output={output}");
         }
         output = exp switch
         {
@@ -121,7 +130,6 @@ public static class ParseExtensions
             4 => output *= 10000,
             _ => output *= Pow(exp)
         };
-        //Debug.WriteLine($"output={output}");
         return output;
     }
 
@@ -142,8 +150,20 @@ public static class ParseExtensions
     /// <returns>The parsed long value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Decimal2Long(this string input, int exp = 0)
+        => input.AsSpan().Decimal2Long(exp);
+
+    /// <summary>
+    /// Span-based fast parser that converts a string-ified decimal to its <see cref="long"/> equivalent.
+    /// </summary>
+    /// <remarks>
+    /// Iterates character-by-character treating ASCII '.' (46) as the decimal separator.
+    /// When <paramref name="exp"/> is 0 the result is truncated at the decimal point.
+    /// When <paramref name="exp"/> is positive, that many fractional digits are consumed and the
+    /// result is scaled by 10^remaining-exp (e.g. "123.45" with exp=2 → 12345).
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long Decimal2Long(this ReadOnlySpan<char> input, int exp = 0)
     {
-        //Debug.WriteLine($"input={input}, input.Length={input.Length}, dp={dp}");
         var decimalExists = false;
         var output = 0L;
         for (var i = 0; i < input.Length; i++)
@@ -154,7 +174,7 @@ public static class ParseExtensions
                 output = output * 10 + (digit - _zero);
                 if (decimalExists)
                 {
-                    //there are decimal places so reduce the dp value accordingly
+                    // there are decimal places so reduce the exp value accordingly
                     exp--;
                     if (exp == 0) break;
                 }
@@ -162,11 +182,8 @@ public static class ParseExtensions
             else
             {
                 decimalExists = true;
-                if (exp == 0) break;//we don't care about anything after the decimal point
-                                    //var strLenRemaining = input.Length - 1 - i;
-                                    //Debug.WriteLine($"decimalPos={decimalPos}, strLenRemaining={strLenRemaining}");
+                if (exp == 0) break; // we don't care about anything after the decimal point
             }
-            //Debug.WriteLine($"index i={i}, output={output}");
         }
         output = exp switch
         {
@@ -177,7 +194,36 @@ public static class ParseExtensions
             4 => output *= 10000,
             _ => output *= Pow(exp)
         };
-        //Debug.WriteLine($"output={output}");
+        return output;
+    }
+
+    /// <summary>Parses ASCII byte digits to <see cref="int"/>, stopping at a decimal point.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Decimal2Int(this ReadOnlySpan<byte> input)
+    {
+        var output = 0;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var b = input[i];
+            if (b == (byte)'.')
+                break;
+            output = output * 10 + (b - '0');
+        }
+        return output;
+    }
+
+    /// <summary>Parses ASCII byte digits to <see cref="long"/>, stopping at a decimal point.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long Decimal2Long(this ReadOnlySpan<byte> input)
+    {
+        var output = 0L;
+        for (var i = 0; i < input.Length; i++)
+        {
+            var b = input[i];
+            if (b == (byte)'.')
+                break;
+            output = output * 10 + (b - '0');
+        }
         return output;
     }
 

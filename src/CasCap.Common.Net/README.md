@@ -24,7 +24,7 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 
 | Type | Description |
 | --- | --- |
-| `BasicAuthenticationHandler` | ASP.NET Core authentication handler validating HTTP Basic credentials against `ApiAuthConfig` (net8.0+ only) |
+| `BasicAuthenticationHandler` | ASP.NET Core authentication handler validating HTTP Basic credentials against `ApiAuthConfig`. Skips authentication for paths matching `ApiAuthConfig.AnonymousPathPrefixes` (net8.0+ only) |
 
 ### HTTP Auditing
 

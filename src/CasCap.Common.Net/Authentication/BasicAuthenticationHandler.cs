@@ -24,6 +24,13 @@ public class BasicAuthenticationHandler(
     /// <inheritdoc/>
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // Skip authentication for configured anonymous path prefixes (e.g. health checks)
+        foreach (var prefix in _apiAuthConfig.AnonymousPathPrefixes)
+        {
+            if (Request.Path.StartsWithSegments(prefix))
+                return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
         var authHeader = Request.Headers.Authorization.ToString();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith($"{SchemeName} ", StringComparison.OrdinalIgnoreCase))
         {

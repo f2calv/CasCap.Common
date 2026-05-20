@@ -267,7 +267,7 @@ public class RedisCacheService : IRemoteCache
         }
     }
 
-    private const string keyStringGetSetExpiryAsync = $"CasCap.Common.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
+    private const string keyStringGetSetExpiryAsync = $"{nameof(CasCap)}.Common.Resources.{nameof(Db.StringGetSetExpiryAsync)}.lua";
 
     /// <inheritdoc/>
     public LoadedLuaScript? LoadLuaScript(string scriptName, string script)
