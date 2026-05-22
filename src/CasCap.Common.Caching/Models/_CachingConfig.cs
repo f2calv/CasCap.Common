@@ -42,7 +42,7 @@ public record CachingConfig : IAppConfig
     public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
     /// <summary>Specifies the root folder where the local disk cache will store serialized files.</summary>
-    public string DiskCacheFolder { get; init; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
+    public string DiskCacheFolder { get; init; } = AppDomain.CurrentDomain.BaseDirectory.Extend("cache");
 
     /// <summary>Enables pub/sub-based invalidation of local cache entries across distributed clients.</summary>
     public bool LocalCacheInvalidationEnabled { get; set; } = true;

@@ -15,13 +15,32 @@ public static class IOExtensions
     public static string Extend(this string root, string folderOrFile)
         => Path.Combine(root, folderOrFile);
 
-    //public static string ExtendAndCreateDirectory(this string root, string folderOrFile)
-    //{
-    //    var directory = root.ExtendPath(Path.GetFullPath(folderOrFile));
-    //    if (!Directory.Exists(directory))
-    //        Directory.CreateDirectory(directory);
-    //    return directory;
-    //}
+    /// <summary>Combines a root path with two relative path segments.</summary>
+    /// <param name="root">The root directory path.</param>
+    /// <param name="path1">The first relative path segment.</param>
+    /// <param name="path2">The second relative path segment.</param>
+    /// <returns>The combined path.</returns>
+    public static string Extend(this string root, string path1, string path2)
+        => Path.Combine(root, path1, path2);
+
+    /// <summary>Combines a root path with three relative path segments.</summary>
+    /// <param name="root">The root directory path.</param>
+    /// <param name="path1">The first relative path segment.</param>
+    /// <param name="path2">The second relative path segment.</param>
+    /// <param name="path3">The third relative path segment.</param>
+    /// <returns>The combined path.</returns>
+    public static string Extend(this string root, string path1, string path2, string path3)
+        => Path.Combine(root, path1, path2, path3);
+
+    /// <summary>Ensures the directory at the specified path exists, creating it if necessary.</summary>
+    /// <param name="directoryPath">The directory path to ensure exists.</param>
+    /// <returns>The same directory path for fluent chaining.</returns>
+    public static string EnsureDirectoryExists(this string directoryPath)
+    {
+        if (!Directory.Exists(directoryPath))
+            Directory.CreateDirectory(directoryPath);
+        return directoryPath;
+    }
 
     /// <summary>Writes all bytes to the specified path, creating the directory if it does not exist.</summary>
     /// <param name="path">The file path to write to.</param>
@@ -33,6 +52,29 @@ public static class IOExtensions
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             File.WriteAllBytes(path, bytes);
+        }
+        else
+            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+    }
+
+    /// <summary>
+    /// Asynchronously writes all bytes to the specified path, creating the directory if it does not exist.
+    /// </summary>
+    /// <param name="path">The file path to write to.</param>
+    /// <param name="bytes">The byte content to write.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    public static async Task WriteAllBytesAsync(this string path, byte[] bytes, CancellationToken cancellationToken)
+    {
+        var dir = Path.GetDirectoryName(path);
+        if (dir is not null)
+        {
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+#if NET8_0_OR_GREATER
+            await File.WriteAllBytesAsync(path, bytes, cancellationToken);
+#else
+            await Task.Delay(0, cancellationToken);
+            File.WriteAllBytes(path, bytes);
+#endif
         }
         else
             throw new GenericException($"GetDirectoryName not possible for path '{path}'");

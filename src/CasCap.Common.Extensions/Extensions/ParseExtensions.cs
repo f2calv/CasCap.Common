@@ -254,12 +254,12 @@ public static class ParseExtensions
     //this will be faster than the bitmask variant below
     private static int Pow(int exp) => exp switch
     {
-        0 => exp,
-        1 => exp *= 10,
-        2 => exp *= 100,
-        3 => exp *= 1000,
-        4 => exp *= 10000,
-        _ => exp *= Pow(exp)
+        0 => 1,
+        1 => 10,
+        2 => 100,
+        3 => 1000,
+        4 => 10000,
+        _ => Pow(exp, 10)
     };
 
     //https://stackoverflow.com/questions/2065249/c-sharp-efficient-algorithm-integer-based-power-function

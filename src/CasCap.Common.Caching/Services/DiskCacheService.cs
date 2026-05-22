@@ -34,7 +34,7 @@ public class DiskCacheService : ILocalCache
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
         _diskCacheFolder = _cachingConfig.DiskCacheFolder;
-        if (!Directory.Exists(_diskCacheFolder)) Directory.CreateDirectory(_diskCacheFolder);
+        _diskCacheFolder.EnsureDirectoryExists();
         if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
     }
 
@@ -139,7 +139,7 @@ public class DiskCacheService : ILocalCache
     {
         if (string.IsNullOrWhiteSpace(_diskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingConfig.DiskCacheFolder)}");
-        return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
+        return _diskCacheFolder.Extend(key.Replace(":", "_"));
     }
 
     /// <summary>
