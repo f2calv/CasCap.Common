@@ -15,6 +15,23 @@ public static class IOExtensions
     public static string Extend(this string root, string folderOrFile)
         => Path.Combine(root, folderOrFile);
 
+    /// <summary>Combines a root path with two relative path segments.</summary>
+    /// <param name="root">The root directory path.</param>
+    /// <param name="path1">The first relative path segment.</param>
+    /// <param name="path2">The second relative path segment.</param>
+    /// <returns>The combined path.</returns>
+    public static string Extend(this string root, string path1, string path2)
+        => Path.Combine(root, path1, path2);
+
+    /// <summary>Combines a root path with three relative path segments.</summary>
+    /// <param name="root">The root directory path.</param>
+    /// <param name="path1">The first relative path segment.</param>
+    /// <param name="path2">The second relative path segment.</param>
+    /// <param name="path3">The third relative path segment.</param>
+    /// <returns>The combined path.</returns>
+    public static string Extend(this string root, string path1, string path2, string path3)
+        => Path.Combine(root, path1, path2, path3);
+
     /// <summary>Ensures the directory at the specified path exists, creating it if necessary.</summary>
     /// <param name="directoryPath">The directory path to ensure exists.</param>
     /// <returns>The same directory path for fluent chaining.</returns>
