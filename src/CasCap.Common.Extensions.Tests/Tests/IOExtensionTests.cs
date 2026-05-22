@@ -8,9 +8,9 @@ public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(tes
     public async Task IO()
     {
         //Arrange
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
-        var filePath1 = Path.Combine(path, "test.txt");
-        var filePath2 = Path.Combine(path, "test.bin");
+        var path = AppDomain.CurrentDomain.BaseDirectory.Extend("cache");
+        var filePath1 = path.Extend("test.txt");
+        var filePath2 = path.Extend("test.bin");
         //cleanup
         if (Directory.Exists(path))
             Directory.Delete(path, true);

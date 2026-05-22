@@ -139,7 +139,7 @@ public class DiskCacheService : ILocalCache
     {
         if (string.IsNullOrWhiteSpace(_diskCacheFolder))
             throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingConfig.DiskCacheFolder)}");
-        return Path.Combine(_diskCacheFolder, key.Replace(":", "_"));
+        return _diskCacheFolder.Extend(key.Replace(":", "_"));
     }
 
     /// <summary>

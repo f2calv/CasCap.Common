@@ -31,11 +31,11 @@ public sealed class FileHttpAuditStore(
     public async Task SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
     {
         var datePart = entry.TimestampUtc.ToString("yyyy-MM-dd");
-        var dayDir = Path.Combine(outputDirectory, datePart).EnsureDirectoryExists();
+        var dayDir = outputDirectory.Extend(datePart).EnsureDirectoryExists();
 
         var timestamp = entry.TimestampUtc.ToString("HHmmss-fff");
         var fileName = $"{timestamp}_{entry.Source}_{entry.StatusCode}.json";
-        var filePath = Path.Combine(dayDir, fileName);
+        var filePath = dayDir.Extend(fileName);
 
         await using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None,
             bufferSize: 4096, useAsync: true);
