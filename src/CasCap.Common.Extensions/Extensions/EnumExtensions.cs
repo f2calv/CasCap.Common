@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -27,22 +28,13 @@ public static class EnumExtensions
     /// <summary>Handy to find originating method name when debugging.</summary>
     public static string GetCallingMethodName([CallerMemberName] string caller = "") => caller;
 
-    private static Dictionary<Enum, string> enumStringValues = new();
+    private static readonly ConcurrentDictionary<Enum, string> s_enumStringValues = new();
 
     /// <summary>Returns the cached string representation of the specified <see cref="Enum"/> value.</summary>
     /// <param name="myEnum">The enum value.</param>
     /// <returns>The cached string representation.</returns>
     public static string ToStringCached(this Enum myEnum)
-    {
-        if (enumStringValues.TryGetValue(myEnum, out var textValue))
-            return textValue;
-        else
-        {
-            textValue = myEnum.ToString();
-            enumStringValues[myEnum] = textValue;
-            return textValue;
-        }
-    }
+        => s_enumStringValues.GetOrAdd(myEnum, static e => e.ToString());
 
     /// <summary>
     /// Gets the <see cref="System.ComponentModel.DataAnnotations.DisplayAttribute"/> name for the specified <see cref="Enum"/> value.
