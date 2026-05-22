@@ -34,7 +34,7 @@ public class DiskCacheService : ILocalCache
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
         _diskCacheFolder = _cachingConfig.DiskCacheFolder;
-        if (!Directory.Exists(_diskCacheFolder)) Directory.CreateDirectory(_diskCacheFolder);
+        _diskCacheFolder.EnsureDirectoryExists();
         if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
     }
 

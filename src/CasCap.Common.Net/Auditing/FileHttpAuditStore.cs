@@ -31,8 +31,7 @@ public sealed class FileHttpAuditStore(
     public async Task SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
     {
         var datePart = entry.TimestampUtc.ToString("yyyy-MM-dd");
-        var dayDir = Path.Combine(outputDirectory, datePart);
-        Directory.CreateDirectory(dayDir);
+        var dayDir = Path.Combine(outputDirectory, datePart).EnsureDirectoryExists();
 
         var timestamp = entry.TimestampUtc.ToString("HHmmss-fff");
         var fileName = $"{timestamp}_{entry.Source}_{entry.StatusCode}.json";
