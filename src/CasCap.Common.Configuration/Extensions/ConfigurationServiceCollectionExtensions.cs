@@ -18,6 +18,9 @@ public static class ConfigurationServiceCollectionExtensions
         Action<TConfig>? configure = null)
         where TConfig : class, IAppConfig
     {
+#if NET8_0_OR_GREATER
+        services.TryAddSingleton(TimeProvider.System);
+#endif
         var optionsBuilder = services
             .AddOptionsWithValidateOnStart<TConfig>()
             .BindConfiguration(sectionName)
