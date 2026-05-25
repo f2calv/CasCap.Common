@@ -8,6 +8,9 @@ public class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;
+#if NET8_0_OR_GREATER
+    private readonly TimeProvider _timeProvider;
+#endif
     private readonly string _diskCacheFolder;
 
     /// <summary>
@@ -29,10 +32,17 @@ public class DiskCacheService : ILocalCache
     private readonly ConcurrentDictionary<string, DateTimeOffset> _absoluteExpirations = [];
 
     /// <summary>Initializes a new instance of the <see cref="DiskCacheService"/> class.</summary>
-    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig)
+    public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig
+#if NET8_0_OR_GREATER
+        , TimeProvider timeProvider
+#endif
+    )
     {
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
+#if NET8_0_OR_GREATER
+        _timeProvider = timeProvider;
+#endif
         _diskCacheFolder = _cachingConfig.DiskCacheFolder;
         _diskCacheFolder.EnsureDirectoryExists();
         if (_cachingConfig.DiskCache.ClearOnStartup) DeleteAll();
@@ -111,7 +121,11 @@ public class DiskCacheService : ILocalCache
             var newExpiration = slidingExpiration.Value;
             _slidingExpirations.AddOrUpdate(key, newExpiration, (_, _) => newExpiration);
             if (!absoluteExpiration.HasValue)
-                absoluteExpiration = DateTime.UtcNow + newExpiration;
+#if NET8_0_OR_GREATER
+                absoluteExpiration = _timeProvider.GetUtcNow() + newExpiration;
+#else
+                absoluteExpiration = DateTimeOffset.UtcNow + newExpiration;
+#endif
         }
         if (absoluteExpiration.HasValue)
         {
@@ -130,7 +144,11 @@ public class DiskCacheService : ILocalCache
         if (_absoluteExpirations.TryGetValue(key, out var aExpiration))
             absoluteExpiration = aExpiration;
 
-        return absoluteExpiration.HasValue && absoluteExpiration.Value.DateTime < DateTime.UtcNow;
+#if NET8_0_OR_GREATER
+        return absoluteExpiration.HasValue && absoluteExpiration.Value < _timeProvider.GetUtcNow();
+#else
+        return absoluteExpiration.HasValue && absoluteExpiration.Value < DateTimeOffset.UtcNow;
+#endif
     }
 
     /// <summary>Converts a Redis cache key into a valid file path.</summary>

@@ -6,7 +6,8 @@ namespace CasCap.Common.Auditing;
 /// </summary>
 public class HttpAuditHandler(
     IHttpAuditStore auditStore,
-    ILogger<HttpAuditHandler> logger
+    ILogger<HttpAuditHandler> logger,
+    TimeProvider timeProvider
 ) : DelegatingHandler
 {
     /// <inheritdoc/>
@@ -17,9 +18,9 @@ public class HttpAuditHandler(
         if (request.Content is not null)
             requestBody = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-        var start = TimeProvider.System.GetTimestamp();
+        var start = timeProvider.GetTimestamp();
         var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        var elapsed = TimeProvider.System.GetElapsedTime(start);
+        var elapsed = timeProvider.GetElapsedTime(start);
 
         string? responseBody = null;
         if (response.Content is not null)
@@ -27,7 +28,7 @@ public class HttpAuditHandler(
 
         var entry = new HttpAuditEntry
         {
-            TimestampUtc = DateTime.UtcNow,
+            TimestampUtc = timeProvider.GetUtcNow().UtcDateTime,
             Source = request.Options.TryGetValue(HttpAuditSource.Key, out var source)
                 ? source ?? "Unknown"
                 : "Unknown",

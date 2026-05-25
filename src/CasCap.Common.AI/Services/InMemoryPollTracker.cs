@@ -11,7 +11,7 @@ namespace CasCap.Common.Services;
 /// <see cref="GetActivePolls"/> and <see cref="GetPoll"/> calls to prevent
 /// unbounded memory growth.
 /// </remarks>
-public sealed class InMemoryPollTracker(IOptions<AIConfig> aiConfig) : IPollTracker
+public sealed class InMemoryPollTracker(IOptions<AIConfig> aiConfig, TimeProvider timeProvider) : IPollTracker
 {
     private readonly ConcurrentDictionary<string, ActivePoll> _polls = new();
 
@@ -57,7 +57,7 @@ public sealed class InMemoryPollTracker(IOptions<AIConfig> aiConfig) : IPollTrac
 
     private void PruneExpired()
     {
-        var cutoff = DateTime.UtcNow - _pollTtl;
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - _pollTtl;
         foreach (var key in _polls.Keys.ToArray())
             if (_polls.TryGetValue(key, out var poll) && poll.CreatedUtc < cutoff)
                 _polls.TryRemove(key, out _);
