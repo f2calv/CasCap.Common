@@ -25,6 +25,7 @@ public sealed class InMemoryPollTracker(IOptions<AIConfig> aiConfig, TimeProvide
             Question = question,
             Answers = answers,
             GroupId = groupId,
+            CreatedUtc = timeProvider.GetUtcNow().UtcDateTime,
         };
 
     /// <inheritdoc/>

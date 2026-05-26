@@ -24,7 +24,7 @@ public sealed class ActivePoll
     public required string GroupId { get; init; }
 
     /// <summary>When the poll was created (UTC).</summary>
-    public DateTime CreatedUtc { get; init; } = DateTime.UtcNow;
+    public required DateTime CreatedUtc { get; init; }
 
     /// <summary>
     /// Votes received so far, keyed by voter identifier (provider-specific).
