@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using HealthChecks.Redis;
 #endif
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -90,6 +91,9 @@ public static class ServiceCollectionExtensions
     {
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
         services.AddOptions<RedlockConfig>();
+#if NET8_0_OR_GREATER
+        services.TryAddSingleton(TimeProvider.System);
+#endif
 
         if (LocalCacheType == CacheType.Memory)
         {

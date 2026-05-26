@@ -19,6 +19,7 @@
 - **C# Language Version**: 14.0
 - **Braces**: Allman style (`csharp_new_line_before_open_brace = all`). For `if`, `else`, `foreach`, `for`, `while`, and `using` statements whose body is a single statement, omit the curly braces to reduce vertical verbosity.
 - **Expression-bodied members**: Preferred for accessors, properties, indexers, lambdas; **not** for constructors, operators, or local functions. For methods, use an expression body (`=>`) when the method contains a single expression. If the combined method signature and expression would cause horizontal scrolling on smaller editor windows, place the `=>` and expression on the next line, indented.
+- **Explicit interface implementations**: Every explicit interface property must have an accessor block (`{ get => …; }` or `{ get => …; set => …; }`), never an expression body (`=>`). This ensures a consistent shape for all property members and satisfies IDE analysers. Each implementation must also carry `/// <inheritdoc/>` XML documentation.
 - **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
 - **Async/Await**: Always await async method calls.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
@@ -41,7 +42,7 @@
 
 ### Suppressed Warnings
 
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `S125`, `NETSDK1233`
+Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `CS1574`, `S125`, `NETSDK1233`, `NU1901`, `NU1902`, `NU1903`
 
 ### XML Documentation
 
@@ -63,12 +64,124 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 - **No `.Value` suffix bleed**: When logging a value accessed via `options.Value.PropertyName` (primary constructor `IOptions<T>` pattern), the template parameter name must **not** inherit the `.Value` segment and must **not** use a `Val` suffix either. Properties are already well-named — use the property name directly as the template parameter (e.g. `{ServiceFamily}` for `config.Value.ServiceFamily`).
 - **No magic strings in log messages**: When a log message references an enum value, class name, or other identifiable symbol, pass it via `nameof()` as a template argument rather than embedding it as a literal string in the message template.
 - **Avoid `nameof()` as label-only template parameters**: Do not use `nameof()` to inject property/type names as separate structured log parameters just to avoid a literal label — this clutters structured log output (Grafana, Loki, OpenTelemetry) with useless fields. Instead, use the property name as plain text in the message template and reserve `{Braces}` for actual values. E.g. `"{ClassName} ServiceFamily={ServiceFamily}"` with args `nameof(MyService), config.Value.ServiceFamily` — not `"{ClassName} {ServiceFamily}={ServiceFamilyValue}"` with args `nameof(MyService), nameof(MyConfig.ServiceFamily), config.Value.ServiceFamily`.
+- **`[LoggerMessage]` on hot paths**: Code inside tight loops, `Channel` readers, stream consumers, tick processors, and sink iterators must use `[LoggerMessage]`-attributed source-generated logging to eliminate allocations from `params object[]` boxing and interpolation. Declare `private static partial void` methods at the bottom of the partial class (or in a `{ClassName}.Logging.cs` file for larger services). Use `ILogger logger` as the first parameter (not `this ILogger` — that requires a top-level static class). Call sites use the static form: `LogXxx(logger, ...)` / `LogXxx(_logger, ...)`. For services with a primary constructor `ILogger<T> logger` parameter, pass `logger` directly; for traditional constructors, pass the `_logger` field. Leave dynamic-level calls (`logger.Log(level, ...)`) unconverted — `[LoggerMessage]` requires a compile-time constant level.
+- **Logging belongs in services, not controllers**: Domain-specific logging (`LogInformation` with request-specific fields) must live in the service method, not the controller. Controllers should not inject `ILogger` unless they perform work that cannot be delegated (e.g. SSE streaming loops with `LogTrace`).
+
+### Performance
+
+#### Span-Based Parsing
+
+- **`ReadOnlySpan<byte>` for raw byte streams**: When data arrives as UTF-8 bytes (`PipeReader`, Redis buffers, network streams), parse directly from `ReadOnlySpan<byte>` — do not materialise a `string` first. This avoids allocation and encoding conversion on the hot path.
+- **`ReadOnlySpan<char>` for API convenience only**: The `ReadOnlySpan<char>` overload of a parsing method exists so callers who already hold a span (e.g. from `string.AsSpan()` slicing) do not need to call `.ToString()`. It does **not** offer meaningful speed improvement over the `string` overload for already-materialised strings — the loop logic is identical.
+- **Extension method deduplication**: When providing both `string` and `ReadOnlySpan<char>` overloads, the span version holds the implementation and the string version is a thin wrapper delegating via `.AsSpan()`:
+
+```csharp
+public static int Decimal2Int(this string input, int exp = 0)
+    => input.AsSpan().Decimal2Int(exp);
+```
+
+#### Hot-Path Conventions
+
+- **`[MethodImpl(MethodImplOptions.AggressiveInlining)]`**: Apply to leaf-level parsing and conversion methods called in tight loops (e.g. `Decimal2Int`, `Decimal2Long`, `TryReadLine`). Do not apply to methods with complex control flow or large method bodies — the JIT already inlines small methods and forcing it on large ones hurts instruction-cache performance.
+- **Avoid allocations in tight loops**: In `Channel` readers, `PipeReader` loops, stream consumers, and tick processors:
+  - Use `stackalloc` or `ArrayPool<T>` for temporary buffers instead of `new byte[]`.
+  - Prefer `ReadOnlySequence<byte>` slicing over `.ToArray()`.
+  - Use source-generated `[LoggerMessage]` to eliminate `params object[]` boxing (see Logging section).
+- **Async pass-through on wrappers**: Dropping `async`/`await` on thin single-call wrappers avoids state-machine allocation (see Style section for the full convention).
+- **`PipeReader` for line-oriented binary streams**: When reading line-delimited data (CSV tick files, Redis bulk replies), use `PipeReader` with `TryReadLine` to process data in-place from the pipe's buffer without copying to intermediate `string` objects.
+
+### Controllers / Web API
+
+- **Thin controllers**: Controllers must be pure pass-through — no business logic, no LINQ projections, no dictionary lookups, no logging. All domain logic and structured logging belongs in the service layer. A controller method should delegate to a single service call, map the result to an HTTP response type, and nothing else.
+- **No `ILogger` in pass-through controllers**: If every method in a controller simply delegates to a service, remove the `ILogger` injection entirely. The service layer owns observability.
+- **Expression-bodied methods**: Thin pass-through methods that are a single expression (or a single `await` + return) should use expression bodies (`=>`). For methods that branch on a nullable result (NotFound vs Ok), use a ternary with pattern matching.
+- **`<inheritdoc cref="..."/>` on controller methods**: When a controller method is a thin pass-through, use `/// <inheritdoc cref="ServiceType.Method(ParamTypes)"/>` referencing the service method's XML docs. Do not duplicate documentation between the controller and the service.
+- **Typed service methods over generic**: Controllers must not call generic base-class methods (e.g. `GetEntities<T>(tableName, ...)`, `Enqueue<T>(obj, ...)`) directly. Instead, add typed methods to the service interface that encapsulate domain knowledge (table names, queue keys) and include domain-specific logging. This keeps controllers ignorant of infrastructure details.
+- **Nullable returns for NotFound patterns**: Service methods consumed by controllers that may return HTTP 404 should use nullable return types (e.g. `ItemDetail?`) rather than throwing exceptions. The controller uses pattern matching to map the result:
+
+```csharp
+public Results<Ok<ItemDetail>, NotFound> GetItem(int id)
+    => itemSvc.TryGetItem(id) is { } item
+        ? TypedResults.Ok(item)
+        : TypedResults.NotFound();
+```
+
+- **`<example>` tags on DTOs**: All public properties on Web API request/response DTOs should have `/// <example>value</example>` XML doc tags. Swashbuckle uses these to populate example values in the Swagger UI, improving API discoverability.
 
 ### Disposable Resources
 
 - `ServiceProvider` instances built in tests must be disposed via `using`/`await using`.
 - Test helper classes should be `static` when they have no instance state.
 - Avoid shared mutable static state in test fixtures — each test should be independently repeatable.
+
+### Testing
+
+#### Folder Structure
+
+Every `*.Tests` project organises tests into subfolders by type:
+
+```text
+Tests/
+├── Unit/           # Self-contained unit tests (no DI, no external services)
+├── Integration/    # Tests requiring DI, configuration, or external services
+│   └── TestBase.cs # Shared base class for integration tests
+└── Gfx/            # Graphics/rendering tests (optional, project-specific)
+```
+
+#### Integration Tests
+
+- Must carry `[Trait("Category", "Integration")]`.
+- Must live in the `Tests/Integration/` subfolder.
+- Must inherit from `TestBase(output)` — this wires up `ILoggerFactory` (Serilog → xUnit output), `IConfiguration` (appsettings loading), and optionally DI services.
+- `TestBase` lives in `Tests/Integration/TestBase.cs`. It exposes `protected` fields for commonly-used services resolved from the DI container. When a new service is needed by multiple integration test classes, add a `protected` field to `TestBase` resolved from the service provider — do not duplicate service resolution in each test class.
+- `TestBase` exposes a `protected ITestOutputHelper _output` field. Subclasses should use `_output` directly rather than capturing the constructor parameter separately.
+- Exception: lightweight integration tests that only need `HttpClient` (no DI container) may take `ITestOutputHelper` directly without `TestBase`.
+
+#### Unit Tests
+
+- Live in the `Tests/Unit/` subfolder.
+- Do **not** inherit from `TestBase` — they are self-contained with no DI container.
+- May take `ITestOutputHelper` directly for diagnostic output.
+- Use domain-specific trait categories (e.g. `"Parsing"`, `"String Manipulation"`) — not `"Unit"`.
+
+#### Theory Parameterisation
+
+- When multiple `[Fact]` tests differ only by input values, consolidate into a single `[Theory]` with `[InlineData]`. This reduces code duplication while expanding coverage.
+- Use `[Theory]` when testing the same logic across different parameter combinations (e.g. input sizes, threshold values, format types).
+- Keep `[Fact]` for tests with complex setup/assertion logic that doesn't parameterise cleanly.
+
+#### Test Method Naming
+
+- Name test methods after the method or feature being tested (e.g. `GetColumnCells`, `CreateOrUpdateItem`, `DetectsThresholdBreach`).
+- Do **not** use verbose BDD-style sentence names (e.g. avoid `Should_Return_Column_When_Given_Valid_Input`).
+- For lifecycle tests, use `_` separated phases (e.g. `ItemLifecycle_CreateGetUpdateDelete`).
+
+#### Assertions
+
+- Every test must have meaningful assertions. Never use `Assert.True(true)` or other placeholder assertions.
+- Prefer specific assertions (`Assert.Equal`, `Assert.Contains`, `Assert.Null`) over generic `Assert.True(condition)`.
+- Tests that only measure performance (timing loops, `Stopwatch`, `Debug.WriteLine` of elapsed time) without asserting correctness are **not valid tests** — delete them and migrate the benchmark to a BenchmarkDotNet project if the measurement is still needed.
+
+#### Dead Code in Test Projects
+
+- Commented-out test methods, unreachable code behind `return;`, and `[Skip]`-annotated tests with no plan to re-enable should be deleted rather than left to rot.
+- When removing a test method that was the last consumer of a helper/field, remove the helper/field in the same commit.
+- `using` directives that become unused after test removal must be cleaned up in the same commit.
+
+#### Shared Test Data
+
+- Shared test data generators and fixtures live in dedicated `*TestData.cs` files at the `Tests/` root.
+- Hardcoded reference data for regression tests lives in `*Patterns.cs` files.
+- Static helper methods for building test objects should be in `static` helper classes.
+
+#### Test Project README
+
+Every `*.Tests` project README must include:
+
+- A tests table with **method count** and **test case count** (Theories expand to multiple cases via `[InlineData]`).
+- All trait categories used in the project.
+- A skipped tests section listing each skip reason and count.
+- A file structure diagram showing the `Tests/` layout.
 
 ### Multi-Targeting
 
@@ -152,6 +265,11 @@ Avoid these in `[Description]` text:
 ## Cloud (Azure)
 
 - **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
+- **Expanded accessor properties**: High-volume `ITableEntity` reading entities with ultra-short column names must also expose full-name expression-bodied read-only accessor properties decorated with `[IgnoreDataMember]` for developer ergonomics (e.g. `public string IpAddress => ip;`). This provides readable access without adding storage overhead.
+- **ReadingEntity constructors**: Reading entity constructors must accept the domain event record directly (e.g. `FroniusReadingEntity(FroniusEvent evt)`) — never individual properties unpacked at the call site. The constructor is responsible for mapping event properties to ultra-short column fields.
+- **SnapshotEntity constructors**: When a snapshot entity's `RowKey` is always derivable from a property on the event (e.g. `DeviceId`, `NodeName`), the constructor should accept `(string partitionKey, TEvent evt)` and derive `RowKey` internally. Only pass `RowKey` as a separate parameter when it is a constant not present on the event (e.g. `"latest"` for single-device tables).
+- **Entity-scoped PartitionKey**: When a reading entity stores data from multiple devices or sensors, `PartitionKey` should be the device/entity identifier (`DeviceId`, `NodeName`, `CameraId`, `DatapointId`, etc.) rather than a date string. Date-based PK (`yyMMdd`) is acceptable only for single-device-per-table scenarios (e.g. a single Fronius inverter).
+- **Table name versioning**: When changing the `PartitionKey` or `RowKey` structure of an Azure Table entity, increment the table name version suffix (e.g. `froniuslineitemsv1` → `froniuslineitemsv2`). Old data under the previous key structure is orphaned by design — treat structural changes as fresh-start migrations.
 
 ### Redis Key Naming
 
