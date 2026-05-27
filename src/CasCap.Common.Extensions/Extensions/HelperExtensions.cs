@@ -152,7 +152,7 @@ public static class HelperExtensions
     public static string List2String(this List<string> input)
     {
         var sb = new StringBuilder();
-        foreach (var s in input) sb.Append(s + Environment.NewLine);
+        foreach (var s in input) sb.AppendLine(s);
         return sb.ToString();
     }
 
