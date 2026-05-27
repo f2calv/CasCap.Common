@@ -8,7 +8,11 @@ namespace CasCap.Common.Models;
 public class FixedSizedQueue<T> : IReadOnlyCollection<T>
 {
     private readonly Queue<T> _queue = new();
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
 
     /// <inheritdoc/>
     public int Count { get { lock (_lock) { return _queue.Count; } } }
