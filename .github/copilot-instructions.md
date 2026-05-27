@@ -69,26 +69,52 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`
 
 ### Performance
 
+#### ValueTask vs Task
+
+- **Use `ValueTask` / `ValueTask<T>`** when a method frequently completes synchronously — cache hits, `TryRead` on channels, dictionary lookups that short-circuit, or wrappers returning a pre-computed result. Avoids allocating a `Task` on the synchronous path.
+- **Use `Task` / `Task<T>`** when the method almost always goes async (HTTP, database, file I/O).
+- **Never cache, await twice, or concurrently await a `ValueTask`**. Call `.AsTask()` at the call site if needed.
+- **Hot-path interface signatures** (channel brokers, cache accessors) should prefer `ValueTask<T>` so implementations can avoid allocation when data is already available.
+
+#### sealed Classes
+
+- **Mark every concrete class `sealed`** unless it is explicitly designed for inheritance (has `virtual`/`abstract` members or is documented as a base class). The JIT devirtualises and inlines method calls on sealed types.
+- Background services, DI-registered services, entity types, converters, and middleware should default to `sealed`.
+- Removing `sealed` later is a non-breaking change.
+
+#### Frozen Collections
+
+- **`FrozenDictionary<TKey, TValue>` / `FrozenSet<T>`** for any collection populated once at startup and never mutated. Optimised for read throughput at the expense of creation cost.
+- Build via `.ToFrozenDictionary()` / `.ToFrozenSet()` at the end of the initialisation path. Store as the concrete `FrozenDictionary<,>` type (not `IReadOnlyDictionary<,>`) so the JIT can devirtualise lookups.
+
+#### ConfigureAwait(false) in Library Code
+
+- **Library projects** that do not touch `HttpContext` after an await must use `ConfigureAwait(false)` on every `await` to avoid unnecessary `SynchronizationContext` capture.
+- **Application entry-point projects** (workloads, controllers) may omit it — ASP.NET Core has no sync context by default.
+
 #### Span-Based Parsing
 
-- **`ReadOnlySpan<byte>` for raw byte streams**: When data arrives as UTF-8 bytes (`PipeReader`, Redis buffers, network streams), parse directly from `ReadOnlySpan<byte>` — do not materialise a `string` first. This avoids allocation and encoding conversion on the hot path.
-- **`ReadOnlySpan<char>` for API convenience only**: The `ReadOnlySpan<char>` overload of a parsing method exists so callers who already hold a span (e.g. from `string.AsSpan()` slicing) do not need to call `.ToString()`. It does **not** offer meaningful speed improvement over the `string` overload for already-materialised strings — the loop logic is identical.
-- **Extension method deduplication**: When providing both `string` and `ReadOnlySpan<char>` overloads, the span version holds the implementation and the string version is a thin wrapper delegating via `.AsSpan()`:
+- **`ReadOnlySpan<byte>` for raw byte streams**: Parse directly from `ReadOnlySpan<byte>` when data arrives as UTF-8 bytes (`PipeReader`, Redis buffers, network streams) — do not materialise a `string` first.
+- **`ReadOnlySpan<char>` for API convenience**: Exists so callers holding a span do not need `.ToString()`. No speed benefit over the `string` overload for already-materialised strings.
+- **Extension method deduplication**: The span version holds the implementation; the string version delegates via `.AsSpan()`.
 
-```csharp
-public static int Decimal2Int(this string input, int exp = 0)
-    => input.AsSpan().Decimal2Int(exp);
-```
+#### SearchValues\<T\>
+
+- **`SearchValues<char>` / `SearchValues<byte>`** (static field) for repeated `IndexOfAny` / `ContainsAny` on a fixed set of delimiters or sentinels. The runtime selects the optimal vectorised implementation at startup.
+
+#### System.Threading.Lock
+
+- Prefer `System.Threading.Lock` over `object` for dedicated lock instances. Enables a thinner locking path and signals intent more clearly.
 
 #### Hot-Path Conventions
 
-- **`[MethodImpl(MethodImplOptions.AggressiveInlining)]`**: Apply to leaf-level parsing and conversion methods called in tight loops (e.g. `Decimal2Int`, `Decimal2Long`, `TryReadLine`). Do not apply to methods with complex control flow or large method bodies — the JIT already inlines small methods and forcing it on large ones hurts instruction-cache performance.
-- **Avoid allocations in tight loops**: In `Channel` readers, `PipeReader` loops, stream consumers, and tick processors:
+- **`[MethodImpl(MethodImplOptions.AggressiveInlining)]`**: Apply to leaf-level parsing/conversion methods called in tight loops. Do not apply to methods with complex control flow — the JIT already inlines small methods.
+- **Avoid allocations in tight loops** (`Channel` readers, `PipeReader` loops, stream consumers):
   - Use `stackalloc` or `ArrayPool<T>` for temporary buffers instead of `new byte[]`.
   - Prefer `ReadOnlySequence<byte>` slicing over `.ToArray()`.
   - Use source-generated `[LoggerMessage]` to eliminate `params object[]` boxing (see Logging section).
-- **Async pass-through on wrappers**: Dropping `async`/`await` on thin single-call wrappers avoids state-machine allocation (see Style section for the full convention).
-- **`PipeReader` for line-oriented binary streams**: When reading line-delimited data (CSV tick files, Redis bulk replies), use `PipeReader` with `TryReadLine` to process data in-place from the pipe's buffer without copying to intermediate `string` objects.
+- **Async pass-through on wrappers**: Drop `async`/`await` on thin single-call wrappers to avoid state-machine allocation (see Style section).
+- **`PipeReader` for line-oriented binary streams**: Process data in-place from the pipe's buffer without copying to intermediate `string` objects.
 
 ### Controllers / Web API
 
