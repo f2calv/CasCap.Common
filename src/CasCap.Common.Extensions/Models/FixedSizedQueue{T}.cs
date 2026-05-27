@@ -5,7 +5,7 @@ namespace CasCap.Common.Models;
 /// <typeparam name="T">The type of elements in the queue.</typeparam>
 [Serializable]
 [DebuggerDisplay("Count = {" + nameof(Count) + "}, Limit = {" + nameof(Limit) + "}")]
-public class FixedSizedQueue<T> : IReadOnlyCollection<T>
+public sealed class FixedSizedQueue<T> : IReadOnlyCollection<T>
 {
     private readonly Queue<T> _queue = new();
 #if NET9_0_OR_GREATER

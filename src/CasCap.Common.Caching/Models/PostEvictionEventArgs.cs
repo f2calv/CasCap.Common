@@ -3,7 +3,7 @@
 /// <summary>
 /// Event arguments raised after a cache entry is evicted from the local <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/>.
 /// </summary>
-public class PostEvictionEventArgs(object key, object value, EvictionReason reason, object state) : EventArgs
+public sealed class PostEvictionEventArgs(object key, object value, EvictionReason reason, object state) : EventArgs
 {
     /// <summary>The cache key of the evicted entry.</summary>
     public object Key { get; } = key;

@@ -4,7 +4,7 @@
 /// <see cref="System.Text.Json.Serialization.JsonConverter{T}"/> that converts a microsecond Unix epoch
 /// value (as a string token) to and from a nullable <see cref="DateTime"/>.
 /// </summary>
-public class MicrosecondEpochConverter : JsonConverter<DateTime?>
+public sealed class MicrosecondEpochConverter : JsonConverter<DateTime?>
 {
     private static readonly DateTime _epoch =
 #if NET8_0_OR_GREATER

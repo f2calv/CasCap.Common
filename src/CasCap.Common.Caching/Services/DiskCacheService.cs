@@ -4,7 +4,7 @@ namespace CasCap.Common.Services;
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
 /// uses the physical disk to implement the same functionality as the <see cref="IMemoryCache"/>.
 /// </summary>
-public class DiskCacheService : ILocalCache
+public sealed class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;

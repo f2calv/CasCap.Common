@@ -6,7 +6,7 @@ namespace CasCap.Common.Services;
 /// in the configured <see cref="IFeatureConfig{T}.EnabledFeatures"/> bitmask.
 /// </summary>
 [Obsolete("Use the non-generic FeatureFlagBgService with string-based feature names instead.")]
-public class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
+public sealed class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
     where T : Enum
 {
     /// <inheritdoc/>

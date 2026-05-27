@@ -5,7 +5,7 @@ namespace CasCap.Common.Converters;
 /// <see cref="System.Text.Json.Serialization.JsonConverter{T}"/> that converts a millisecond Unix epoch
 /// value (as a string token) to and from a nullable <see cref="DateTime"/>.
 /// </summary>
-public class MillisecondEpochConverter : JsonConverter<DateTime?>
+public sealed class MillisecondEpochConverter : JsonConverter<DateTime?>
 {
     /// <inheritdoc/>
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

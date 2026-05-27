@@ -6,7 +6,7 @@ namespace CasCap.Common.Converters;
 /// <remarks>
 /// <see href="https://stackoverflow.com/questions/66280645/how-can-i-serialize-a-double-2d-array-to-json-using-system-text-json"/>
 /// </remarks>
-public class Array2DConverter : JsonConverterFactory
+public sealed class Array2DConverter : JsonConverterFactory
 {
     /// <inheritdoc/>
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsArray && typeToConvert.GetArrayRank() == 2;

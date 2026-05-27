@@ -9,7 +9,7 @@ namespace CasCap.Common.Services;
 /// and <see cref="CommunicationsBgService"/>. Each consumer provides its own
 /// <see cref="ISessionStore"/> for persistence.
 /// </remarks>
-public class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOptions<AIConfig> aiConfig, ISessionStore sessionStore)
+public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOptions<AIConfig> aiConfig, ISessionStore sessionStore)
 {
     private readonly TimeSpan _sessionTtl = TimeSpan.FromDays(aiConfig.Value.SessionTtlDays);
 
