@@ -4,6 +4,9 @@ namespace CasCap.Common.Abstractions;
 /// <typeparam name="T">The event type handled by this sink.</typeparam>
 public interface IEventSink<T>
 {
+    /// <summary>The sink type identifier used for targeted dispatch filtering.</summary>
+    string SinkType { get; }
+
     /// <summary>
     /// Performs any one-time initialization required by the sink (e.g. starting background flush loops).
     /// The default implementation is a no-op.
@@ -17,12 +20,6 @@ public interface IEventSink<T>
 
     /// <summary>Writes a single event to the sink.</summary>
     Task WriteEvent(T @event, CancellationToken cancellationToken = default);
-
-    /// <summary>Retrieves events from the sink, optionally filtered by <paramref name="id"/>.</summary>
-    /// <param name="id">Optional identifier to filter events.</param>
-    /// <param name="limit">Maximum number of events to return. Defaults to <c>1000</c>.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    IAsyncEnumerable<T> GetEvents(string? id = null, int limit = 1000, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Performs housekeeping by removing entries whose identifiers are not in <paramref name="validIds"/>.
