@@ -27,15 +27,15 @@ public sealed class DistributedCacheSessionStore(IDistributedCache distCache) : 
 {
     /// <inheritdoc/>
     public async Task<string?> GetAsync(string key) =>
-        await distCache.Get<string>(key);
+        await distCache.Get<string>(key).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public async Task SetAsync(string key, string json, TimeSpan? slidingExpiration = null) =>
-        await distCache.Set(key, json, slidingExpiration: slidingExpiration);
+        await distCache.Set(key, json, slidingExpiration: slidingExpiration).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public async Task DeleteAsync(string key) =>
-        await distCache.Delete(key);
+        await distCache.Delete(key).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public Task<IReadOnlyList<string>> ListKeysAsync(string prefix) =>

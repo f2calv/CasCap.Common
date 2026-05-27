@@ -31,7 +31,7 @@ public abstract class HttpEndpointCheckBase(
     public virtual async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("{ClassName} healthcheck executing...", GetType().Name);
-        var result = await IsAccessible(healthCheckConfig, cancellationToken);
+        var result = await IsAccessible(healthCheckConfig, cancellationToken).ConfigureAwait(false);
         if (result)
         {
             ConnectionActive = true;
@@ -69,7 +69,7 @@ public abstract class HttpEndpointCheckBase(
         HttpResponseMessage? result = null;
         try
         {
-            result = await client.GetAsync(requestUri, cancellationToken);
+            result = await client.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {

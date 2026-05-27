@@ -53,10 +53,10 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 return BuildHelpText();
 
             case ChatCommand.SessionInfo:
-                return await BuildSessionInfoTextAsync(agent, sessionKey);
+                return await BuildSessionInfoTextAsync(agent, sessionKey).ConfigureAwait(false);
 
             case ChatCommand.SessionReset:
-                await sessionStore.DeleteAsync(sessionKey);
+                await sessionStore.DeleteAsync(sessionKey).ConfigureAwait(false);
                 logger.LogInformation("{ClassName} session reset via slash command", nameof(AgentCommandHandler));
                 return "Session reset. The next message will start a fresh conversation.";
 
@@ -67,7 +67,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 return null;
 
             case ChatCommand.SessionCompact:
-                return await CompactSessionAsync(agent, sessionKey, argument);
+                return await CompactSessionAsync(agent, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionDisable:
                 _sessionEnabled = false;
@@ -80,13 +80,13 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 return "Session persistence enabled.";
 
             case ChatCommand.SessionSave:
-                return await SaveSnapshotAsync(agent, agentName, sessionKey, argument);
+                return await SaveSnapshotAsync(agent, agentName, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionLoad:
-                return await LoadSnapshotAsync(agent, agentName, sessionKey, argument);
+                return await LoadSnapshotAsync(agent, agentName, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionDelete:
-                return await DeleteSnapshotAsync(agentName, argument);
+                return await DeleteSnapshotAsync(agentName, argument).ConfigureAwait(false);
 
             case ChatCommand.Model:
                 if (string.IsNullOrWhiteSpace(argument))
@@ -95,7 +95,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 logger.LogInformation("{ClassName} model overridden to {Model} via slash command",
                     nameof(AgentCommandHandler), _modelOverride);
                 if (onModelChanged is not null)
-                    await onModelChanged(_modelOverride);
+                    await onModelChanged(_modelOverride).ConfigureAwait(false);
                 return $"Model overridden to: {_modelOverride}";
 
             case ChatCommand.Instructions:
@@ -125,11 +125,11 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         if (!_sessionEnabled)
             return null;
         var sessionKey = BuildSessionKey(agentName);
-        var json = await sessionStore.GetAsync(sessionKey);
+        var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return null;
         JsonElement reloaded = json.FromJson<JsonElement>(JsonSerializerOptions.Web)!;
-        return await agent.DeserializeSessionAsync(reloaded, JsonSerializerOptions.Web);
+        return await agent.DeserializeSessionAsync(reloaded, JsonSerializerOptions.Web).ConfigureAwait(false);
     }
 
     /// <summary>Persists the agent session to the store with a 7-day sliding expiration.</summary>
@@ -139,8 +139,8 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         if (!_sessionEnabled)
             return;
         var sessionKey = BuildSessionKey(agentName);
-        var serialized = await agent.SerializeSessionAsync(session, JsonSerializerOptions.Web);
-        await sessionStore.SetAsync(sessionKey, serialized.ToJson(), _sessionTtl);
+        var serialized = await agent.SerializeSessionAsync(session, JsonSerializerOptions.Web).ConfigureAwait(false);
+        await sessionStore.SetAsync(sessionKey, serialized.ToJson(), _sessionTtl).ConfigureAwait(false);
     }
 
     /// <summary>Applies <see cref="ModelOverride"/> to <paramref name="chatOptions"/> when set.</summary>
@@ -174,14 +174,14 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     /// <summary>Builds the <c>/session info</c> response text with size and StateBag breakdown.</summary>
     private async Task<string> BuildSessionInfoTextAsync(AIAgent agent, string sessionKey)
     {
-        var json = await sessionStore.GetAsync(sessionKey);
+        var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return "No active session.";
         var sizeBytes = Encoding.UTF8.GetByteCount(json);
         try
         {
             var sessionElement = json.FromJson<JsonElement>(JsonSerializerOptions.Web)!;
-            var session = await agent.DeserializeSessionAsync(sessionElement, JsonSerializerOptions.Web);
+            var session = await agent.DeserializeSessionAsync(sessionElement, JsonSerializerOptions.Web).ConfigureAwait(false);
             var entries = ChatCommandParser.GetStateBagEntries(session);
             var lines = new StringBuilder();
             lines.AppendLine($"Session active (persistence: {(_sessionEnabled ? "on" : "off")}). Size: {sizeBytes:N0} bytes.");
@@ -205,17 +205,17 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     {
         if (!int.TryParse(argument, out var keepCount) || keepCount <= 0)
             return "Usage: /session compact <count> (positive integer)";
-        var json = await sessionStore.GetAsync(sessionKey);
+        var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return "No active session to compact.";
         try
         {
             var sessionElement = json.FromJson<JsonElement>(JsonSerializerOptions.Web)!;
-            var session = await agent.DeserializeSessionAsync(sessionElement, JsonSerializerOptions.Web);
+            var session = await agent.DeserializeSessionAsync(sessionElement, JsonSerializerOptions.Web).ConfigureAwait(false);
             if (!ChatCommandParser.TryCompactSession(session, keepCount, out var removedCount))
                 return "No in-memory chat history found in the current session.";
-            var serialized = await agent.SerializeSessionAsync(session, JsonSerializerOptions.Web);
-            await sessionStore.SetAsync(sessionKey, serialized.ToJson(), _sessionTtl);
+            var serialized = await agent.SerializeSessionAsync(session, JsonSerializerOptions.Web).ConfigureAwait(false);
+            await sessionStore.SetAsync(sessionKey, serialized.ToJson(), _sessionTtl).ConfigureAwait(false);
             return removedCount > 0
                 ? $"Session compacted: removed {removedCount} message(s), {keepCount} retained."
                 : $"Session already has {keepCount} or fewer messages — nothing to compact.";
@@ -232,11 +232,11 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     {
         if (string.IsNullOrWhiteSpace(snapshotName))
             return "Usage: /session save <name>";
-        var json = await sessionStore.GetAsync(sessionKey);
+        var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return "No active session to save.";
         var snapshotKey = BuildSnapshotKey(agentName, snapshotName);
-        await sessionStore.SetAsync(snapshotKey, json, _sessionTtl);
+        await sessionStore.SetAsync(snapshotKey, json, _sessionTtl).ConfigureAwait(false);
         var sizeBytes = Encoding.UTF8.GetByteCount(json);
         logger.LogInformation("{ClassName} session snapshot saved as {SnapshotName} ({SizeBytes} bytes)",
             nameof(AgentCommandHandler), snapshotName, sizeBytes);
@@ -249,10 +249,10 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         if (string.IsNullOrWhiteSpace(snapshotName))
             return "Usage: /session load <name>";
         var snapshotKey = BuildSnapshotKey(agentName, snapshotName);
-        var json = await sessionStore.GetAsync(snapshotKey);
+        var json = await sessionStore.GetAsync(snapshotKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return $"No snapshot named \"{snapshotName}\" found.";
-        await sessionStore.SetAsync(sessionKey, json, _sessionTtl);
+        await sessionStore.SetAsync(sessionKey, json, _sessionTtl).ConfigureAwait(false);
         var sizeBytes = Encoding.UTF8.GetByteCount(json);
         logger.LogInformation("{ClassName} session snapshot {SnapshotName} loaded into active session ({SizeBytes} bytes)",
             nameof(AgentCommandHandler), snapshotName, sizeBytes);
@@ -265,7 +265,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         if (string.IsNullOrWhiteSpace(snapshotName))
             return "Usage: /session delete <name>";
         var snapshotKey = BuildSnapshotKey(agentName, snapshotName);
-        await sessionStore.DeleteAsync(snapshotKey);
+        await sessionStore.DeleteAsync(snapshotKey).ConfigureAwait(false);
         logger.LogInformation("{ClassName} session snapshot {SnapshotName} deleted",
             nameof(AgentCommandHandler), snapshotName);
         return $"Snapshot \"{snapshotName}\" deleted.";

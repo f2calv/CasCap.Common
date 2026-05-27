@@ -25,17 +25,17 @@ public sealed class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> l
             var success = remoteCache.SlidingExpirations.TryRemove(redisValue.ToString(), out var _);
             logger.LogTrace("{ClassName} expiration detected key={Key}, removal status={Success}, {Count} item(s) remaining",
                 nameof(RemoteCacheExpiryService), key, success, remoteCache.SlidingExpirations.Count);
-        });
+        }).ConfigureAwait(false);
 
         //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(1000, cancellationToken);
+            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
             nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
-        await remoteCache.Subscriber.UnsubscribeAsync(channel);
+        await remoteCache.Subscriber.UnsubscribeAsync(channel).ConfigureAwait(false);
 
         logger.LogInformation("{ClassName} stopping", nameof(RemoteCacheExpiryService));
     }

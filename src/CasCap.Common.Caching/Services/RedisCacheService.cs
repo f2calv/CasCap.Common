@@ -69,16 +69,16 @@ public sealed class RedisCacheService : IRemoteCache
 
     /// <inheritdoc/>
     public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
-        => await _GetAsync(FormatKey(key), flags);
+        => await _GetAsync(FormatKey(key), flags).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
-        => (byte[]?)(await _GetAsync(FormatKey(key), flags));
+        => (byte[]?)(await _GetAsync(FormatKey(key), flags).ConfigureAwait(false));
 
     private async Task<RedisValue> _GetAsync(string key, CommandFlags flags = CommandFlags.None)
         => TryGetExpiration(key, out var slidingExpiration)
-            ? await Db.StringGetSetExpiryAsync(key, slidingExpiration, flags)
-            : await Db.StringGetAsync(key, flags);
+            ? await Db.StringGetSetExpiryAsync(key, slidingExpiration, flags).ConfigureAwait(false)
+            : await Db.StringGetAsync(key, flags).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public bool Set(string key, string value, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null, CommandFlags flags = CommandFlags.None)
@@ -177,15 +177,15 @@ public sealed class RedisCacheService : IRemoteCache
         if (updateSlidingExpirationIfExists && TryGetExpiration(key, out var slidingExpiration) && slidingExpiration.HasValue)
         {
             if (_cachingConfig.UseBuiltInLuaScripts)
-                o = await StringGetSetExpiryAsync();
+                o = await StringGetSetExpiryAsync().ConfigureAwait(false);
             else
             {
-                var _o = await Db.StringGetSetExpiryAsync(key, slidingExpiration.Value, flags);
+                var _o = await Db.StringGetSetExpiryAsync(key, slidingExpiration.Value, flags).ConfigureAwait(false);
                 o = new RedisValueWithExpiry(_o, slidingExpiration.Value);
             }
         }
         else
-            o = await Db.StringGetWithExpiryAsync(key, flags);
+            o = await Db.StringGetWithExpiryAsync(key, flags).ConfigureAwait(false);
         if (o.Value.HasValue)
         {
             _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
@@ -243,7 +243,7 @@ public sealed class RedisCacheService : IRemoteCache
                     trackCaller = (RedisValue)caller//the method which instigated this particular access attempt
                 };
                 //var result = await loaded.EvaluateAsync(Db, ps, flags: flags);
-                var result = await Db.ScriptEvaluateAsync(loaded, ps, flags: flags);
+                var result = await Db.ScriptEvaluateAsync(loaded, ps, flags: flags).ConfigureAwait(false);
                 var retKeys = (RedisResult[]?)result;
                 return retKeys;
             }
