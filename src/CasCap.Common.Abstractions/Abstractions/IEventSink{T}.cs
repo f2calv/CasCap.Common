@@ -21,12 +21,6 @@ public interface IEventSink<T>
     /// <summary>Writes a single event to the sink.</summary>
     Task WriteEvent(T @event, CancellationToken cancellationToken = default);
 
-    /// <summary>Retrieves events from the sink, optionally filtered by <paramref name="id"/>.</summary>
-    /// <param name="id">Optional identifier to filter events.</param>
-    /// <param name="limit">Maximum number of events to return. Defaults to <c>1000</c>.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    IAsyncEnumerable<T> GetEvents(string? id = null, int limit = 1000, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Performs housekeeping by removing entries whose identifiers are not in <paramref name="validIds"/>.
     /// The default implementation is a no-op.

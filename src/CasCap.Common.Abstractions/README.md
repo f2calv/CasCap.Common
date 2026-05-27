@@ -21,7 +21,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | [`IAppConfig`](Abstractions/_IAppConfig.cs) | Marker interface implemented by all application configuration records to allow easy identification and generic constraint usage |
 | [`IBgFeature`](Abstractions/IBgFeature.cs) | Identifies a feature-gated background service — exposes a string `FeatureName` and `ExecuteAsync` entry point. Matched case-insensitively against the enabled features set at startup |
 | [`IFeature<T>`](Abstractions/IFeature%7BT%7D.cs) | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
-| [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) | Generic event sink contract (unconstrained — accepts both reference and value types). Exposes a `SinkType` property for targeted dispatch filtering. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel |
+| [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) | Generic write-path event sink contract (unconstrained — accepts both reference and value types). Exposes a `SinkType` property for targeted dispatch filtering. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel. Read-path queries are defined by domain-specific interfaces (e.g. `IFroniusQuery`, `IKnxQuery`) in the consuming projects |
 | [`ILocalCache`](Abstractions/ILocalCache.cs) | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
 | [`IMyBlob`](Abstractions/IMyBlob.cs) | Represents a blob with associated metadata (`bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
 | [`INotifier`](Abstractions/INotifier.cs) | Abstracts a notification service capable of sending and receiving messages with optional attachment support |
@@ -83,13 +83,14 @@ This library contains no concrete implementations — only interfaces and abstra
 string SinkType { get; }
 Task InitializeAsync(CancellationToken cancellationToken);
 Task WriteEvent(T @event, CancellationToken cancellationToken = default);
-IAsyncEnumerable<T> GetEvents(string? id = null, int limit = 1000, CancellationToken cancellationToken = default);
 Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
 ```
 
 `SinkType` is a self-describing property that each implementation sets to its own sink identifier (e.g. `"Redis"`, `"AzureTables"`, `"Console"`). This enables targeted dispatch filtering at runtime without reflection. The value should match the string passed to [`SinkTypeAttribute`](Attributes/SinkTypeAttribute.cs) on the same class.
 
-`InitializeAsync` and `HousekeepingAsync` have default no-op implementations so that sink authors only need to implement `SinkType`, `WriteEvent` and `GetEvents`.
+`InitializeAsync` and `HousekeepingAsync` have default no-op implementations so that sink authors only need to implement `SinkType` and `WriteEvent`.
+
+Read-path queries (retrieving stored events, snapshots) are intentionally **not** part of this interface. Each domain defines its own query interface (e.g. `IFroniusQuery`, `IKnxQuery`) with methods tailored to the domain's access patterns. This follows the Interface Segregation Principle — write-only sinks (e.g. Console, SignalR) are not forced to implement read methods they cannot support.
 
 ## Dependencies
 
