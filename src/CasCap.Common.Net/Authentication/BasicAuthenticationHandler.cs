@@ -10,7 +10,7 @@ namespace CasCap.Common.Authentication;
 /// ASP.NET Core authentication handler that validates HTTP Basic credentials
 /// against the <see cref="ApiAuthConfig"/> settings.
 /// </summary>
-public class BasicAuthenticationHandler(
+public sealed class BasicAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,

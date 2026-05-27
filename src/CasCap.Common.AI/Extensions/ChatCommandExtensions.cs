@@ -25,7 +25,7 @@ public static class ChatCommandParser
     /// Human-readable one-line descriptions for each <see cref="ChatCommand"/>, used by both
     /// <c>/help</c> in the console UI and in the Signal-messenger help response.
     /// </summary>
-    public static readonly IReadOnlyDictionary<ChatCommand, string> CommandDescriptions =
+    public static readonly FrozenDictionary<ChatCommand, string> CommandDescriptions =
         new Dictionary<ChatCommand, string>
         {
             [ChatCommand.Help] = "List all available commands.",
@@ -40,7 +40,7 @@ public static class ChatCommandParser
             [ChatCommand.SessionDelete] = "Delete a previously saved session snapshot. Usage: /session delete <name>",
             [ChatCommand.Model] = "Override the model for subsequent requests. Usage: /model <modelName> (no arg = show current override).",
             [ChatCommand.Instructions] = "Replace the system instructions for subsequent requests. Usage: /instructions <text> (no arg = show current override).",
-        };
+        }.ToFrozenDictionary();
 
     /// <summary>
     /// Attempts to parse a slash-command from the raw prompt line.

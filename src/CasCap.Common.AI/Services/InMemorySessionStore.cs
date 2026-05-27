@@ -12,24 +12,24 @@ public sealed class InMemorySessionStore : ISessionStore
     private readonly ConcurrentDictionary<string, string> _store = new();
 
     /// <inheritdoc/>
-    public Task<string?> GetAsync(string key) =>
-        Task.FromResult(_store.TryGetValue(key, out var json) ? json : null);
+    public ValueTask<string?> GetAsync(string key) =>
+        new(_store.TryGetValue(key, out var json) ? json : null);
 
     /// <inheritdoc/>
-    public Task SetAsync(string key, string json, TimeSpan? slidingExpiration = null)
+    public ValueTask SetAsync(string key, string json, TimeSpan? slidingExpiration = null)
     {
         _store[key] = json;
-        return Task.CompletedTask;
+        return default;
     }
 
     /// <inheritdoc/>
-    public Task DeleteAsync(string key)
+    public ValueTask DeleteAsync(string key)
     {
         _store.TryRemove(key, out _);
-        return Task.CompletedTask;
+        return default;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
-        Task.FromResult<IReadOnlyList<string>>(_store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList());
+    public ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
+        new(_store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList());
 }

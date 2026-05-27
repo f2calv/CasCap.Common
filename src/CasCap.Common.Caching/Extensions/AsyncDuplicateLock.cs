@@ -15,11 +15,16 @@ public sealed class AsyncDuplicateLock
     }
 
     private static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_lock = new();
+#else
+    private static readonly object s_lock = new();
+#endif
 
     private static SemaphoreSlim GetOrCreate(object key)
     {
         RefCounted<SemaphoreSlim>? item;
-        lock (SemaphoreSlims)
+        lock (s_lock)
         {
             if (SemaphoreSlims.TryGetValue(key, out item))
                 ++item.RefCount;
@@ -55,7 +60,7 @@ public sealed class AsyncDuplicateLock
         public void Dispose()
         {
             RefCounted<SemaphoreSlim> item;
-            lock (SemaphoreSlims)
+            lock (s_lock)
             {
                 item = SemaphoreSlims[Key];
                 --item.RefCount;

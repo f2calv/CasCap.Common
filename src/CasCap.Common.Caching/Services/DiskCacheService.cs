@@ -4,7 +4,7 @@ namespace CasCap.Common.Services;
 /// The <see cref="DiskCacheService"/> is an implementation of the <see cref="ILocalCache"/> which
 /// uses the physical disk to implement the same functionality as the <see cref="IMemoryCache"/>.
 /// </summary>
-public class DiskCacheService : ILocalCache
+public sealed class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;
@@ -177,7 +177,7 @@ public class DiskCacheService : ILocalCache
         {
             string json;
 #if NET8_0_OR_GREATER
-            json = await File.ReadAllTextAsync(key, cancellationToken);
+            json = await File.ReadAllTextAsync(key, cancellationToken).ConfigureAwait(false);
 #else
             json = File.ReadAllText(key);
 #endif
@@ -197,7 +197,7 @@ public class DiskCacheService : ILocalCache
             using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
             {
                 // Key not in cache, so populate
-                cacheEntry = await createItem();
+                cacheEntry = await createItem().ConfigureAwait(false);
                 _logger.LogTrace("{ClassName} attempted to populate a new cacheEntry object {Key}", nameof(DiskCacheService), key);
                 if (cacheEntry is not null)
                     Set(key, cacheEntry, null);

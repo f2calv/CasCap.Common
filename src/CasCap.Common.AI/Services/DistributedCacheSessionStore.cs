@@ -26,18 +26,18 @@ namespace CasCap.Common.Services;
 public sealed class DistributedCacheSessionStore(IDistributedCache distCache) : ISessionStore
 {
     /// <inheritdoc/>
-    public async Task<string?> GetAsync(string key) =>
-        await distCache.Get<string>(key);
+    public async ValueTask<string?> GetAsync(string key) =>
+        await distCache.Get<string>(key).ConfigureAwait(false);
 
     /// <inheritdoc/>
-    public async Task SetAsync(string key, string json, TimeSpan? slidingExpiration = null) =>
-        await distCache.Set(key, json, slidingExpiration: slidingExpiration);
+    public async ValueTask SetAsync(string key, string json, TimeSpan? slidingExpiration = null) =>
+        await distCache.Set(key, json, slidingExpiration: slidingExpiration).ConfigureAwait(false);
 
     /// <inheritdoc/>
-    public async Task DeleteAsync(string key) =>
-        await distCache.Delete(key);
+    public async ValueTask DeleteAsync(string key) =>
+        await distCache.Delete(key).ConfigureAwait(false);
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
-        Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
+    public ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
+        new(Array.Empty<string>());
 }

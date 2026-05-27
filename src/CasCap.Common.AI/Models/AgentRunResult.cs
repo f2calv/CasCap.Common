@@ -10,7 +10,7 @@ public sealed class AgentRunResult(string agentName)
 {
     private readonly StringBuilder _sb = new();
     private readonly StringBuilder _thinkingSb = new();
-    private readonly object _sbLock = new();
+    private readonly Lock _sbLock = new();
 
     /// <summary>Display name of the agent this result belongs to.</summary>
     public string AgentName { get; } = agentName;

@@ -5,7 +5,7 @@ namespace CasCap.Common.Services;
 /// Registered as a hosted service by <see cref="ServiceCollectionExtensions.AddFeatureFlagService(IReadOnlySet{string}, bool)"/>
 /// when <c>addGitMetadataService</c> is <see langword="true"/>.
 /// </remarks>
-public class GitMetadataBgService(ILogger<GitMetadataBgService> logger, GitMetadata gitMetadata) : BackgroundService
+public sealed class GitMetadataBgService(ILogger<GitMetadataBgService> logger, GitMetadata gitMetadata) : BackgroundService
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

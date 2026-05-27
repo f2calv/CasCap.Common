@@ -9,7 +9,7 @@
 /// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="IBgFeature.AlwaysEnabled"/>
 /// are launched regardless of the enabled set.
 /// </remarks>
-public class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, IOptions<FeatureFlagConfig> featureConfig, IEnumerable<IBgFeature> features) : BackgroundService
+public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, IOptions<FeatureFlagConfig> featureConfig, IEnumerable<IBgFeature> features) : BackgroundService
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

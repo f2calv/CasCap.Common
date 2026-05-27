@@ -10,14 +10,14 @@ namespace CasCap.Common.Abstractions;
 public interface ISessionStore
 {
     /// <summary>Retrieves the serialised session JSON for <paramref name="key"/>, or <see langword="null"/> when absent.</summary>
-    Task<string?> GetAsync(string key);
+    ValueTask<string?> GetAsync(string key);
 
     /// <summary>Persists <paramref name="json"/> under <paramref name="key"/> with an optional sliding expiration.</summary>
-    Task SetAsync(string key, string json, TimeSpan? slidingExpiration = null);
+    ValueTask SetAsync(string key, string json, TimeSpan? slidingExpiration = null);
 
     /// <summary>Removes the session stored under <paramref name="key"/>.</summary>
-    Task DeleteAsync(string key);
+    ValueTask DeleteAsync(string key);
 
     /// <summary>Lists all keys that match <paramref name="prefix"/>.</summary>
-    Task<IReadOnlyList<string>> ListKeysAsync(string prefix);
+    ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix);
 }

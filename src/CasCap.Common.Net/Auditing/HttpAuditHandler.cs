@@ -4,7 +4,7 @@ namespace CasCap.Common.Auditing;
 /// <summary>
 /// <see cref="DelegatingHandler"/> that captures HTTP request/response pairs and persists them via <see cref="IHttpAuditStore"/>.
 /// </summary>
-public class HttpAuditHandler(
+public sealed class HttpAuditHandler(
     IHttpAuditStore auditStore,
     ILogger<HttpAuditHandler> logger,
     TimeProvider timeProvider

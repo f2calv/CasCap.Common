@@ -3,7 +3,11 @@ namespace Serilog;
 /// <summary>Extension methods for configuring Serilog with standard CasCap defaults.</summary>
 public static class SerilogExtensions
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock _lock = new();
+#else
     private static readonly object _lock = new();
+#endif
     private static bool _bootstrapLoggerInitialized;
 
     /// <summary>

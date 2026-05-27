@@ -8,7 +8,11 @@ namespace Serilog;
 /// </summary>
 public static class SerilogWebApplicationBuilderExtensions
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock _lock = new();
+#else
     private static readonly object _lock = new();
+#endif
     private static bool _mainLoggingInitialized;
 
     /// <summary>

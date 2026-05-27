@@ -1,5 +1,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
+#if NET8_0_OR_GREATER
+using System.Buffers;
+#endif
 
 namespace CasCap.Common.Extensions;
 
@@ -68,7 +71,31 @@ public static class StringExtensions
     /// <summary>Removes tab, newline and carriage-return characters from the string.</summary>
     public static string Clean(this string thisString, string replacement = "")
     {
+#if NET8_0_OR_GREATER
+        if (replacement.Length == 0)
+        {
+            var span = thisString.AsSpan();
+            var idx = span.IndexOfAny(s_cleanChars);
+            if (idx < 0)
+                return thisString;
+            // At least one match — build result by copying segments between matches.
+            var result = new char[thisString.Length];
+            var written = 0;
+            while (idx >= 0)
+            {
+                span[..idx].CopyTo(result.AsSpan(written));
+                written += idx;
+                span = span[(idx + 1)..];
+                idx = span.IndexOfAny(s_cleanChars);
+            }
+            span.CopyTo(result.AsSpan(written));
+            written += span.Length;
+            return new string(result, 0, written);
+        }
         return rgxClean.Replace(thisString, replacement);
+#else
+        return rgxClean.Replace(thisString, replacement);
+#endif
     }
 
     /// <summary>Determines whether the string is a valid email address.</summary>
@@ -95,13 +122,38 @@ public static class StringExtensions
     public static string? Sanitize(this string? input, string replacement = SingleSpace)
     {
         if (input is null) return input;
+#if NET8_0_OR_GREATER
+        var span = input.AsSpan();
+        var idx = span.IndexOfAny(s_sanitizeChars);
+        if (idx < 0)
+            return input;
+        // At least one match — replace each matched char with replacement string.
+        var sb = new StringBuilder(input.Length);
+        while (idx >= 0)
+        {
+            sb.Append(span[..idx]);
+            sb.Append(replacement);
+            span = span[(idx + 1)..];
+            idx = span.IndexOfAny(s_sanitizeChars);
+        }
+        sb.Append(span);
+        var sanitized = sb.ToString();
+        return replacement == SingleSpace ? rgxMultipleSpaces.Replace(sanitized, replacement) : sanitized;
+#else
         var sanitized = rgxSanitize.Replace(input, replacement);
         return replacement == SingleSpace ? rgxMultipleSpaces.Replace(sanitized, replacement) : sanitized;
+#endif
     }
 
     #region private regex fields
 
     private static readonly TimeSpan s_regexTimeout = TimeSpan.FromSeconds(1);
+
+#if NET8_0_OR_GREATER
+    private static readonly SearchValues<char> s_cleanChars = SearchValues.Create("\t\n\r");
+
+    private static readonly SearchValues<char> s_sanitizeChars = SearchValues.Create("~#%&*{}/:<>?|\"-\\");
+#endif
 
     private static readonly Regex rgxClean = new(@"\t|\n|\r", RegexOptions.Compiled, s_regexTimeout);
 

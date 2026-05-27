@@ -4,7 +4,7 @@
 /// When a change to a cached item is effected by the <see cref="IDistributedCache"/> this service comes into action.
 /// <inheritdoc cref="DistributedCacheService.InvalidateLocalCache(string, CommandFlags)"/>
 /// </summary>
-public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger, IOptions<CachingConfig> cachingConfig,
+public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger, IOptions<CachingConfig> cachingConfig,
     IRemoteCache remoteCache, ILocalCache localCache)
 {
     private long count = 0;
@@ -57,12 +57,12 @@ public class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger, IO
         //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(100, cancellationToken);
+            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
             nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
-        await remoteCache.Subscriber.UnsubscribeAsync(channel);
+        await remoteCache.Subscriber.UnsubscribeAsync(channel).ConfigureAwait(false);
 
         //static string GetKey(string channel)
         //{

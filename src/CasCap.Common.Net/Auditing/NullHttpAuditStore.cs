@@ -5,7 +5,7 @@ namespace CasCap.Common.Auditing;
 public sealed class NullHttpAuditStore : IHttpAuditStore
 {
     /// <inheritdoc/>
-    public Task SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    public ValueTask SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
+        => default;
 }
 #endif
