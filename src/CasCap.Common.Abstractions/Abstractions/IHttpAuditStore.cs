@@ -7,6 +7,6 @@ public interface IHttpAuditStore
     /// <summary>Persists a single audit entry.</summary>
     /// <param name="entry">The HTTP audit entry to store.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default);
+    ValueTask SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default);
 }
 #endif

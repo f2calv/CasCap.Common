@@ -28,7 +28,7 @@ public sealed class FileHttpAuditStore(
     };
 
     /// <inheritdoc/>
-    public async Task SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
+    public async ValueTask SaveAsync(HttpAuditEntry entry, CancellationToken cancellationToken = default)
     {
         var datePart = entry.TimestampUtc.ToString("yyyy-MM-dd");
         var dayDir = outputDirectory.Extend(datePart).EnsureDirectoryExists();
