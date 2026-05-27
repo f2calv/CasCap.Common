@@ -4,6 +4,9 @@ namespace CasCap.Common.Abstractions;
 /// <typeparam name="T">The event type handled by this sink.</typeparam>
 public interface IEventSink<T>
 {
+    /// <summary>The sink type identifier used for targeted dispatch filtering.</summary>
+    string SinkType { get; }
+
     /// <summary>
     /// Performs any one-time initialization required by the sink (e.g. starting background flush loops).
     /// The default implementation is a no-op.
