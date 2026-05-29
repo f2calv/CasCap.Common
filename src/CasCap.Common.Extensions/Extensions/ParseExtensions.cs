@@ -100,6 +100,9 @@ public static class ParseExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Decimal2Int(this ReadOnlySpan<char> input, int exp = 0)
     {
+        if (input.IsEmpty || input.IsWhiteSpace())
+            return 0;
+
         var decimalExists = false;
         var output = 0;
         for (var i = 0; i < input.Length; i++)
@@ -164,6 +167,9 @@ public static class ParseExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Decimal2Long(this ReadOnlySpan<char> input, int exp = 0)
     {
+        if (input.IsEmpty || input.IsWhiteSpace())
+            return 0L;
+
         var decimalExists = false;
         var output = 0L;
         for (var i = 0; i < input.Length; i++)
