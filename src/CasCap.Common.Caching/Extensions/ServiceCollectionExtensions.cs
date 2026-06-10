@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
+            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
             healthCheckRedis: cachingConfig.HealthCheckRedis);
     }
 
@@ -70,7 +71,8 @@ public static class ServiceCollectionExtensions
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
-            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat);
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
+            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
@@ -87,6 +89,7 @@ public static class ServiceCollectionExtensions
         CacheType RemoteCacheType = CacheType.Redis,
         bool distributedLockingEnabled = false,
         string redisKeyFormat = "RedLock:{0}",
+        int redisDatabaseId = 0,
         KubernetesProbeTypes healthCheckRedis = KubernetesProbeTypes.None)
     {
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
@@ -135,6 +138,7 @@ public static class ServiceCollectionExtensions
             {
                 var rlMuxer = (RedLockMultiplexer)multiplexer;
                 rlMuxer.RedisKeyFormat = redisKeyFormat;
+                rlMuxer.RedisDatabase = redisDatabaseId;
                 var redLockFactory = RedLockFactory.Create([rlMuxer]);
                 services.AddSingleton<IDistributedLockFactory>(redLockFactory);
             }
