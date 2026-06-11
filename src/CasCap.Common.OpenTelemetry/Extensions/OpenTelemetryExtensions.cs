@@ -32,7 +32,7 @@ public static class OpenTelemetryExtensions
         var attributes = new Dictionary<string, object>
         {
             { "service.version", gitMetadata.GIT_TAG },
-            { "deployment.environment", builder.Environment.EnvironmentName }
+            { "deployment.environment", builder.Environment.GetAcronym() }
         };
         var resourceBuilder = ResourceBuilder.CreateDefault().AddService(
             serviceName: metricsConfig.OtelServiceName,

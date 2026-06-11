@@ -16,6 +16,19 @@ public static class HelperExtensions
     /// <summary>Checks if the current host environment name is 'Test'.</summary>
     public static bool IsTest(this IHostEnvironment env) => env.IsEnvironment("Test");
 
+    /// <summary>Returns the short-form acronym for the current environment name.</summary>
+    /// <remarks>Development → DEV, Test → TST, Integration → INT, Production → PRD. Unknown environments return the first 3 characters uppercased.</remarks>
+    public static string GetAcronym(this IHostEnvironment env) => env.EnvironmentName switch
+    {
+        "Development" => "DEV",
+        "Test" => "TST",
+        "Integration" => "INT",
+        "Production" => "PRD",
+        _ => env.EnvironmentName.Length >= 3
+            ? env.EnvironmentName.Substring(0, 3).ToUpperInvariant()
+            : env.EnvironmentName.ToUpperInvariant(),
+    };
+
     #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
     //https://github.com/dotnet/roslyn/issues/37995
     //https://github.com/JamesNK/Newtonsoft.Json/pull/2163/commits/fba64bcf9b8f41500da1c1dd75825f3db99cd3b4
