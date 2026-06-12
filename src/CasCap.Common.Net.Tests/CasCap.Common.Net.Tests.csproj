@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <RootNamespace>CasCap.Common.Net</RootNamespace>
   </PropertyGroup>
@@ -11,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

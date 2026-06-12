@@ -26,13 +26,13 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Act
         //start bg service
         await cacheExpiryBgSvc!.StartAsync(cancellationToken);
-        await Task.Delay(5_000);//short pause for the cancellation token to take effect
+        await Task.Delay(5_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
 
         //stop bg service
         await source.CancelAsync();
         source.Dispose();
-        await Task.Delay(1_000);//short pause for the cancellation token to take effect
+        await Task.Delay(1_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
         //Assert
         //the hosted service resolves to the expected concrete type and starts/stops without throwing

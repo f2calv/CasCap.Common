@@ -6,4 +6,3 @@ global using System.Collections.Specialized;
 global using System.Net;
 global using System.Net.Http.Headers;
 global using Xunit;
-global using Xunit.Abstractions;

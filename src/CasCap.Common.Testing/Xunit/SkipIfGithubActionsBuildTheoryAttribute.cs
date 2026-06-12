@@ -3,14 +3,13 @@ namespace CasCap.Common.Xunit;
 /// <summary>Skips the theory when running in a GitHub Actions build.</summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class SkipIfGithubActionsBuildTheoryAttribute() : TheoryAttribute
+public sealed class SkipIfGithubActionsBuildTheoryAttribute : TheoryAttribute
 {
-    /// <inheritdoc/>
-    public override string? Skip
+    /// <summary>Initialises a new instance of the <see cref="SkipIfGithubActionsBuildTheoryAttribute"/> class.</summary>
+    public SkipIfGithubActionsBuildTheoryAttribute()
     {
-        get => IsGitHubActions() ? "Ignore test when running a Github Actions build" : base.Skip;
-        set => base.Skip = value;
+        Skip = "Ignore test when running a Github Actions build";
+        SkipWhen = nameof(CIEnvironment.IsGitHubActions);
+        SkipType = typeof(CIEnvironment);
     }
-
-    private static bool IsGitHubActions() => Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 }
