@@ -3,7 +3,7 @@ namespace CasCap.Common.Converters;
 
 /// <summary>
 /// <see cref="System.Text.Json.Serialization.JsonConverter{T}"/> that converts a millisecond Unix epoch
-/// value (as a string token) to and from a nullable <see cref="DateTime"/>.
+/// value (as a numeric or string token) to and from a nullable <see cref="DateTime"/>.
 /// </summary>
 public sealed class MillisecondEpochConverter : JsonConverter<DateTime?>
 {
@@ -11,6 +11,8 @@ public sealed class MillisecondEpochConverter : JsonConverter<DateTime?>
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null) return null;
+        if (reader.TokenType == JsonTokenType.Number)
+            return reader.TryGetInt64(out var n) ? n.FromUnixTimeMs() : null;
         return long.TryParse(reader.GetString(), out var t) ? t.FromUnixTimeMs() : null;
     }
 

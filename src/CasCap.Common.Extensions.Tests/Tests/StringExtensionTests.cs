@@ -43,7 +43,7 @@ public class StringExtensionTests(ITestOutputHelper testOutputHelper) : TestBase
 
     [Fact, Trait("Category", "String Manipulation")]
     public void Split()
-        => Assert.Equal(["a", "b", "c"], "a;b;;c".Split());
+        => Assert.Equal(["a", "b", "c"], "a;b;;c".SplitClean());
 
     [Fact, Trait("Category", "String Manipulation")]
     public void Sanitize()
