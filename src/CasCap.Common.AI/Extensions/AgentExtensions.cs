@@ -227,10 +227,10 @@ public static partial class AgentExtensions
                     $"Agent '{agentConfig.Name}' requires an {nameof(ProviderConfig.ApiKey)} for {nameof(AgentType.OpenAI)}.");
 
             chatClientBuilder = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions
-                {
-                    Endpoint = provider.Endpoint,
-                    NetworkTimeout = Timeout.InfiniteTimeSpan,
-                })
+            {
+                Endpoint = provider.Endpoint,
+                NetworkTimeout = Timeout.InfiniteTimeSpan,
+            })
                 .GetChatClient(provider.ModelName)
                 .AsIChatClient()
                 .AsBuilder();
