@@ -1,451 +1,28 @@
 # Copilot Instructions
 
 <!-- ── Synced section ─────────────────────────────────────────────────────
-     Everything above the "Project-Specific Overrides" heading is kept
-     identical across all f2calv repositories. Edit once, sync everywhere.
+     This file plus every file under `.github/instructions/` is kept
+     identical across all f2calv .NET repositories. The repo-specific
+     "Project-Specific Overrides" section below is excluded from sync.
+     Edit once, sync everywhere.
      ──────────────────────────────────────────────────────────────────── -->
 
-## C# / .NET
+## Instruction Files
 
-### Style (enforced by `.editorconfig`)
+Detailed conventions live in scoped instruction files under `.github/instructions/`, auto-applied by file type:
 
-- **Class-per-file**: Each top-level type — class (including `static class`), record, struct, interface, or enum — should be in its own file, and the filename must match the type name (e.g. `MyService.cs` for `class MyService`). This includes companion/constants classes: a `static class FooConstants` must live in `FooConstants.cs`, not alongside the interface it relates to. Nested private types used only by their enclosing class are exempt. Enums are also exempt — prefer consolidating all enums within a project into a single `_Enums.cs` file for a quick overview of available enumerations. `IAppConfig` implementations (and their child/nested configuration classes) are also exempt — their filenames are conventionally prefixed with an underscore (e.g. `_AppConfig.cs` for `record AppConfig`). The underscore does **not** appear in the type name itself; it exists solely to group configuration files at the top of the file explorer via alphabetical ordering and to make them easy to identify at a glance. **Generic types**: Encode type parameters in the filename using curly braces — `Foo{T}.cs` for `Foo<T>`, `Bar{T,U}.cs` for `Bar<T, U>` (following the Microsoft .NET runtime convention). Underscore-prefixed config files follow the same pattern: `_FeatureConfig{T}.cs` for `FeatureConfig<T>`.
-- **Indentation**: 4 spaces, LF line endings, insert final newline
-- **Interfaces**: Must start with `I` (PascalCase) and live in an Abstractions folder and an Abstractions namespace.
-- **Types/Methods/Properties**: PascalCase
-- **No `this.` prefix**: Qualification disabled
-- **Implicit usings**: Enabled
-- **Nullable reference types**: Enabled
-- **C# Language Version**: 14.0
-- **Braces**: Allman style (`csharp_new_line_before_open_brace = all`). For `if`, `else`, `foreach`, `for`, `while`, and `using` statements whose body is a single statement, omit the curly braces to reduce vertical verbosity.
-- **Expression-bodied members**: Preferred for accessors, properties, indexers, lambdas; **not** for constructors, operators, or local functions. For methods, use an expression body (`=>`) when the method contains a single expression. If the combined method signature and expression would cause horizontal scrolling on smaller editor windows, place the `=>` and expression on the next line, indented.
-- **Explicit interface implementations**: Every explicit interface property must have an accessor block (`{ get => …; }` or `{ get => …; set => …; }`), never an expression body (`=>`). This ensures a consistent shape for all property members and satisfies IDE analysers. Each implementation must also carry `/// <inheritdoc/>` XML documentation.
-- **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
-- **Async/Await**: Always await async method calls.
-- **Pattern matching**: Preferred (`is`, `not`, switch expressions)
-- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`). Use primary constructor parameters directly in the class body — do **not** assign them to private or protected fields (e.g. avoid `private ILogger _logger = logger;`). **Exception**: abstract base classes that expose a `protected` field for derived types (e.g. `protected ILogger _logger = logger;` where subclasses pass the value via `: base(logger)`) are exempt — the field must be accessible to inheritors. For `IOptions<T>` / `IOptionsMonitor<T>` parameters, access `.Value` / `.CurrentValue` inline each time rather than caching to a field (e.g. `cachingConfig.Value.SomeProperty`). When the parameter list exceeds a comfortable single-line width, wrap to one parameter per line with the closing parenthesis and base/interface clause on their own line.
-- **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
-- **Records**: Prefer `record` types with `get; init;` properties over classes where object comparison semantics are useful
-- **Constructors**: When injecting services use a 'Svc' suffix on the parameter name and its private field instead of 'Service' to make more concise.
-- **DI parameter ordering**: In constructors that accept dependency-injected services, parameters should be ordered: `ILogger` first, then any `IOptions<T>` / `IOptionsMonitor<T>`, then custom/application services.
-- **No magic strings**: Avoid using string literals as dictionary keys or lookup identifiers in multiple places. Instead, define a `const` field using `nameof()` so the key is a single point of change (e.g. `public const string SummaryValues = nameof(SummaryValues);`).
-- **Namespaces**: The convention is folder-based namespacing. However, the `Services` folder is exempt — sub-folders under `Services` do **not** automatically get a sub-namespace. When creating a new sub-folder under `Services`, ask the user whether the sub-folder should introduce a sub-namespace (present a yes/no choice) before proceeding.
-- **Namespace declarations**: File-scoped (not block-scoped). Using directives go above the namespace.
-- **Using directive ordering**: Pure alphabetical — do **not** place `System.*` first (`dotnet_sort_system_directives_first = false`). No blank line separators between groups (`dotnet_separate_import_directive_groups = false`). This applies to both regular `using` directives and `global using` directives in `GlobalUsings.cs`.
-- **Global usings file**: Every project must have a `GlobalUsings.cs` file located in the project root (not in a sub-folder). The file must always be named `GlobalUsings.cs`.
-- **Standard overrides at bottom**: Standard C# overrides such as `ToString`, `GetHashCode`, and `Equals` should be placed at the bottom of the class/record body, just above any `#region` blocks for private/static helpers.
-- **Property spacing**: Separate each public property declaration (`get`/`set`/`init`) with a blank line (including in records and classes with only auto-properties). Private backing fields, however, should appear on consecutive lines with **no** blank line between them.
-- **Boolean property naming**: Boolean configuration properties should use `{Feature}{State}` suffix form (past-participle or adjective describing state), not an imperative-verb prefix. Properties describe state; methods describe actions (e.g. `DistributedLockingEnabled`, `LocalCacheInvalidationEnabled` — not `EnableDistributedLocking`).
-- **Constants extraction**: When a configuration record accumulates `const` fields that serve as well-known keys, profile names, or identifiers (not bindable configuration properties), extract them into a dedicated `static class` in the same namespace (e.g. `RedlockProfiles` for `RedlockConfig`). This keeps config records focused on their bindable data shape and the constants discoverable via a single type.
-- **Enums vs string constants**: Use `enum` types for closed sets of choices within a single assembly or tightly-coupled projects where compile-time safety, IntelliSense, and `switch` exhaustiveness are valuable. For values that cross library boundaries — configuration keys matched in `appsettings.json`, feature flags parsed from environment variables, dictionary keys used across independently-versioned packages, or identifiers exposed via MCP / REST — prefer a `static class` of `const string` fields using `nameof()` (e.g. `FeatureNames`, `SinkTypes`). String constants are configuration-friendly, JSON-serialisable without converters, and allow consumers to reference well-known values without taking a dependency on the defining enum's assembly. When a set of string constants needs startup validation, expose a static `IReadOnlySet<string> ValidNames` built via reflection over the class's own `const` fields so new members register automatically.
-- **Validation attributes on configuration properties**: Configuration properties bound from `appsettings.json` or environment variables must use appropriate `System.ComponentModel.DataAnnotations` validation attributes to enforce correctness at startup (e.g. `[Url]` on URI strings, `[Range(1, 65535)]` on TCP ports, `[MinLength(1)]` on passwords/secrets/identifiers, `[Range(1, int.MaxValue)]` on millisecond timings, `[Range(0.0, 1.0)]` on percentage/ratio values, `[Phone]` on phone numbers). When a property carries multiple attributes from the same family (e.g. `[Required]` and `[Range]`, or `[Required]` and `[Url]`), inline them on a single line (`[Required, Range(1, 65535)]`) rather than stacking one per line. Attributes from different families (e.g. `[Required, Url]` vs. `[JsonPropertyName]`) remain on separate lines. Nested complex-object properties should carry `[ValidateObjectMembers]` so recursive validation applies.
-
-### Suppressed Warnings
-
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `CS1574`, `S125`, `NETSDK1233`, `NU1901`, `NU1902`, `NU1903`
-
-### XML Documentation
-
-- Every public or internal class, record, method, property, and enum member should have an XML comment.
-- **Exception — test projects**: XML comments are required on classes, records, and properties but **not** on test methods.
-- **Document fully on the interface** — use `/// <inheritdoc/>` on implementing classes to avoid duplication.
-- When an enum is a public method parameter, use `<inheritdoc cref="EnumType" path="/summary"/>` in the `<param>` tag rather than repeating the enum's documentation.
-- **Deep link referenced types**: When XML comments reference .NET classes, structs, interfaces, enums, or namespaces, use `<see cref="Fully.Qualified.TypeName" />` instead of plain text (e.g. `<see cref="Azure.Data.Tables.TableEntity" />`).
-- **Timespan config properties**: Any configuration property on an `IAppConfig` implementation that represents a duration (conventionally suffixed with `Ms`) must include a `<see cref="…"/>` deep link to every service class that consumes it in its XML documentation. This ties the property to its consumers and makes it easy to navigate from configuration to consuming code (e.g. `/// Used by <see cref="CasCap.Services.MyMonitorBgService"/>.`).
-- **Preserve hyperlinks**: Inline comment hyperlinks to external resources (e.g. blog posts, StackOverflow answers, GitHub issues) must never be deleted. When refactoring a comment into XML documentation, move the URL into a `<remarks>` block using `<see href="…" />` (e.g. `/// <remarks>See <see href="https://example.com" />.</remarks>`).
-- **Summary brevity**: Keep `<summary>` concise — one to two short sentences that define the type or member. Move implementation details, usage notes, background context, or examples into `<remarks>`. If a `<summary>` exceeds roughly two lines and reads more like a paragraph than a definition, split the extra content into `<remarks>`.
-- **Defaults in `<remarks>`**: "Defaults to …" text must live in `<remarks>`, not `<summary>`. The default value is an implementation detail and does not help define the member.
-- **One-line `<summary>` and/or `<remarks>`**: When a summary/remark fits on a single line (roughly ≤ 120 characters), collapse it to `/// <summary>Text here.</summary>` instead of the three-line block form.
-
-### Logging
-
-- **`{ClassName}` first**: Every structured log message must include `{ClassName}` as the first template parameter, using `nameof(EnclosingClass)` as the argument (e.g. `_logger.LogInformation("{ClassName} something happened", nameof(MyService));`).
-- **Template parameters**: Use PascalCase for all template parameters and never enclose them in quotes (e.g. `{DesiredValue}`, `{RecordCount}`, `{ValueBefore}` not `'{DesiredValue}'`, `'{RecordCount}'`, `'{ValueBefore}'`). The logger handles value formatting automatically.
-- **No `.Value` suffix bleed**: When logging a value accessed via `options.Value.PropertyName` (primary constructor `IOptions<T>` pattern), the template parameter name must **not** inherit the `.Value` segment and must **not** use a `Val` suffix either. Properties are already well-named — use the property name directly as the template parameter (e.g. `{ServiceFamily}` for `config.Value.ServiceFamily`).
-- **No magic strings in log messages**: When a log message references an enum value, class name, or other identifiable symbol, pass it via `nameof()` as a template argument rather than embedding it as a literal string in the message template.
-- **Avoid `nameof()` as label-only template parameters**: Do not use `nameof()` to inject property/type names as separate structured log parameters just to avoid a literal label — this clutters structured log output (Grafana, Loki, OpenTelemetry) with useless fields. Instead, use the property name as plain text in the message template and reserve `{Braces}` for actual values. E.g. `"{ClassName} ServiceFamily={ServiceFamily}"` with args `nameof(MyService), config.Value.ServiceFamily` — not `"{ClassName} {ServiceFamily}={ServiceFamilyValue}"` with args `nameof(MyService), nameof(MyConfig.ServiceFamily), config.Value.ServiceFamily`.
-- **`[LoggerMessage]` on hot paths**: Code inside tight loops, `Channel` readers, stream consumers, tick processors, and sink iterators must use `[LoggerMessage]`-attributed source-generated logging to eliminate allocations from `params object[]` boxing and interpolation. Declare `private static partial void` methods at the bottom of the partial class (or in a `{ClassName}.Logging.cs` file for larger services). Use `ILogger logger` as the first parameter (not `this ILogger` — that requires a top-level static class). Call sites use the static form: `LogXxx(logger, ...)` / `LogXxx(_logger, ...)`. For services with a primary constructor `ILogger<T> logger` parameter, pass `logger` directly; for traditional constructors, pass the `_logger` field. Leave dynamic-level calls (`logger.Log(level, ...)`) unconverted — `[LoggerMessage]` requires a compile-time constant level.
-- **Logging belongs in services, not controllers**: Domain-specific logging (`LogInformation` with request-specific fields) must live in the service method, not the controller. Controllers should not inject `ILogger` unless they perform work that cannot be delegated (e.g. SSE streaming loops with `LogTrace`).
-
-### Performance
-
-#### ValueTask vs Task
-
-- **Use `ValueTask` / `ValueTask<T>`** when a method frequently completes synchronously — cache hits, `TryRead` on channels, dictionary lookups that short-circuit, or wrappers returning a pre-computed result. Avoids allocating a `Task` on the synchronous path.
-- **Use `Task` / `Task<T>`** when the method almost always goes async (HTTP, database, file I/O).
-- **Never cache, await twice, or concurrently await a `ValueTask`**. Call `.AsTask()` at the call site if needed.
-- **Hot-path interface signatures** (channel brokers, cache accessors) should prefer `ValueTask<T>` so implementations can avoid allocation when data is already available.
-
-#### sealed Classes
-
-- **Mark every concrete class `sealed`** unless it is explicitly designed for inheritance (has `virtual`/`abstract` members or is documented as a base class). The JIT devirtualises and inlines method calls on sealed types.
-- Background services, DI-registered services, entity types, converters, and middleware should default to `sealed`.
-- Removing `sealed` later is a non-breaking change.
-
-#### Frozen Collections
-
-- **`FrozenDictionary<TKey, TValue>` / `FrozenSet<T>`** for any collection populated once at startup and never mutated. Optimised for read throughput at the expense of creation cost.
-- Build via `.ToFrozenDictionary()` / `.ToFrozenSet()` at the end of the initialisation path. Store as the concrete `FrozenDictionary<,>` type (not `IReadOnlyDictionary<,>`) so the JIT can devirtualise lookups.
-
-#### ConfigureAwait(false) in Library Code
-
-- **Library projects** that do not touch `HttpContext` after an await must use `ConfigureAwait(false)` on every `await` to avoid unnecessary `SynchronizationContext` capture.
-- **Application entry-point projects** (workloads, controllers) may omit it — ASP.NET Core has no sync context by default.
-
-#### Span-Based Parsing
-
-- **`ReadOnlySpan<byte>` for raw byte streams**: Parse directly from `ReadOnlySpan<byte>` when data arrives as UTF-8 bytes (`PipeReader`, Redis buffers, network streams) — do not materialise a `string` first.
-- **`ReadOnlySpan<char>` for API convenience**: Exists so callers holding a span do not need `.ToString()`. No speed benefit over the `string` overload for already-materialised strings.
-- **Extension method deduplication**: The span version holds the implementation; the string version delegates via `.AsSpan()`.
-
-#### SearchValues\<T\>
-
-- **`SearchValues<char>` / `SearchValues<byte>`** (static field) for repeated `IndexOfAny` / `ContainsAny` on a fixed set of delimiters or sentinels. The runtime selects the optimal vectorised implementation at startup.
-
-#### System.Threading.Lock
-
-- Prefer `System.Threading.Lock` over `object` for dedicated lock instances. Enables a thinner locking path and signals intent more clearly.
-
-#### Hot-Path Conventions
-
-- **`[MethodImpl(MethodImplOptions.AggressiveInlining)]`**: Apply to leaf-level parsing/conversion methods called in tight loops. Do not apply to methods with complex control flow — the JIT already inlines small methods.
-- **Avoid allocations in tight loops** (`Channel` readers, `PipeReader` loops, stream consumers):
-  - Use `stackalloc` or `ArrayPool<T>` for temporary buffers instead of `new byte[]`.
-  - Prefer `ReadOnlySequence<byte>` slicing over `.ToArray()`.
-  - Use source-generated `[LoggerMessage]` to eliminate `params object[]` boxing (see Logging section).
-- **Async pass-through on wrappers**: Drop `async`/`await` on thin single-call wrappers to avoid state-machine allocation (see Style section).
-- **`PipeReader` for line-oriented binary streams**: Process data in-place from the pipe's buffer without copying to intermediate `string` objects.
-
-### Controllers / Web API
-
-- **Thin controllers**: Controllers must be pure pass-through — no business logic, no LINQ projections, no dictionary lookups, no logging. All domain logic and structured logging belongs in the service layer. A controller method should delegate to a single service call, map the result to an HTTP response type, and nothing else.
-- **No `ILogger` in pass-through controllers**: If every method in a controller simply delegates to a service, remove the `ILogger` injection entirely. The service layer owns observability.
-- **Expression-bodied methods**: Thin pass-through methods that are a single expression (or a single `await` + return) should use expression bodies (`=>`). For methods that branch on a nullable result (NotFound vs Ok), use a ternary with pattern matching.
-- **`<inheritdoc cref="..."/>` on controller methods**: When a controller method is a thin pass-through, use `/// <inheritdoc cref="ServiceType.Method(ParamTypes)"/>` referencing the service method's XML docs. Do not duplicate documentation between the controller and the service.
-- **Typed service methods over generic**: Controllers must not call generic base-class methods (e.g. `GetEntities<T>(tableName, ...)`, `Enqueue<T>(obj, ...)`) directly. Instead, add typed methods to the service interface that encapsulate domain knowledge (table names, queue keys) and include domain-specific logging. This keeps controllers ignorant of infrastructure details.
-- **Nullable returns for NotFound patterns**: Service methods consumed by controllers that may return HTTP 404 should use nullable return types (e.g. `ItemDetail?`) rather than throwing exceptions. The controller uses pattern matching to map the result:
-
-```csharp
-public Results<Ok<ItemDetail>, NotFound> GetItem(int id)
-    => itemSvc.TryGetItem(id) is { } item
-        ? TypedResults.Ok(item)
-        : TypedResults.NotFound();
-```
-
-- **`<example>` tags on DTOs**: All public properties on Web API request/response DTOs should have `/// <example>value</example>` XML doc tags. Swashbuckle uses these to populate example values in the Swagger UI, improving API discoverability.
-
-### Disposable Resources
-
-- `ServiceProvider` instances built in tests must be disposed via `using`/`await using`.
-- Test helper classes should be `static` when they have no instance state.
-- Avoid shared mutable static state in test fixtures — each test should be independently repeatable.
-
-### Testing
-
-#### Folder Structure
-
-Every `*.Tests` project organises tests into subfolders by type:
-
-```text
-Tests/
-├── Unit/           # Self-contained unit tests (no DI, no external services)
-├── Integration/    # Tests requiring DI, configuration, or external services
-│   └── TestBase.cs # Shared base class for integration tests
-└── Gfx/            # Graphics/rendering tests (optional, project-specific)
-```
-
-#### Integration Tests
-
-- Must carry `[Trait("Category", "Integration")]`.
-- Must live in the `Tests/Integration/` subfolder.
-- Must inherit from `TestBase(output)` — this wires up `ILoggerFactory` (Serilog → xUnit output), `IConfiguration` (appsettings loading), and optionally DI services.
-- `TestBase` lives in `Tests/Integration/TestBase.cs`. It exposes `protected` fields for commonly-used services resolved from the DI container. When a new service is needed by multiple integration test classes, add a `protected` field to `TestBase` resolved from the service provider — do not duplicate service resolution in each test class.
-- `TestBase` exposes a `protected ITestOutputHelper _output` field. Subclasses should use `_output` directly rather than capturing the constructor parameter separately.
-- Exception: lightweight integration tests that only need `HttpClient` (no DI container) may take `ITestOutputHelper` directly without `TestBase`.
-
-#### Unit Tests
-
-- Live in the `Tests/Unit/` subfolder.
-- Do **not** inherit from `TestBase` — they are self-contained with no DI container.
-- May take `ITestOutputHelper` directly for diagnostic output.
-- Use domain-specific trait categories (e.g. `"Parsing"`, `"String Manipulation"`) — not `"Unit"`.
-
-#### Theory Parameterisation
-
-- When multiple `[Fact]` tests differ only by input values, consolidate into a single `[Theory]` with `[InlineData]`. This reduces code duplication while expanding coverage.
-- Use `[Theory]` when testing the same logic across different parameter combinations (e.g. input sizes, threshold values, format types).
-- Keep `[Fact]` for tests with complex setup/assertion logic that doesn't parameterise cleanly.
-
-#### Test Method Naming
-
-- Name test methods after the method or feature being tested (e.g. `GetColumnCells`, `CreateOrUpdateItem`, `DetectsThresholdBreach`).
-- Do **not** use verbose BDD-style sentence names (e.g. avoid `Should_Return_Column_When_Given_Valid_Input`).
-- For lifecycle tests, use `_` separated phases (e.g. `ItemLifecycle_CreateGetUpdateDelete`).
-
-#### Assertions
-
-- Every test must have meaningful assertions. Never use `Assert.True(true)` or other placeholder assertions.
-- Prefer specific assertions (`Assert.Equal`, `Assert.Contains`, `Assert.Null`) over generic `Assert.True(condition)`.
-- Tests that only measure performance (timing loops, `Stopwatch`, `Debug.WriteLine` of elapsed time) without asserting correctness are **not valid tests** — delete them and migrate the benchmark to a BenchmarkDotNet project if the measurement is still needed.
-
-#### Dead Code in Test Projects
-
-- Commented-out test methods, unreachable code behind `return;`, and `[Skip]`-annotated tests with no plan to re-enable should be deleted rather than left to rot.
-- When removing a test method that was the last consumer of a helper/field, remove the helper/field in the same commit.
-- `using` directives that become unused after test removal must be cleaned up in the same commit.
-
-#### Shared Test Data
-
-- Shared test data generators and fixtures live in dedicated `*TestData.cs` files at the `Tests/` root.
-- Hardcoded reference data for regression tests lives in `*Patterns.cs` files.
-- Static helper methods for building test objects should be in `static` helper classes.
-
-#### Test Project README
-
-Every `*.Tests` project README must include:
-
-- A tests table with **method count** and **test case count** (Theories expand to multiple cases via `[InlineData]`).
-- All trait categories used in the project.
-- A skipped tests section listing each skip reason and count.
-- A file structure diagram showing the `Tests/` layout.
-
-### Multi-Targeting
-
-- Library code using APIs unavailable in lower target frameworks must use `#if` preprocessor guards (e.g. `#if NET8_0_OR_GREATER`).
-
-## MCP (Model Context Protocol)
-
-Feature libraries with `*QueryService` types decorated with `[McpServerToolType]` follow these conventions. Individual methods exposed to the Agent are decorated with `[McpServerTool]` and every such method — including currently commented-out candidates — must also carry a `[Description]` attribute on the method and on each of its parameters. Return-type objects and their nested types must have `[Description]` on every public property.
-
-### Pattern
-
-```csharp
-[McpServerTool]
-[Description("...")]
-public async Task<Foo> DoSomething(
-    [Description("...")] string bar,
-    CancellationToken cancellationToken = default)
-```
-
-> Note: `McpServerToolAttribute` (v1.1.0) has **no** `Description` property. The correct pattern is always two separate attributes: `[McpServerTool]` then `[Description(...)]`.
-
-### MCP `[Description]` text vs XML doc comments
-
-XML doc comments (`<summary>`, `<param>`, `<returns>`) are read by developers and tooling (IntelliSense, generated docs). They may contain `<see cref="..."/>` deep-links, `<remarks>` blocks, multi-sentence explanations, and coding-specific detail.
-
-`[Description]` text on MCP tools is **not** UI copy and is **not** a contract with humans. It is:
-
-- Contextual guidance for an LLM deciding **which tool to call** and **how to map arguments**
-- Never shown to end users
-- Not subject to grammar or localisation requirements
-
-Therefore MCP descriptions should be:
-
-- **Concise** — one sentence per method/parameter is usually enough
-- **Semantically rich** — include the key noun, verb, and any units or constraints the LLM needs (e.g. `"0=fully open, 100=fully closed"`, `"range 14–25"`)
-- **Disambiguation-first** — if two tools or parameters could be confused, the description must distinguish them
-- **Enum-aware** — when a parameter is typed as `string` but represents an enum, list **all valid values with a brief label** in the description text (the LLM cannot infer them from the type):
-
-```csharp
-[Description("Status filter. Values: Active, Suspended, Cancelled, Expired.")]
-string? status = null
-```
-
-- **No XML markup** — plain text only; `<see cref="..."/>` links are meaningless to an LLM
-- **No localization** — English only; multiple languages add noise without benefit
-
-### Checklist when adding or editing a `[McpServerTool]` method
-
-1. Add `[McpServerTool]` then `[Description("...")]` on the method — one sentence naming what it does.
-2. Add `[Description("...")]` on every non-`CancellationToken` parameter.
-3. For `string` parameters representing an enum: list all enum member names with a brief description each.
-4. For complex request-object parameters: summarise the key fields and their constraints in the description.
-5. Ensure every public property on the return type (and any nested types) has `[Description("...")]` with a concise label and unit/range where applicable.
-6. Keep XML `<summary>` comments intact — they serve a different audience and must not be replaced by or merged with `[Description]` text.
-
-### Method naming
-
-.NET MCP servers convert PascalCase method names to `snake_case` for the tool registry. Both forms must read naturally and be unambiguous.
-
-- **Domain-prefix every tool name** so it is globally unique across all `[McpServerToolType]` classes (e.g. `GetOrder`, not `GetItem`; `GetCustomerAddress`, not `GetAddress`).
-- **Verb-first for actions**: `CancelSubscription`, `ExecutePayment` — not `SubscriptionCancel`.
-- **Get/List pairing**: Use `Get<Noun>` for a single-item lookup and `Get<Noun>s` (plural) for the list variant.
-- **Human/LLM-friendly vocabulary**: Prefer everyday words over protocol or industry jargon (e.g. *Payment* over *Settlement*, *retry* over *exponential backoff*).
-- **Read in snake_case**: Before committing, mentally convert the name — `GetCustomerSubscriptionPaymentHistory` → `get_customer_subscription_payment_history` is too long; `GetCustomerPaymentStatus` → `get_customer_payment_status` is fine.
-
-### snake_case references
-
-When an `[McpServerTool]` method is renamed, search for its old `snake_case` form in:
-
-- `appsettings*.json` — `IncludeTools` / `ExcludeTools` arrays reference tools by snake_case name.
-- System prompt / instructions markdown files that may list tool names.
-
-### Description anti-patterns
-
-Avoid these in `[Description]` text:
-
-- **Return-type narration** — *"Returns the names of affected records"* duplicates what the LLM already infers from the method signature.
-- **Restating parameter constraints on the method** — keep constraints on the parameter `[Description]`; the method description should say *what* the tool does, not *how* to fill in every field.
-- **Identical wording across tools** — if two tools could be confused, their descriptions must explicitly cross-reference each other (e.g. *"For a summary overview use GetOrderSummary"* on the full-detail tool).
-
-## Cloud (Azure)
-
-- **Azure Table Storage column naming**: For high-volume line-item/reading entities where many thousands of rows are retrieved, use ultra-short column names (even single letters) to reduce payload size and improve retrieval speed. This optimization is not needed for low-volume snapshot/summary entities where readability is more important.
-- **Expanded accessor properties**: High-volume `ITableEntity` reading entities with ultra-short column names must also expose full-name expression-bodied read-only accessor properties decorated with `[IgnoreDataMember]` for developer ergonomics (e.g. `public string IpAddress => ip;`). This provides readable access without adding storage overhead.
-- **ReadingEntity constructors**: Reading entity constructors must accept the domain event record directly (e.g. `FroniusReadingEntity(FroniusEvent evt)`) — never individual properties unpacked at the call site. The constructor is responsible for mapping event properties to ultra-short column fields.
-- **SnapshotEntity constructors**: When a snapshot entity's `RowKey` is always derivable from a property on the event (e.g. `DeviceId`, `NodeName`), the constructor should accept `(string partitionKey, TEvent evt)` and derive `RowKey` internally. Only pass `RowKey` as a separate parameter when it is a constant not present on the event (e.g. `"latest"` for single-device tables).
-- **Entity-scoped PartitionKey**: When a reading entity stores data from multiple devices or sensors, `PartitionKey` should be the device/entity identifier (`DeviceId`, `NodeName`, `CameraId`, `DatapointId`, etc.) rather than a date string. Date-based PK (`yyMMdd`) is acceptable only for single-device-per-table scenarios (e.g. a single Fronius inverter).
-- **Table name versioning**: When changing the `PartitionKey` or `RowKey` structure of an Azure Table entity, increment the table name version suffix (e.g. `froniuslineitemsv1` → `froniuslineitemsv2`). Old data under the previous key structure is orphaned by design — treat structural changes as fresh-start migrations.
-
-### Redis Key Naming
-
-When a project uses a feature enum (e.g. `AppFeature`) to gate services, derive the domain segment of every Redis key from the **lowercase enum member name** so that key prefixes stay tightly coupled to the feature taxonomy (e.g. `AppFeature.Billing` → `billing:`, `AppFeature.Notifications` → `notifications:`).
-
-- **All lowercase**, colon-separated segments: `{domain}:{type}:{detail}`.
-- **Domain** — derived from the feature enum member name via `nameof(AppFeature.Member).ToLowerInvariant()`. Cross-feature keys use a functional domain (e.g. `comms`, `lock`, `stats`).
-- **Standard type segments**:
-
-| Segment | Redis Type | Purpose |
+| File | Applies to | Covers |
 | --- | --- | --- |
-| `snapshot` | Hash | Current state (field per entity) |
-| `series` | Sorted Set | Time-series readings (score = UTC ticks) |
-| `stream` | Stream | Event/message streams |
-| `cache` | String | Temporary data with TTL |
-| `lock` | String | Distributed locks (Redlock) |
-| `stats` | Hash | Observability / call counters with TTL |
+| `csharp.instructions.md` | `**/*.cs` | C# / .NET style, XML docs, logging, performance, Web API |
+| `csharp.testing.instructions.md` | `**/*Tests/**/*.cs` | xUnit test structure, naming, theories, assertions |
+| `csharp.mcp.instructions.md` | `**/*.cs` | MCP server tool attributes, descriptions, naming |
+| `csharp.azure.instructions.md` | `**/*.cs` | Azure Table Storage & Redis key naming |
+| `dotnet.instructions.md` | `**/*.csproj`, `*.slnx`, `Directory.*.props` | Central build/package config, solution format, SDK pinning |
+| `github-actions.instructions.md` | workflows / `action.yml` | GitHub Actions naming, YAML, security, GitVersion |
+| `documentation.instructions.md` | `**/*.md` | README consistency & Mermaid diagrams |
+| `configuration.instructions.md` | `**/appsettings*.json` | `IAppConfig` / appsettings sync |
 
-- **Detail** — further qualifiers such as entity IDs, date partitions (`{yyMMdd}`, `{yyyy-MM-dd}`), or sub-categories (e.g. `values`, `timestamps`).
-- **Consumer groups** — use `{domain}:{role}` format (e.g. `billing:processors`, `comms:agents`).
-- **Stats keys** — date-partitioned with a 7-day TTL: `stats:{domain}:{yyyy-MM-dd}`. Hash fields are the method or operation names.
-- **Lock keys** — `lock:{domain}:{resource}` format string, configured via `RedisKeyFormat` in `appsettings.json`.
-- **Config-driven keys**: Snapshot and series key names should be stored in `appsettings.json` per-sink settings (via a settings dictionary), not hardcoded in service code. This allows key migration by config change alone.
-- **Key sync on rename**: When renaming Redis keys, update `appsettings*.json`, Lua scripts, and any C# code that constructs or references the old key name in the same commit. Existing Redis data under the old key will be orphaned — treat key renames as a fresh-start migration.
-
-## GitHub Actions
-
-### General
-
-- Always leave **one blank line between steps** within a job for readability.
-- Pin actions to the **major version tag version by default** (e.g. `actions/checkout@v6`, `softprops/action-gh-release@v2`). Do not use SHA pinning or include minor/patch versions.
-- Set `fetch-depth: 0` on `actions/checkout` whenever GitVersion is used so it can read the full commit history. For lint-only workflows where history is unnecessary, `fetch-depth: 1` is acceptable.
-- Use explicit `permissions` blocks on every job; default to the minimum required (e.g. `contents: read`). Set global workflow-level permissions to `permissions: {}` (deny all) and grant per-job.
-
-### Step Naming
-
-- **One-liners**: When a step's `run` block is a single command, use that command (or a slightly abbreviated form) as the step `name` rather than a descriptive prose label (e.g. `name: npm install --global json5`, not `name: setup json5`).
-- **Multi-part setup**: When a setup requires multiple steps, name each step with a `(N of M)` suffix (e.g. `name: setup yq (1 of 3)`, `name: setup yq (2 of 3)`, `name: setup yq (3 of 3)`).
-- **Matrix-based names**: Include matrix variables in step names for identification (e.g. `name: test (${{ matrix.gv-source }}, ${{ matrix.gv-config }})`).
-
-### Naming Conventions
-
-- **Inputs/outputs**: kebab-case (e.g. `image-registry`, `tag-override`, `git-user-name`).
-- **Environment variables**: ALL_UPPERCASE with underscores (e.g. `IMAGE_REGISTRY`, `TAG_OVERRIDE`, `MANIFEST_PATHS`).
-- **Secrets**: ALL_UPPERCASE with underscores (e.g. `GITHUB_TOKEN`, `GH_PAT_GITOPS`, `NUGET_API_KEY`).
-
-### YAML Style
-
-- **2-space indentation** for all workflow and action YAML files.
-- Do not quote strings unless YAML requires it (e.g. values containing special characters, reserved words like `true`/`false`/`null`, or strings that could be misinterpreted as another type).
-- For `workflow_dispatch` string inputs that represent booleans, use quoted defaults (e.g. `default: 'true'`).
-- Use `|` (pipe) for multi-line `run` scripts. Use `>` for flowing multi-line description text.
-- One blank line between major YAML sections (`on:`, `env:`, `jobs:`). No blank lines within input/output lists.
-
-### Reusable Workflows
-
-- **File naming**: Prefix reusable workflow filenames with an underscore to distinguish them from top-level entry-point workflows (e.g. `_gitops-helm-update.yml`, `_deploy-maui-android.yml`).
-- **Same repo**: `uses: ./.github/workflows/_filename.yml`
-- **Cross-repo**: `uses: owner/repo/.github/workflows/filename.yml@v1`
-- Prefer `secrets: inherit` unless there is a specific reason to restrict secrets passed to the called workflow.
-
-### Composite Actions
-
-- Declare `shell: bash` explicitly on every `run` step — composite actions do not inherit a default shell.
-- Reference scripts relative to the action root using `${{ github.action_path }}/scripts/name.sh`.
-
-### Security
-
-- Deny all permissions at workflow level (`permissions: {}`), grant only what each job requires.
-- Skip bot-triggered runs conditionally: `if: github.actor != 'dependabot[bot]'`.
-- Pass tokens via `stdin` for registry logins (e.g. `echo "$TOKEN" | docker login --password-stdin`).
-- OCI registry, repository and tag values must be forced to lowercase (e.g. `${IMAGE_REGISTRY,,}`).
-
-### GitVersion
-
-- Always set `fetch-depth: 0` on checkout when GitVersion is in use.
-- Default config file is `GitVersion.yml` in the repository root.
-- Prefer `semVer` for tags and releases; use `fullSemVer` (via the `version` output) for build versioning and pre-release identifiers.
-
-## Documentation
-
-### README Consistency
-
-- **Every project must have a `README.md`**: When adding a new `.csproj` project, create a `README.md` in the project directory as part of the same commit. Follow the existing pattern: Purpose → Services/Extensions → Configuration → Dependencies (NuGet packages table + Project references table).
-- Every project's `README.md` must stay in sync with its implementation. During any refactoring — and **always** before creating a new PR — scan each affected project's `README.md` for inconsistencies: outdated service names, missing or removed configuration options, stale dependency tables, or inaccurate flow diagrams. Update the README as part of the same change, not as a follow-up.
-- **Major refactorings** (renames, project moves, DI restructuring, model type splits): when a rename or restructure touches type names, configuration sections, or project references, update every `README.md` that mentions the old names **in the same commit**. Do not leave stale references for a follow-up.
-- For large refactorings that touch multiple projects, review all impacted `README.md` files before opening the PR.
-- **Markdown tables**: Table separator rows must use spaces around pipes to match the spaced style used in header and data rows (e.g. `| --- | --- |` not `|---|---|`). This prevents MD060 (table-column-style) warnings.
-- **Configuration examples in library READMEs**: Library projects that expose `IAppConfig` records should include a `## Configuration Examples` section in their `README.md` with `appsettings.json` snippets progressing from minimal configuration through to fully configured. This documents the configuration surface area and provides copy-paste-ready templates for consumers.
-
-### Mermaid Diagrams
-
-Use Mermaid diagrams in `README.md` files to visualize complex relationships and flows. Choose the appropriate diagram type:
-
-#### Diagram Type Selection
-
-- **`flowchart`**: Sequential processes, data flow, event flow, service orchestration, CI/CD pipelines
-  - Direction: Use `TD` (top-down) for vertical flows; `LR` (left-right) for wide workflows
-  - Example: Data moving from device → monitor service → broker → processor → sinks
-
-- **`graph`**: Relationships, dependencies, hierarchies (non-sequential)
-  - Direction: Use `TD` for dependency trees; `LR` for peer relationships
-  - Example: NuGet package dependencies, project references, Helm chart hierarchies
-
-- **`classDiagram`**: C# class hierarchies, inheritance, composition
-  - Shows: Inheritance (`<|--`), composition (`*--`), aggregation (`o--`), association (`-->`), dependency (`..>`)
-  - Example: Service class inheritance, interface implementation
-
-- **`sequenceDiagram`**: Time-based interactions between components
-  - Shows: Method calls, async operations, timing
-  - Example: Request/response flows, background service timing
-
-#### Standard Headings
-
-Use these consistent heading patterns before Mermaid diagrams:
-
-| Heading | Use For |
-| --- | --- |
-| `## Data Flow` | How data moves through the system (device → service → storage) |
-| `## Event Flow` | Event-driven processing (pub/sub, channels, streams) |
-| `## Service Architecture` | How services interact (SignalR hubs, background services, API clients) |
-| `## Dependency Graph` | Package/project dependencies, references |
-| `## Class Hierarchy` | C# class structures, inheritance trees |
-| `## Deployment Flow` | CI/CD pipelines, GitHub Actions workflows, Helm/K8s deployments |
-| `## Configuration Hierarchy` | IAppConfig structure, nested configuration objects |
-
-#### Styling Guidelines
-
-- **Subgraphs**: Group related components (e.g., `subgraph Monitor["MonitorBgService"]`)
-- **Custom styling**: Define `classDef` for highlighting (e.g., owned vs. third-party actions)
-- **Node shapes**:
-  - `[ ]` rectangle (default) - services, components
-  - `([ ])` stadium - entry/exit points
-  - `[( )]` cylinder - databases, storage
-  - `{ }` diamond - decision points
-  - `(( ))` circle - events
-
-#### Synchronization
-
-- Mermaid diagrams must stay in sync with code during refactoring
-- When renaming services, update corresponding diagram nodes
-- When adding/removing dependencies, update dependency graphs
-- Review all `README.md` diagrams before creating PRs
-
-## Configuration
-
-### Configuration Sync
-
-- Configuration properties (e.g. polling delays, feature flags, thresholds) are defined with sensible defaults directly on the `IAppConfig` record/class. Having defaults in the record means the application works out-of-the-box, but every property can be overridden via `appsettings*.json` or directly with environment variables in Kubernetes deployments (using the standard `CasCap__SectionName__PropertyName` double-underscore convention).
-- When adding, renaming, or removing a property on any class or record that implements `IAppConfig` — or on any child/nested type reachable from such a class — update **all** `appsettings*.json` files (`appsettings.json`, `appsettings.Development.json`, and any other environment-specific variants) in the same commit. This includes adding new keys with sensible defaults, renaming keys to match the new property name, and removing keys for deleted properties. If the new property's record default is already the desired value for all environments, the `appsettings*.json` files do not need a new entry — only add one when an environment-specific override is required.
+The conventions below always apply, regardless of the file being edited.
 
 ## Copilot Workflow
 
@@ -453,10 +30,29 @@ Use these consistent heading patterns before Mermaid diagrams:
 - **Preserve git history during renames/moves**: When renaming or relocating files, first perform the rename/move (preferably via `git mv`), then make content edits to the file in its new location/name. This two-step approach preserves git history across the rename. Do not delete-and-recreate files when a rename or move is the intent.
 - **Build after refactoring**: After any refactoring, build the **entire solution** (not just the affected project) to catch edge-case compilation errors in dependent projects. When multiple `.sln` / `.slnx` files exist, prefer the one with a `.Debug.slnx` suffix.
 
+## Repository Structure
+
+Every f2calv repository follows a consistent layout, regardless of language:
+
+- **Root files**: `README.md`, `LICENSE`, `GitVersion.yml`, `.editorconfig`, `.gitattributes`, `.gitignore`, and `.pre-commit-config.yaml` live in the repository root.
+- **Source code** lives under `src/`. *(Exception: GitHub Action repositories keep `action.yml` at the root per the GitHub Actions convention.)*
+- **Tooling** lives in dot-prefixed folders — `.github/` (workflows, instructions), `.scripts/`, `.devcontainer/`, `.docker/`, `.config/`, `.vscode/`.
+- **Additional documentation** beyond the root `README.md` lives as Markdown under `docs/`.
+- **`.gitattributes`** standardises line endings across Windows/Linux. Use:
+
+  ```gitattributes
+  * text=auto eol=lf
+  *.{cmd,[cC][mM][dD]} text eol=crlf
+  *.{bat,[bB][aA][tT]} text eol=crlf
+  ```
+
+- **`.editorconfig`** is the single source of truth for indentation, line endings, and analyzer/formatting rules.
+- **`GitVersion.yml`** in the root drives semantic-versioning rules.
+
 ## Misc
 
-- When detecting new conventions or patterns in the codebase, add them to this document and apply them retroactively where applicable.
-- When multiple `copilot-instructions.md` files are available in the workspace, keep them in sync based on the common guidelines in the synced section.
+- When detecting new conventions or patterns in the codebase, add them to the appropriate `.github/instructions/*.instructions.md` file (or this file for cross-cutting workflow rules) and apply them retroactively where applicable.
+- Keep this file and the `.github/instructions/` files in sync across repositories based on the common synced guidelines.
 
 ---
 

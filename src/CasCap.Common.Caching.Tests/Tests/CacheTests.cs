@@ -12,7 +12,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         var cachingConfig = new CachingConfig
         {
-            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType, DatabaseId = remoteCacheDatabaseId },
             DiskCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
             MemoryCache = new CacheParameters { ClearOnStartup = ClearOnStartup }
         };
@@ -26,17 +26,17 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Act
         //start bg service
         await cacheExpiryBgSvc!.StartAsync(cancellationToken);
-        await Task.Delay(5_000);//short pause for the cancellation token to take effect
+        await Task.Delay(5_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
 
         //stop bg service
         await source.CancelAsync();
         source.Dispose();
-        await Task.Delay(1_000);//short pause for the cancellation token to take effect
+        await Task.Delay(1_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
         //Assert
-        Assert.True(true);
-        //TODO: all
+        //the hosted service resolves to the expected concrete type and starts/stops without throwing
+        Assert.NotNull(cacheExpiryBgSvc);
     }
 
     /// <summary>Verifies that sliding expiration removes a cached entry after the expected delay.</summary>
@@ -47,7 +47,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json, DatabaseId = remoteCacheDatabaseId },
         };
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
@@ -86,7 +86,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType.Json, DatabaseId = remoteCacheDatabaseId },
         };
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
@@ -138,7 +138,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             RemoteCache = new CacheParameters
             {
                 SerializationType = RemoteCacheSerializationType,
-                ClearOnStartup = ClearOnStartup
+                ClearOnStartup = ClearOnStartup,
+                DatabaseId = remoteCacheDatabaseId
             },
         };
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
@@ -214,7 +215,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType, DatabaseId = remoteCacheDatabaseId },
         };
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
@@ -285,7 +286,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cachingConfig = new CachingConfig
         {
             UseBuiltInLuaScripts = true,
-            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = ClearOnStartup, SerializationType = SerializationType, DatabaseId = remoteCacheDatabaseId },
         };
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
@@ -345,7 +346,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var services = new ServiceCollection().AddXUnitLogging(TestOutputHelper);
         var cachingConfig = new CachingConfig
         {
-            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType, DatabaseId = remoteCacheDatabaseId },
             DiskCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
             MemoryCache = new CacheParameters { ClearOnStartup = true }
         };
@@ -408,7 +409,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var cachingConfig = new CachingConfig
         {
             DistributedLockingEnabled = true,
-            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
+            RemoteCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType, DatabaseId = remoteCacheDatabaseId },
             DiskCache = new CacheParameters { ClearOnStartup = true, SerializationType = SerializationType },
             MemoryCache = new CacheParameters { ClearOnStartup = true }
         };

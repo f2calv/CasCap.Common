@@ -30,7 +30,7 @@ public record CommsEvent
     public required DateTime TimestampUtc { get; init; }
 
     /// <summary>The hosting environment name (e.g. Development, Test, Production) of the producer.</summary>
-    public string? Environment { get; init; }
+    public required string Environment { get; init; }
 
     /// <summary>
     /// Optional structured JSON payload providing additional context for the agent.

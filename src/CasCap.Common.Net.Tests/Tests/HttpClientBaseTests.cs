@@ -25,7 +25,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForJson(expected);
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 });
+        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(1, result.Id);
@@ -40,7 +40,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForError(HttpStatusCode.BadRequest, new ErrorPayload { Message = "bad" });
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 });
+        var (result, error) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Null(result);
         Assert.NotNull(error);
@@ -58,7 +58,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         }, new TestPayload { Id = 0, Name = "empty" });
         var client = CreateClient(handler);
 
-        var (result, _) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", null);
+        var (result, _) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", null, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal("{}", capturedBody);
@@ -76,7 +76,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Custom", "myvalue") };
-        _ = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, headers: headers);
+        _ = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, headers: headers, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("myvalue", headerValue);
     }
@@ -92,7 +92,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
-        await client.TestPostJsonAsync<TestPayload, ErrorPayload>("http://other-host/api/test", new { Id = 1 });
+        await client.TestPostJsonAsync<TestPayload, ErrorPayload>("http://other-host/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(capturedUri);
         Assert.Equal("other-host", capturedUri.Host);
@@ -107,7 +107,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             ("X-Response-Id", "abc"));
         var client = CreateClient(handler);
 
-        var res = await client.TestPostJson<TestPayload, ErrorPayload>("/api/test", new { Id = 1 });
+        var res = await client.TestPostJson<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, res.statusCode);
         Assert.Equal("abc", res.responseHeaders.GetValues("X-Response-Id").First());
@@ -121,7 +121,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, timeout: TimeSpan.FromMilliseconds(50)));
+            () => client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, timeout: TimeSpan.FromMilliseconds(50), cancellationToken: TestContext.Current.CancellationToken));
     }
 
     /// <summary>Verifies that PostJson can return the raw response body as a string.</summary>
@@ -131,7 +131,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawString("raw response");
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<string, string>("/api/test", new { Id = 1 });
+        var (result, error) = await client.TestPostJsonAsync<string, string>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("raw response", result);
         Assert.Null(error);
@@ -145,7 +145,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawBytes(expected);
         var client = CreateClient(handler);
 
-        var (result, _) = await client.TestPostJsonAsync<byte[], string>("/api/test", new { Id = 1 });
+        var (result, _) = await client.TestPostJsonAsync<byte[], string>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(expected, result);
@@ -158,7 +158,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawError(HttpStatusCode.InternalServerError, "something broke");
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostJsonAsync<string, string>("/api/test", new { Id = 1 });
+        var (result, error) = await client.TestPostJsonAsync<string, string>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Null(result);
         Assert.Equal("something broke", error);
@@ -176,7 +176,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForJson(expected);
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01, 0x02]);
+        var (result, error) = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01, 0x02], cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(2, result.Id);
@@ -190,7 +190,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForError(HttpStatusCode.BadRequest, new ErrorPayload { Message = "bad upload" });
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01]);
+        var (result, error) = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Null(result);
         Assert.NotNull(error);
@@ -209,7 +209,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Upload-Id", "upload-123") };
-        _ = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], headers: headers);
+        _ = await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], headers: headers, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("upload-123", headerValue);
     }
@@ -225,7 +225,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
-        await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], mediaType: "image/png");
+        await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], mediaType: "image/png", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("image/png", contentType);
     }
@@ -238,7 +238,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], timeout: TimeSpan.FromMilliseconds(50)));
+            () => client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], timeout: TimeSpan.FromMilliseconds(50), cancellationToken: TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -253,7 +253,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForJson(expected);
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data");
+        var (result, error) = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(3, result.Id);
@@ -268,7 +268,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForError(HttpStatusCode.NotFound, new ErrorPayload { Message = "not found" });
         var client = CreateClient(handler);
 
-        var (result, error) = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data");
+        var (result, error) = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Null(result);
         Assert.NotNull(error);
@@ -287,7 +287,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("Authorization", "Bearer token123") };
-        _ = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", headers: headers);
+        _ = await client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", headers: headers, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("Bearer token123", headerValue);
     }
@@ -301,7 +301,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             ("X-Total-Count", "42"));
         var client = CreateClient(handler);
 
-        var res = await client.TestGet<TestPayload, ErrorPayload>("/api/data");
+        var res = await client.TestGet<TestPayload, ErrorPayload>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, res.statusCode);
         Assert.Equal("42", res.responseHeaders.GetValues("X-Total-Count").First());
@@ -318,7 +318,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         }, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
-        await client.TestGetAsync<TestPayload, ErrorPayload>("http://external-api.com/data");
+        await client.TestGetAsync<TestPayload, ErrorPayload>("http://external-api.com/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(capturedUri);
         Assert.Equal("external-api.com", capturedUri.Host);
@@ -332,7 +332,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var client = CreateClient(handler);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", timeout: TimeSpan.FromMilliseconds(50)));
+            () => client.TestGetAsync<TestPayload, ErrorPayload>("/api/data", timeout: TimeSpan.FromMilliseconds(50), cancellationToken: TestContext.Current.CancellationToken));
     }
 
     /// <summary>Verifies that GetAsync can return the raw response body as a string.</summary>
@@ -342,7 +342,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawString("plain text");
         var client = CreateClient(handler);
 
-        var (result, _) = await client.TestGetAsync<string, string>("/api/data");
+        var (result, _) = await client.TestGetAsync<string, string>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("plain text", result);
     }
@@ -355,7 +355,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         var handler = MockHandler.ForRawBytes(expected);
         var client = CreateClient(handler);
 
-        var (result, _) = await client.TestGetAsync<byte[], string>("/api/data");
+        var (result, _) = await client.TestGetAsync<byte[], string>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(expected, result);

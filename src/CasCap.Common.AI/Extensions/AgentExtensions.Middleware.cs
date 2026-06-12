@@ -125,7 +125,7 @@ public static partial class AgentExtensions
     {
         Log.Debug("{ClassName} streaming chat message count={Count}", nameof(AgentExtensions), messages.Count());
         var updateCount = 0;
-        await foreach (var update in innerClient.GetStreamingResponseAsync(messages, options, cancellationToken))
+        await foreach (var update in innerClient.GetStreamingResponseAsync(messages, options, cancellationToken).ConfigureAwait(false))
         {
             updateCount++;
 
@@ -185,7 +185,7 @@ public static partial class AgentExtensions
     {
         Log.Debug("{ClassName} streaming agent message count={Count}", nameof(AgentExtensions), messages.Count());
         List<AgentResponseUpdate> updates = [];
-        await foreach (var update in innerAgent.RunStreamingAsync(messages, session, options, cancellationToken))
+        await foreach (var update in innerAgent.RunStreamingAsync(messages, session, options, cancellationToken).ConfigureAwait(false))
         {
             updates.Add(update);
             yield return update;
@@ -212,7 +212,7 @@ public static partial class AgentExtensions
         object? result;
         try
         {
-            result = await next(context, cancellationToken);
+            result = await next(context, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -293,7 +293,7 @@ public static partial class AgentExtensions
         const string args = "-i pipe:0 -f wav -ar 16000 -ac 1 -sample_fmt s16 pipe:1 -loglevel error";
 
         var (output, error, exitCode) = await ShellExtensions.RunProcessWithStdinAsync(
-            "ffmpeg", args, inputBytes, cancellationToken);
+            "ffmpeg", args, inputBytes, cancellationToken).ConfigureAwait(false);
 
         if (exitCode != 0)
         {

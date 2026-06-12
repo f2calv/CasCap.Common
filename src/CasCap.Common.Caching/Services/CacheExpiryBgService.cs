@@ -15,7 +15,7 @@ public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger,
         // service crashes and the pod restarts rather than running in a degraded state.
         await await Task.WhenAny(
             localCacheExpirySvc.ExecuteAsync(stoppingToken),
-            remoteCacheExpirySvc.ExecuteAsync(stoppingToken));
+            remoteCacheExpirySvc.ExecuteAsync(stoppingToken)).ConfigureAwait(false);
         logger.LogInformation("{ClassName} exiting", nameof(CacheExpiryBgService));
     }
 }

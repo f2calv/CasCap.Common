@@ -16,26 +16,18 @@ public static class HelperExtensions
     /// <summary>Checks if the current host environment name is 'Test'.</summary>
     public static bool IsTest(this IHostEnvironment env) => env.IsEnvironment("Test");
 
-    #region IsNullOrEmpty & IsNullOrWhiteSpace cannot interpret nullable reference types correctly, needs more research
-    //https://github.com/dotnet/roslyn/issues/37995
-    //https://github.com/JamesNK/Newtonsoft.Json/pull/2163/commits/fba64bcf9b8f41500da1c1dd75825f3db99cd3b4
-    //public static bool IsNullOrWhiteSpace(this string? val)
-    //{
-    //    return val is null || val.Trim() == string.Empty;
-    //    //return string.IsNullOrWhiteSpace(value);
-    //}
-
-    //public static bool IsNullOrEmpty([NotNullWhen(false)] string? value)
-    //{
-    //    return string.IsNullOrEmpty(value);
-    //}
-
-    //public static bool IsNullOrEmpty(string? value)//conflicts with collections extension IsNullOrEmpty
-    //{
-    //    return string.IsNullOrEmpty(value);
-    //    //return input?.Length > 0;
-    //}
-    #endregion
+    /// <summary>Returns the short-form acronym for the current environment name.</summary>
+    /// <remarks>Development → DEV, Test → TST, Integration → INT, Production → PRD. Unknown environments return the first 3 characters uppercased.</remarks>
+    public static string GetAcronym(this IHostEnvironment env) => env.EnvironmentName switch
+    {
+        "Development" => "DEV",
+        "Test" => "TST",
+        "Integration" => "INT",
+        "Production" => "PRD",
+        _ => env.EnvironmentName.Length >= 3
+            ? env.EnvironmentName.Substring(0, 3).ToUpperInvariant()
+            : env.EnvironmentName.ToUpperInvariant(),
+    };
 
     /// <summary>Deserializes an XML string into an instance of <typeparamref name="T"/>.</summary>
     /// <typeparam name="T">The target type.</typeparam>
@@ -137,7 +129,7 @@ public static class HelperExtensions
     }
 
     /// <summary>Converts an <see cref="IEnumerable{T}"/> to a <see cref="HashSet{T}"/>.</summary>
-    public static HashSet<T> ToHashSet<T>(this IEnumerable<T> l)//can remove if we use .net standard 2.1?
+    public static HashSet<T> ToHashSet<T>(this IEnumerable<T> l)
     {
         var hs = new HashSet<T>();
         foreach (var z in l)
@@ -180,23 +172,15 @@ public static class HelperExtensions
         return enumerationValue.ToString()!;
     }
 
-    private static Dictionary<string, object> dEnumLookup { get; set; } = [];
+    private static readonly ConcurrentDictionary<(Type Type, string Value), object> dEnumLookup = new();
 
-    /// <summary>UNFINISHED, an expansion of ParseEnum, use a static dictionary for speedy lookups?</summary>
-#pragma warning disable IDE0060 // Remove unused parameter
-    public static T ParseEnumFAST<T>(this string value, [CallerMemberName] string caller = "")
-    {
-        //TODO: write unit test for this, if you have two different enums with the same value, it'll return the wrong value...
-        //i.e. enum1.MyVal and enum2.MyVal
-        if (!dEnumLookup.TryGetValue(value, out object? result))
-        {
-            var val = (T)Enum.Parse(typeof(T), value, true);
-            dEnumLookup.Add(value, val);
-            return val;
-        }
-        return (T)result;
-    }
-#pragma warning restore IDE0060 // Remove unused parameter
+    /// <summary>Parses a string value into the specified <see cref="Enum"/> type, caching results for fast repeat lookups.</summary>
+    /// <remarks>
+    /// Results are cached per <c>(enum type, value)</c> pair so distinct enums sharing the same member name do not
+    /// collide. The parse is case-insensitive.
+    /// </remarks>
+    public static T ParseEnumFAST<T>(this string value) where T : struct
+        => (T)dEnumLookup.GetOrAdd((typeof(T), value), static key => Enum.Parse(key.Type, key.Value, true));
 
     /// <summary>Parses a string value into the specified <see cref="Enum"/> type (case-insensitive).</summary>
     public static T ParseEnum<T>(this string value) where T : struct =>
@@ -280,17 +264,8 @@ public static class HelperExtensions
     #endregion
 
     #region ParseInt
-    //public static int ToInt(this object input) => ParseInt(input);
-
     /// <summary>Parses a string to an <see cref="int"/>.</summary>
     public static int ToInt(this string input) => ParseInt(input);
-
-    //public static int ToInt(this object input, ref int result)
-    //{
-    //    result = ParseInt(input);
-    //    return result;
-    //}
-    //private static int ParseInt(object input) => ParseInt((input ?? string.Empty).ToString()!, 0);
 
     private static int ParseInt(string input) => ParseInt(input, 0);
     private static int ParseInt(string input, int _def)

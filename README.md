@@ -67,7 +67,7 @@ A .NET class library repository containing 14 NuGet packages with helper functio
 | [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Services**](src/CasCap.Common.Services/README.md) | `FeatureFlagBgService<T>` and `IFeature<T>` abstractions | net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Testing**](src/CasCap.Common.Testing/README.md) | xUnit test logging utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Testing**](src/CasCap.Common.Testing/README.md) | xUnit test logging utilities | net8.0; net9.0; net10.0 | ✅ |
 
 ### Test Projects
 

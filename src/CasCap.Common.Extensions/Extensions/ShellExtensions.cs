@@ -88,7 +88,7 @@ public static class ShellExtensions
             process.Start();
 
             // Write input bytes to stdin then close to signal EOF.
-            await process.StandardInput.BaseStream.WriteAsync(stdinBytes, cancellationToken);
+            await process.StandardInput.BaseStream.WriteAsync(stdinBytes, cancellationToken).ConfigureAwait(false);
             process.StandardInput.Close();
 
             // Read stdout and stderr concurrently to avoid deadlocks.
@@ -96,10 +96,10 @@ public static class ShellExtensions
             var copyTask = process.StandardOutput.BaseStream.CopyToAsync(outputStream, cancellationToken);
             var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
-            await Task.WhenAll(copyTask, errorTask);
-            await process.WaitForExitAsync(cancellationToken);
+            await Task.WhenAll(copyTask, errorTask).ConfigureAwait(false);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-            var error = await errorTask;
+            var error = await errorTask.ConfigureAwait(false);
             return (
                 outputStream.ToArray(),
                 error.Length > 0 ? error : null,

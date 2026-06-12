@@ -62,9 +62,6 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
-        }
+        public override int GetHashCode() => HashCode.Combine(ID, utcNow);
     }
 }

@@ -21,7 +21,7 @@ public sealed class GitMetadataBgService(ILogger<GitMetadataBgService> logger, G
                 gitMetadata.GIT_BRANCH,
                 gitMetadata.GIT_COMMIT
                 );
-            await Task.Delay(60_000, stoppingToken);
+            await Task.Delay(60_000, stoppingToken).ConfigureAwait(false);
         }
         logger.LogInformation("{ClassName} exiting", nameof(GitMetadataBgService));
     }

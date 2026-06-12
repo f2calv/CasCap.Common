@@ -11,4 +11,3 @@ global using Microsoft.Extensions.Logging;
 global using RedLockNet;
 global using System.Diagnostics;
 global using Xunit;
-global using Xunit.Abstractions;

@@ -3,14 +3,13 @@ namespace CasCap.Common.Xunit;
 /// <summary>Skips the test when running in an Azure DevOps build.</summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class SkipIfAzureDevOpsBuildFactAttribute() : FactAttribute
+public sealed class SkipIfAzureDevOpsBuildFactAttribute : FactAttribute
 {
-    /// <inheritdoc/>
-    public override string? Skip
+    /// <summary>Initialises a new instance of the <see cref="SkipIfAzureDevOpsBuildFactAttribute"/> class.</summary>
+    public SkipIfAzureDevOpsBuildFactAttribute()
     {
-        get => IsAzureDevOps() ? "Ignore test when running an Azure DevOps build" : base.Skip;
-        set => base.Skip = value;
+        Skip = "Ignore test when running an Azure DevOps build";
+        SkipWhen = nameof(CIEnvironment.IsAzureDevOps);
+        SkipType = typeof(CIEnvironment);
     }
-
-    private static bool IsAzureDevOps() => Environment.GetEnvironmentVariable("TF_BUILD") is not null;
 }

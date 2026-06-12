@@ -3,15 +3,13 @@ namespace CasCap.Common.Xunit;
 /// <summary>Skips the test when running in any CI environment (Azure DevOps or GitHub Actions).</summary>
 [ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class SkipIfCIBuildFactAttribute() : FactAttribute
+public sealed class SkipIfCIBuildFactAttribute : FactAttribute
 {
-    /// <inheritdoc/>
-    public override string? Skip
+    /// <summary>Initialises a new instance of the <see cref="SkipIfCIBuildFactAttribute"/> class.</summary>
+    public SkipIfCIBuildFactAttribute()
     {
-        get => IsCI() ? "Ignore test when running a CI build" : base.Skip;
-        set => base.Skip = value;
+        Skip = "Ignore test when running a CI build";
+        SkipWhen = nameof(CIEnvironment.IsCI);
+        SkipType = typeof(CIEnvironment);
     }
-
-    private static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
-        || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 }

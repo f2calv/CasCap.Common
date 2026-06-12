@@ -112,8 +112,8 @@ public static class StringExtensions
         return Convert.ToBase64String(bytes);
     }
 
-    /// <summary>Split a string by ';' characters. Accepts nulls :)</summary>
-    public static string[] Split(this string _s, char sep = ';')
+    /// <summary>Split a string by the given separator (default ';'), removing empty entries. Accepts nulls :)</summary>
+    public static string[] SplitClean(this string _s, char sep = ';')
     {
         return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
     }

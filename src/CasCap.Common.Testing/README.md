@@ -1,6 +1,6 @@
 # CasCap.Common.Testing
 
-xUnit test infrastructure — logging redirection and conditional-skip attributes for CI environments.
+xUnit v3 test infrastructure — logging redirection and conditional-skip attributes for CI environments.
 
 ## Installation
 
@@ -10,15 +10,15 @@ dotnet add package CasCap.Common.Testing
 
 ## Purpose
 
-Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via Serilog, plus `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions.
+Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via a custom `ILoggerProvider`, plus `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions.
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
 ### Extensions
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddXUnitLogging()` | Registers the Serilog xUnit sink and test logging provider into the DI container |
+| `ServiceCollectionExtensions.AddXUnitLogging()` | Registers the test logging provider (`TestLogProvider`) into the DI container |
 
 ### Logging
 
@@ -44,7 +44,7 @@ Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` vi
 
 | Package |
 | --- |
-| [Serilog.Sinks.XUnit](https://www.nuget.org/packages/serilog.sinks.xunit) |
+| [xunit.v3.extensibility.core](https://www.nuget.org/packages/xunit.v3.extensibility.core) |
 
 ### Project References
 
