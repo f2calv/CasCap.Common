@@ -215,7 +215,7 @@ public sealed class RedisCacheService : IRemoteCache
         async Task<RedisValueWithExpiry> StringGetSetExpiryAsync()
         {
             RedisValueWithExpiry result = default;
-            var retKeys = await StringGetWithExpiryAsyncLua();
+            var retKeys = await StringGetWithExpiryAsyncLua().ConfigureAwait(false);
             if (retKeys is not null && retKeys.Length == 3)
             {
                 var expiry = retKeys[0] is not null ? TimeSpan.FromSeconds((int)retKeys[0]) : (TimeSpan?)null;

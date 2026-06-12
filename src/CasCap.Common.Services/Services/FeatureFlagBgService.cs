@@ -31,7 +31,7 @@ public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, I
             throw new GenericException("no features found to launch!");
         //await-await-WhenAny propagates the first faulted task immediately so the
         //service crashes and the pod restarts rather than running in a degraded state.
-        await await Task.WhenAny(tasks);
+        await await Task.WhenAny(tasks).ConfigureAwait(false);
         logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService));
     }
 }

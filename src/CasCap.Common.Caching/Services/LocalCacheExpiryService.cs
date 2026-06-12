@@ -7,8 +7,6 @@
 public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> logger, IOptions<CachingConfig> cachingConfig,
     IRemoteCache remoteCache, ILocalCache localCache)
 {
-    private long count = 0;
-
     /// <summary>
     /// Subscribes to Redis pub/sub and runs until cancellation, processing local cache invalidation messages.
     /// </summary>
@@ -30,30 +28,6 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
                 ExpireByKey(key);
         });
 
-        //// Asynchronous handler
-        //remoteCache.Subscriber.Subscribe(channel).OnMessage(async channelMessage =>
-        //{
-        //    var key = (string?)channelMessage.Message;
-        //    if (key is not null)
-        //        await ExpireByKey(key, cancellationToken);
-        //});
-
-        //await remoteCache.Subscriber.SubscribeAsync(channel, (redisChannel, redisValue) =>
-        //{
-        //    var key = GetKey(redisChannel);
-        //    switch (redisValue)
-        //    {
-        //        case "del":
-        //        case "set":
-        //        //case "expire":
-        //        //case "expired":
-        //            ExpireByKey(key);
-        //            break;
-        //    }
-        //    logger.LogInformation("{ClassName} type={type}, key={key}",
-        //        nameof(LocalCacheInvalidationBgService), redisValue, key);
-        //});
-
         //keep alive
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -64,13 +38,6 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
             nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel).ConfigureAwait(false);
 
-        //static string GetKey(string channel)
-        //{
-        //    var index = channel.IndexOf(':');
-        //    if (index >= 0 && index < channel.Length - 1)
-        //        return channel[(index + 1)..];
-        //    return channel;
-        //}
         logger.LogInformation("{ClassName} stopping", nameof(LocalCacheExpiryService));
     }
 
@@ -87,7 +54,6 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
             if (localCache.Delete(key))
                 logger.LogDebug("{ClassName} cache key {Key} was invalidated by client {ClientName} now removed from {AbstractionName}",
                     nameof(LocalCacheExpiryService), key, clientName, nameof(ILocalCache));
-            _ = Interlocked.Increment(ref count);
         }
         else
             logger.LogTrace("{ClassName} skipped removing {Key} from {AbstractionName} as this instance just raised that event",

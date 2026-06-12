@@ -6,10 +6,9 @@
 //https://stackoverflow.com/questions/48676152/asp-net-core-web-api-logging-from-a-static-class
 public static class ApplicationLogging
 {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     /// <inheritdoc cref="ILoggerFactory"/>
-    public static ILoggerFactory LoggerFactory { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+    /// <remarks>Defaults to <see cref="Abstractions.NullLoggerFactory"/> so loggers can be created safely before <c>AddStaticLogging</c> runs.</remarks>
+    public static ILoggerFactory LoggerFactory { get; set; } = Abstractions.NullLoggerFactory.Instance;
 
     /// <inheritdoc cref="LoggerFactoryExtensions.CreateLogger{T}(ILoggerFactory)"/>
     public static ILogger CreateLogger<T>() => LoggerFactory.CreateLogger<T>();

@@ -70,9 +70,9 @@ public static class IOExtensions
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 #if NET8_0_OR_GREATER
-            await File.WriteAllBytesAsync(path, bytes, cancellationToken);
+            await File.WriteAllBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
 #else
-            await Task.Delay(0, cancellationToken);
+            await Task.Delay(0, cancellationToken).ConfigureAwait(false);
             File.WriteAllBytes(path, bytes);
 #endif
         }
@@ -109,9 +109,9 @@ public static class IOExtensions
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 #if NET8_0_OR_GREATER
-            await File.WriteAllTextAsync(path, str, cancellationToken);
+            await File.WriteAllTextAsync(path, str, cancellationToken).ConfigureAwait(false);
 #else
-            await Task.Delay(0, cancellationToken);
+            await Task.Delay(0, cancellationToken).ConfigureAwait(false);
             File.WriteAllText(path, str);
 #endif
         }

@@ -152,4 +152,24 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         var result = response.Headers.TryGetValue("X-Missing");
         Assert.Null(result);
     }
+
+    /// <summary>Verifies that GetBasicAuthHeaderValue base64-encodes the credentials with the Basic scheme prefix.</summary>
+    [Fact, Trait("Category", "Extensions")]
+    public void GetBasicAuthHeaderValue_EncodesCredentials()
+    {
+        // "user:pass" base64-encoded is "dXNlcjpwYXNz".
+        var result = NetExtensions.GetBasicAuthHeaderValue("user", "pass");
+        Assert.Equal("Basic dXNlcjpwYXNz", result);
+    }
+
+    /// <summary>Verifies that SetBasicAuth populates the HttpClient Authorization header with Basic credentials.</summary>
+    [Fact, Trait("Category", "Extensions")]
+    public void SetBasicAuth_PopulatesAuthorizationHeader()
+    {
+        using var client = new HttpClient();
+        client.SetBasicAuth("user", "pass");
+        Assert.NotNull(client.DefaultRequestHeaders.Authorization);
+        Assert.Equal("Basic", client.DefaultRequestHeaders.Authorization!.Scheme);
+        Assert.Equal("dXNlcjpwYXNz", client.DefaultRequestHeaders.Authorization.Parameter);
+    }
 }

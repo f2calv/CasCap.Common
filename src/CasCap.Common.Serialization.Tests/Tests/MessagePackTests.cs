@@ -40,10 +40,7 @@ public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
-        }
+        public override int GetHashCode() => HashCode.Combine(ID, utcNow);
     }
 
     /// <summary>A test model with a nested object, used to verify MessagePack serialization failure cases.</summary>

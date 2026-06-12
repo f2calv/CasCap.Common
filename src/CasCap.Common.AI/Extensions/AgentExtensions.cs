@@ -326,7 +326,7 @@ public static partial class AgentExtensions
         if (isTopLevel)
             _ambientAttachments.Value = [];
 
-        session ??= await agent.CreateSessionAsync(cancellationToken).AsTask();
+        session ??= await agent.CreateSessionAsync(cancellationToken).AsTask().ConfigureAwait(false);
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(timeout ?? TimeSpan.FromMinutes(5));
@@ -338,7 +338,7 @@ public static partial class AgentExtensions
         var savedUsage = _accumulatedUsage.Value;
         _accumulatedUsage.Value = null;
 
-        var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token);
+        var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
 
         var elapsed = sw.Elapsed;
         // Build output text from assistant text content only — exclude FunctionCallContent /

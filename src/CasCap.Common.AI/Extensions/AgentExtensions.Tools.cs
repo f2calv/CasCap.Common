@@ -200,7 +200,7 @@ public static partial class AgentExtensions
 
             // Fire the ambient delegation callback (e.g. send status message / swap reaction).
             if (_delegationCallback.Value is { } callback)
-                await callback(agentKey, depth, providerConfig, cancellationToken);
+                await callback(agentKey, depth, providerConfig, cancellationToken).ConfigureAwait(false);
 
             _ambientDepth.Value = depth;
             var agent = serviceProvider.GetRequiredKeyedService<AIAgent>(agentKey);
@@ -222,7 +222,7 @@ public static partial class AgentExtensions
                 {
                     var originalBytes = binaryContent;
                     var originalMimeType = mimeType;
-                    var transcoded = await TranscodeToWavAsync(binaryContent, cancellationToken);
+                    var transcoded = await TranscodeToWavAsync(binaryContent, cancellationToken).ConfigureAwait(false);
                     if (transcoded is not null)
                     {
                         Log.Information("{ClassName} transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
@@ -260,7 +260,7 @@ public static partial class AgentExtensions
             var resolvedInstructions = ResolveInstructions(agentConfig, instructionsAssembly, aiConfig);
             var chatOptions = BuildChatOptions(agentConfig, resolvedInstructions);
             var result = await agent.RunAnalysisAsync(providerConfig, agentConfig, message, chatOptions,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             _ambientDepth.Value = depth - 1;
 
@@ -269,7 +269,7 @@ public static partial class AgentExtensions
 
             // Fire the ambient completion callback (e.g. send debug stats for this sub-agent step).
             if (_completionCallback.Value is { } completionCb)
-                await completionCb(agentKey, depth, result, cancellationToken);
+                await completionCb(agentKey, depth, result, cancellationToken).ConfigureAwait(false);
 
             // Bubble up any image attachments from the sub-agent to the parent's ambient collector.
             if (result.Attachments.Count > 0)

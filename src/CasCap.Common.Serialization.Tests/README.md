@@ -27,3 +27,35 @@ Verifies JSON and MessagePack serialization round-trips, custom converter behavi
 | `CasCap.Common.Serialization.Json` | JSON serialization library under test |
 | `CasCap.Common.Serialization.MessagePack` | MessagePack serialization library under test |
 | `CasCap.Common.Testing` | xUnit logging & skip attributes |
+
+## Tests
+
+| Test class | Methods | Test cases | Coverage |
+| --- | --- | --- | --- |
+| `JsonConverterTests` | 11 | 15 | `Array2DConverter`, `MicrosecondEpochConverter`, `MillisecondEpochConverter`, `ParseEnumConverter<TEnum>`, `RawJsonStringConverter`, `StringToIntConverter` |
+| `JsonTests` | 1 | 1 | `ToJson`/`FromJson` round-trips & error handling |
+| `MessagePackTests` | 1 | 1 | `ToMessagePack`/`FromMessagePack` round-trips |
+| **Total** | **13** | **17** | |
+
+### Trait Categories
+
+| Category | Used by |
+| --- | --- |
+| `Serialization` | `JsonConverterTests` |
+
+`JsonTests` and `MessagePackTests` carry no trait category.
+
+### Skipped Tests
+
+None.
+
+## File Structure
+
+```text
+Tests/
+├── JsonConverterTests.cs
+├── JsonTests.cs
+├── MessagePackTests.cs
+└── TestBase.cs
+```
+

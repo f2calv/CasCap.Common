@@ -26,3 +26,36 @@ Verifies HTTP client base class behaviour and network extension methods — head
 | --- | --- |
 | `CasCap.Common.Net` | Library under test |
 | `CasCap.Common.Testing` | xUnit logging & skip attributes |
+
+## Tests
+
+| Test class | Methods | Test cases | Coverage |
+| --- | --- | --- | --- |
+| `HttpClientBaseTests` | 25 | 25 | `PostJsonAsync`, `PostBytesAsync`, `GetAsync` — success/error deserialization, headers, full-URL override, status/headers capture, raw string/bytes results, timeout & cancellation |
+| `NetExtensionTests` | 18 | 18 | `ToQueryString`, `AddOrOverwrite` (string/list/dictionary), `TryGetValue`, `GetBasicAuthHeaderValue`, `SetBasicAuth` |
+| **Total** | **43** | **43** | |
+
+### Trait Categories
+
+| Category | Used by |
+| --- | --- |
+| `HttpClientBase` | `HttpClientBaseTests` |
+| `Extensions` | `NetExtensionTests` |
+
+### Skipped Tests
+
+None.
+
+## File Structure
+
+```text
+Tests/
+├── ErrorPayload.cs
+├── HttpClientBaseTests.cs
+├── MockHandler.cs
+├── NetTests.cs
+├── TestBase.cs
+├── TestHttpClient.cs
+└── TestPayload.cs
+```
+

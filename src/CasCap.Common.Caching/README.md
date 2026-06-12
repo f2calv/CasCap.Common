@@ -206,10 +206,10 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
         "DatabaseId": 1,
         "ClearOnStartup": false,
         "SerializationType": "MessagePack"
-        },
-        "Redlock": {
-          "RedisKeyFormat": "Production:RedLock:{0}",
-          "ExpiryMs": 5000,
+      },
+      "Redlock": {
+        "RedisKeyFormat": "Production:RedLock:{0}",
+        "ExpiryMs": 5000,
         "WaitMs": 5000,
         "RetryMs": 250,
         "Profiles": {

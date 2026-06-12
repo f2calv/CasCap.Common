@@ -21,8 +21,8 @@ public static partial class AgentExtensions
     /// </returns>
     public static async Task<(McpClient Client, List<McpClientTool> Tools)> GetHttpTools(string mcpEndpoint)
     {
-        var mcpClient = await CreateMcpClientAsync(mcpEndpoint);
-        var tools = (await mcpClient.ListToolsAsync()).ToList();
+        var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
+        var tools = (await mcpClient.ListToolsAsync().ConfigureAwait(false)).ToList();
         foreach (var tool in tools)
             Log.Information("{ClassName} {Name} ({Description})", nameof(AgentExtensions), tool.Name, tool.Description);
         return (mcpClient, tools);
@@ -43,8 +43,8 @@ public static partial class AgentExtensions
     /// </returns>
     public static async Task<(McpClient Client, List<McpClientPrompt> Prompts)> GetHttpPrompts(string mcpEndpoint)
     {
-        var mcpClient = await CreateMcpClientAsync(mcpEndpoint);
-        var prompts = (await mcpClient.ListPromptsAsync()).ToList();
+        var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
+        var prompts = (await mcpClient.ListPromptsAsync().ConfigureAwait(false)).ToList();
         foreach (var prompt in prompts)
             Log.Information("{ClassName} {Name} ({Description})", nameof(AgentExtensions), prompt.Name, prompt.Description);
         return (mcpClient, prompts);
