@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CasCap.Common.Logging.Serilog\CasCap.Common.Logging.Serilog.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Net\CasCap.Common.Net.csproj" />
     <ProjectReference Include="..\CasCap.Common.Services\CasCap.Common.Services.csproj" />
   </ItemGroup>
 

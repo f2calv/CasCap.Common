@@ -11,6 +11,7 @@ public static class OpenTelemetryExtensions
     /// <param name="metricsConfig">Metrics configuration providing service name, metric prefix, and OTLP endpoint.</param>
     /// <param name="gitMetadata">Git metadata for resource attributes.</param>
     /// <param name="connectionMultiplexer">Optional Redis connection multiplexer for trace instrumentation.</param>
+    /// <param name="apiAuthConfig">Optional basic-auth credentials applied as an <c>Authorization</c> header on every OTLP export — required only when the collector endpoint sits behind an authenticating ingress.</param>
     /// <param name="configureMetrics">Optional callback to add app-specific metrics configuration.</param>
     /// <param name="configureTracing">Optional callback to add app-specific tracing configuration.</param>
     public static void InitializeOpenTelemetry(
@@ -18,6 +19,7 @@ public static class OpenTelemetryExtensions
         IMetricsConfig metricsConfig,
         GitMetadata gitMetadata,
         IConnectionMultiplexer? connectionMultiplexer = null,
+        ApiAuthConfig? apiAuthConfig = null,
         Action<MeterProviderBuilder>? configureMetrics = null,
         Action<TracerProviderBuilder>? configureTracing = null)
     {
@@ -28,6 +30,25 @@ public static class OpenTelemetryExtensions
         }
 
         var otlpEndpoint = metricsConfig.OtlpExporterEndpoint;
+
+        // Build an OTLP Authorization header (gRPC metadata / HTTP header) from the shared basic-auth
+        // credentials. Only needed when exporting through an authenticating ingress; in-cluster exports
+        // straight to the collector service ignore it harmlessly.
+        string? otlpHeaders = null;
+        if (apiAuthConfig is not null
+            && !string.IsNullOrWhiteSpace(apiAuthConfig.Username)
+            && !string.IsNullOrWhiteSpace(apiAuthConfig.Password))
+        {
+            otlpHeaders = $"Authorization={NetExtensions.GetBasicAuthHeaderValue(apiAuthConfig.Username, apiAuthConfig.Password)}";
+        }
+
+        void ConfigureOtlpExporter(OtlpExporterOptions opt)
+        {
+            opt.Protocol = OtlpExportProtocol.Grpc;
+            opt.Endpoint = otlpEndpoint;
+            if (otlpHeaders is not null)
+                opt.Headers = otlpHeaders;
+        }
 
         var attributes = new Dictionary<string, object>
         {
@@ -52,11 +73,7 @@ public static class OpenTelemetryExtensions
                     metricsBuilder.AddProcessInstrumentation();
                 }
                 configureMetrics?.Invoke(metricsBuilder);
-                metricsBuilder.AddOtlpExporter(opt =>
-                {
-                    opt.Protocol = OtlpExportProtocol.Grpc;
-                    opt.Endpoint = otlpEndpoint;
-                });
+                metricsBuilder.AddOtlpExporter(ConfigureOtlpExporter);
             })
             .WithTracing(tracingBuilder =>
             {
@@ -77,20 +94,12 @@ public static class OpenTelemetryExtensions
                 if (!builder.Environment.IsDevelopment() && connectionMultiplexer is not null)
                     tracingBuilder.AddRedisInstrumentation(connectionMultiplexer, configure => { });
                 configureTracing?.Invoke(tracingBuilder);
-                tracingBuilder.AddOtlpExporter(opt =>
-                {
-                    opt.Protocol = OtlpExportProtocol.Grpc;
-                    opt.Endpoint = otlpEndpoint;
-                });
+                tracingBuilder.AddOtlpExporter(ConfigureOtlpExporter);
             })
             .WithLogging(loggingBuilder =>
             {
                 loggingBuilder.SetResourceBuilder(resourceBuilder);
-                loggingBuilder.AddOtlpExporter(opt =>
-                {
-                    opt.Protocol = OtlpExportProtocol.Grpc;
-                    opt.Endpoint = otlpEndpoint;
-                });
+                loggingBuilder.AddOtlpExporter(ConfigureOtlpExporter);
             });
     }
 }
