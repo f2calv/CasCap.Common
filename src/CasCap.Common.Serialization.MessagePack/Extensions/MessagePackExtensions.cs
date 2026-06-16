@@ -27,7 +27,8 @@ public static class MessagePackExtensions
     public static T FromMessagePack<T>(this byte[] bytes)
     {
         bytes = bytes ?? throw new ArgumentNullException(paramName: nameof(bytes));
-        return bytes.AsMemory().FromMessagePack<T>();
+        ReadOnlyMemory<byte> buffer = bytes;
+        return buffer.FromMessagePack<T>();
     }
 
     /// <summary>Deserializes a MessagePack buffer to an instance of <typeparamref name="T"/>.</summary>
