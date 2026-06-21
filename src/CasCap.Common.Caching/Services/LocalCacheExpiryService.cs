@@ -28,11 +28,13 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
                 ExpireByKey(key);
         });
 
-        //keep alive
-        while (!cancellationToken.IsCancellationRequested)
+        //keep alive until cancellation is requested; the expected cancellation must not surface as an exception so the
+        //unsubscribe/housekeeping below still runs on a graceful shutdown.
+        try
         {
-            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
         }
+        catch (OperationCanceledException) { }
 
         logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
             nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
