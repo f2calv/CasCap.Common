@@ -11,6 +11,14 @@ public static class SerilogExtensions
     private static bool _bootstrapLoggerInitialized;
 
     /// <summary>
+    /// Controls the verbosity of the console sink at runtime. Defaults to <see cref="LogEventLevel.Verbose"/> so the
+    /// console mirrors the configured pipeline level. Interactive console apps (e.g. a full-screen Spectre UI) can
+    /// raise this to <see cref="LogEventLevel.Warning"/> or higher once startup completes to stop log lines
+    /// interleaving with rendered output, without affecting the file/Seq/Loki sinks.
+    /// </summary>
+    public static readonly Core.LoggingLevelSwitch ConsoleLevelSwitch = new(LogEventLevel.Verbose);
+
+    /// <summary>
     /// Creates a bootstrap <see cref="Log.Logger"/> with a platform-aware console sink
     /// and wires it into <see cref="ApplicationLogging.LoggerFactory"/>.
     /// Call this early in <c>Program.cs</c> before the DI container is built.
@@ -28,7 +36,8 @@ public static class SerilogExtensions
                     theme: RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                         ? SystemConsoleTheme.Literate
                         : AnsiConsoleTheme.Code,
-                    applyThemeToRedirectedOutput: true)
+                    applyThemeToRedirectedOutput: true,
+                    levelSwitch: ConsoleLevelSwitch)
                 .CreateBootstrapLogger();
 
             ApplicationLogging.LoggerFactory = new SerilogLoggerFactory(Log.Logger);
@@ -57,7 +66,8 @@ public static class SerilogExtensions
                 theme: RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? SystemConsoleTheme.Literate
                     : AnsiConsoleTheme.Code,
-                applyThemeToRedirectedOutput: true)
+                applyThemeToRedirectedOutput: true,
+                levelSwitch: ConsoleLevelSwitch)
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithEnvironmentUserName()
