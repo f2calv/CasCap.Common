@@ -7,7 +7,11 @@ applyTo: '**/*.cs'
 
 ## Style (enforced by `.editorconfig`)
 
-- **Class-per-file**: Each top-level type (class, `static class`, record, struct, interface, enum) lives in its own file named after the type (`MyService.cs` for `class MyService`; `FooConstants.cs` for `static class FooConstants`). Exempt: nested private types; enums (consolidate per-project into one `_Enums.cs`); `IAppConfig` implementations and their nested config classes (underscore-prefixed filename, e.g. `_AppConfig.cs` for `record AppConfig`, to group config files at the top of the explorer — the underscore is not part of the type name). **Generic types**: encode type parameters with curly braces — `Foo{T}.cs`, `Bar{T,U}.cs`, `_FeatureConfig{T}.cs` (Microsoft .NET runtime convention).
+- **Class-per-file (one top-level type per file — strict)**: Every top-level type — `class`, `static class`, `record`, `record struct`, `struct`, `interface`, `enum` — lives in its **own** file named after the type (`MyService.cs` for `class MyService`; `FooConstants.cs` for `static class FooConstants`). **Never place two top-level types in the same file.** The *only* types allowed to share a file with another type are **nested types** (types declared inside another type, at any accessibility). If you are about to add a second top-level type to an existing file, stop and create a new file instead. There are exactly two grouping exceptions, both signalled by an underscore-prefixed filename (the underscore is not part of any type name):
+  - **`_Enums.cs`** — consolidates every `enum` in a project into one file (enums only; this is the one file permitted to hold multiple top-level types).
+  - **`_*Config.cs`** (e.g. `_AppConfig.cs` for `record AppConfig`) — groups an `IAppConfig` implementation with its related config types, to keep config files at the top of the explorer.
+
+  **Generic types** are not an exception to the one-type rule; they only change the filename — encode type parameters with curly braces: `Foo{T}.cs`, `Bar{T,U}.cs`, `_FeatureConfig{T}.cs` (Microsoft .NET runtime convention).
 - **Indentation**: 4 spaces, LF line endings, insert final newline
 - **Interfaces**: Must start with `I` (PascalCase) and live in an Abstractions folder and an Abstractions namespace.
 - **Types/Methods/Properties**: PascalCase
@@ -21,7 +25,9 @@ applyTo: '**/*.cs'
 - **Async pass-through**: When a method is a thin wrapper that only returns another async call (no `using`, `try`/`catch`, or additional `await`s), drop `async`/`await` and return the `Task`/`ValueTask` directly to avoid unnecessary state-machine overhead.
 - **Async/Await**: Always await async method calls.
 - **Pattern matching**: Preferred (`is`, `not`, switch expressions)
-- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`). Use parameters directly in the class body — do **not** copy them to private/protected fields (avoid `private ILogger _logger = logger;`). **Exception**: abstract base classes may expose a `protected` field for inheritors (`protected ILogger _logger = logger;` with `: base(logger)`). Access `IOptions<T>` / `IOptionsMonitor<T>` via `.Value` / `.CurrentValue` inline, not cached. Wrap long parameter lists one-per-line, with the closing parenthesis and base/interface clause on their own line.
+- **Primary constructors**: Preferred (`csharp_style_prefer_primary_constructors = true`). Use parameters directly in the class body — do **not** copy them to private/protected fields (avoid `private ILogger _logger = logger;`). **Exception**: abstract base classes may expose a `protected` field for inheritors (`protected ILogger _logger = logger;` with `: base(logger)`).
+- **`IOptions<T>` access**: Read `IOptions<T>` / `IOptionsMonitor<T>` values via `.Value` / `.CurrentValue` inline at the point of use — do **not** copy them into a private/protected field or a cached local.
+- **Wrapping long parameter lists**: When a constructor or method parameter list is too long for a single line, wrap it one parameter per line, with the closing parenthesis (and any `: base(...)` / interface clause) on its own line.
 - **`var`**: Preferred — use `var` unless the type is not obvious from the right-hand side
 - **Records**: Prefer `record` types with `get; init;` properties over classes where object comparison semantics are useful
 - **Constructors**: When injecting services use a 'Svc' suffix on the parameter name and its private field instead of 'Service' to make more concise.

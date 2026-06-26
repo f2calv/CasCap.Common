@@ -27,11 +27,13 @@ public sealed class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> l
                 nameof(RemoteCacheExpiryService), key, success, remoteCache.SlidingExpirations.Count);
         }).ConfigureAwait(false);
 
-        //keep alive
-        while (!cancellationToken.IsCancellationRequested)
+        //keep alive until cancellation is requested; the expected cancellation must not surface as an exception so the
+        //unsubscribe/housekeeping below still runs on a graceful shutdown.
+        try
         {
-            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
         }
+        catch (OperationCanceledException) { }
 
         logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
             nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);

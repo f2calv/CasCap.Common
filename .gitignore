@@ -367,3 +367,6 @@ FodyWeavers.xsd
 !.docker/redis.conf
 .vscode/*
 !.vscode/extensions.json
+
+# HVE / Copilot runtime artefacts
+.copilot-tracking/

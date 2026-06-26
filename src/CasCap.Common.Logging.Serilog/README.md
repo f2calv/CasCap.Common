@@ -22,6 +22,17 @@ Provides a bootstrap logger for early startup logging and a composable `AddCasCa
 | `SerilogWebApplicationBuilderExtensions.InitializeSerilog(builder, categoryName)` | Thread-safe one-shot Serilog initialization on a `WebApplicationBuilder` via `UseSerilog` + `AddCasCapDefaults` |
 | `LoggerConfiguration.AddCasCapDefaults(IConfiguration)` | Applies standard enrichers, console sink, health-check filter, and config binding |
 
+### Runtime Console Control
+
+`SerilogExtensions.ConsoleLevelSwitch` is a static `LoggingLevelSwitch` wired into the console sink (both the bootstrap logger and `AddCasCapDefaults`). It defaults to `Verbose` so the console mirrors the configured pipeline level. Interactive console apps (e.g. a full-screen Spectre UI) can raise it to `Warning` or higher once startup completes to stop log lines interleaving with rendered output, without affecting the file/Seq/Loki sinks.
+
+```csharp
+var previous = SerilogExtensions.ConsoleLevelSwitch.MinimumLevel;
+SerilogExtensions.ConsoleLevelSwitch.MinimumLevel = LogEventLevel.Warning;
+try { /* run the interactive UI */ }
+finally { SerilogExtensions.ConsoleLevelSwitch.MinimumLevel = previous; }
+```
+
 ### Enrichers Included
 
 `FromLogContext`, `WithEnvironmentName`, `WithEnvironmentUserName`, `WithProcessId`, `WithThreadId`, `WithExceptionDetails`, `WithAssemblyName`, `WithSpan`
