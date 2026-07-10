@@ -5,6 +5,12 @@ applyTo: '**/appsettings*.json'
 
 # Configuration
 
+## Environment Layering (ASP.NET Core)
+
+- `appsettings.json` is **both** the base configuration **and** the `Production` environment. ASP.NET Core loads `appsettings.json` first, then `appsettings.{Environment}.json`, merging **by key** (later wins). By convention there is **no** `appsettings.Production.json` — the `Production` environment is served by `appsettings.json` alone. **Never create one.**
+- An `appsettings.{Environment}.json` override only needs to restate the keys it changes; every other key falls through to `appsettings.json`.
+- Environment variables (`CasCap__Section__Property`) override all JSON layers, so Kubernetes Secrets/ConfigMaps can override any appsettings value at runtime.
+
 ## Configuration Sync
 
 - Configuration properties (e.g. polling delays, feature flags, thresholds) are defined with sensible defaults directly on the `IAppConfig` record/class. Having defaults in the record means the application works out-of-the-box, but every property can be overridden via `appsettings*.json` or directly with environment variables in Kubernetes deployments (using the standard `CasCap__SectionName__PropertyName` double-underscore convention).
