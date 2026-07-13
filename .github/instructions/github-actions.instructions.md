@@ -32,9 +32,17 @@ applyTo: '.github/workflows/**,.github/actions/**,**/action.yml,**/action.yaml'
 - Use `|` (pipe) for multi-line `run` scripts. Use `>` for flowing multi-line description text.
 - One blank line between major YAML sections (`on:`, `env:`, `jobs:`). No blank lines within input/output lists.
 
+## Reusability
+
+- **Reusability is a key requirement.** Factor cross-cutting GitHub Actions logic (build, test, lint, versioning, container/Helm packaging, EF migration-drift checks, etc.) into reusable `workflow_call` workflows in the `f2calv/gha-workflows` repo wherever it makes sense, so every repository consumes one implementation. Keep logic inline or in a repo-local reusable workflow only when it is genuinely repo-specific and unlikely to be reused.
+- **`gha-workflows` is the ideal home** for shared workflows. Parameterize them with `inputs` (paths, project/context names, configuration, flags) so they stay repo-agnostic; a consumer passes specifics via `with:`.
+- **Filename convention differs by scope:**
+  - *Shared* (cross-repo, in `gha-workflows`): non-underscore filename with a `_`-prefixed `name:` (e.g. file `app-build-dotnet.yml`, `name: _app-build-dotnet`), consumed via `uses: f2calv/gha-workflows/.github/workflows/<file>.yml@v1`.
+  - *Local* (same-repo): underscore-prefixed filename (e.g. `_gitops-helm-update.yml`), consumed via `uses: ./.github/workflows/_filename.yml`.
+
 ## Reusable Workflows
 
-- **File naming**: Prefix reusable workflow filenames with an underscore to distinguish them from top-level entry-point workflows (e.g. `_gitops-helm-update.yml`, `_deploy-maui-android.yml`).
+- **File naming**: Prefix local (same-repo) reusable workflow filenames with an underscore to distinguish them from top-level entry-point workflows (e.g. `_gitops-helm-update.yml`, `_deploy-maui-android.yml`).
 - **Same repo**: `uses: ./.github/workflows/_filename.yml`
 - **Cross-repo**: `uses: owner/repo/.github/workflows/filename.yml@v1`
 - Prefer `secrets: inherit` unless there is a specific reason to restrict secrets passed to the called workflow.
