@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Serilog;
 
@@ -33,6 +34,12 @@ public static class SerilogWebApplicationBuilderExtensions
         {
             if (_mainLoggingInitialized)
                 return ApplicationLogging.CreateLogger(categoryName);
+
+            // Remove the default MEL Console/Debug/EventSource providers so writeToProviders: true
+            // forwards only to the native OpenTelemetry log exporter (registered later via
+            // InitializeOpenTelemetry) — avoiding a redundant second console writer alongside
+            // Serilog's own console sink. InitializeOpenTelemetry MUST run after InitializeSerilog.
+            builder.Logging.ClearProviders();
 
             builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
             {
