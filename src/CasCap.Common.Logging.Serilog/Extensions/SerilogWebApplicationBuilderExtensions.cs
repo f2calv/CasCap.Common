@@ -37,7 +37,7 @@ public static class SerilogWebApplicationBuilderExtensions
             builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
             {
                 loggerConfiguration.AddCasCapDefaults(hostContext.Configuration);
-            });
+            }, writeToProviders: true);
 
             _mainLoggingInitialized = true;
         }
