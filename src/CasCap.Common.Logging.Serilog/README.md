@@ -19,7 +19,7 @@ Provides a bootstrap logger for early startup logging and a composable `AddCasCa
 | Extension | Description |
 | --- | --- |
 | `SerilogExtensions.GetBootstrapLogger()` | Creates a bootstrap console logger and wires `ApplicationLogging.LoggerFactory` |
-| `SerilogWebApplicationBuilderExtensions.InitializeSerilog(builder, categoryName)` | Thread-safe one-shot logging setup on a `WebApplicationBuilder`: registers Serilog as a console-only provider via `AddSerilog` + `AddCasCapDefaults` (MEL owns the pipeline; OTLP export is handled by the native OpenTelemetry exporter as a sibling provider) |
+| `SerilogWebApplicationBuilderExtensions.InitializeSerilog(builder, categoryName)` | Thread-safe one-shot logging setup on a `WebApplicationBuilder`: Serilog owns the pipeline via `UseSerilog(..., writeToProviders: true)` + `AddCasCapDefaults`, forwarding to the MEL providers so one `Serilog` config section drives both the console and the native OpenTelemetry OTLP export |
 | `LoggerConfiguration.AddCasCapDefaults(IConfiguration)` | Applies standard enrichers, console sink, health-check filter, and config binding |
 
 ### Runtime Console Control
