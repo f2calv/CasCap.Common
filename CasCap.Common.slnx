@@ -13,6 +13,7 @@
   </Folder>
   <Folder Name="/CasCap.Common/">
     <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" />
+    <Project Path="src/CasCap.Common.AspNetCore/CasCap.Common.AspNetCore.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
     <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
