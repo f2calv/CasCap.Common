@@ -17,13 +17,20 @@ public static class SerilogWebApplicationBuilderExtensions
     private static bool _mainLoggingInitialized;
 
     /// <summary>
-    /// Configures Serilog via <see cref="SerilogExtensions.AddCasCapDefaults"/> for console/file logging.
+    /// Registers Serilog as a console-only logging provider on a <see cref="WebApplicationBuilder"/>.
     /// </summary>
     /// <remarks>
-    /// Log export to the OTEL collector is handled by the native OpenTelemetry log exporter
-    /// registered separately via <c>InitializeOpenTelemetry</c>, replacing the
-    /// previous <c>Serilog.Sinks.OpenTelemetry</c> sink so the entire monitoring stack uses
-    /// consistent OTEL libraries for metrics, traces and logs.
+    /// Microsoft.Extensions.Logging owns the logging pipeline; Serilog is added via <c>AddSerilog</c>
+    /// (not <c>UseSerilog</c>) purely to render the coloured console sink from
+    /// <see cref="SerilogExtensions.AddCasCapDefaults"/>. Application logs reach the OTEL collector
+    /// through the native OpenTelemetry log exporter registered separately by
+    /// <c>InitializeOpenTelemetry</c> as a sibling MEL provider — so the exported message body is
+    /// rendered by the MEL formatter (no Serilog string-quoting), and neither a
+    /// <c>Serilog.Sinks.OpenTelemetry</c> sink nor <c>writeToProviders</c> forwarding is involved.
+    /// The MEL minimum level is opened to <see cref="LogLevel.Trace"/> so each provider self-filters:
+    /// the Serilog console via its own <c>Serilog:MinimumLevel</c> config, and the OpenTelemetry
+    /// export via the standard <c>Logging</c> section. <c>InitializeOpenTelemetry</c> MUST run after
+    /// this (the default-provider clear happens here).
     /// </remarks>
     /// <param name="builder">The web application builder.</param>
     /// <param name="categoryName">Logger category name (typically <c>nameof(Program)</c>).</param>
@@ -35,16 +42,21 @@ public static class SerilogWebApplicationBuilderExtensions
             if (_mainLoggingInitialized)
                 return ApplicationLogging.CreateLogger(categoryName);
 
-            // Remove the default MEL Console/Debug/EventSource providers so writeToProviders: true
-            // forwards only to the native OpenTelemetry log exporter (registered later via
-            // InitializeOpenTelemetry) — avoiding a redundant second console writer alongside
-            // Serilog's own console sink. InitializeOpenTelemetry MUST run after InitializeSerilog.
-            builder.Logging.ClearProviders();
+            // Build the full Serilog logger (coloured console sink + enrichers + appsettings level
+            // config) and publish it as the static Log.Logger for Log.* / Log.CloseAndFlushAsync,
+            // keeping the static factory (used by early-startup / static ILogger fields) in sync.
+            Log.Logger = new LoggerConfiguration()
+                .AddCasCapDefaults(builder.Configuration)
+                .CreateLogger();
+            ApplicationLogging.LoggerFactory = new SerilogLoggerFactory(Log.Logger);
 
-            builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
-            {
-                loggerConfiguration.AddCasCapDefaults(hostContext.Configuration);
-            }, writeToProviders: true);
+            // MEL owns the pipeline. Clear the default Console/Debug/EventSource providers so Serilog
+            // is the only console writer, open the minimum level so each provider self-filters, then
+            // add Serilog as a console-only provider. The native OpenTelemetry log exporter is added
+            // later by InitializeOpenTelemetry as a sibling provider (hence the ordering requirement).
+            builder.Logging.ClearProviders();
+            builder.Logging.SetMinimumLevel(LogLevel.Trace);
+            builder.Logging.AddSerilog(Log.Logger);
 
             _mainLoggingInitialized = true;
         }
