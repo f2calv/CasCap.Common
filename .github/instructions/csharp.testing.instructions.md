@@ -23,7 +23,9 @@ Tests/
 - Must live in the `Tests/Integration/` subfolder.
 - Must inherit from `TestBase(output)` — this wires up `ILoggerFactory` (Serilog → xUnit output), `IConfiguration` (appsettings loading), and optionally DI services.
 - `TestBase` lives in `Tests/Integration/TestBase.cs`. It exposes `protected` fields for commonly-used services resolved from the DI container. When a new service is needed by multiple integration test classes, add a `protected` field to `TestBase` resolved from the service provider — do not duplicate service resolution in each test class.
-- `TestBase` exposes a `protected ITestOutputHelper _output` field. Subclasses should use `_output` directly rather than capturing the constructor parameter separately.
+- `TestBase` exposes a `protected ITestOutputHelper _output` field. Subclasses should use `_output` directly rather than capturing the constructor parameter separately — capturing it in a primary constructor while also passing it to the base is compile error **CS9107**, so a `TestBase` that fails to expose the field pushes every subclass onto a worse alternative.
+- **Secrets are loaded from Azure Key Vault.** `TestBase` builds configuration in two passes: the first reads the `AppConfig` section to discover the Key Vault URI and token credential, the second layers Key Vault over the `appsettings*.json` chain. Integration tests therefore run against real configuration with **no manual local wiring**, but they require an authenticated Azure context (`az login` locally, a managed identity or federated credential in CI) and will fail during construction without one.
+- Never commit a secret to an `appsettings*.json` file to make an integration test pass, and never write a resolved secret to test output.
 - Exception: lightweight integration tests that only need `HttpClient` (no DI container) may take `ITestOutputHelper` directly without `TestBase`.
 
 ## Unit Tests
@@ -32,6 +34,13 @@ Tests/
 - Do **not** inherit from `TestBase` — they are self-contained with no DI container.
 - May take `ITestOutputHelper` directly for diagnostic output.
 - Use domain-specific trait categories (e.g. `"Parsing"`, `"String Manipulation"`) — not `"Unit"`.
+
+## Diagnostic Output
+
+- Write diagnostic output through `ITestOutputHelper` — `_output.WriteLine(...)` in classes deriving from `TestBase`, or a directly-injected `ITestOutputHelper` in unit tests. Logging through an `ILogger` resolved from the DI container is equally acceptable, since `TestBase` routes Serilog to xUnit output.
+- **Never use `Debug.WriteLine` or `Console.WriteLine` for test diagnostics.** The xUnit runner captures neither, so the output is invisible in CI, in `dotnet test`, and in the VS Code Test Explorer — precisely the moments it is needed. `Debug.WriteLine` is additionally compiled out of Release builds, so it is silently absent from the configuration most pipelines run.
+- Prefer string interpolation (`$"..."`) over concatenation or composite format strings.
+- Do not dump large payloads unconditionally. Emit the few values that explain a failure, and put the decisive ones in the assertion message so they survive into the failure report rather than only appearing on a passing run.
 
 ## Theory Parameterisation
 
