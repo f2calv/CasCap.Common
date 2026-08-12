@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Serilog;
 
@@ -16,13 +17,23 @@ public static class SerilogWebApplicationBuilderExtensions
     private static bool _mainLoggingInitialized;
 
     /// <summary>
-    /// Configures Serilog via <see cref="SerilogExtensions.AddCasCapDefaults"/> for console/file logging.
+    /// Initializes Serilog as the host logging pipeline via <c>UseSerilog</c>, forwarding to the
+    /// registered Microsoft.Extensions.Logging providers (including the OpenTelemetry log exporter).
     /// </summary>
     /// <remarks>
-    /// Log export to the OTEL collector is handled by the native OpenTelemetry log exporter
-    /// registered separately via <c>InitializeOpenTelemetry</c>, replacing the
-    /// previous <c>Serilog.Sinks.OpenTelemetry</c> sink so the entire monitoring stack uses
-    /// consistent OTEL libraries for metrics, traces and logs.
+    /// <para>
+    /// Serilog deliberately owns the logging pipeline (<c>UseSerilog(..., writeToProviders: true)</c>)
+    /// so a single <c>Serilog</c> config section drives both the coloured console sink and the OTLP
+    /// export, and <c>UseSerilogRequestLogging</c> summaries reach Loki. Application logs are forwarded
+    /// to the native OpenTelemetry log exporter registered by <c>InitializeOpenTelemetry</c> as an MEL
+    /// provider — <c>writeToProviders: true</c> is what feeds it (without it the exporter is starved).
+    /// </para>
+    /// <para>
+    /// This "Serilog-owns" model is a deliberate choice over an MEL-owned / OTel-native pipeline — see
+    /// the Logging Architecture note in the CAS copilot-instructions for the rationale. Do NOT switch to
+    /// <c>AddSerilog</c> (Serilog as a console-only provider): it splits level config into a separate MEL
+    /// <c>Logging</c> section and drops <c>UseSerilogRequestLogging</c> output from Loki.
+    /// </para>
     /// </remarks>
     /// <param name="builder">The web application builder.</param>
     /// <param name="categoryName">Logger category name (typically <c>nameof(Program)</c>).</param>
@@ -34,10 +45,17 @@ public static class SerilogWebApplicationBuilderExtensions
             if (_mainLoggingInitialized)
                 return ApplicationLogging.CreateLogger(categoryName);
 
+            // Serilog owns the pipeline and forwards to the MEL providers (writeToProviders: true) so
+            // the native OpenTelemetry log exporter (registered later by InitializeOpenTelemetry)
+            // receives every event — one Serilog config section drives console + OTLP. ClearProviders
+            // drops the default MEL Console/Debug providers so Serilog is the only console writer.
+            // InitializeOpenTelemetry MUST run after this. Deliberate design — see CAS copilot-instructions.
+            builder.Logging.ClearProviders();
+
             builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
             {
                 loggerConfiguration.AddCasCapDefaults(hostContext.Configuration);
-            });
+            }, writeToProviders: true);
 
             _mainLoggingInitialized = true;
         }

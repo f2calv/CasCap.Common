@@ -19,6 +19,20 @@ Provides a single `InitializeOpenTelemetry` extension method on `WebApplicationB
 | Extension | Description |
 | --- | --- |
 | `OpenTelemetryExtensions.InitializeOpenTelemetry(builder, metricsConfig, connectionMultiplexer, gitMetadata, configureMetrics?, configureTracing?)` | Registers OpenTelemetry metrics, traces, and logs with OTLP gRPC export |
+| `MeterProviderBuilderExtensions.AddHistogramView(builder, metricNamePrefix, instrumentName, boundaries)` | Registers an explicit-bucket view for the `{prefix}.{instrumentName}` histogram, returning the builder for chaining |
+| `MetricBoundaries.Symmetric(positiveBoundaries)` | Mirrors a positive-only boundary set into a signed set straddling zero (`[-max … -min, 0, min … max]`) |
+
+### Signed histograms
+
+The OpenTelemetry default histogram boundaries are non-negative, so an instrument recording signed measurements collapses every negative observation into the single `le="0"` bucket, making the negative half of the distribution — and any quantile query over it — meaningless. Supply explicit boundaries via the `configureMetrics` hook:
+
+```csharp
+builder.InitializeOpenTelemetry(metricsConfig, gitMetadata,
+    configureMetrics: metrics => metrics
+        .AddHistogramView(metricsConfig.MetricNamePrefix, "widget.delta", MetricBoundaries.Symmetric(1, 5, 10, 50)));
+```
+
+Only the `*_bucket` series are affected — `_sum` and `_count` are unchanged.
 
 ## Behaviour
 

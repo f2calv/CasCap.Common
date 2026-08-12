@@ -100,6 +100,16 @@ public static class OpenTelemetryExtensions
             {
                 loggingBuilder.SetResourceBuilder(resourceBuilder);
                 loggingBuilder.AddOtlpExporter(ConfigureOtlpExporter);
+            },
+            options =>
+            {
+                // Render the message template into the exported log body. Without this the OTLP
+                // body defaults to the raw "{OriginalFormat}" template (e.g. "{ClassName} ticks
+                // received: {TickCount}") with the placeholders left unsubstituted. Also emit
+                // logging scopes and the parsed structured state as OTLP attributes.
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+                options.ParseStateValues = true;
             });
     }
 }

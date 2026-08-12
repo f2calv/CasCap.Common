@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>ASP.NET Core helpers for the CasCap feature-flag system — feature-gated controller discovery so a modular monolith deployed as multiple feature-scoped hosts only maps (and documents in OpenAPI) the controllers whose feature is enabled on the current host.</Description>
+    <PackageTags>extensions,helpers,aspnetcore,controllers,feature-flags</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>
