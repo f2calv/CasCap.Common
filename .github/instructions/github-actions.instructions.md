@@ -64,7 +64,8 @@ applyTo: '.github/workflows/**,.github/actions/**,**/action.yml,**/action.yaml'
 ## Composite Actions
 
 - Declare `shell: bash` explicitly on every `run` step — composite actions do not inherit a default shell.
-- Reference scripts relative to the action root using `${{ github.action_path }}/scripts/name.sh`.
+- Reference scripts relative to the action root using `${{ github.action_path }}/.scripts/name.sh`.
+- **Extract sizeable or critical `run` logic into an external script** under `.scripts/` (e.g. `.scripts/check-release-exists.sh`, `.scripts/Invoke-CheckReleaseExists.ps1`) rather than inlining it in the composite action YAML. An external script can be run and tested standalone — locally or from a `.github/workflows/test.yml` — before it's ever exercised by a real Actions run; a `run: |` block embedded in YAML cannot be. Keep genuinely trivial one-liners inline.
 
 ## Security
 
