@@ -27,6 +27,7 @@ applyTo: '.github/workflows/**,.github/actions/**,**/action.yml,**/action.yaml'
 ## Descriptions
 
 - **Keep every `description:` to one short line.** It states what the value *is*, not how or why to use it. Prefer `e.g. <example>` over prose describing the format.
+- **Applies to workflow inputs (`workflow_dispatch`, `workflow_call`) as well as action inputs.** `workflow_dispatch` descriptions render as field labels in the *Run workflow* dialog, where a long sentence wraps and makes the form look messy.
 - **Move rationale, caveats, deprecation notices and cross-references into a `#` comment directly above the input**, not into the description string. Use the repo's `#no-space-after-hash` comment style.
 - Avoid multi-sentence descriptions — they bloat the file and make the input list hard to scan.
 - Keeping `key: value` pairs out of descriptions also avoids the colon-space sequence that would otherwise force the whole scalar to be quoted.
