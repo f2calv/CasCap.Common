@@ -16,11 +16,8 @@ Verifies the multi-tier caching infrastructure — Memory, Disk, and Redis cache
 
 | Package |
 | --- |
-| [Microsoft.NET.Test.Sdk](https://www.nuget.org/packages/microsoft.net.test.sdk) |
 | [xunit.v3](https://www.nuget.org/packages/xunit.v3) |
-| [xunit.runner.visualstudio](https://www.nuget.org/packages/xunit.runner.visualstudio) |
-| [coverlet.collector](https://www.nuget.org/packages/coverlet.collector) |
-| [coverlet.msbuild](https://www.nuget.org/packages/coverlet.msbuild) |
+| [Microsoft.Testing.Extensions.CodeCoverage](https://www.nuget.org/packages/microsoft.testing.extensions.codecoverage) |
 
 ### Project References
 
