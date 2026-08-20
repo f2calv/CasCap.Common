@@ -22,9 +22,9 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 | `RedisCacheService` | `IRemoteCache` implementation wrapping StackExchange.Redis with optional Lua script support |
 | `MemoryCacheService` | `ILocalCache` implementation backed by `IMemoryCache` |
 | `DiskCacheService` | `ILocalCache` implementation persisting cache entries to disk |
-| `CacheExpiryBgService` | Background service coordinating expiry synchronisation between local and remote caches |
-| `LocalCacheExpiryService` | Handles local cache entry expiration |
-| `RemoteCacheExpiryService` | Handles remote cache entry expiration |
+| `CacheExpiryBgService` | Background service coordinating expiry synchronisation between local and remote caches. Registered unless `CacheExpiryServiceEnabled` is `false` |
+| `LocalCacheExpiryService` | Handles local cache entry expiration. Disable via `LocalCacheExpiryServiceEnabled` |
+| `RemoteCacheExpiryService` | Handles remote cache entry expiration. Disable via `RemoteCacheExpiryServiceEnabled` |
 
 ### Extensions
 
@@ -38,7 +38,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Type | Description |
 | --- | --- |
-| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `CacheAsideDisabled`, `CacheKeyFormat`, `HealthCheckRedis`, `Redlock` |
+| `CachingConfig` | Main configuration record — `RemoteCacheConnectionString`, `PubSubPrefix`, `MemoryCacheSizeLimit`, `UseBuiltInLuaScripts`, `DiskCacheFolder`, `ExpirationSyncMode`, `DistributedLockingEnabled`, `CacheAsideDisabled`, `CacheKeyFormat`, `HealthCheckRedis`, `CacheExpiryServiceEnabled`, `LocalCacheExpiryServiceEnabled`, `RemoteCacheExpiryServiceEnabled`, `Redlock` |
 | `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. `RedisKeyFormat` for lock key prefixing. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
 | `RedlockProfiles` | Well-known profile name constants — `CacheMiss`, `LeaderElection` |
 | `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
@@ -130,6 +130,23 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
       "RemoteCache": {
         "SerializationType": "Json"
       }
+    }
+  }
+}
+```
+
+### Disabling the expiry background services
+
+Each background service can be switched off independently. `CacheExpiryServiceEnabled: false` prevents the `CacheExpiryBgService` hosted service being registered at all; the two granular toggles keep the hosted service registered but skip the individual subscriber.
+
+```json
+{
+  "CasCap": {
+    "CachingConfig": {
+      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "CacheExpiryServiceEnabled": true,
+      "LocalCacheExpiryServiceEnabled": false,
+      "RemoteCacheExpiryServiceEnabled": true
     }
   }
 }

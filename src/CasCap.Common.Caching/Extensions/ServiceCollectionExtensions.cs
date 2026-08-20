@@ -45,7 +45,8 @@ public static class ServiceCollectionExtensions
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
             redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
-            healthCheckRedis: cachingConfig.HealthCheckRedis);
+            healthCheckRedis: cachingConfig.HealthCheckRedis,
+            cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
@@ -62,6 +63,9 @@ public static class ServiceCollectionExtensions
                 options.DiskCache = cachingConfig.DiskCache;
                 options.RemoteCache = cachingConfig.RemoteCache;
                 options.LocalCacheInvalidationEnabled = cachingConfig.LocalCacheInvalidationEnabled;
+                options.CacheExpiryServiceEnabled = cachingConfig.CacheExpiryServiceEnabled;
+                options.LocalCacheExpiryServiceEnabled = cachingConfig.LocalCacheExpiryServiceEnabled;
+                options.RemoteCacheExpiryServiceEnabled = cachingConfig.RemoteCacheExpiryServiceEnabled;
                 options.ExpirationSyncMode = cachingConfig.ExpirationSyncMode;
                 options.DistributedLockingEnabled = cachingConfig.DistributedLockingEnabled;
                 options.CacheKeyFormat = cachingConfig.CacheKeyFormat;
@@ -72,7 +76,8 @@ public static class ServiceCollectionExtensions
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
-            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId);
+            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
+            cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
     }
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
@@ -80,7 +85,11 @@ public static class ServiceCollectionExtensions
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
         services.Configure(configureConfig);
-        return services.AddServices(remoteCacheConnectionString, LocalCacheType);
+        //materialise the configuration so registration-time toggles can be honoured
+        var cachingConfig = new CachingConfig();
+        configureConfig(cachingConfig);
+        return services.AddServices(remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString, LocalCacheType,
+            cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
     }
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
@@ -90,7 +99,8 @@ public static class ServiceCollectionExtensions
         bool distributedLockingEnabled = false,
         string redisKeyFormat = "RedLock:{0}",
         int redisDatabaseId = 0,
-        KubernetesProbeTypes healthCheckRedis = KubernetesProbeTypes.None)
+        KubernetesProbeTypes healthCheckRedis = KubernetesProbeTypes.None,
+        bool cacheExpiryServiceEnabled = true)
     {
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
         services.AddOptions<RedlockConfig>();
@@ -123,7 +133,8 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<RemoteCacheExpiryService>();
             services.AddSingleton<IDistributedCache, DistributedCacheService>();
             services.AddSingleton<LocalCacheExpiryService>();
-            services.AddHostedService<CacheExpiryBgService>();
+            if (cacheExpiryServiceEnabled)
+                services.AddHostedService<CacheExpiryBgService>();
 
             var multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);

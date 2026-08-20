@@ -47,6 +47,21 @@ public record CachingConfig : IAppConfig
     /// <summary>Enables pub/sub-based invalidation of local cache entries across distributed clients.</summary>
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 
+    /// <summary>Enables registration of the <see cref="CacheExpiryBgService"/> hosted service.</summary>
+    /// <remarks>
+    /// Defaults to <see langword="true"/>. When <see langword="false"/> the hosted service is never registered,
+    /// so neither <see cref="LocalCacheExpiryService"/> nor <see cref="RemoteCacheExpiryService"/> run.
+    /// </remarks>
+    public bool CacheExpiryServiceEnabled { get; set; } = true;
+
+    /// <summary>Enables the <see cref="LocalCacheExpiryService"/> pub/sub subscriber within <see cref="CacheExpiryBgService"/>.</summary>
+    /// <remarks>Defaults to <see langword="true"/>. Ignored when <see cref="CacheExpiryServiceEnabled"/> is <see langword="false"/>.</remarks>
+    public bool LocalCacheExpiryServiceEnabled { get; set; } = true;
+
+    /// <summary>Enables the <see cref="RemoteCacheExpiryService"/> keyspace subscriber within <see cref="CacheExpiryBgService"/>.</summary>
+    /// <remarks>Defaults to <see langword="true"/>. Ignored when <see cref="CacheExpiryServiceEnabled"/> is <see langword="false"/>.</remarks>
+    public bool RemoteCacheExpiryServiceEnabled { get; set; } = true;
+
     /// <summary>Controls how local sliding expirations are synchronized with the remote cache.</summary>
     public ExpirationSyncType ExpirationSyncMode { get; set; } = ExpirationSyncType.None;
 
