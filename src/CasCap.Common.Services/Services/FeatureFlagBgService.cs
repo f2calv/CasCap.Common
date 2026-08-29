@@ -16,7 +16,7 @@ public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, I
     {
         await Task.Yield();
         logger.LogInformation("{ClassName} starting", nameof(FeatureFlagBgService));
-        var tasks = new List<Task>(features.Count());
+        var runningFeatures = new List<(string Name, Task Task)>(features.Count());
         foreach (var feature in features)
         {
             if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
@@ -24,14 +24,33 @@ public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, I
             {
                 logger.LogInformation("{ClassName} starting {FeatureName}",
                     nameof(FeatureFlagBgService), feature.GetType().Name);
-                tasks.Add(feature.ExecuteAsync(stoppingToken));
+                runningFeatures.Add((feature.FeatureName, feature.ExecuteAsync(stoppingToken)));
             }
         }
-        if (tasks.IsNullOrEmpty())
+        if (runningFeatures.IsNullOrEmpty())
             throw new GenericException("no features found to launch!");
-        //await-await-WhenAny propagates the first faulted task immediately so the
-        //service crashes and the pod restarts rather than running in a degraded state.
-        await await Task.WhenAny(tasks).ConfigureAwait(false);
+
+        var startedFeatureNames = runningFeatures.Select(feature => feature.Name).ToArray();
+        var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+        while (runningFeatures.Count > 0 && !stoppingToken.IsCancellationRequested)
+        {
+            var completedTask = await Task.WhenAny(
+                runningFeatures.Select(feature => feature.Task).Append(cancellationTask)).ConfigureAwait(false);
+            if (ReferenceEquals(completedTask, cancellationTask) || stoppingToken.IsCancellationRequested)
+                break;
+
+            var completedFeatureIndex = runningFeatures.FindIndex(feature => ReferenceEquals(feature.Task, completedTask));
+            var completedFeature = runningFeatures[completedFeatureIndex];
+            await completedFeature.Task.ConfigureAwait(false);
+            runningFeatures.RemoveAt(completedFeatureIndex);
+            logger.LogInformation("{ClassName} {FeatureName} completed",
+                nameof(FeatureFlagBgService), completedFeature.Name);
+        }
+
+        if (!stoppingToken.IsCancellationRequested)
+            throw new InvalidOperationException(
+                $"All enabled background features completed before host cancellation: {string.Join(", ", startedFeatureNames)}.");
+
         logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService));
     }
 }

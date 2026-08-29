@@ -1,4 +1,7 @@
-# CasCap.Common.Services
+---
+title: CasCap.Common.Services
+description: Feature-flag background service launcher and configuration abstractions
+---
 
 Feature-flag background service launcher and configuration abstractions.
 
@@ -12,6 +15,8 @@ dotnet add package CasCap.Common.Services
 
 Contains `FeatureFlagBgService`, a `BackgroundService` that inspects the configured `FeatureFlagConfig.EnabledFeatures` set at startup and launches the matching `IBgFeature` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
 
+The launcher observes every enabled child for the full host lifetime. A child may complete successfully while other children continue running. Child faults propagate to the host, and completion of every enabled child before host cancellation is treated as an unexpected lifecycle failure. Host cancellation completes the launcher cleanly.
+
 The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but marked `[Obsolete]`.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
@@ -20,7 +25,7 @@ The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but
 
 | Type | Description |
 | --- | --- |
-| `FeatureFlagBgService` | `BackgroundService` that resolves and executes `IBgFeature` implementations whose `FeatureName` is present in the configured `FeatureFlagConfig.EnabledFeatures` set (or `IBgFeature.AlwaysEnabled`) |
+| `FeatureFlagBgService` | `BackgroundService` that resolves, executes, and continuously observes enabled `IBgFeature` implementations until host cancellation |
 | `FeatureFlagBgService<T>` | **[Obsolete]** Generic predecessor that used a bitwise enum via `IFeature<T>.FeatureType` |
 | `GitMetadataBgService` | Background service that periodically logs git build metadata (repository, tag, branch, commit) from environment variables to aid debugging |
 
