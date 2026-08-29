@@ -22,12 +22,13 @@ public sealed class FeatureFlagBgServiceTests
         });
         using var sut = CreateService([finiteFeature, activeFeature], "Finite", "Active");
 
-        await sut.StartAsync(CancellationToken.None);
-        await Task.WhenAll(finiteCompleted.Task, activeStarted.Task).WaitAsync(_timeout);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await Task.WhenAll(finiteCompleted.Task, activeStarted.Task)
+            .WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.False(sut.ExecuteTask!.IsCompleted);
 
-        await sut.StopAsync(CancellationToken.None);
+        await sut.StopAsync(TestContext.Current.CancellationToken);
         Assert.True(sut.ExecuteTask.IsCompletedSuccessfully);
     }
 
@@ -45,8 +46,8 @@ public sealed class FeatureFlagBgServiceTests
         });
         using var sut = CreateService([finiteFeature, faultingFeature], "Finite", "Faulting");
 
-        await sut.StartAsync(CancellationToken.None);
-        await activeStarted.Task.WaitAsync(_timeout);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await activeStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
         faultSource.SetException(expected);
 
         var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ExecuteTask!);
@@ -66,8 +67,8 @@ public sealed class FeatureFlagBgServiceTests
         });
         using var sut = CreateService([faultingFeature, activeFeature], "Faulting", "Active");
 
-        await sut.StartAsync(CancellationToken.None);
-        await siblingStarted.Task.WaitAsync(_timeout);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await siblingStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ExecuteTask!);
         Assert.Same(expected, actual);
@@ -80,7 +81,7 @@ public sealed class FeatureFlagBgServiceTests
         var secondFeature = new TestBgFeature("Second", _ => Task.CompletedTask);
         using var sut = CreateService([firstFeature, secondFeature], "First", "Second");
 
-        await sut.StartAsync(CancellationToken.None);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ExecuteTask!);
         Assert.Contains("First, Second", exception.Message);
@@ -97,9 +98,9 @@ public sealed class FeatureFlagBgServiceTests
         });
         using var sut = CreateService([activeFeature], "Active");
 
-        await sut.StartAsync(CancellationToken.None);
-        await activeStarted.Task.WaitAsync(_timeout);
-        await sut.StopAsync(CancellationToken.None);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await activeStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+        await sut.StopAsync(TestContext.Current.CancellationToken);
 
         Assert.True(sut.ExecuteTask!.IsCompletedSuccessfully);
     }
@@ -116,12 +117,12 @@ public sealed class FeatureFlagBgServiceTests
         var disabledFeature = new TestBgFeature("Disabled", _ => Task.CompletedTask);
         using var sut = CreateService([enabledFeature, disabledFeature], "Enabled");
 
-        await sut.StartAsync(CancellationToken.None);
-        await enabledStarted.Task.WaitAsync(_timeout);
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await enabledStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.Equal(0, disabledFeature.ExecutionCount);
 
-        await sut.StopAsync(CancellationToken.None);
+        await sut.StopAsync(TestContext.Current.CancellationToken);
     }
 
     private static FeatureFlagBgService CreateService(IEnumerable<IBgFeature> features, params string[] enabledFeatures)

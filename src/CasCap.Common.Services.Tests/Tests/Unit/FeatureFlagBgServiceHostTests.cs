@@ -26,15 +26,15 @@ public sealed class FeatureFlagBgServiceHostTests
         var stopping = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var registration = lifetime.ApplicationStopping.Register(() => stopping.TrySetResult(true));
 
-        await host.StartAsync();
-        await faultingFeatureStarted.Task.WaitAsync(_timeout);
+        await host.StartAsync(TestContext.Current.CancellationToken);
+        await faultingFeatureStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
         Assert.False(lifetime.ApplicationStopping.IsCancellationRequested);
 
         faultSource.SetException(new InvalidOperationException("later failure"));
-        await stopping.Task.WaitAsync(_timeout);
+        await stopping.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature
