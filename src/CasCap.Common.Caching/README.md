@@ -18,8 +18,9 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Service | Description |
 | --- | --- |
-| `DistributedCacheService` | Multi-tier cache orchestrator — reads from local first, falls back to Redis, and populates both tiers on miss. Supports opt-in Redis-based distributed locking (Redlock) to prevent thundering herd across instances |
+| `DistributedCacheService` | Multi-tier cache orchestrator that always supports the configured local cache and falls back to Redis only when remote caching is enabled. Supports opt-in Redis-based distributed locking (Redlock) to prevent thundering herd across instances |
 | `RedisCacheService` | `IRemoteCache` implementation wrapping StackExchange.Redis with optional Lua script support |
+| `NullRemoteCache` | No-op `IRemoteCache` implementation used for local-only caching. Redis infrastructure properties throw `NotSupportedException` |
 | `MemoryCacheService` | `ILocalCache` implementation backed by `IMemoryCache` |
 | `DiskCacheService` | `ILocalCache` implementation persisting cache entries to disk |
 | `CacheExpiryBgService` | Background service coordinating expiry synchronisation between local and remote caches. Registered unless `CacheExpiryServiceEnabled` is `false` |
@@ -30,7 +31,7 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddCasCapCaching()` | Registers all caching services into the DI container. When `CachingConfig.HealthCheckRedis` is not `None`, also registers a Redis connectivity health check tagged with the configured Kubernetes probe type(s) |
+| `ServiceCollectionExtensions.AddCasCapCaching()` | Always registers `ILocalCache`, `IRemoteCache`, and `IDistributedCache`. Uses `NullRemoteCache` when the remote connection string is null or whitespace; otherwise, registers Redis services only. When `CachingConfig.HealthCheckRedis` is not `None`, also registers a Redis connectivity health check tagged with the configured Kubernetes probe type(s) |
 | `CachingExtensions` | Helper methods for cache key formatting and serialization |
 | `AsyncDuplicateLock` | Prevents duplicate concurrent cache population for the same key |
 
@@ -70,6 +71,7 @@ flowchart TD
 
         subgraph RemoteCaches["Remote Cache"]
             REDIS["RedisCacheService<br/>(StackExchange.Redis)"]
+          NULL_REMOTE["NullRemoteCache<br/>(Local-only no-op)"]
         end
 
         subgraph BackgroundServices["Background Services"]
@@ -87,6 +89,7 @@ flowchart TD
     DIST --> MEM
     DIST --> DISK
     DIST --> REDIS
+    DIST -.local-only.-> NULL_REMOTE
     DIST -.uses.-> LOCK
     DIST -."opt-in distributed lock".-> REDLOCK
 
@@ -114,7 +117,9 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false"
+      "RemoteCache": {
+        "IsEnabled": false
+      }
     }
   }
 }

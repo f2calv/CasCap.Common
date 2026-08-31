@@ -96,7 +96,8 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
         {
             logger.LogTrace("{ClassName} retrieved {Key} object type {Type} from {ObjectName}",
                 nameof(DistributedCacheService), key, typeof(T), nameof(ILocalCache));
-            if (cachingConfig.Value.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
+            if (cachingConfig.Value.RemoteCache.IsEnabled &&
+                cachingConfig.Value.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
                 await remoteCache.ExtendSlidingExpirationAsync(key).ConfigureAwait(false);
         }
         return cacheEntry;
