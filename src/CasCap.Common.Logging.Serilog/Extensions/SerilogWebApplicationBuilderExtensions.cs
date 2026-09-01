@@ -29,8 +29,7 @@ public static class SerilogWebApplicationBuilderExtensions
     /// provider — <c>writeToProviders: true</c> is what feeds it (without it the exporter is starved).
     /// </para>
     /// <para>
-    /// This "Serilog-owns" model is a deliberate choice over an MEL-owned / OTel-native pipeline — see
-    /// the Logging Architecture note in the CAS copilot-instructions for the rationale. Do NOT switch to
+    /// This "Serilog-owns" model is a deliberate choice over an MEL-owned / OTel-native pipeline. Do NOT switch to
     /// <c>AddSerilog</c> (Serilog as a console-only provider): it splits level config into a separate MEL
     /// <c>Logging</c> section and drops <c>UseSerilogRequestLogging</c> output from Loki.
     /// </para>
@@ -49,7 +48,7 @@ public static class SerilogWebApplicationBuilderExtensions
             // the native OpenTelemetry log exporter (registered later by InitializeOpenTelemetry)
             // receives every event — one Serilog config section drives console + OTLP. ClearProviders
             // drops the default MEL Console/Debug providers so Serilog is the only console writer.
-            // InitializeOpenTelemetry MUST run after this. Deliberate design — see CAS copilot-instructions.
+            // InitializeOpenTelemetry MUST run after this because ClearProviders removes providers registered earlier.
             builder.Logging.ClearProviders();
 
             builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
