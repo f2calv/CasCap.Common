@@ -118,6 +118,8 @@ public static class ServiceCollectionExtensions
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
+        services.AddSingleton<IDistributedCache, DistributedCacheService>();
+
         if (
 #if NET8_0_OR_GREATER
             !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
@@ -131,7 +133,6 @@ public static class ServiceCollectionExtensions
 
             services.AddSingleton<IRemoteCache, RedisCacheService>();
             services.AddSingleton<RemoteCacheExpiryService>();
-            services.AddSingleton<IDistributedCache, DistributedCacheService>();
             services.AddSingleton<LocalCacheExpiryService>();
             if (cacheExpiryServiceEnabled)
                 services.AddHostedService<CacheExpiryBgService>();
@@ -157,8 +158,9 @@ public static class ServiceCollectionExtensions
             //We return the ConnectionMultiplexer so it can be reused by other services requiring a Redis connection.
             return multiplexer;
         }
-        else
-            return null;
+
+        services.AddSingleton<IRemoteCache, NullRemoteCache>();
+        return null;
     }
 
     private static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)

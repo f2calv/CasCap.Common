@@ -1,6 +1,6 @@
 namespace CasCap.Common.Caching.Tests;
 
-/// <summary>Integration tests with a dependency on a running Redis instance.</summary>
+/// <summary>Caching service registration and integration tests.</summary>
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that <see cref="CacheExpiryBgService"/> starts and stops correctly with configured caching options.</summary>
@@ -392,6 +392,62 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         Assert.NotNull(objFromCacheB);
         Assert.Equal(objFromCacheA, objFromCacheB);
         Assert.True(isDeleted3);
+    }
+
+    /// <summary>Verifies local-only distributed cache resolution and lifecycle operations without Redis.</summary>
+    [Theory, Trait("Category", nameof(IDistributedCache))]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public async Task DistCacheSvc_LocalOnlyLifecycle(string? remoteCacheConnectionString)
+    {
+        //Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var cachingConfig = new CachingConfig
+        {
+            RemoteCache = new CacheParameters { IsEnabled = false }
+        };
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString);
+        await using var serviceProvider = services.BuildServiceProvider();
+        var distCacheSvc = serviceProvider.GetRequiredService<IDistributedCache>();
+        var key = $"{Guid.NewGuid()}:{nameof(DistCacheSvc_LocalOnlyLifecycle)}";
+        var objInitial = new MockDto(DateTime.UtcNow);
+
+        //Act
+        await distCacheSvc.Set(key, objInitial);
+        var objFromCache = await distCacheSvc.Get<MockDto>(key);
+        var isDeleted = await distCacheSvc.Delete(key);
+        var objAfterDelete = await distCacheSvc.Get<MockDto>(key);
+
+        //Assert
+        Assert.IsType<DistributedCacheService>(distCacheSvc);
+        Assert.IsType<NullRemoteCache>(serviceProvider.GetRequiredService<IRemoteCache>());
+        Assert.Equal(objInitial, objFromCache);
+        Assert.True(isDeleted);
+        Assert.Null(objAfterDelete);
+    }
+
+    /// <summary>Verifies inconsistent remote cache configuration fails with a clear registration error.</summary>
+    [Fact, Trait("Category", nameof(IDistributedCache))]
+    public void DistCacheSvc_RemoteEnabledWithoutRegistration()
+    {
+        //Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var cachingConfig = new CachingConfig
+        {
+            RemoteCache = new CacheParameters { IsEnabled = true }
+        };
+        _ = services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString: null);
+        using var serviceProvider = services.BuildServiceProvider();
+
+        //Act
+        var exception = Assert.Throws<InvalidOperationException>(
+            serviceProvider.GetRequiredService<IDistributedCache>);
+
+        //Assert
+        Assert.Contains(nameof(NullRemoteCache), exception.Message);
+        Assert.Contains(nameof(CacheParameters.IsEnabled), exception.Message);
     }
 
     /// <summary>Verifies the distributed locking cache-miss path acquires a Redlock, calls the factory delegate, and caches the result.</summary>
