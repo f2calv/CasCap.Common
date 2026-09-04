@@ -3,6 +3,8 @@ title: CasCap.Common.Services.Tests
 description: Unit and host lifecycle tests for CasCap.Common.Services
 ---
 
+# CasCap.Common.Services.Tests
+
 ## Purpose
 
 Verifies feature selection, finite-child handling, fault propagation, cancellation, and generic-host shutdown behavior for `FeatureFlagBgService`.
