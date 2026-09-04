@@ -1,7 +1,4 @@
----
-title: CasCap.Common.Services
-description: Feature-flag background service launcher and configuration abstractions
----
+# CasCap.Common.Services
 
 Feature-flag background service launcher and configuration abstractions.
 

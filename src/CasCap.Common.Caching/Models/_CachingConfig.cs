@@ -8,14 +8,14 @@ public record CachingConfig : IAppConfig
 
     /// <summary>Redis connection string for the remote cache and distributed locking.</summary>
     /// <remarks>When set, this is used as the default connection string by <c>AddCasCapCaching</c>.</remarks>
-    public string? RemoteCacheConnectionString { get; init; }
+    public string? RemoteCacheConnectionString { get; set; }
 
     /// <summary>
     /// <see cref="LocalCacheExpiryService"/> requires a unique prefix for all messages sent via the pub/sub
     /// channel so that the current instance doesn't take any action on self-generated messages.
     /// </summary>
     /// <remarks>This prefix can be customized.</remarks>
-    public string PubSubPrefix { get; init; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
+    public string PubSubPrefix { get; set; } = $"{Environment.MachineName}-{AppDomain.CurrentDomain.FriendlyName}";
 
     /// <summary>Gets or sets the maximum size of the cache.</summary>
     /// <remarks>Defaults to no limit (<see langword="null"/>).</remarks>
@@ -42,7 +42,7 @@ public record CachingConfig : IAppConfig
     public CacheParameters RemoteCache { get; set; } = new CacheParameters { SerializationType = SerializationType.MessagePack };
 
     /// <summary>Specifies the root folder where the local disk cache will store serialized files.</summary>
-    public string DiskCacheFolder { get; init; } = AppDomain.CurrentDomain.BaseDirectory.Extend("cache");
+    public string DiskCacheFolder { get; set; } = AppDomain.CurrentDomain.BaseDirectory.Extend("cache");
 
     /// <summary>Enables pub/sub-based invalidation of local cache entries across distributed clients.</summary>
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
@@ -86,7 +86,7 @@ public record CachingConfig : IAppConfig
 
     /// <summary>Kubernetes health check probe type for the Redis connection.</summary>
     /// <remarks>Defaults to <see cref="KubernetesProbeTypes.Liveness"/>.</remarks>
-    public KubernetesProbeTypes HealthCheckRedis { get; init; } = KubernetesProbeTypes.Liveness;
+    public KubernetesProbeTypes HealthCheckRedis { get; set; } = KubernetesProbeTypes.Liveness;
 
     /// <summary>Applies <see cref="CacheKeyFormat"/> to the given <paramref name="key"/>.</summary>
     public string FormatCacheKey(string key) => string.Format(CacheKeyFormat, key);

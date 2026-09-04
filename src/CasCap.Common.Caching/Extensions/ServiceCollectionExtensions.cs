@@ -22,16 +22,16 @@ public static class ServiceCollectionExtensions
     /// <param name="LocalCacheType"><inheritdoc cref="CacheType" path="/summary"/></param>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
-    {
-        services.AddOptions<CachingConfig>();
-        return services.AddServices(remoteCacheConnectionString, LocalCacheType);
-    }
+        //Routed through the delegate overload so all four overloads honour the same CachingConfig defaults.
+        => services.AddCasCapCaching(static _ => { }, remoteCacheConnectionString, LocalCacheType);
 
     /// <inheritdoc cref="AddCasCapCaching(IServiceCollection, string?, CacheType)"/>
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, IConfiguration configuration,
         string? sectionName = null,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
+        if (configuration is null) throw new ArgumentNullException(nameof(configuration));
+
         sectionName ??= CachingConfig.ConfigurationSectionName;
         var section = configuration.GetSection(sectionName);
         services.AddOptionsWithValidateOnStart<CachingConfig>()
@@ -53,15 +53,20 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingConfig cachingConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
-        services.AddOptions<CachingConfig>()
+        if (cachingConfig is null) throw new ArgumentNullException(nameof(cachingConfig));
+
+        services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Configure(options =>
             {
+                options.RemoteCacheConnectionString = cachingConfig.RemoteCacheConnectionString;
+                options.PubSubPrefix = cachingConfig.PubSubPrefix;
                 options.MemoryCacheSizeLimit = cachingConfig.MemoryCacheSizeLimit;
                 options.MemoryCacheItemPriority = cachingConfig.MemoryCacheItemPriority;
                 options.UseBuiltInLuaScripts = cachingConfig.UseBuiltInLuaScripts;
                 options.MemoryCache = cachingConfig.MemoryCache;
                 options.DiskCache = cachingConfig.DiskCache;
                 options.RemoteCache = cachingConfig.RemoteCache;
+                options.DiskCacheFolder = cachingConfig.DiskCacheFolder;
                 options.LocalCacheInvalidationEnabled = cachingConfig.LocalCacheInvalidationEnabled;
                 options.CacheExpiryServiceEnabled = cachingConfig.CacheExpiryServiceEnabled;
                 options.LocalCacheExpiryServiceEnabled = cachingConfig.LocalCacheExpiryServiceEnabled;
@@ -70,13 +75,17 @@ public static class ServiceCollectionExtensions
                 options.DistributedLockingEnabled = cachingConfig.DistributedLockingEnabled;
                 options.CacheKeyFormat = cachingConfig.CacheKeyFormat;
                 options.Redlock = cachingConfig.Redlock;
-            });
+                options.CacheAsideDisabled = cachingConfig.CacheAsideDisabled;
+                options.HealthCheckRedis = cachingConfig.HealthCheckRedis;
+            })
+            .ValidateDataAnnotations();
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cachingConfig.Redlock));
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
             redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
             redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
+            healthCheckRedis: cachingConfig.HealthCheckRedis,
             cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
     }
 
@@ -84,11 +93,19 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configureConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
-        services.Configure(configureConfig);
+        if (configureConfig is null) throw new ArgumentNullException(nameof(configureConfig));
+
+        services.AddOptionsWithValidateOnStart<CachingConfig>()
+            .Configure(configureConfig)
+            .ValidateDataAnnotations();
         //materialise the configuration so registration-time toggles can be honoured
         var cachingConfig = new CachingConfig();
         configureConfig(cachingConfig);
         return services.AddServices(remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString, LocalCacheType,
+            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
+            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
+            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
+            healthCheckRedis: cachingConfig.HealthCheckRedis,
             cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
     }
 
@@ -102,6 +119,12 @@ public static class ServiceCollectionExtensions
         KubernetesProbeTypes healthCheckRedis = KubernetesProbeTypes.None,
         bool cacheExpiryServiceEnabled = true)
     {
+        //Registering twice would open a second Redis connection and run a second expiry background service,
+        //so the first registration wins and the existing multiplexer is handed back.
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedCache)))
+            return services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IConnectionMultiplexer))
+                ?.ImplementationInstance as ConnectionMultiplexer;
+
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
         services.AddOptions<RedlockConfig>();
 #if NET8_0_OR_GREATER
@@ -111,14 +134,14 @@ public static class ServiceCollectionExtensions
         if (LocalCacheType == CacheType.Memory)
         {
             //services.AddMemoryCache();//now added via MemoryCacheService
-            services.AddSingleton<ILocalCache, MemoryCacheService>();
+            services.TryAddSingleton<ILocalCache, MemoryCacheService>();
         }
         else if (LocalCacheType == CacheType.Disk)
-            services.AddSingleton<ILocalCache, DiskCacheService>();
+            services.TryAddSingleton<ILocalCache, DiskCacheService>();
         else
             throw new NotSupportedException($"{nameof(LocalCacheType)} {LocalCacheType} is not supported!");
 
-        services.AddSingleton<IDistributedCache, DistributedCacheService>();
+        services.TryAddSingleton<IDistributedCache, DistributedCacheService>();
 
         if (
 #if NET8_0_OR_GREATER
@@ -131,9 +154,9 @@ public static class ServiceCollectionExtensions
             if (RemoteCacheType != CacheType.Redis)
                 throw new NotSupportedException($"{nameof(RemoteCacheType)} {RemoteCacheType} is not supported!");
 
-            services.AddSingleton<IRemoteCache, RedisCacheService>();
-            services.AddSingleton<RemoteCacheExpiryService>();
-            services.AddSingleton<LocalCacheExpiryService>();
+            services.TryAddSingleton<IRemoteCache, RedisCacheService>();
+            services.TryAddSingleton<RemoteCacheExpiryService>();
+            services.TryAddSingleton<LocalCacheExpiryService>();
             if (cacheExpiryServiceEnabled)
                 services.AddHostedService<CacheExpiryBgService>();
 
@@ -159,7 +182,7 @@ public static class ServiceCollectionExtensions
             return multiplexer;
         }
 
-        services.AddSingleton<IRemoteCache, NullRemoteCache>();
+        services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
         return null;
     }
 

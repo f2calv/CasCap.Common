@@ -21,11 +21,12 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var source = new CancellationTokenSource();
         var cancellationToken = source.Token;
 
-        var cacheExpiryBgSvc = serviceProvider.GetRequiredService<IHostedService>() as CacheExpiryBgService;
+        //Health checks also contribute a hosted service, so select the one under test explicitly.
+        var cacheExpiryBgSvc = serviceProvider.GetServices<IHostedService>().OfType<CacheExpiryBgService>().Single();
 
         //Act
         //start bg service
-        await cacheExpiryBgSvc!.StartAsync(cancellationToken);
+        await cacheExpiryBgSvc.StartAsync(cancellationToken);
         await Task.Delay(5_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
 
