@@ -10,9 +10,16 @@ dotnet add package CasCap.Common.Testing
 
 ## Purpose
 
-Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via a custom `ILoggerProvider`, plus `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions.
+Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via a custom `ILoggerProvider`, `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions, and small helpers for stubbing HTTP and creating throwaway files.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+
+### Test Helpers
+
+| Type | Description |
+| --- | --- |
+| `StubHttpMessageHandler` | `HttpMessageHandler` returning canned responses, so HTTP code can be tested without a network |
+| `TempFile` | Creates a uniquely named file under the temporary folder and deletes it on dispose |
 
 ### Extensions
 
