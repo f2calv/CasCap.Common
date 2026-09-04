@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>xUnit v3 test infrastructure — Microsoft.Extensions.Logging redirection to ITestOutputHelper and conditional-skip attributes for CI environments.</Description>
+    <Description>xUnit v3 test infrastructure — Microsoft.Extensions.Logging redirection to ITestOutputHelper, conditional-skip attributes for CI environments, an HTTP stub handler and a disposable temporary file helper.</Description>
     <PackageTags>extensions,helpers,testing,xunit</PackageTags>
   </PropertyGroup>
 
