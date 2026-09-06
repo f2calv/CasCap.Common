@@ -6,13 +6,26 @@ namespace CasCap.Common.Services;
 /// </summary>
 public abstract class HttpClientBase
 {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+    //assigned by the parameterless constructor path, where the derived type sets both members itself
     /// <summary>The logger instance used by this HTTP client base class.</summary>
-    protected ILogger _logger;
+    protected ILogger _logger = null!;
 
     /// <summary>The underlying <see cref="HttpClient"/> used to send HTTP requests.</summary>
-    public HttpClient Client { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+    public HttpClient Client { get; set; } = null!;
+
+    /// <summary>Initialises a derived type that assigns the logger and <see cref="Client"/> itself.</summary>
+    protected HttpClientBase() { }
+
+    /// <summary>Initialises a derived type with the logger and <see cref="HttpClient"/> it will use.</summary>
+    /// <param name="logger">Logger for diagnostics.</param>
+    /// <param name="client">Client used to send requests, typically supplied by dependency injection.</param>
+    /// <exception cref="ArgumentNullException">Thrown when either argument is <see langword="null"/>.</exception>
+    /// <remarks>Prefer this over the parameterless constructor, which exists for derived types predating it.</remarks>
+    protected HttpClientBase(ILogger logger, HttpClient client)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        Client = client ?? throw new ArgumentNullException(nameof(client));
+    }
 
     /// <summary>Sends a POST request with a JSON body and returns the deserialized result or error.</summary>
     protected virtual async Task<(TResult? result, TError? error)> PostJsonAsync<TResult, TError>(string requestUri, object? req = null, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, string mediaType = "application/json", CancellationToken cancellationToken = default)

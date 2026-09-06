@@ -18,7 +18,7 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 
 | Type | Description |
 | --- | --- |
-| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostBytesAsync`, `GetAsync`, `PutAsync`, `DeleteAsync` with error handling |
+| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostJson`, `PostBytesAsync`, `PostBytes`, `GetAsync`, `Get` with error handling (net8.0+ only) |
 
 ### Authentication
 
