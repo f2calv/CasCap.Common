@@ -25,7 +25,6 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageProjectUrl>https://github.com/f2calv/CasCap.Common</PackageProjectUrl>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
-    <Copyright>Copyright (c) Alex Vincent 2026</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>See https://github.com/f2calv/CasCap.Common/releases</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
