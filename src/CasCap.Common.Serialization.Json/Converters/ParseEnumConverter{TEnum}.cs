@@ -1,6 +1,6 @@
 namespace CasCap.Common.Converters;
 
-/// <summary>Case-insensitive JSON string-to-enum converter using <see cref="Enum.Parse{TEnum}(string, bool)"/>.</summary>
+/// <summary>Case-insensitive JSON string-to-enum converter using <see cref="Enum"/> parsing.</summary>
 public sealed class ParseEnumConverter<TEnum> : JsonConverter<TEnum> where TEnum : struct, Enum
 {
     /// <inheritdoc/>
