@@ -32,5 +32,6 @@
     <Project Path="src/CasCap.Common.Services/CasCap.Common.Services.csproj" />
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
     <Project Path="src/CasCap.Common.AI/CasCap.Common.AI.csproj" />
+    <Project Path="src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj" />
   </Folder>
 </Solution>

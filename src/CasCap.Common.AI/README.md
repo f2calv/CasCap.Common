@@ -21,7 +21,7 @@ This library contains **no domain-specific MCP query services** — those live i
 | Type | Description |
 | --- | --- |
 | `AgentCommandHandler` | Shared handler for `ChatCommand` slash-commands (`/session info`, `/session reset`, `/model`, etc.) and agent session persistence |
-| `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from older messages while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
+| `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from the history while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
 | `InMemorySessionStore` | Volatile in-memory `ISessionStore` backed by `ConcurrentDictionary` |
 | `DistributedCacheSessionStore` | Redis-backed `ISessionStore` wrapping `IDistributedCache` with sliding expiry |
 | `InMemoryPollTracker` | In-memory `IPollTracker` with automatic TTL-based expiry for agent-created polls |
@@ -141,8 +141,10 @@ Long conversations accumulate large context windows — especially from verbose 
 When `MaxMessages` is set to a positive value, `AgentExtensions.CreateAgent` configures the agent's `InMemoryChatHistoryProvider` with a `ToolOutputStrippingChatReducer` that:
 
 1. **Preserves** the first system message (agent instructions are never lost).
-2. **Strips** all messages consisting solely of `FunctionCallContent` or `FunctionResultContent` (the primary source of context bloat).
+2. **Strips** all `FunctionCallContent` and `FunctionResultContent` from non-system messages (the primary source of context bloat), dropping any message left with no remaining content.
 3. **Keeps** a sliding window of the most recent `MaxMessages` non-system exchanges.
+
+Tool content is removed from *every* message rather than only from messages consisting *solely* of tool content. An assistant message mixing narration text with a `FunctionCallContent` would otherwise be retained while its matching `FunctionResultContent` was dropped, leaving an orphaned tool call — OpenAI and Azure OpenAI reject such a request with HTTP 400.
 
 The reducer runs automatically before each agent invocation. Set `MaxMessages` to `0` or `null` to disable automatic compaction.
 
