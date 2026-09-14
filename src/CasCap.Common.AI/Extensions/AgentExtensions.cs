@@ -196,8 +196,17 @@ public static partial class AgentExtensions
 
         ChatClientBuilder chatClientBuilder;
         if (provider.Type == AgentType.Ollama)
+        {
+            // Validate explicitly — an absent endpoint otherwise surfaces deep inside
+            // HttpClient as "An invalid request URI was provided", which gives no clue
+            // that the cause is a missing ProviderConfig.Endpoint for this agent.
+            if (provider.Endpoint is null && httpClient.BaseAddress is null)
+                throw new InvalidOperationException(
+                    $"Agent '{agentConfig.Name}' requires an {nameof(ProviderConfig.Endpoint)} for {nameof(AgentType.Ollama)}.");
+
             chatClientBuilder = ((IChatClient)new OllamaApiClient(httpClient, provider.ModelName))
                 .AsBuilder();
+        }
         else if (provider.Type == AgentType.AzureOpenAI)
         {
             var endpoint = provider.Endpoint

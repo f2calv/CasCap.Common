@@ -20,12 +20,14 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | Class | Methods | Cases | Covers |
 | --- | --- | --- | --- |
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
+| `AgentExtensionsCreateAgentTests` | 8 | 9 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
 
 ## Trait Categories
 
 | Category | Applied to |
 | --- | --- |
 | `Chat Reduction` | `ToolOutputStrippingChatReducerTests` |
+| `Agent Creation` | `AgentExtensionsCreateAgentTests` |
 
 ## Skipped Tests
 
@@ -36,6 +38,7 @@ None.
 ```text
 Tests/
 └── Unit/
+    ├── AgentExtensionsCreateAgentTests.cs
     └── ToolOutputStrippingChatReducerTests.cs
 ```
 

@@ -53,9 +53,21 @@ public class StringExtensionTests(ITestOutputHelper testOutputHelper) : TestBase
     public void MaskPhoneNumber()
         => Assert.Equal("+44********90", "+441234567890".MaskPhoneNumber());
 
+    [Theory, Trait("Category", "Masking")]
+    [InlineData("https://subdomain.domain.com/", "https://subdomain.***")]
+    [InlineData("http://ollama.local:11434/", "http://ollama.***")]
+    [InlineData("http://localhost:11434/", "http://***")]
+    public void MaskEndpoint(string endpoint, string expected)
+        => Assert.Equal(expected, new Uri(endpoint).MaskEndpoint());
+
+    /// <summary>
+    /// Callers pass an optional <see cref="Uri"/> straight through (e.g. logging a
+    /// <c>ProviderConfig.Endpoint</c> that is only required for some provider types),
+    /// so masking a <see langword="null"/> endpoint must not throw.
+    /// </summary>
     [Fact, Trait("Category", "Masking")]
-    public void MaskEndpoint()
-        => Assert.Equal("https://subdomain.***", new Uri("https://subdomain.domain.com/").MaskEndpoint());
+    public void MaskEndpoint_Null()
+        => Assert.Equal(string.Empty, ((Uri?)null).MaskEndpoint());
 
     [Fact, Trait("Category", "String Manipulation")]
     public void NormalizeWhitespace()
