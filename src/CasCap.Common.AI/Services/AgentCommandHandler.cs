@@ -1,30 +1,70 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace CasCap.Common.Services;
 
 /// <summary>Shared handler for <see cref="ChatCommand"/> slash-commands and agent session management.</summary>
 /// <remarks>
+/// <para>
 /// Encapsulates the command parsing, session load/save/reset/compact, enable/disable,
-/// and named-snapshot logic common to both <see cref="CasCap.App.Console.ConsoleApp"/>
-/// and <see cref="CommunicationsBgService"/>. Each consumer provides its own
+/// and named-snapshot logic common to both <c>ConsoleApp</c> and
+/// <c>CommunicationsBgService</c>. Each consumer provides its own
 /// <see cref="ISessionStore"/> for persistence.
+/// </para>
+/// <para>
+/// Slash-command overrides (<c>/model</c>, <c>/instructions</c>, <c>/session enable|disable</c>)
+/// are held <b>per agent</b>. This type is typically registered as a singleton and is shared by
+/// every agent and every conversation in the process, so a single set of fields would let one
+/// conversation silently re-point another conversation's model.
+/// </para>
+/// <para>
+/// TODO: overrides are still scoped per agent rather than per conversation, so two conversations
+/// talking to the <i>same</i> agent continue to share them. Resolving that needs a caller-supplied
+/// isolation key — mirror <c>Microsoft.Agents.AI.Hosting.AgentIsolationKeyProvider</c> /
+/// <c>IsolationKeyScopedAgentSessionStore</c>, or move the overrides into
+/// <c>AgentSession.StateBag</c> so they travel with the session. Deferred because
+/// <c>Microsoft.Agents.AI.Hosting</c> is still preview (1.21.0-preview as of 2026-09-11).
+/// See https://github.com/microsoft/agent-framework/blob/main/dotnet/src/Microsoft.Agents.AI.Hosting/AgentSessionStore.cs
+/// </para>
 /// </remarks>
 public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOptions<AIConfig> aiConfig, ISessionStore sessionStore)
 {
     private readonly TimeSpan _sessionTtl = TimeSpan.FromDays(aiConfig.Value.SessionTtlDays);
 
-    private string? _modelOverride;
-    private string? _instructionsOverride;
-    private bool _sessionEnabled = true;
+    /// <summary>Per-agent slash-command override state, keyed by <see cref="AgentConfig.Name"/>.</summary>
+    private readonly ConcurrentDictionary<string, AgentOverrides> _overrides = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Current model override, or <see langword="null"/> when using the provider default.</summary>
-    public string? ModelOverride => _modelOverride;
+    /// <summary>Immutable per-agent override state, swapped atomically via <see cref="UpdateOverrides"/>.</summary>
+    private sealed record AgentOverrides(string? Model, string? Instructions, bool SessionEnabled)
+    {
+        public static readonly AgentOverrides Default = new(null, null, true);
+    }
 
-    /// <summary>Current instructions override, or <see langword="null"/> when using the configured default.</summary>
-    public string? InstructionsOverride => _instructionsOverride;
+    private AgentOverrides GetOverrides(string agentName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentName);
+        return _overrides.TryGetValue(agentName, out var overrides) ? overrides : AgentOverrides.Default;
+    }
 
-    /// <summary>Whether session persistence is enabled. When <see langword="false"/>, each message starts a fresh conversation.</summary>
-    public bool SessionEnabled => _sessionEnabled;
+    private AgentOverrides UpdateOverrides(string agentName, Func<AgentOverrides, AgentOverrides> update)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentName);
+        return _overrides.AddOrUpdate(agentName,
+            _ => update(AgentOverrides.Default),
+            (_, existing) => update(existing));
+    }
+
+    /// <summary>Gets the model override for <paramref name="agentName"/>, or <see langword="null"/> when using the provider default.</summary>
+    /// <param name="agentName">The agent display name (<see cref="AgentConfig.Name"/>).</param>
+    public string? GetModelOverride(string agentName) => GetOverrides(agentName).Model;
+
+    /// <summary>Gets the instructions override for <paramref name="agentName"/>, or <see langword="null"/> when using the configured default.</summary>
+    /// <param name="agentName">The agent display name (<see cref="AgentConfig.Name"/>).</param>
+    public string? GetInstructionsOverride(string agentName) => GetOverrides(agentName).Instructions;
+
+    /// <summary>Gets whether session persistence is enabled for <paramref name="agentName"/>. When <see langword="false"/>, each message starts a fresh conversation.</summary>
+    /// <param name="agentName">The agent display name (<see cref="AgentConfig.Name"/>).</param>
+    public bool IsSessionEnabled(string agentName) => GetOverrides(agentName).SessionEnabled;
 
     /// <summary>
     /// Processes a recognised <see cref="ChatCommand"/> and returns a text response,
@@ -53,7 +93,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 return BuildHelpText();
 
             case ChatCommand.SessionInfo:
-                return await BuildSessionInfoTextAsync(agent, sessionKey).ConfigureAwait(false);
+                return await BuildSessionInfoTextAsync(agent, agentName, sessionKey).ConfigureAwait(false);
 
             case ChatCommand.SessionReset:
                 await sessionStore.DeleteAsync(sessionKey).ConfigureAwait(false);
@@ -70,13 +110,15 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 return await CompactSessionAsync(agent, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionDisable:
-                _sessionEnabled = false;
-                logger.LogInformation("{ClassName} session persistence disabled via slash command", nameof(AgentCommandHandler));
+                UpdateOverrides(agentName, o => o with { SessionEnabled = false });
+                logger.LogInformation("{ClassName} session persistence disabled via slash command for {AgentName}",
+                    nameof(AgentCommandHandler), agentName);
                 return "Session persistence disabled. Each message will start a fresh conversation.";
 
             case ChatCommand.SessionEnable:
-                _sessionEnabled = true;
-                logger.LogInformation("{ClassName} session persistence enabled via slash command", nameof(AgentCommandHandler));
+                UpdateOverrides(agentName, o => o with { SessionEnabled = true });
+                logger.LogInformation("{ClassName} session persistence enabled via slash command for {AgentName}",
+                    nameof(AgentCommandHandler), agentName);
                 return "Session persistence enabled.";
 
             case ChatCommand.SessionSave:
@@ -90,28 +132,29 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
 
             case ChatCommand.Model:
                 if (string.IsNullOrWhiteSpace(argument))
-                    return $"Current model override: {_modelOverride ?? "(none — using provider default)"}";
-                _modelOverride = argument;
-                logger.LogInformation("{ClassName} model overridden to {Model} via slash command",
-                    nameof(AgentCommandHandler), _modelOverride);
+                    return $"Current model override: {GetModelOverride(agentName) ?? "(none — using provider default)"}";
+                var modelOverride = UpdateOverrides(agentName, o => o with { Model = argument }).Model;
+                logger.LogInformation("{ClassName} model overridden to {Model} via slash command for {AgentName}",
+                    nameof(AgentCommandHandler), modelOverride, agentName);
                 if (onModelChanged is not null)
-                    await onModelChanged(_modelOverride).ConfigureAwait(false);
-                return $"Model overridden to: {_modelOverride}";
+                    await onModelChanged(argument).ConfigureAwait(false);
+                return $"Model overridden to: {modelOverride}";
 
             case ChatCommand.Instructions:
                 if (string.IsNullOrWhiteSpace(argument))
                 {
-                    if (_instructionsOverride is null)
+                    var current = GetInstructionsOverride(agentName);
+                    if (current is null)
                         return "Current instructions override: (none — using configured default)";
-                    var preview = _instructionsOverride.Length > 200
-                        ? _instructionsOverride[..200] + "..."
-                        : _instructionsOverride;
-                    return $"Current instructions override ({_instructionsOverride.Length} chars): {preview}";
+                    var preview = current.Length > 200
+                        ? current[..200] + "..."
+                        : current;
+                    return $"Current instructions override ({current.Length} chars): {preview}";
                 }
-                _instructionsOverride = argument;
-                logger.LogInformation("{ClassName} instructions overridden via slash command ({Length} chars)",
-                    nameof(AgentCommandHandler), _instructionsOverride.Length);
-                return $"Instructions overridden ({_instructionsOverride.Length} chars).";
+                var instructionsOverride = UpdateOverrides(agentName, o => o with { Instructions = argument }).Instructions!;
+                logger.LogInformation("{ClassName} instructions overridden via slash command for {AgentName} ({Length} chars)",
+                    nameof(AgentCommandHandler), agentName, instructionsOverride.Length);
+                return $"Instructions overridden ({instructionsOverride.Length} chars).";
 
             default:
                 return null;
@@ -119,10 +162,10 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     }
 
     /// <summary>Loads the agent session from the store, or returns <see langword="null"/> for a new conversation.</summary>
-    /// <remarks>Returns <see langword="null"/> immediately when <see cref="SessionEnabled"/> is <see langword="false"/>.</remarks>
+    /// <remarks>Returns <see langword="null"/> immediately when <see cref="IsSessionEnabled"/> is <see langword="false"/> for this agent.</remarks>
     public async Task<AgentSession?> LoadSessionAsync(AIAgent agent, string agentName)
     {
-        if (!_sessionEnabled)
+        if (!IsSessionEnabled(agentName))
             return null;
         var sessionKey = BuildSessionKey(agentName);
         var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
@@ -133,28 +176,35 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     }
 
     /// <summary>Persists the agent session to the store with a 7-day sliding expiration.</summary>
-    /// <remarks>No-op when <see cref="SessionEnabled"/> is <see langword="false"/>.</remarks>
+    /// <remarks>No-op when <see cref="IsSessionEnabled"/> is <see langword="false"/> for this agent.</remarks>
     public async Task SaveSessionAsync(AIAgent agent, string agentName, AgentSession session)
     {
-        if (!_sessionEnabled)
+        if (!IsSessionEnabled(agentName))
             return;
         var sessionKey = BuildSessionKey(agentName);
         var serialized = await agent.SerializeSessionAsync(session, JsonSerializerOptions.Web).ConfigureAwait(false);
         await sessionStore.SetAsync(sessionKey, serialized.ToJson(), _sessionTtl).ConfigureAwait(false);
     }
 
-    /// <summary>Applies <see cref="ModelOverride"/> to <paramref name="chatOptions"/> when set.</summary>
-    public void ApplyModelOverride(ChatOptions chatOptions)
+    /// <summary>Applies the model override for <paramref name="agentName"/> to <paramref name="chatOptions"/> when set.</summary>
+    /// <param name="chatOptions">The options to mutate.</param>
+    /// <param name="agentName">The agent display name (<see cref="AgentConfig.Name"/>).</param>
+    public void ApplyModelOverride(ChatOptions chatOptions, string agentName)
     {
-        if (!string.IsNullOrWhiteSpace(_modelOverride))
-            chatOptions.ModelId = _modelOverride;
+        var modelOverride = GetModelOverride(agentName);
+        if (!string.IsNullOrWhiteSpace(modelOverride))
+            chatOptions.ModelId = modelOverride;
     }
 
-    /// <summary>Applies <see cref="InstructionsOverride"/> to <paramref name="chatOptions"/> when set, wrapping with shared prefix/suffix from <paramref name="aiConfig"/>.</summary>
-    public void ApplyInstructionsOverride(ChatOptions chatOptions, AIConfig? aiConfig = null)
+    /// <summary>Applies the instructions override for <paramref name="agentName"/> to <paramref name="chatOptions"/> when set, wrapping with shared prefix/suffix from <paramref name="aiConfig"/>.</summary>
+    /// <param name="chatOptions">The options to mutate.</param>
+    /// <param name="agentName">The agent display name (<see cref="AgentConfig.Name"/>).</param>
+    /// <param name="aiConfig">Optional root AI configuration supplying shared instruction prefix/suffix.</param>
+    public void ApplyInstructionsOverride(ChatOptions chatOptions, string agentName, AIConfig? aiConfig = null)
     {
-        if (!string.IsNullOrWhiteSpace(_instructionsOverride))
-            chatOptions.Instructions = AgentExtensions.WrapInstructions(_instructionsOverride, aiConfig);
+        var instructionsOverride = GetInstructionsOverride(agentName);
+        if (!string.IsNullOrWhiteSpace(instructionsOverride))
+            chatOptions.Instructions = AgentExtensions.WrapInstructions(instructionsOverride, aiConfig);
     }
 
     #region private helpers
@@ -172,7 +222,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     }
 
     /// <summary>Builds the <c>/session info</c> response text with size and StateBag breakdown.</summary>
-    private async Task<string> BuildSessionInfoTextAsync(AIAgent agent, string sessionKey)
+    private async Task<string> BuildSessionInfoTextAsync(AIAgent agent, string agentName, string sessionKey)
     {
         var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
@@ -184,7 +234,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
             var session = await agent.DeserializeSessionAsync(sessionElement, JsonSerializerOptions.Web).ConfigureAwait(false);
             var entries = ChatCommandParser.GetStateBagEntries(session);
             var lines = new StringBuilder();
-            lines.AppendLine($"Session active (persistence: {(_sessionEnabled ? "on" : "off")}). Size: {sizeBytes:N0} bytes.");
+            lines.AppendLine($"Session active (persistence: {(IsSessionEnabled(agentName) ? "on" : "off")}). Size: {sizeBytes:N0} bytes.");
             foreach (var e in entries)
             {
                 var detail = e.MessageCount > 0

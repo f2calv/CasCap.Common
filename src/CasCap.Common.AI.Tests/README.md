@@ -21,6 +21,8 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | --- | --- | --- | --- |
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
 | `AgentExtensionsCreateAgentTests` | 8 | 9 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
+| `AgentCommandHandlerTests` | 15 | 18 | Per-agent isolation of `/model`, `/instructions` and `/session enable\|disable` overrides, instruction prefix/suffix wrapping, session short-circuiting, case-insensitive agent keys |
+| **Total** | **34** | **44** | |
 
 ## Trait Categories
 
@@ -28,6 +30,7 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | --- | --- |
 | `Chat Reduction` | `ToolOutputStrippingChatReducerTests` |
 | `Agent Creation` | `AgentExtensionsCreateAgentTests` |
+| `Agent Commands` | `AgentCommandHandlerTests` |
 
 ## Skipped Tests
 
@@ -38,6 +41,7 @@ None.
 ```text
 Tests/
 └── Unit/
+    ├── AgentCommandHandlerTests.cs
     ├── AgentExtensionsCreateAgentTests.cs
     └── ToolOutputStrippingChatReducerTests.cs
 ```
@@ -48,3 +52,7 @@ Tests/
 message mixing `TextContent` with `FunctionCallContent` was previously retained while its
 matching `FunctionResultContent` message was dropped, leaving an orphaned tool call that
 OpenAI and Azure OpenAI reject with HTTP 400.
+
+The `*_IsolatedPerAgent` tests in `AgentCommandHandlerTests` are also regression tests.
+`AgentCommandHandler` is registered as a singleton, so the previous single-field override
+state meant a `/model` sent in one conversation re-pointed every other agent in the process.
