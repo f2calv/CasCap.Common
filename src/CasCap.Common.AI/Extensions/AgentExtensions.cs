@@ -35,15 +35,6 @@ public static partial class AgentExtensions
     private static readonly AsyncLocal<(byte[] Bytes, string MimeType)?> _ambientBinaryContent = new();
 
     /// <summary>
-    /// Accumulated <see cref="UsageDetails"/> across all <see cref="IChatClient.GetResponseAsync"/>
-    /// round-trips within a single <see cref="RunAnalysisAsync"/> invocation. The middleware
-    /// (<see cref="ChatResponseMiddleware"/>) aggregates usage here because
-    /// <c>ChatClientAgent.RunAsync</c> only surfaces messages — the per-call
-    /// <see cref="ChatResponse.Usage"/> is otherwise lost.
-    /// </summary>
-    private static readonly AsyncLocal<UsageDetails?> _accumulatedUsage = new();
-
-    /// <summary>
     /// Ambient callback invoked when a sub-agent delegation begins. The parameters are
     /// the agent key, the nesting depth, and a cancellation token.
     /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
@@ -342,11 +333,6 @@ public static partial class AgentExtensions
 
         AgentRunOptions agentRunOptions = new ChatClientAgentRunOptions(chatOptions);
 
-        // Save and reset per-call usage accumulator so nested sub-agent calls
-        // (which also go through RunAnalysisAsync) don't clobber the parent's tally.
-        var savedUsage = _accumulatedUsage.Value;
-        _accumulatedUsage.Value = null;
-
         var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
 
         var elapsed = sw.Elapsed;
@@ -372,10 +358,13 @@ public static partial class AgentExtensions
             NestingDepth = _ambientDepth.Value,
             ProviderKey = agentConfig.Provider ?? string.Empty,
             ModelName = provider.ModelName ?? string.Empty,
+            // The framework aggregates usage across every IChatClient round-trip of a
+            // tool-calling loop and surfaces the total here (pinned by AgentResponseUsageTests).
+            Usage = response.Usage,
         };
         result.AppendText(outputText);
 
-        // Extract usage and tool-call count from the response messages.
+        // Extract tool-call count and image attachments from the response messages.
         foreach (var msg in response.Messages)
         {
             if (msg.Contents is null)
@@ -384,9 +373,6 @@ public static partial class AgentExtensions
             {
                 switch (content)
                 {
-                    case UsageContent uc when uc.Details is not null:
-                        result.Usage = uc.Details;
-                        break;
                     case FunctionCallContent fcc:
                         result.ToolCallCount++;
                         result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
@@ -398,42 +384,12 @@ public static partial class AgentExtensions
             }
         }
 
-        // Fall back to accumulated usage from the middleware when message-level
-        // UsageContent was not emitted or has no meaningful token counts.
-        // The middleware accumulates from real provider responses, so it's more reliable
-        // than UsageContent injected by FunctionInvocationChatClient's merged response.
-        var messageUsage = result.Usage;
-        var accumulated = _accumulatedUsage.Value;
-        Log.Information("{ClassName} RunAnalysisAsync usage check for {AgentName}: messageUsage={HasMessageUsage} (in={MsgIn}, out={MsgOut}), accumulatedUsage={HasAccumulatedUsage} (in={AccIn}, out={AccOut})",
+        Log.Information("{ClassName} RunAnalysisAsync usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
             nameof(AgentExtensions), agentConfig.Name,
-            messageUsage is not null, messageUsage?.InputTokenCount, messageUsage?.OutputTokenCount,
-            accumulated is not null, accumulated?.InputTokenCount, accumulated?.OutputTokenCount);
-
-        // Prefer accumulated middleware usage when it has actual token data.
-        if (accumulated is { InputTokenCount: > 0 } or { OutputTokenCount: > 0 })
-        {
-            result.Usage = accumulated;
-            Log.Information("{ClassName} using accumulated middleware usage for {AgentName}: input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-                nameof(AgentExtensions), agentConfig.Name,
-                result.Usage.InputTokenCount,
-                result.Usage.OutputTokenCount,
-                result.Usage.TotalTokenCount);
-        }
-        else if (messageUsage is { InputTokenCount: > 0 } or { OutputTokenCount: > 0 })
-            Log.Information("{ClassName} using message-level usage for {AgentName}: input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-                nameof(AgentExtensions), agentConfig.Name,
-                messageUsage.InputTokenCount,
-                messageUsage.OutputTokenCount,
-                messageUsage.TotalTokenCount);
-        else
-        {
-            result.Usage = null; // Clear hollow UsageDetails with no token data.
-            Log.Warning("{ClassName} no usage data available for {AgentName} (neither message-level nor accumulated had token counts)",
-                nameof(AgentExtensions), agentConfig.Name);
-        }
-
-        // Restore the parent's accumulated usage so nested calls don't interfere.
-        _accumulatedUsage.Value = savedUsage;
+            result.Usage is not null,
+            result.Usage?.InputTokenCount,
+            result.Usage?.OutputTokenCount,
+            result.Usage?.TotalTokenCount);
 
         // Drain ambient attachments accumulated by sub-agent tool invocations.
         if (isTopLevel && _ambientAttachments.Value is { Count: > 0 } ambient)

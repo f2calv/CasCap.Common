@@ -94,10 +94,13 @@ public sealed class AgentRunResult(string agentName)
     public DateTimeOffset? CreatedAt { get; set; }
 
     /// <summary>
-    /// Token usage details extracted from <see cref="UsageContent.Details"/> found in
-    /// <see cref="ChatResponseUpdate.Contents"/>. Exposes <see cref="UsageDetails.InputTokenCount"/>,
+    /// Token usage for the agent run, sourced from <see cref="Microsoft.Agents.AI.AgentResponse.Usage"/>.
+    /// The framework aggregates usage across every <see cref="IChatClient.GetResponseAsync"/>
+    /// round-trip of a tool-calling loop, so this is the total for the whole run rather than
+    /// the final call. Exposes <see cref="UsageDetails.InputTokenCount"/>,
     /// <see cref="UsageDetails.OutputTokenCount"/>, <see cref="UsageDetails.TotalTokenCount"/> and
-    /// <see cref="UsageDetails.AdditionalCounts"/>.
+    /// <see cref="UsageDetails.AdditionalCounts"/>. <see langword="null"/> when the provider
+    /// reported no usage.
     /// </summary>
     public UsageDetails? Usage { get; set; }
 

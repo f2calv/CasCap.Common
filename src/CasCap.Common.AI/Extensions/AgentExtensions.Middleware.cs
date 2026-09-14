@@ -93,29 +93,11 @@ public static partial class AgentExtensions
             response.Usage?.InputTokenCount,
             response.Usage?.OutputTokenCount);
 
-        // Accumulate usage across multiple chat round-trips (tool-call loops).
-        // ChatClientAgent calls IChatClient.GetResponseAsync for each round-trip,
-        // but only the Messages are surfaced through AgentRunResponse — the
-        // ChatResponse.Usage property is lost. We accumulate it here via AsyncLocal
-        // so RunAnalysisAsync can read the aggregate.
-        if (response.Usage is not null)
-        {
-            var prev = _accumulatedUsage.Value;
-            _accumulatedUsage.Value = new UsageDetails
-            {
-                InputTokenCount = (prev?.InputTokenCount ?? 0) + (response.Usage.InputTokenCount ?? 0),
-                OutputTokenCount = (prev?.OutputTokenCount ?? 0) + (response.Usage.OutputTokenCount ?? 0),
-                TotalTokenCount = (prev?.TotalTokenCount ?? 0) + (response.Usage.TotalTokenCount ?? 0),
-            };
-        }
-
         return response;
     }
 
     /// <summary>
     /// Chat-client-level streaming response middleware that logs the inbound request message count and total streamed update count.
-    /// Also accumulates <see cref="UsageContent"/> from streamed updates into <see cref="_accumulatedUsage"/>
-    /// so that <see cref="RunAnalysisAsync"/> can report token counts even when the agent framework uses streaming internally.
     /// </summary>
     internal static async IAsyncEnumerable<ChatResponseUpdate> ChatStreamingResponseMiddleware(
         IEnumerable<ChatMessage> messages,
@@ -128,27 +110,6 @@ public static partial class AgentExtensions
         await foreach (var update in innerClient.GetStreamingResponseAsync(messages, options, cancellationToken).ConfigureAwait(false))
         {
             updateCount++;
-
-            // Capture usage from streaming updates (typically the final chunk contains token counts).
-            if (update.Contents is not null)
-            {
-                foreach (var content in update.Contents)
-                {
-                    if (content is UsageContent uc && uc.Details is not null)
-                    {
-                        var prev = _accumulatedUsage.Value;
-                        _accumulatedUsage.Value = new UsageDetails
-                        {
-                            InputTokenCount = (prev?.InputTokenCount ?? 0) + (uc.Details.InputTokenCount ?? 0),
-                            OutputTokenCount = (prev?.OutputTokenCount ?? 0) + (uc.Details.OutputTokenCount ?? 0),
-                            TotalTokenCount = (prev?.TotalTokenCount ?? 0) + (uc.Details.TotalTokenCount ?? 0),
-                        };
-                        Log.Debug("{ClassName} streaming usage captured: input={InputTokens}, output={OutputTokens}",
-                            nameof(AgentExtensions), uc.Details.InputTokenCount, uc.Details.OutputTokenCount);
-                    }
-                }
-            }
-
             yield return update;
         }
         Log.Debug("{ClassName} streaming chat update count={Count}", nameof(AgentExtensions), updateCount);

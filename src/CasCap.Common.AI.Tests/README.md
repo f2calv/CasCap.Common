@@ -22,7 +22,8 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
 | `AgentExtensionsCreateAgentTests` | 8 | 9 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
 | `AgentCommandHandlerTests` | 15 | 18 | Per-agent isolation of `/model`, `/instructions` and `/session enable\|disable` overrides, instruction prefix/suffix wrapping, session short-circuiting, case-insensitive agent keys |
-| **Total** | **34** | **44** | |
+| `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
+| **Total** | **39** | **49** | |
 
 ## Trait Categories
 
@@ -31,6 +32,7 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `Chat Reduction` | `ToolOutputStrippingChatReducerTests` |
 | `Agent Creation` | `AgentExtensionsCreateAgentTests` |
 | `Agent Commands` | `AgentCommandHandlerTests` |
+| `Usage Reporting` | `AgentResponseUsageTests` |
 
 ## Skipped Tests
 
@@ -43,6 +45,7 @@ Tests/
 └── Unit/
     ├── AgentCommandHandlerTests.cs
     ├── AgentExtensionsCreateAgentTests.cs
+    ├── AgentResponseUsageTests.cs
     └── ToolOutputStrippingChatReducerTests.cs
 ```
 
@@ -56,3 +59,8 @@ OpenAI and Azure OpenAI reject with HTTP 400.
 The `*_IsolatedPerAgent` tests in `AgentCommandHandlerTests` are also regression tests.
 `AgentCommandHandler` is registered as a singleton, so the previous single-field override
 state meant a `/model` sent in one conversation re-pointed every other agent in the process.
+
+`AgentResponseUsageTests` pins framework behaviour rather than library behaviour:
+`AgentExtensions` previously carried an ambient accumulator because the agent framework did
+not surface per-round-trip usage. It now aggregates onto `AgentResponse.Usage`, so these
+tests guard the assumption that allowed that accumulator to be deleted.
