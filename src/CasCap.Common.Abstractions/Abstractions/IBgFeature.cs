@@ -1,9 +1,9 @@
 namespace CasCap.Common.Abstractions;
 
-/// <summary>Identifies a feature-gated background service that is launched at runtime by <see cref="CasCap.Common.Services.FeatureFlagBgService"/>.</summary>
+/// <summary>Identifies a feature-gated background service launched at runtime by the feature host.</summary>
 /// <remarks>
 /// Implementations declare a <see cref="FeatureName"/> string that is matched against the set of
-/// enabled feature names at startup. Use the well-known constant <see cref="AlwaysEnabled"/> for
+/// enabled feature names at startup. Use the well-known <c>AlwaysEnabled</c> constant for
 /// services that should run regardless of which features are active.
 /// </remarks>
 public interface IBgFeature
