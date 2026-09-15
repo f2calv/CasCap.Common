@@ -14,18 +14,21 @@ namespace CasCap.Common.Extensions;
 public static partial class AgentExtensions
 {
     /// <summary>
-    /// Ambient attachment accumulator — sub-agent tool invocations append image attachments
-    /// here so the parent <see cref="RunAnalysisAsync"/> can collect them into the final
-    /// <see cref="AgentRunResult.Attachments"/>.
+    /// The <see cref="AgentRunScope"/> for the run in flight. Set by
+    /// <see cref="RunAnalysisAsync"/> and read by <see cref="CreateAgentTool"/> and the chat
+    /// reducer, both of which are invoked by the framework with no parameter channel of their own.
     /// </summary>
-    private static readonly AsyncLocal<List<AgentRunAttachment>?> _ambientAttachments = new();
+    /// <remarks>
+    /// This is the single remaining ambient carrier for run state — it replaced four separate
+    /// <see cref="AsyncLocal{T}"/> fields (attachments, depth, delegation callback, completion
+    /// callback) plus a fifth for compaction, and removed the matching <c>Set*</c>/<c>Clear*</c>
+    /// pairs that every consumer previously had to call in a <c>finally</c> block.
+    /// See the TODO on <see cref="AgentRunScope"/> for the remaining work to remove it entirely.
+    /// </remarks>
+    private static readonly AsyncLocal<AgentRunScope?> _currentScope = new();
 
-    /// <summary>
-    /// Ambient nesting depth counter — incremented each time <see cref="CreateAgentTool"/>
-    /// delegates to a sub-agent so that <see cref="AgentRunResult.NestingDepth"/> reflects
-    /// the current delegation level (<c>0</c> = top-level, <c>1</c> = sub-agent, etc.).
-    /// </summary>
-    private static readonly AsyncLocal<int> _ambientDepth = new();
+    /// <summary>Gets the <see cref="AgentRunScope"/> for the run in flight, if any.</summary>
+    internal static AgentRunScope? GetCurrentScope() => _currentScope.Value;
 
     /// <summary>
     /// Ambient binary content — set by the host before running the parent agent so that
@@ -52,57 +55,6 @@ public static partial class AgentExtensions
     /// </para>
     /// </remarks>
     private static readonly AsyncLocal<(byte[] Bytes, string MimeType)?> _ambientBinaryContent = new();
-
-    /// <summary>
-    /// Ambient callback invoked when a sub-agent delegation begins. The parameters are
-    /// the agent key, the nesting depth, and a cancellation token.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Func<string, int, ProviderConfig, CancellationToken, Task>?> _delegationCallback = new();
-
-    /// <summary>Sets the ambient delegation callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke on each sub-agent delegation, or <see langword="null"/> to clear.</param>
-    public static void SetDelegationCallback(Func<string, int, ProviderConfig, CancellationToken, Task>? callback) =>
-        _delegationCallback.Value = callback;
-
-    /// <summary>Clears the ambient delegation callback for the current async flow.</summary>
-    public static void ClearDelegationCallback() => _delegationCallback.Value = null;
-
-    /// <summary>
-    /// Ambient callback invoked when a sub-agent delegation completes. The parameters are
-    /// the agent key, the nesting depth, the <see cref="AgentRunResult"/>, and a cancellation token.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Func<string, int, AgentRunResult, CancellationToken, Task>?> _completionCallback = new();
-
-    /// <summary>Sets the ambient completion callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke when each sub-agent delegation completes, or <see langword="null"/> to clear.</param>
-    public static void SetCompletionCallback(Func<string, int, AgentRunResult, CancellationToken, Task>? callback) =>
-        _completionCallback.Value = callback;
-
-    /// <summary>Clears the ambient completion callback for the current async flow.</summary>
-    public static void ClearCompletionCallback() => _completionCallback.Value = null;
-
-    /// <summary>
-    /// Ambient callback invoked when the <see cref="CasCap.Services.ToolOutputStrippingChatReducer"/>
-    /// compacts the chat history. Parameters: input count, output count, tool-only dropped, window trimmed, target count.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Action<int, int, int, int, int>?> _compactionCallback = new();
-
-    /// <summary>Sets the ambient compaction callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke when chat history compaction occurs, or <see langword="null"/> to clear.</param>
-    public static void SetCompactionCallback(Action<int, int, int, int, int>? callback) =>
-        _compactionCallback.Value = callback;
-
-    /// <summary>Clears the ambient compaction callback for the current async flow.</summary>
-    public static void ClearCompactionCallback() => _compactionCallback.Value = null;
-
-    /// <summary>Gets the ambient compaction callback for the current async flow.</summary>
-    internal static Action<int, int, int, int, int>? GetCompactionCallback() => _compactionCallback.Value;
 
     /// <summary>Sets the ambient binary content so sub-agent delegations can forward attachments.</summary>
     /// <param name="bytes">The binary payload (e.g. audio bytes).</param>
@@ -356,6 +308,11 @@ public static partial class AgentExtensions
     /// the elapsed duration and the (possibly new) <see cref="AgentSession"/>.
     /// </returns>
     /// <param name="logger">Optional logger for agent-run diagnostics.</param>
+    /// <param name="scope">
+    /// Optional per-run scope carrying host callbacks (delegation, completion, compaction) and
+    /// collecting attachments produced by tools and sub-agents. When omitted a fresh scope is
+    /// created for the run.
+    /// </param>
     public static async Task<AgentRunResult> RunAnalysisAsync(
         this AIAgent agent,
         ProviderConfig provider,
@@ -365,104 +322,116 @@ public static partial class AgentExtensions
         AgentSession? session = null,
         TimeSpan? timeout = null,
         CancellationToken cancellationToken = default,
-        ILogger? logger = null)
+        ILogger? logger = null,
+        AgentRunScope? scope = null)
     {
         logger ??= NullLogger.Instance;
         var sw = Stopwatch.StartNew();
         logger.LogDebug("Agent run starting for {AgentName}, model={ModelName}, endpoint={Endpoint}",
             agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
 
-        // Set up ambient attachment accumulator so sub-agent tool invocations can bubble up images.
-        var isTopLevel = _ambientAttachments.Value is null;
-        if (isTopLevel)
-            _ambientAttachments.Value = [];
+        // Establish the run scope. A caller-supplied scope wins; a sub-agent delegation will
+        // already have installed a child scope; otherwise start a fresh top-level one.
+        var previousScope = _currentScope.Value;
+        var activeScope = scope ?? previousScope ?? new AgentRunScope();
+        var isTopLevel = previousScope is null;
+        _currentScope.Value = activeScope;
 
-        session ??= await agent.CreateSessionAsync(cancellationToken).AsTask().ConfigureAwait(false);
-
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(timeout ?? TimeSpan.FromMinutes(5));
-
-        AgentRunOptions agentRunOptions = new ChatClientAgentRunOptions(chatOptions);
-
-        var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
-
-        var elapsed = sw.Elapsed;
-        // Build output text from assistant text content only — exclude FunctionCallContent /
-        // FunctionResultContent whose serialised payloads (e.g. base64 image bytes) would
-        // otherwise leak into the user-facing message as garbled characters.
-        var outputText = string.Join(" ", response.Messages
-            .Where(m => m.Role == ChatRole.Assistant)
-            .SelectMany(m => m.Contents.OfType<TextContent>())
-            .Select(tc => tc.Text)
-            .Where(t => !string.IsNullOrWhiteSpace(t)));
-        var formattedResult = $"Model: {provider.ModelName}" + Environment.NewLine
-            + $"Endpoint: {provider.Endpoint.MaskEndpoint()}" + Environment.NewLine
-            + $"Output: {outputText}" + Environment.NewLine
-            + $"Duration: {elapsed}";
-
-        var result = new AgentRunResult(agentConfig.Name)
+        try
         {
-            FormattedResult = formattedResult,
-            Elapsed = elapsed,
-            Session = session,
-            IsComplete = true,
-            NestingDepth = _ambientDepth.Value,
-            ProviderKey = agentConfig.Provider ?? string.Empty,
-            ModelName = provider.ModelName ?? string.Empty,
-            // The framework aggregates usage across every IChatClient round-trip of a
-            // tool-calling loop and surfaces the total here (pinned by AgentResponseUsageTests).
-            Usage = response.Usage,
-        };
-        result.AppendText(outputText);
+            session ??= await agent.CreateSessionAsync(cancellationToken).AsTask().ConfigureAwait(false);
 
-        // Extract tool-call count and image attachments from the response messages.
-        foreach (var msg in response.Messages)
-        {
-            if (msg.Contents is null)
-                continue;
-            foreach (var content in msg.Contents)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(timeout ?? TimeSpan.FromMinutes(5));
+
+            AgentRunOptions agentRunOptions = new ChatClientAgentRunOptions(chatOptions);
+
+            var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
+
+            var elapsed = sw.Elapsed;
+            // Build output text from assistant text content only — exclude FunctionCallContent /
+            // FunctionResultContent whose serialised payloads (e.g. base64 image bytes) would
+            // otherwise leak into the user-facing message as garbled characters.
+            var outputText = string.Join(" ", response.Messages
+                .Where(m => m.Role == ChatRole.Assistant)
+                .SelectMany(m => m.Contents.OfType<TextContent>())
+                .Select(tc => tc.Text)
+                .Where(t => !string.IsNullOrWhiteSpace(t)));
+            var formattedResult = $"Model: {provider.ModelName}" + Environment.NewLine
+                + $"Endpoint: {provider.Endpoint.MaskEndpoint()}" + Environment.NewLine
+                + $"Output: {outputText}" + Environment.NewLine
+                + $"Duration: {elapsed}";
+
+            var result = new AgentRunResult(agentConfig.Name)
             {
-                switch (content)
+                FormattedResult = formattedResult,
+                Elapsed = elapsed,
+                Session = session,
+                IsComplete = true,
+                NestingDepth = activeScope.Depth,
+                ProviderKey = agentConfig.Provider ?? string.Empty,
+                ModelName = provider.ModelName ?? string.Empty,
+                // The framework aggregates usage across every IChatClient round-trip of a
+                // tool-calling loop and surfaces the total here (pinned by AgentResponseUsageTests).
+                Usage = response.Usage,
+            };
+            result.AppendText(outputText);
+
+            // Extract tool-call count and image attachments from the response messages.
+            foreach (var msg in response.Messages)
+            {
+                if (msg.Contents is null)
+                    continue;
+                foreach (var content in msg.Contents)
                 {
-                    case FunctionCallContent fcc:
-                        result.ToolCallCount++;
-                        result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
-                        break;
-                    case FunctionResultContent frc:
-                        ExtractImageAttachments(frc, result, logger);
-                        break;
+                    switch (content)
+                    {
+                        case FunctionCallContent fcc:
+                            result.ToolCallCount++;
+                            result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
+                            break;
+                        case FunctionResultContent frc:
+                            ExtractImageAttachments(frc, result, logger, activeScope);
+                            break;
+                    }
                 }
             }
+
+            logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
+                agentConfig.Name,
+                result.Usage is not null,
+                result.Usage?.InputTokenCount,
+                result.Usage?.OutputTokenCount,
+                result.Usage?.TotalTokenCount);
+
+            // Only the top-level run drains the shared scope — sub-agent runs leave their
+            // attachments in place so they bubble up to the parent result.
+            if (isTopLevel)
+            {
+                var drained = activeScope.DrainAttachments();
+                if (drained.Count > 0)
+                {
+                    logger.LogDebug("Draining {AttachmentCount} attachment(s) from sub-agent fan-out", drained.Count);
+                    result.Attachments.AddRange(drained);
+                }
+            }
+
+            logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
+                agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
+
+            return result;
         }
-
-        logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-            agentConfig.Name,
-            result.Usage is not null,
-            result.Usage?.InputTokenCount,
-            result.Usage?.OutputTokenCount,
-            result.Usage?.TotalTokenCount);
-
-        // Drain ambient attachments accumulated by sub-agent tool invocations.
-        if (isTopLevel && _ambientAttachments.Value is { Count: > 0 } ambient)
+        finally
         {
-            logger.LogDebug("Draining {AttachmentCount} ambient attachment(s) from sub-agent fan-out", ambient.Count);
-            result.Attachments.AddRange(ambient);
-            _ambientAttachments.Value = null;
+            _currentScope.Value = previousScope;
         }
-
-        logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
-            agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
-
-        return result;
     }
-
-
 
     /// <summary>
     /// Inspects a <see cref="FunctionResultContent"/> for image-bearing payloads
     /// and extracts them as <see cref="AgentRunAttachment"/> entries on the result.
     /// </summary>
-    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger)
+    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger, AgentRunScope scope)
     {
         if (frc.Result is not JsonElement je || je.ValueKind is not JsonValueKind.Object)
             return;

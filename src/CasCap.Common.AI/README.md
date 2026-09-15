@@ -54,6 +54,8 @@ This library contains **no domain-specific MCP query services** — those live i
 | --- | --- |
 | `AgentRunResult` | Accumulated result of an AI agent run — output text, token usage, tool calls, attachments, timing, streaming support |
 | `AgentRunAttachment` | Binary attachment produced by a tool during an agent run (`Base64Content`, `MimeType`, `FileName`) |
+| `AgentRunScope` | Per-run host callbacks (delegation, completion, compaction), nesting depth and shared attachment collection |
+| `CompactionStats` | Summary of a single chat-history compaction pass |
 | `AgentInfo` | MCP-friendly projection of `AgentConfig` (all properties carry `[Description]`) |
 | `ProviderInfo` | MCP-friendly projection of `ProviderConfig` excluding sensitive fields (all properties carry `[Description]`) |
 | `ToolSource` | Identifies a tool source — in-process `Service`, remote `Endpoint`, or peer `Agent` (fan-out delegation) with `IncludeTools`/`ExcludeTools` filters |
@@ -148,24 +150,32 @@ Tool content is removed from *every* message rather than only from messages cons
 
 The reducer runs automatically before each agent invocation. Set `MaxMessages` to `0` or `null` to disable automatic compaction.
 
-### Compaction Callback
+### Run Scope
 
-`AgentExtensions` exposes an ambient `AsyncLocal` compaction callback so host services can observe when compaction occurs:
+Host callbacks and per-run state are carried by an `AgentRunScope` passed to `RunAnalysisAsync`, replacing the ambient `Set*`/`Clear*` callback pairs that callers previously had to balance in a `finally` block:
 
 ```csharp
-AgentExtensions.SetCompactionCallback((inputCount, outputCount, toolDropped, windowTrimmed, target) =>
+var scope = new AgentRunScope
 {
-    // e.g. send a debug notification
-});
+    OnDelegation = (agentKey, depth, provider, ct) => NotifyAsync(agentKey, depth, ct),
+    OnCompletion = (agentKey, depth, result, ct) => RecordAsync(agentKey, result, ct),
+    OnCompaction = stats => Debug($"{stats.InputCount} → {stats.OutputCount}"),
+};
+
+var result = await agent.RunAnalysisAsync(provider, agentConfig, message, chatOptions, scope: scope);
 ```
 
-| Parameter | Description |
+| Member | Description |
 | --- | --- |
-| `inputCount` | Total messages before compaction |
-| `outputCount` | Total messages after compaction |
-| `toolDropped` | Messages dropped because they consisted solely of `FunctionCallContent` / `FunctionResultContent` |
-| `windowTrimmed` | Messages dropped by the sliding window to meet the `MaxMessages` target |
-| `target` | The configured `MaxMessages` value |
+| `Depth` | `0` for the top-level agent, `1` for a sub-agent, and so on |
+| `OnDelegation` | Fired when a sub-agent delegation begins — use for live progress notifications |
+| `OnCompletion` | Fired when a sub-agent delegation completes, with its `AgentRunResult` |
+| `OnCompaction` | Fired when the chat history is compacted, with a `CompactionStats` |
+| `Attachments` / `AddAttachment` / `DrainAttachments` | Thread-safe attachment collection shared with every sub-agent scope beneath the run |
+
+`ForSubAgent()` creates a child scope with an incremented `Depth` that shares the parent's callbacks and attachment collection, so an image produced several delegations deep still surfaces on the top-level `AgentRunResult`.
+
+`CompactionStats` carries `InputCount`, `OutputCount`, `ToolDropped`, `WindowTrimmed` and `Target`.
 
 ### Session Isolation
 

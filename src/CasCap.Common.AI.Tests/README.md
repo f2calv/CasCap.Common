@@ -24,7 +24,8 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `AgentCommandHandlerTests` | 15 | 18 | Per-agent isolation of `/model`, `/instructions` and `/session enable\|disable` overrides, instruction prefix/suffix wrapping, session short-circuiting, case-insensitive agent keys |
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
 | `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
-| **Total** | **42** | **52** | |
+| `AgentRunScopeTests` | 8 | 10 | Depth nesting, callback inheritance, shared/thread-safe attachment collection, drain semantics |
+| **Total** | **50** | **62** | |
 
 ## Trait Categories
 
@@ -35,6 +36,7 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `Agent Commands` | `AgentCommandHandlerTests` |
 | `Usage Reporting` | `AgentResponseUsageTests` |
 | `Telemetry` | `AgentTelemetryTests` |
+| `Agent Run Scope` | `AgentRunScopeTests` |
 
 ## Skipped Tests
 
@@ -47,6 +49,7 @@ Tests/
 └── Unit/
     ├── AgentCommandHandlerTests.cs
     ├── AgentExtensionsCreateAgentTests.cs
+    ├── AgentRunScopeTests.cs
     ├── AgentResponseUsageTests.cs
     ├── AgentTelemetryTests.cs
     └── ToolOutputStrippingChatReducerTests.cs

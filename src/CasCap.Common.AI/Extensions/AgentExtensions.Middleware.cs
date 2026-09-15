@@ -138,7 +138,7 @@ public static partial class AgentExtensions
                     logger.LogDebug("Stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
                         context.Function.Name, sizeKb);
 
-                    _ambientAttachments.Value?.Add(new AgentRunAttachment
+                    GetCurrentScope()?.AddAttachment(new AgentRunAttachment
                     {
                         Base64Content = base64,
                         MimeType = "image/jpeg",

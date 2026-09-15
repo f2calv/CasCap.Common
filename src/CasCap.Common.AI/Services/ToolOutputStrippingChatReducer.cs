@@ -1,4 +1,5 @@
 using CasCap.Common.Extensions;
+using CasCap.Common.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -92,7 +93,8 @@ public sealed class ToolOutputStrippingChatReducer : IChatReducer
         {
             _logger.LogDebug("Reduced {InputCount} \u2192 {OutputCount} messages (tool-only dropped={ToolDropped}, window trimmed={WindowTrimmed}, target={Target})",
                 input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
-            AgentExtensions.GetCompactionCallback()?.Invoke(input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
+            AgentExtensions.GetCurrentScope()?.OnCompaction?.Invoke(
+                new CompactionStats(input.Count, result.Count, toolDropped, windowTrimmed, _targetCount));
         }
 
         return Task.FromResult<IEnumerable<ChatMessage>>(result);

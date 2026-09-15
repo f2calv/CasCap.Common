@@ -206,15 +206,16 @@ public static partial class AgentExtensions
             [Description("Set to true to forward the current binary attachment (e.g. audio file) to this agent. Only set when the parent message includes a file the sub-agent needs to process.")] bool forwardAttachment = false,
             CancellationToken cancellationToken = default)
         {
-            var depth = _ambientDepth.Value + 1;
+            var parentScope = GetCurrentScope() ?? new AgentRunScope();
+            var subScope = parentScope.ForSubAgent();
+            var depth = subScope.Depth;
             logger.LogDebug("Delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
                 agentKey, depth, forwardAttachment, task);
 
-            // Fire the ambient delegation callback (e.g. send status message / swap reaction).
-            if (_delegationCallback.Value is { } callback)
-                await callback(agentKey, depth, providerConfig, cancellationToken).ConfigureAwait(false);
+            // Notify the host that a delegation is starting (e.g. status message / reaction swap).
+            if (parentScope.OnDelegation is { } onDelegation)
+                await onDelegation(agentKey, depth, providerConfig, cancellationToken).ConfigureAwait(false);
 
-            _ambientDepth.Value = depth;
             var agent = serviceProvider.GetRequiredKeyedService<AIAgent>(agentKey);
 
             // Forward the parent's binary attachment when requested and available.
@@ -272,23 +273,22 @@ public static partial class AgentExtensions
             var resolvedInstructions = ResolveInstructions(agentConfig, instructionsAssembly, aiConfig);
             var chatOptions = BuildChatOptions(agentConfig, resolvedInstructions);
             var result = await agent.RunAnalysisAsync(providerConfig, agentConfig, message, chatOptions,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            _ambientDepth.Value = depth - 1;
+                cancellationToken: cancellationToken, logger: logger, scope: subScope).ConfigureAwait(false);
 
             logger.LogInformation("Sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
                 agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
 
-            // Fire the ambient completion callback (e.g. send debug stats for this sub-agent step).
-            if (_completionCallback.Value is { } completionCb)
-                await completionCb(agentKey, depth, result, cancellationToken).ConfigureAwait(false);
+            // Notify the host that this delegation finished (e.g. record debug stats for the step).
+            if (parentScope.OnCompletion is { } onCompletion)
+                await onCompletion(agentKey, depth, result, cancellationToken).ConfigureAwait(false);
 
-            // Bubble up any image attachments from the sub-agent to the parent's ambient collector.
+            // Bubble any image attachments up to the shared scope so the top-level run drains them.
             if (result.Attachments.Count > 0)
             {
                 logger.LogDebug("Bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
                     result.Attachments.Count, agentKey);
-                _ambientAttachments.Value?.AddRange(result.Attachments);
+                foreach (var attachment in result.Attachments)
+                    subScope.AddAttachment(attachment);
             }
 
             return result.OutputText;
