@@ -32,6 +32,25 @@ public static partial class AgentExtensions
     /// sub-agent tool invocations can forward attachments (e.g. audio bytes) via the
     /// <c>forwardAttachment</c> parameter on <see cref="CreateAgentTool"/>.
     /// </summary>
+    /// <remarks>
+    /// TODO (C1 stage 2): dead code — nothing calls <see cref="SetAmbientBinaryContent"/> in this
+    /// repository or in SmartHaus, so the <c>forwardAttachment</c> branch in
+    /// <see cref="CreateAgentTool"/> can only ever log "no ambient binary content available".
+    /// Signal audio instead goes through the host's own transcription path
+    /// (<c>CommunicationsBgService.TranscribeAudioAsync</c>), which passes bytes explicitly to
+    /// <see cref="BuildChatMessage"/>. The cost of leaving this in place is that every sub-agent
+    /// tool schema still advertises a <c>forwardAttachment</c> parameter the model cannot use.
+    /// <para>
+    /// Deferred: Signal audio handling is being reworked in a concurrent workstream. Before
+    /// deleting this field, <see cref="SetAmbientBinaryContent"/>,
+    /// <see cref="ClearAmbientBinaryContent"/> and the <c>forwardAttachment</c> parameter,
+    /// confirm the new audio design does not intend to revive ambient forwarding.
+    /// </para>
+    /// <para>
+    /// Distinct from <see cref="_ambientAudioDebug"/> and <see cref="TranscodeToWavAsync"/>, which
+    /// are both <b>live</b> — used by <c>TranscribeAudioAsync</c>.
+    /// </para>
+    /// </remarks>
     private static readonly AsyncLocal<(byte[] Bytes, string MimeType)?> _ambientBinaryContent = new();
 
     /// <summary>
@@ -88,10 +107,12 @@ public static partial class AgentExtensions
     /// <summary>Sets the ambient binary content so sub-agent delegations can forward attachments.</summary>
     /// <param name="bytes">The binary payload (e.g. audio bytes).</param>
     /// <param name="mimeType">The MIME type of the binary content (e.g. <c>"audio/aac"</c>).</param>
+    /// <remarks>TODO (C1 stage 2): no callers — see the remarks on <see cref="_ambientBinaryContent"/>.</remarks>
     public static void SetAmbientBinaryContent(byte[] bytes, string mimeType) =>
         _ambientBinaryContent.Value = (bytes, mimeType);
 
     /// <summary>Clears the ambient binary content for the current async flow.</summary>
+    /// <remarks>TODO (C1 stage 2): no callers — see the remarks on <see cref="_ambientBinaryContent"/>.</remarks>
     public static void ClearAmbientBinaryContent() => _ambientBinaryContent.Value = null;
 
     /// <summary>

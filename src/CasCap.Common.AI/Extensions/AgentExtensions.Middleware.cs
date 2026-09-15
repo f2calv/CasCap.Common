@@ -243,6 +243,16 @@ public static partial class AgentExtensions
     /// Transcodes audio bytes to 16-bit PCM WAV via <c>ffmpeg</c> (stdin → stdout, no temp files).
     /// Returns <see langword="null"/> if <c>ffmpeg</c> is not installed or the process fails.
     /// </summary>
+    /// <remarks>
+    /// Live — called by <c>CommunicationsBgService.TranscribeAudioAsync</c> and by the (dead)
+    /// <c>forwardAttachment</c> branch of <see cref="CreateAgentTool"/>.
+    /// <para>
+    /// TODO (C4): an ffmpeg shell-out is an audio concern sitting in an AI-agent library, and it
+    /// imposes an <c>ffmpeg</c> binary on every consumer image. Extract to an injected
+    /// <c>IAudioTranscoder</c> owned by the host. Coordinate with the concurrent Signal
+    /// audio-handling rework rather than moving it unilaterally.
+    /// </para>
+    /// </remarks>
     public static async Task<byte[]?> TranscodeToWavAsync(byte[] inputBytes, CancellationToken cancellationToken)
     {
         // -i pipe:0        read from stdin

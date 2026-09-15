@@ -189,6 +189,14 @@ public static partial class AgentExtensions
         AIConfig? aiConfig = null,
         Assembly? instructionsAssembly = null)
     {
+        // TODO (C1 stage 2): the forwardAttachment parameter below is dead — nothing calls
+        // SetAmbientBinaryContent, so _ambientBinaryContent is always null and the branch can only
+        // log a warning. It still costs tokens on every sub-agent tool schema and invites the model
+        // to set a flag that does nothing. Removing it also removes the ffmpeg transcode call and
+        // the image/png MIME override below, both of which are duplicated (live) in
+        // CommunicationsBgService.TranscribeAudioAsync.
+        // Deferred pending the concurrent Signal audio-handling rework — confirm that workstream
+        // does not intend to revive ambient attachment forwarding before deleting.
         async Task<string> InvokeAgent(
             [Description("The task, question or event description to pass to this specialist agent.")] string task,
             [Description("Set to true to forward the current binary attachment (e.g. audio file) to this agent. Only set when the parent message includes a file the sub-agent needs to process.")] bool forwardAttachment = false,
