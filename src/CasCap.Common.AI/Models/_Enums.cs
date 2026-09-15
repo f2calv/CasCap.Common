@@ -64,12 +64,10 @@ public enum ChatCommand
 /// </summary>
 public enum AgentType
 {
-    /// <summary>No agent type specified.</summary>
-    None,
     /// <summary>
     /// <see href="https://learn.microsoft.com/en-us/agent-framework/agents/providers/azure-openai?pivots=programming-language-csharp"/>
     /// </summary>
-    AzureOpenAI,
+    AzureOpenAI = 1,
     /// <summary>
     /// <see href="https://learn.microsoft.com/en-us/agent-framework/agents/providers/azure-ai-foundry?pivots=programming-language-csharp"/>
     /// </summary>

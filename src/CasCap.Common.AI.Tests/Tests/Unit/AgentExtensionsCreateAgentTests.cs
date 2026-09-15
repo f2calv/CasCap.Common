@@ -105,8 +105,8 @@ public class AgentExtensionsCreateAgentTests
     }
 
     [Theory]
-    [InlineData(AgentType.None)]
     [InlineData(AgentType.AzureAIFoundry)]
+    [InlineData((AgentType)999)]
     public void CreateAgent_UnsupportedProviderType(AgentType type)
     {
         var ex = Assert.Throws<NotSupportedException>(() =>
@@ -114,4 +114,16 @@ public class AgentExtensionsCreateAgentTests
 
         Assert.Contains(type.ToString(), ex.Message);
     }
+
+    /// <summary>
+    /// Numeric values are pinned because configuration may bind <see cref="ProviderConfig.Type"/>
+    /// from an integer; removing a member must not silently remap the remaining ones.
+    /// </summary>
+    [Theory]
+    [InlineData(AgentType.AzureOpenAI, 1)]
+    [InlineData(AgentType.AzureAIFoundry, 2)]
+    [InlineData(AgentType.Ollama, 3)]
+    [InlineData(AgentType.OpenAI, 4)]
+    public void AgentType_NumericValuesAreStable(AgentType type, int expected) =>
+        Assert.Equal(expected, (int)type);
 }
