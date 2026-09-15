@@ -105,25 +105,19 @@ public static partial class AgentExtensions
     /// When <see langword="null"/> the assembly containing <see cref="AgentExtensions"/> is used.
     /// </param>
     /// <returns>A combined list of <see cref="AITool"/> instances from all declared tool sources.</returns>
+    /// <param name="logger">Optional logger for tool-resolution diagnostics.</param>
     public static List<AITool> CreateToolsForAgent(
         IServiceProvider serviceProvider, AgentConfig agentConfig, AIConfig? aiConfig = null,
-        bool deferResolution = false, bool isDevelopment = false, Assembly? instructionsAssembly = null)
+        bool deferResolution = false, bool isDevelopment = false, Assembly? instructionsAssembly = null, ILogger? logger = null)
     {
         var tools = new List<AITool>();
 
         var isServiceChecker = serviceProvider.GetService<IServiceProviderIsService>();
+        var registry = serviceProvider.GetService<AgentTypeRegistry>();
 
         foreach (var source in agentConfig.Tools.Where(s => s.Service is not null))
         {
-            var serviceType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a =>
-                {
-                    try { return a.GetTypes(); }
-                    catch (ReflectionTypeLoadException) { return []; }
-                })
-                .FirstOrDefault(t => t.Name == source.Service && !t.IsAbstract)
-                ?? throw new InvalidOperationException(
-                    $"Tool service type '{source.Service}' not found in any loaded assembly.");
+            var serviceType = ResolveToolType(registry, source.Service!, logger);
 
             // Fail fast when the backing service is not registered in DI — this happens
             // when the feature that registers the service is disabled for this deployment.
@@ -133,7 +127,7 @@ public static partial class AgentExtensions
                     + "Ensure the feature that registers this service is enabled.");
 
             tools.AddRange(FilterTools(
-                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, isDevelopment));
+                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, isDevelopment, logger));
         }
 
         foreach (var source in agentConfig.Tools.Where(s => s.Agent is not null))
@@ -148,7 +142,7 @@ public static partial class AgentExtensions
 
             if (!targetAgentConfig.Enabled)
             {
-                Log.Information("{ClassName} skipping disabled sub-agent {AgentKey}", nameof(AgentExtensions), source.Agent);
+                (logger ?? NullLogger.Instance).LogDebug("Skipping disabled sub-agent {AgentKey}", source.Agent);
                 continue;
             }
 
@@ -156,11 +150,82 @@ public static partial class AgentExtensions
                 throw new InvalidOperationException(
                     $"Provider '{targetAgentConfig.Provider}' for agent '{source.Agent}' not found in AIConfig.Providers.");
 
-            var agentTool = CreateAgentTool(serviceProvider, source.Agent!, targetAgentConfig, targetProvider, aiConfig, instructionsAssembly);
-            tools.AddRange(FilterTools([agentTool], source, isDevelopment));
+            var agentTool = CreateAgentTool(serviceProvider, source.Agent!, targetAgentConfig, targetProvider, aiConfig, instructionsAssembly, logger);
+            tools.AddRange(FilterTools([agentTool], source, isDevelopment, logger));
         }
 
         return tools;
+    }
+
+    /// <summary>
+    /// Resolves a tool service type by simple name, preferring the registered
+    /// <see cref="AgentTypeRegistry"/> and falling back to an assembly scan when none is present.
+    /// </summary>
+    private static Type ResolveToolType(AgentTypeRegistry? registry, string typeName, ILogger? logger)
+    {
+        if (registry is not null)
+        {
+            if (registry.TryGetToolType(typeName, out var registered))
+                return registered;
+
+            throw new InvalidOperationException(
+                $"Tool service type '{typeName}' is not registered. Known tool services: "
+                + $"{(registry.ToolTypeNames.Count == 0 ? "(none)" : string.Join(", ", registry.ToolTypeNames.Order()))}. "
+                + "Ensure the feature that registers this service runs before AddAgentTypeRegistry().");
+        }
+
+        (logger ?? NullLogger.Instance).LogWarning(
+            "No {RegistryType} registered — falling back to scanning every loaded assembly for '{TypeName}'. "
+            + "Call services.AddAgentTypeRegistry() after registering tool services to make resolution deterministic.",
+            nameof(AgentTypeRegistry), typeName);
+
+        return ScanForType(typeName, "Tool service",
+            t => !t.IsAbstract && t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Any(m => m.GetCustomAttribute<McpServerToolAttribute>() is not null));
+    }
+
+    /// <summary>
+    /// Legacy fallback: scans every loaded assembly for a uniquely-named matching type.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the previous implementation this reports ambiguity rather than silently taking the
+    /// first match, because which assembly won depended on load order.
+    /// </remarks>
+    internal static Type ScanForType(string typeName, string label, Func<Type, bool> predicate)
+    {
+        var matches = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(GetLoadableTypes)
+            .Where(t => t.Name == typeName && predicate(t))
+            .Distinct()
+            .ToList();
+
+        return matches.Count switch
+        {
+            1 => matches[0],
+            0 => throw new InvalidOperationException(
+                $"{label} type '{typeName}' not found in any loaded assembly."),
+            _ => throw new InvalidOperationException(
+                $"Ambiguous {label.ToLowerInvariant()} type '{typeName}': "
+                + $"{string.Join(", ", matches.Select(t => t.FullName))}. "
+                + "Register an AgentTypeRegistry to resolve types deterministically."),
+        };
+
+        static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+        {
+            Type?[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types;
+            }
+
+            foreach (var type in types)
+                if (type is not null)
+                    yield return type;
+        }
     }
 
     /// <summary>
@@ -181,28 +246,40 @@ public static partial class AgentExtensions
     /// <param name="aiConfig">Optional root AI configuration for instruction prefix/suffix wrapping.</param>
     /// <param name="instructionsAssembly">Optional assembly containing embedded instruction resources for the agent.</param>
     /// <returns>An <see cref="AITool"/> that delegates to the named agent.</returns>
+    /// <param name="logger">Optional logger for sub-agent delegation diagnostics.</param>
     public static AITool CreateAgentTool(
         IServiceProvider serviceProvider,
         string agentKey,
         AgentConfig agentConfig,
         ProviderConfig providerConfig,
         AIConfig? aiConfig = null,
-        Assembly? instructionsAssembly = null)
+        Assembly? instructionsAssembly = null,
+        ILogger? logger = null)
     {
+        logger ??= NullLogger.Instance;
+        // TODO (C1 stage 2): the forwardAttachment parameter below is dead — nothing calls
+        // SetAmbientBinaryContent, so _ambientBinaryContent is always null and the branch can only
+        // log a warning. It still costs tokens on every sub-agent tool schema and invites the model
+        // to set a flag that does nothing. Removing it also removes the ffmpeg transcode call and
+        // the image/png MIME override below, both of which are duplicated (live) in
+        // CommunicationsBgService.TranscribeAudioAsync.
+        // Deferred pending the concurrent Signal audio-handling rework — confirm that workstream
+        // does not intend to revive ambient attachment forwarding before deleting.
         async Task<string> InvokeAgent(
             [Description("The task, question or event description to pass to this specialist agent.")] string task,
             [Description("Set to true to forward the current binary attachment (e.g. audio file) to this agent. Only set when the parent message includes a file the sub-agent needs to process.")] bool forwardAttachment = false,
             CancellationToken cancellationToken = default)
         {
-            var depth = _ambientDepth.Value + 1;
-            Log.Information("{ClassName} delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
-                nameof(AgentExtensions), agentKey, depth, forwardAttachment, task);
+            var parentScope = GetCurrentScope() ?? new AgentRunScope();
+            var subScope = parentScope.ForSubAgent();
+            var depth = subScope.Depth;
+            logger.LogDebug("Delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
+                agentKey, depth, forwardAttachment, task);
 
-            // Fire the ambient delegation callback (e.g. send status message / swap reaction).
-            if (_delegationCallback.Value is { } callback)
-                await callback(agentKey, depth, providerConfig, cancellationToken).ConfigureAwait(false);
+            // Notify the host that a delegation is starting (e.g. status message / reaction swap).
+            if (parentScope.OnDelegation is { } onDelegation)
+                await onDelegation(agentKey, depth, providerConfig, cancellationToken).ConfigureAwait(false);
 
-            _ambientDepth.Value = depth;
             var agent = serviceProvider.GetRequiredKeyedService<AIAgent>(agentKey);
 
             // Forward the parent's binary attachment when requested and available.
@@ -225,15 +302,15 @@ public static partial class AgentExtensions
                     var transcoded = await TranscodeToWavAsync(binaryContent, cancellationToken).ConfigureAwait(false);
                     if (transcoded is not null)
                     {
-                        Log.Information("{ClassName} transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
-                            nameof(AgentExtensions), binaryContent.Length, mimeType, transcoded.Length, agentKey);
+                        logger.LogDebug("Transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
+                            binaryContent.Length, mimeType, transcoded.Length, agentKey);
                         binaryContent = transcoded;
                         mimeType = "audio/wav";
                     }
                     else
                     {
-                        Log.Warning("{ClassName} ffmpeg transcode failed, forwarding original {MimeType} bytes to {AgentKey}",
-                            nameof(AgentExtensions), mimeType, agentKey);
+                        logger.LogWarning("ffmpeg transcode failed, forwarding original {MimeType} bytes to {AgentKey}",
+                            mimeType, agentKey);
                     }
                 }
 
@@ -244,39 +321,38 @@ public static partial class AgentExtensions
                 // payload as audio regardless of the transport-level MIME label.
                 if (!mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log.Information("{ClassName} overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
-                        nameof(AgentExtensions), mimeType, agentKey);
+                    logger.LogDebug("Overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
+                        mimeType, agentKey);
                     mimeType = "image/png";
                 }
 
-                Log.Information("{ClassName} forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
-                    nameof(AgentExtensions), binaryContent.Length, mimeType, agentKey);
+                logger.LogDebug("Forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
+                    binaryContent.Length, mimeType, agentKey);
             }
             else if (forwardAttachment)
-                Log.Warning("{ClassName} forwardAttachment=true but no ambient binary content available for {AgentKey}",
-                    nameof(AgentExtensions), agentKey);
+                logger.LogWarning("forwardAttachment=true but no ambient binary content available for {AgentKey}",
+                    agentKey);
 
             var message = BuildChatMessage(task, binaryContent: binaryContent, mimeType: mimeType);
             var resolvedInstructions = ResolveInstructions(agentConfig, instructionsAssembly, aiConfig);
             var chatOptions = BuildChatOptions(agentConfig, resolvedInstructions);
             var result = await agent.RunAnalysisAsync(providerConfig, agentConfig, message, chatOptions,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken, logger: logger, scope: subScope).ConfigureAwait(false);
 
-            _ambientDepth.Value = depth - 1;
+            logger.LogInformation("Sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
+                agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
 
-            Log.Information("{ClassName} sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
-                nameof(AgentExtensions), agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
+            // Notify the host that this delegation finished (e.g. record debug stats for the step).
+            if (parentScope.OnCompletion is { } onCompletion)
+                await onCompletion(agentKey, depth, result, cancellationToken).ConfigureAwait(false);
 
-            // Fire the ambient completion callback (e.g. send debug stats for this sub-agent step).
-            if (_completionCallback.Value is { } completionCb)
-                await completionCb(agentKey, depth, result, cancellationToken).ConfigureAwait(false);
-
-            // Bubble up any image attachments from the sub-agent to the parent's ambient collector.
+            // Bubble any image attachments up to the shared scope so the top-level run drains them.
             if (result.Attachments.Count > 0)
             {
-                Log.Information("{ClassName} bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
-                    nameof(AgentExtensions), result.Attachments.Count, agentKey);
-                _ambientAttachments.Value?.AddRange(result.Attachments);
+                logger.LogDebug("Bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
+                    result.Attachments.Count, agentKey);
+                foreach (var attachment in result.Attachments)
+                    subScope.AddAttachment(attachment);
             }
 
             return result.OutputText;
@@ -300,8 +376,9 @@ public static partial class AgentExtensions
     /// all misconfigured tool names; when <see langword="false"/>, logs warnings instead.
     /// </param>
     /// <returns>The filtered tool list.</returns>
+    /// <param name="logger">Optional logger for filter diagnostics.</param>
     public static IEnumerable<AITool> FilterTools(IEnumerable<AITool> tools, ToolSource source,
-        bool isDevelopment = false)
+        bool isDevelopment = false, ILogger? logger = null)
     {
         var toolList = tools.ToList();
         var availableNames = toolList.Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -323,10 +400,10 @@ public static partial class AgentExtensions
             toolList = toolList.Where(t => !source.ExcludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase)).ToList();
         }
 
-        ReportMisconfigured(misconfigured, "tools", isDevelopment);
+        ReportMisconfigured(misconfigured, "tools", isDevelopment, logger);
 
         foreach (var tool in toolList)
-            Log.Information("{ClassName} enabled tool {ToolName}", nameof(AgentExtensions), tool.Name);
+            (logger ?? NullLogger.Instance).LogDebug("Enabled tool {ToolName}", tool.Name);
 
         return toolList;
     }
@@ -334,7 +411,7 @@ public static partial class AgentExtensions
     /// <summary>
     /// Reports misconfigured filter names by throwing in development or logging warnings in production.
     /// </summary>
-    private static void ReportMisconfigured(List<string> misconfigured, string category, bool isDevelopment)
+    private static void ReportMisconfigured(List<string> misconfigured, string category, bool isDevelopment, ILogger? logger = null)
     {
         if (misconfigured.Count == 0)
             return;
@@ -343,7 +420,7 @@ public static partial class AgentExtensions
         if (isDevelopment)
             throw new InvalidOperationException(message);
 
-        Log.Warning("{ClassName} misconfigured {Category}: {Details}",
-            nameof(AgentExtensions), category, string.Join("; ", misconfigured));
+        (logger ?? NullLogger.Instance).LogWarning("Misconfigured {Category}: {Details}",
+            category, string.Join("; ", misconfigured));
     }
 }

@@ -2,7 +2,7 @@ namespace CasCap.Common.Abstractions;
 
 /// <summary>
 /// Marks an <see cref="IEventSink{T}"/> implementation with a sink type identifier used
-/// to match against <see cref="SinkConfig.AvailableSinks"/> configuration entries.
+/// to match against <c>SinkConfig.AvailableSinks</c> configuration entries.
 /// </summary>
 /// <param name="sinkType">The unique sink type identifier (e.g. "Console", "Redis", "AzureTables").</param>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]

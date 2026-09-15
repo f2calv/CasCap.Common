@@ -14,93 +14,57 @@ namespace CasCap.Common.Extensions;
 public static partial class AgentExtensions
 {
     /// <summary>
-    /// Ambient attachment accumulator — sub-agent tool invocations append image attachments
-    /// here so the parent <see cref="RunAnalysisAsync"/> can collect them into the final
-    /// <see cref="AgentRunResult.Attachments"/>.
+    /// The <see cref="AgentRunScope"/> for the run in flight. Set by
+    /// <see cref="RunAnalysisAsync"/> and read by <see cref="CreateAgentTool"/> and the chat
+    /// reducer, both of which are invoked by the framework with no parameter channel of their own.
     /// </summary>
-    private static readonly AsyncLocal<List<AgentRunAttachment>?> _ambientAttachments = new();
+    /// <remarks>
+    /// This is the single remaining ambient carrier for run state — it replaced four separate
+    /// <see cref="AsyncLocal{T}"/> fields (attachments, depth, delegation callback, completion
+    /// callback) plus a fifth for compaction, and removed the matching <c>Set*</c>/<c>Clear*</c>
+    /// pairs that every consumer previously had to call in a <c>finally</c> block.
+    /// See the TODO on <see cref="AgentRunScope"/> for the remaining work to remove it entirely.
+    /// </remarks>
+    private static readonly AsyncLocal<AgentRunScope?> _currentScope = new();
 
-    /// <summary>
-    /// Ambient nesting depth counter — incremented each time <see cref="CreateAgentTool"/>
-    /// delegates to a sub-agent so that <see cref="AgentRunResult.NestingDepth"/> reflects
-    /// the current delegation level (<c>0</c> = top-level, <c>1</c> = sub-agent, etc.).
-    /// </summary>
-    private static readonly AsyncLocal<int> _ambientDepth = new();
+    /// <summary>Gets the <see cref="AgentRunScope"/> for the run in flight, if any.</summary>
+    internal static AgentRunScope? GetCurrentScope() => _currentScope.Value;
 
     /// <summary>
     /// Ambient binary content — set by the host before running the parent agent so that
     /// sub-agent tool invocations can forward attachments (e.g. audio bytes) via the
     /// <c>forwardAttachment</c> parameter on <see cref="CreateAgentTool"/>.
     /// </summary>
+    /// <remarks>
+    /// TODO (C1 stage 2): dead code — nothing calls <see cref="SetAmbientBinaryContent"/> in this
+    /// repository or in SmartHaus, so the <c>forwardAttachment</c> branch in
+    /// <see cref="CreateAgentTool"/> can only ever log "no ambient binary content available".
+    /// Signal audio instead goes through the host's own transcription path
+    /// (<c>CommunicationsBgService.TranscribeAudioAsync</c>), which passes bytes explicitly to
+    /// <see cref="BuildChatMessage"/>. The cost of leaving this in place is that every sub-agent
+    /// tool schema still advertises a <c>forwardAttachment</c> parameter the model cannot use.
+    /// <para>
+    /// Deferred: Signal audio handling is being reworked in a concurrent workstream. Before
+    /// deleting this field, <see cref="SetAmbientBinaryContent"/>,
+    /// <see cref="ClearAmbientBinaryContent"/> and the <c>forwardAttachment</c> parameter,
+    /// confirm the new audio design does not intend to revive ambient forwarding.
+    /// </para>
+    /// <para>
+    /// Distinct from <see cref="_ambientAudioDebug"/> and <see cref="TranscodeToWavAsync"/>, which
+    /// are both <b>live</b> — used by <c>TranscribeAudioAsync</c>.
+    /// </para>
+    /// </remarks>
     private static readonly AsyncLocal<(byte[] Bytes, string MimeType)?> _ambientBinaryContent = new();
-
-    /// <summary>
-    /// Accumulated <see cref="UsageDetails"/> across all <see cref="IChatClient.GetResponseAsync"/>
-    /// round-trips within a single <see cref="RunAnalysisAsync"/> invocation. The middleware
-    /// (<see cref="ChatResponseMiddleware"/>) aggregates usage here because
-    /// <c>ChatClientAgent.RunAsync</c> only surfaces messages — the per-call
-    /// <see cref="ChatResponse.Usage"/> is otherwise lost.
-    /// </summary>
-    private static readonly AsyncLocal<UsageDetails?> _accumulatedUsage = new();
-
-    /// <summary>
-    /// Ambient callback invoked when a sub-agent delegation begins. The parameters are
-    /// the agent key, the nesting depth, and a cancellation token.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Func<string, int, ProviderConfig, CancellationToken, Task>?> _delegationCallback = new();
-
-    /// <summary>Sets the ambient delegation callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke on each sub-agent delegation, or <see langword="null"/> to clear.</param>
-    public static void SetDelegationCallback(Func<string, int, ProviderConfig, CancellationToken, Task>? callback) =>
-        _delegationCallback.Value = callback;
-
-    /// <summary>Clears the ambient delegation callback for the current async flow.</summary>
-    public static void ClearDelegationCallback() => _delegationCallback.Value = null;
-
-    /// <summary>
-    /// Ambient callback invoked when a sub-agent delegation completes. The parameters are
-    /// the agent key, the nesting depth, the <see cref="AgentRunResult"/>, and a cancellation token.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Func<string, int, AgentRunResult, CancellationToken, Task>?> _completionCallback = new();
-
-    /// <summary>Sets the ambient completion callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke when each sub-agent delegation completes, or <see langword="null"/> to clear.</param>
-    public static void SetCompletionCallback(Func<string, int, AgentRunResult, CancellationToken, Task>? callback) =>
-        _completionCallback.Value = callback;
-
-    /// <summary>Clears the ambient completion callback for the current async flow.</summary>
-    public static void ClearCompletionCallback() => _completionCallback.Value = null;
-
-    /// <summary>
-    /// Ambient callback invoked when the <see cref="CasCap.Services.ToolOutputStrippingChatReducer"/>
-    /// compacts the chat history. Parameters: input count, output count, tool-only dropped, window trimmed, target count.
-    /// Set by the host (e.g. <c>CommunicationsBgService</c>) before calling
-    /// <see cref="RunAnalysisAsync"/> and cleared afterwards.
-    /// </summary>
-    private static readonly AsyncLocal<Action<int, int, int, int, int>?> _compactionCallback = new();
-
-    /// <summary>Sets the ambient compaction callback for the current async flow.</summary>
-    /// <param name="callback">The callback to invoke when chat history compaction occurs, or <see langword="null"/> to clear.</param>
-    public static void SetCompactionCallback(Action<int, int, int, int, int>? callback) =>
-        _compactionCallback.Value = callback;
-
-    /// <summary>Clears the ambient compaction callback for the current async flow.</summary>
-    public static void ClearCompactionCallback() => _compactionCallback.Value = null;
-
-    /// <summary>Gets the ambient compaction callback for the current async flow.</summary>
-    internal static Action<int, int, int, int, int>? GetCompactionCallback() => _compactionCallback.Value;
 
     /// <summary>Sets the ambient binary content so sub-agent delegations can forward attachments.</summary>
     /// <param name="bytes">The binary payload (e.g. audio bytes).</param>
     /// <param name="mimeType">The MIME type of the binary content (e.g. <c>"audio/aac"</c>).</param>
+    /// <remarks>TODO (C1 stage 2): no callers — see the remarks on <see cref="_ambientBinaryContent"/>.</remarks>
     public static void SetAmbientBinaryContent(byte[] bytes, string mimeType) =>
         _ambientBinaryContent.Value = (bytes, mimeType);
 
     /// <summary>Clears the ambient binary content for the current async flow.</summary>
+    /// <remarks>TODO (C1 stage 2): no callers — see the remarks on <see cref="_ambientBinaryContent"/>.</remarks>
     public static void ClearAmbientBinaryContent() => _ambientBinaryContent.Value = null;
 
     /// <summary>
@@ -167,13 +131,26 @@ public static partial class AgentExtensions
     /// </param>
     /// <param name="otelSourceName">
     /// Optional OpenTelemetry activity source name for AI traces. When provided,
-    /// <c>.UseOpenTelemetry(sourceName:)</c> is added to the <see cref="ChatClientBuilder"/>
-    /// pipeline. Use <see cref="GetAISourceName"/> to derive from <see cref="AppConfig.MetricNamePrefix"/>.
+    /// <c>.UseOpenTelemetry(sourceName:)</c> is added to both the <see cref="ChatClientBuilder"/>
+    /// pipeline (one chat span per LLM round-trip) and the <see cref="AIAgentBuilder"/> pipeline
+    /// (one invoke_agent span per run, with sub-agent delegations nested beneath it).
+    /// Use <see cref="GetAISourceName"/> to derive from <see cref="AppConfig.MetricNamePrefix"/>,
+    /// and register the same name via <c>AddSource(...)</c> on the tracing builder.
     /// </param>
     /// <param name="tokenCredential">
     /// Optional <see cref="TokenCredential"/> for providers that use Azure Entra ID authentication
     /// (e.g. <see cref="AgentType.AzureOpenAI"/>). When <see langword="null"/>, key-based authentication
     /// via <see cref="ProviderConfig.ApiKey"/> is used instead.
+    /// </param>
+    /// <param name="enableSensitiveTelemetryData">
+    /// When <see langword="true"/>, OpenTelemetry spans include prompt and response content.
+    /// Defaults to <see langword="false"/> — chat content carries household activity and message
+    /// text, so enable this only in development.
+    /// </param>
+    /// <param name="loggerFactory">
+    /// Optional <see cref="ILoggerFactory"/> used to add the framework's <c>UseLogging</c>
+    /// middleware to both the chat-client and agent pipelines. When <see langword="null"/> no
+    /// logging middleware is added.
     /// </param>
     /// <returns>A tuple of the built <see cref="IChatClient"/>, <see cref="AIAgent"/>, and the resolved system instructions.</returns>
     public static (IChatClient chatClient, AIAgent agent, string instructions) CreateAgent(
@@ -186,8 +163,12 @@ public static partial class AgentExtensions
         Assembly? instructionsAssembly = null,
         AIConfig? aiConfig = null,
         string? otelSourceName = null,
-        TokenCredential? tokenCredential = null)
+        TokenCredential? tokenCredential = null,
+        bool enableSensitiveTelemetryData = false,
+        ILoggerFactory? loggerFactory = null)
     {
+        var agentLogger = loggerFactory?.CreateLogger(nameof(AgentExtensions)) ?? NullLogger.Instance;
+
         httpClient ??= new HttpClient
         {
             BaseAddress = provider.Endpoint,
@@ -196,8 +177,17 @@ public static partial class AgentExtensions
 
         ChatClientBuilder chatClientBuilder;
         if (provider.Type == AgentType.Ollama)
+        {
+            // Validate explicitly — an absent endpoint otherwise surfaces deep inside
+            // HttpClient as "An invalid request URI was provided", which gives no clue
+            // that the cause is a missing ProviderConfig.Endpoint for this agent.
+            if (provider.Endpoint is null && httpClient.BaseAddress is null)
+                throw new InvalidOperationException(
+                    $"Agent '{agentConfig.Name}' requires an {nameof(ProviderConfig.Endpoint)} for {nameof(AgentType.Ollama)}.");
+
             chatClientBuilder = ((IChatClient)new OllamaApiClient(httpClient, provider.ModelName))
                 .AsBuilder();
+        }
         else if (provider.Type == AgentType.AzureOpenAI)
         {
             var endpoint = provider.Endpoint
@@ -238,9 +228,9 @@ public static partial class AgentExtensions
         else
             throw new NotSupportedException($"Agent type '{provider.Type}' is not supported!");
 
-        chatClientBuilder
-            .Use(getResponseFunc: ChatResponseMiddleware, getStreamingResponseFunc: ChatStreamingResponseMiddleware)
-            .UseFunctionInvocation();
+        chatClientBuilder.UseFunctionInvocation();
+        if (loggerFactory is not null)
+            chatClientBuilder.UseLogging(loggerFactory);
         if (otelSourceName is not null)
             chatClientBuilder.UseOpenTelemetry(sourceName: otelSourceName);
         configureChatClient?.Invoke(chatClientBuilder);
@@ -273,16 +263,26 @@ public static partial class AgentExtensions
             agentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(
                 new InMemoryChatHistoryProviderOptions
                 {
-                    ChatReducer = new ToolOutputStrippingChatReducer(agentConfig.MaxMessages.Value),
+                    ChatReducer = new ToolOutputStrippingChatReducer(agentConfig.MaxMessages.Value, loggerFactory),
                 });
-            Log.Information("{ClassName} agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
-                nameof(AgentExtensions), agentConfig.Name, agentConfig.MaxMessages.Value);
+            agentLogger.LogDebug("Agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
+                agentConfig.Name, agentConfig.MaxMessages.Value);
         }
 
         var agentBuilder = new ChatClientAgent(chatClient, agentOptions)
             .AsBuilder()
-            .Use(AgentRunMiddleware, AgentRunStreamingMiddleware)
-            .Use(FunctionCallingMiddleware);
+            .Use(CreateFunctionCallingMiddleware(agentLogger));
+
+        if (loggerFactory is not null)
+            agentBuilder.UseLogging(loggerFactory);
+
+        // Agent-level instrumentation emits an invoke_agent span covering the whole run —
+        // the tool-calling loop and any sub-agent delegation nested beneath it. The
+        // chat-client-level UseOpenTelemetry above only emits one chat span per LLM
+        // round-trip, which leaves a fan-out looking flat with no parent/child structure.
+        if (otelSourceName is not null)
+            agentBuilder.UseOpenTelemetry(otelSourceName,
+                o => o.EnableSensitiveData = enableSensitiveTelemetryData);
 
         configureAgent?.Invoke(agentBuilder);
 
@@ -307,6 +307,12 @@ public static partial class AgentExtensions
     /// An <see cref="AgentRunResult"/> containing the formatted output, the raw response messages,
     /// the elapsed duration and the (possibly new) <see cref="AgentSession"/>.
     /// </returns>
+    /// <param name="logger">Optional logger for agent-run diagnostics.</param>
+    /// <param name="scope">
+    /// Optional per-run scope carrying host callbacks (delegation, completion, compaction) and
+    /// collecting attachments produced by tools and sub-agents. When omitted a fresh scope is
+    /// created for the run.
+    /// </param>
     public static async Task<AgentRunResult> RunAnalysisAsync(
         this AIAgent agent,
         ProviderConfig provider,
@@ -315,139 +321,117 @@ public static partial class AgentExtensions
         ChatOptions chatOptions,
         AgentSession? session = null,
         TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        ILogger? logger = null,
+        AgentRunScope? scope = null)
     {
+        logger ??= NullLogger.Instance;
         var sw = Stopwatch.StartNew();
-        Log.Information("{ClassName} RunAnalysisAsync starting for agent {AgentName}, model={ModelName}, endpoint={Endpoint}",
-            nameof(AgentExtensions), agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
+        logger.LogDebug("Agent run starting for {AgentName}, model={ModelName}, endpoint={Endpoint}",
+            agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
 
-        // Set up ambient attachment accumulator so sub-agent tool invocations can bubble up images.
-        var isTopLevel = _ambientAttachments.Value is null;
-        if (isTopLevel)
-            _ambientAttachments.Value = [];
+        // Establish the run scope. A caller-supplied scope wins; a sub-agent delegation will
+        // already have installed a child scope; otherwise start a fresh top-level one.
+        var previousScope = _currentScope.Value;
+        var activeScope = scope ?? previousScope ?? new AgentRunScope();
+        var isTopLevel = previousScope is null;
+        _currentScope.Value = activeScope;
 
-        session ??= await agent.CreateSessionAsync(cancellationToken).AsTask().ConfigureAwait(false);
-
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(timeout ?? TimeSpan.FromMinutes(5));
-
-        AgentRunOptions agentRunOptions = new ChatClientAgentRunOptions(chatOptions);
-
-        // Save and reset per-call usage accumulator so nested sub-agent calls
-        // (which also go through RunAnalysisAsync) don't clobber the parent's tally.
-        var savedUsage = _accumulatedUsage.Value;
-        _accumulatedUsage.Value = null;
-
-        var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
-
-        var elapsed = sw.Elapsed;
-        // Build output text from assistant text content only — exclude FunctionCallContent /
-        // FunctionResultContent whose serialised payloads (e.g. base64 image bytes) would
-        // otherwise leak into the user-facing message as garbled characters.
-        var outputText = string.Join(" ", response.Messages
-            .Where(m => m.Role == ChatRole.Assistant)
-            .SelectMany(m => m.Contents.OfType<TextContent>())
-            .Select(tc => tc.Text)
-            .Where(t => !string.IsNullOrWhiteSpace(t)));
-        var formattedResult = $"Model: {provider.ModelName}" + Environment.NewLine
-            + $"Endpoint: {provider.Endpoint.MaskEndpoint()}" + Environment.NewLine
-            + $"Output: {outputText}" + Environment.NewLine
-            + $"Duration: {elapsed}";
-
-        var result = new AgentRunResult(agentConfig.Name)
+        try
         {
-            FormattedResult = formattedResult,
-            Elapsed = elapsed,
-            Session = session,
-            IsComplete = true,
-            NestingDepth = _ambientDepth.Value,
-            ProviderKey = agentConfig.Provider ?? string.Empty,
-            ModelName = provider.ModelName ?? string.Empty,
-        };
-        result.AppendText(outputText);
+            session ??= await agent.CreateSessionAsync(cancellationToken).AsTask().ConfigureAwait(false);
 
-        // Extract usage and tool-call count from the response messages.
-        foreach (var msg in response.Messages)
-        {
-            if (msg.Contents is null)
-                continue;
-            foreach (var content in msg.Contents)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(timeout ?? TimeSpan.FromMinutes(5));
+
+            AgentRunOptions agentRunOptions = new ChatClientAgentRunOptions(chatOptions);
+
+            var response = await agent.RunAsync(message, session, agentRunOptions, timeoutCts.Token).ConfigureAwait(false);
+
+            var elapsed = sw.Elapsed;
+            // Build output text from assistant text content only — exclude FunctionCallContent /
+            // FunctionResultContent whose serialised payloads (e.g. base64 image bytes) would
+            // otherwise leak into the user-facing message as garbled characters.
+            var outputText = string.Join(" ", response.Messages
+                .Where(m => m.Role == ChatRole.Assistant)
+                .SelectMany(m => m.Contents.OfType<TextContent>())
+                .Select(tc => tc.Text)
+                .Where(t => !string.IsNullOrWhiteSpace(t)));
+            var formattedResult = $"Model: {provider.ModelName}" + Environment.NewLine
+                + $"Endpoint: {provider.Endpoint.MaskEndpoint()}" + Environment.NewLine
+                + $"Output: {outputText}" + Environment.NewLine
+                + $"Duration: {elapsed}";
+
+            var result = new AgentRunResult(agentConfig.Name)
             {
-                switch (content)
+                FormattedResult = formattedResult,
+                Elapsed = elapsed,
+                Session = session,
+                IsComplete = true,
+                NestingDepth = activeScope.Depth,
+                ProviderKey = agentConfig.Provider ?? string.Empty,
+                ModelName = provider.ModelName ?? string.Empty,
+                // The framework aggregates usage across every IChatClient round-trip of a
+                // tool-calling loop and surfaces the total here (pinned by AgentResponseUsageTests).
+                Usage = response.Usage,
+            };
+            result.AppendText(outputText);
+
+            // Extract tool-call count and image attachments from the response messages.
+            foreach (var msg in response.Messages)
+            {
+                if (msg.Contents is null)
+                    continue;
+                foreach (var content in msg.Contents)
                 {
-                    case UsageContent uc when uc.Details is not null:
-                        result.Usage = uc.Details;
-                        break;
-                    case FunctionCallContent fcc:
-                        result.ToolCallCount++;
-                        result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
-                        break;
-                    case FunctionResultContent frc:
-                        ExtractImageAttachments(frc, result);
-                        break;
+                    switch (content)
+                    {
+                        case FunctionCallContent fcc:
+                            result.ToolCallCount++;
+                            result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
+                            break;
+                        case FunctionResultContent frc:
+                            ExtractImageAttachments(frc, result, logger, activeScope);
+                            break;
+                    }
                 }
             }
+
+            logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
+                agentConfig.Name,
+                result.Usage is not null,
+                result.Usage?.InputTokenCount,
+                result.Usage?.OutputTokenCount,
+                result.Usage?.TotalTokenCount);
+
+            // Only the top-level run drains the shared scope — sub-agent runs leave their
+            // attachments in place so they bubble up to the parent result.
+            if (isTopLevel)
+            {
+                var drained = activeScope.DrainAttachments();
+                if (drained.Count > 0)
+                {
+                    logger.LogDebug("Draining {AttachmentCount} attachment(s) from sub-agent fan-out", drained.Count);
+                    result.Attachments.AddRange(drained);
+                }
+            }
+
+            logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
+                agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
+
+            return result;
         }
-
-        // Fall back to accumulated usage from the middleware when message-level
-        // UsageContent was not emitted or has no meaningful token counts.
-        // The middleware accumulates from real provider responses, so it's more reliable
-        // than UsageContent injected by FunctionInvocationChatClient's merged response.
-        var messageUsage = result.Usage;
-        var accumulated = _accumulatedUsage.Value;
-        Log.Information("{ClassName} RunAnalysisAsync usage check for {AgentName}: messageUsage={HasMessageUsage} (in={MsgIn}, out={MsgOut}), accumulatedUsage={HasAccumulatedUsage} (in={AccIn}, out={AccOut})",
-            nameof(AgentExtensions), agentConfig.Name,
-            messageUsage is not null, messageUsage?.InputTokenCount, messageUsage?.OutputTokenCount,
-            accumulated is not null, accumulated?.InputTokenCount, accumulated?.OutputTokenCount);
-
-        // Prefer accumulated middleware usage when it has actual token data.
-        if (accumulated is { InputTokenCount: > 0 } or { OutputTokenCount: > 0 })
+        finally
         {
-            result.Usage = accumulated;
-            Log.Information("{ClassName} using accumulated middleware usage for {AgentName}: input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-                nameof(AgentExtensions), agentConfig.Name,
-                result.Usage.InputTokenCount,
-                result.Usage.OutputTokenCount,
-                result.Usage.TotalTokenCount);
+            _currentScope.Value = previousScope;
         }
-        else if (messageUsage is { InputTokenCount: > 0 } or { OutputTokenCount: > 0 })
-            Log.Information("{ClassName} using message-level usage for {AgentName}: input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-                nameof(AgentExtensions), agentConfig.Name,
-                messageUsage.InputTokenCount,
-                messageUsage.OutputTokenCount,
-                messageUsage.TotalTokenCount);
-        else
-        {
-            result.Usage = null; // Clear hollow UsageDetails with no token data.
-            Log.Warning("{ClassName} no usage data available for {AgentName} (neither message-level nor accumulated had token counts)",
-                nameof(AgentExtensions), agentConfig.Name);
-        }
-
-        // Restore the parent's accumulated usage so nested calls don't interfere.
-        _accumulatedUsage.Value = savedUsage;
-
-        // Drain ambient attachments accumulated by sub-agent tool invocations.
-        if (isTopLevel && _ambientAttachments.Value is { Count: > 0 } ambient)
-        {
-            Log.Information("{ClassName} draining {AttachmentCount} ambient attachment(s) from sub-agent fan-out",
-                nameof(AgentExtensions), ambient.Count);
-            result.Attachments.AddRange(ambient);
-            _ambientAttachments.Value = null;
-        }
-
-        Log.Information("{ClassName} RunAnalysisAsync completed for agent {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
-            nameof(AgentExtensions), agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
-
-        return result;
     }
-
-
 
     /// <summary>
     /// Inspects a <see cref="FunctionResultContent"/> for image-bearing payloads
     /// and extracts them as <see cref="AgentRunAttachment"/> entries on the result.
     /// </summary>
-    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result)
+    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger, AgentRunScope scope)
     {
         if (frc.Result is not JsonElement je || je.ValueKind is not JsonValueKind.Object)
             return;
@@ -467,8 +451,8 @@ public static partial class AgentExtensions
             : null;
 
         var sizeKb = base64.Length * 3 / 4 / 1024;
-        Log.Information("{ClassName} extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
-            nameof(AgentExtensions), fileName ?? "(unnamed)", sizeKb);
+        logger.LogDebug("Extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
+            fileName ?? "(unnamed)", sizeKb);
 
         result.Attachments.Add(new AgentRunAttachment
         {

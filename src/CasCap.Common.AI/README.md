@@ -20,17 +20,18 @@ This library contains **no domain-specific MCP query services** — those live i
 
 | Type | Description |
 | --- | --- |
-| `AgentCommandHandler` | Shared handler for `ChatCommand` slash-commands (`/session info`, `/session reset`, `/model`, etc.) and agent session persistence |
-| `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from older messages while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
+| `AgentCommandHandler` | Shared handler for `ChatCommand` slash-commands (`/session info`, `/session reset`, `/model`, etc.) and agent session persistence. Override state (`/model`, `/instructions`, `/session enable\|disable`) is held **per agent**, keyed by `AgentConfig.Name` |
+| `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from the history while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
 | `InMemorySessionStore` | Volatile in-memory `ISessionStore` backed by `ConcurrentDictionary` |
 | `DistributedCacheSessionStore` | Redis-backed `ISessionStore` wrapping `IDistributedCache` with sliding expiry |
 | `InMemoryPollTracker` | In-memory `IPollTracker` with automatic TTL-based expiry for agent-created polls |
+| `AgentTypeRegistry` | Deterministic name-to-type lookup for tool services and MCP prompt types, built once at startup by `AddAgentTypeRegistry()` |
 
 ### Abstractions
 
 | Interface | Description |
 | --- | --- |
-| `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`, `ListKeysAsync`) |
+| `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`) |
 | `IPollTracker` | Tracks active polls created by agents and records incoming votes (`TrackPoll`, `RecordVote`, `GetPoll`, `RemovePoll`, `GetActivePolls`) |
 
 ### Extensions
@@ -38,6 +39,7 @@ This library contains **no domain-specific MCP query services** — those live i
 | Class | Key Methods |
 | --- | --- |
 | `AgentExtensions` | `CreateAgent` — creates `IChatClient` + `AIAgent` from config (Ollama, AzureOpenAI, OpenAI); `RunAnalysisAsync` — runs inference returning `AgentRunResult`; `CreateToolsFromServiceProvider<T>` — discovers `[McpServerTool]` methods as `AITool`s; `CreateToolsForAgent` — resolves all tool sources with include/exclude filters; `CreateAgentTool` — wraps a peer agent as a callable `AITool` (delegation); `ResolveInstructions` — resolves from embedded resource, file, or inline string; `TranscodeToWavAsync` — audio transcode via `ffmpeg` |
+| `AgentServiceCollectionExtensions` | `AddAgentTypeRegistry` — indexes tool service types from the service collection and prompt types from supplied assemblies |
 | `ChatCommandParser` | `TryParseCommand` — parses `/` slash-commands; `TryCompactSession` — manual session compaction; `GetStateBagEntries` — session state diagnostics |
 
 ### Configuration
@@ -54,6 +56,8 @@ This library contains **no domain-specific MCP query services** — those live i
 | --- | --- |
 | `AgentRunResult` | Accumulated result of an AI agent run — output text, token usage, tool calls, attachments, timing, streaming support |
 | `AgentRunAttachment` | Binary attachment produced by a tool during an agent run (`Base64Content`, `MimeType`, `FileName`) |
+| `AgentRunScope` | Per-run host callbacks (delegation, completion, compaction), nesting depth and shared attachment collection |
+| `CompactionStats` | Summary of a single chat-history compaction pass |
 | `AgentInfo` | MCP-friendly projection of `AgentConfig` (all properties carry `[Description]`) |
 | `ProviderInfo` | MCP-friendly projection of `ProviderConfig` excluding sensitive fields (all properties carry `[Description]`) |
 | `ToolSource` | Identifies a tool source — in-process `Service`, remote `Endpoint`, or peer `Agent` (fan-out delegation) with `IncludeTools`/`ExcludeTools` filters |
@@ -141,29 +145,39 @@ Long conversations accumulate large context windows — especially from verbose 
 When `MaxMessages` is set to a positive value, `AgentExtensions.CreateAgent` configures the agent's `InMemoryChatHistoryProvider` with a `ToolOutputStrippingChatReducer` that:
 
 1. **Preserves** the first system message (agent instructions are never lost).
-2. **Strips** all messages consisting solely of `FunctionCallContent` or `FunctionResultContent` (the primary source of context bloat).
+2. **Strips** all `FunctionCallContent` and `FunctionResultContent` from non-system messages (the primary source of context bloat), dropping any message left with no remaining content.
 3. **Keeps** a sliding window of the most recent `MaxMessages` non-system exchanges.
+
+Tool content is removed from *every* message rather than only from messages consisting *solely* of tool content. An assistant message mixing narration text with a `FunctionCallContent` would otherwise be retained while its matching `FunctionResultContent` was dropped, leaving an orphaned tool call — OpenAI and Azure OpenAI reject such a request with HTTP 400.
 
 The reducer runs automatically before each agent invocation. Set `MaxMessages` to `0` or `null` to disable automatic compaction.
 
-### Compaction Callback
+### Run Scope
 
-`AgentExtensions` exposes an ambient `AsyncLocal` compaction callback so host services can observe when compaction occurs:
+Host callbacks and per-run state are carried by an `AgentRunScope` passed to `RunAnalysisAsync`, replacing the ambient `Set*`/`Clear*` callback pairs that callers previously had to balance in a `finally` block:
 
 ```csharp
-AgentExtensions.SetCompactionCallback((inputCount, outputCount, toolDropped, windowTrimmed, target) =>
+var scope = new AgentRunScope
 {
-    // e.g. send a debug notification
-});
+    OnDelegation = (agentKey, depth, provider, ct) => NotifyAsync(agentKey, depth, ct),
+    OnCompletion = (agentKey, depth, result, ct) => RecordAsync(agentKey, result, ct),
+    OnCompaction = stats => Debug($"{stats.InputCount} → {stats.OutputCount}"),
+};
+
+var result = await agent.RunAnalysisAsync(provider, agentConfig, message, chatOptions, scope: scope);
 ```
 
-| Parameter | Description |
+| Member | Description |
 | --- | --- |
-| `inputCount` | Total messages before compaction |
-| `outputCount` | Total messages after compaction |
-| `toolDropped` | Messages dropped because they consisted solely of `FunctionCallContent` / `FunctionResultContent` |
-| `windowTrimmed` | Messages dropped by the sliding window to meet the `MaxMessages` target |
-| `target` | The configured `MaxMessages` value |
+| `Depth` | `0` for the top-level agent, `1` for a sub-agent, and so on |
+| `OnDelegation` | Fired when a sub-agent delegation begins — use for live progress notifications |
+| `OnCompletion` | Fired when a sub-agent delegation completes, with its `AgentRunResult` |
+| `OnCompaction` | Fired when the chat history is compacted, with a `CompactionStats` |
+| `Attachments` / `AddAttachment` / `DrainAttachments` | Thread-safe attachment collection shared with every sub-agent scope beneath the run |
+
+`ForSubAgent()` creates a child scope with an incremented `Depth` that shares the parent's callbacks and attachment collection, so an image produced several delegations deep still surfaces on the top-level `AgentRunResult`.
+
+`CompactionStats` carries `InputCount`, `OutputCount`, `ToolDropped`, `WindowTrimmed` and `Target`.
 
 ### Session Isolation
 
