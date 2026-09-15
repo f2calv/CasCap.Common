@@ -17,7 +17,4 @@ public interface ISessionStore
 
     /// <summary>Removes the session stored under <paramref name="key"/>.</summary>
     ValueTask DeleteAsync(string key);
-
-    /// <summary>Lists all keys that match <paramref name="prefix"/>.</summary>
-    ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix);
 }

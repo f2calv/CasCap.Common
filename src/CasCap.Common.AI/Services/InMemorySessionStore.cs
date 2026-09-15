@@ -28,8 +28,4 @@ public sealed class InMemorySessionStore : ISessionStore
         _store.TryRemove(key, out _);
         return default;
     }
-
-    /// <inheritdoc/>
-    public ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
-        new(_store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList());
 }

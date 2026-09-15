@@ -40,9 +40,6 @@ public class AgentCommandHandlerTests
             _store.Remove(key);
             return ValueTask.CompletedTask;
         }
-
-        public ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
-            new([.. _store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal))]);
     }
 
     private static AIConfig NewAIConfig(string instructionsPrefix = "", string instructionsSuffix = "") => new()

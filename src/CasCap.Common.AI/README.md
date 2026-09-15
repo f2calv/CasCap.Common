@@ -31,7 +31,7 @@ This library contains **no domain-specific MCP query services** — those live i
 
 | Interface | Description |
 | --- | --- |
-| `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`, `ListKeysAsync`) |
+| `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`) |
 | `IPollTracker` | Tracks active polls created by agents and records incoming votes (`TrackPoll`, `RecordVote`, `GetPoll`, `RemovePoll`, `GetActivePolls`) |
 
 ### Extensions

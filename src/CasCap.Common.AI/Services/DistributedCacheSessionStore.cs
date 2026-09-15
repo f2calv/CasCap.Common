@@ -36,8 +36,4 @@ public sealed class DistributedCacheSessionStore(IDistributedCache distCache) : 
     /// <inheritdoc/>
     public async ValueTask DeleteAsync(string key) =>
         await distCache.Delete(key).ConfigureAwait(false);
-
-    /// <inheritdoc/>
-    public ValueTask<IReadOnlyList<string>> ListKeysAsync(string prefix) =>
-        new(Array.Empty<string>());
 }
