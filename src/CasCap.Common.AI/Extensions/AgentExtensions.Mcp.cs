@@ -81,23 +81,18 @@ public static partial class AgentExtensions
     /// </param>
     /// <returns>A combined list of <see cref="McpPromptDescriptor"/> instances from all declared service-based prompt sources.</returns>
     /// <param name="logger">Optional logger for prompt-discovery diagnostics.</param>
+    /// <param name="registry">
+    /// Optional <see cref="AgentTypeRegistry"/> for deterministic name-to-type resolution. When
+    /// <see langword="null"/> every loaded assembly is scanned instead.
+    /// </param>
     public static List<McpPromptDescriptor> CreatePromptsForAgent(AgentConfig agentConfig,
-        bool isDevelopment = false, ILogger? logger = null)
+        bool isDevelopment = false, ILogger? logger = null, AgentTypeRegistry? registry = null)
     {
         var prompts = new List<McpPromptDescriptor>();
 
         foreach (var source in agentConfig.Prompts.Where(s => s.Service is not null))
         {
-            var promptType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a =>
-                {
-                    try { return a.GetTypes(); }
-                    catch (ReflectionTypeLoadException) { return []; }
-                })
-                .FirstOrDefault(t => t.Name == source.Service
-                    && t.GetCustomAttribute<McpServerPromptTypeAttribute>() is not null)
-                ?? throw new InvalidOperationException(
-                    $"Prompt type '{source.Service}' not found in any loaded assembly.");
+            var promptType = ResolvePromptType(registry, source.Service!, logger);
 
             var methods = promptType
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -131,6 +126,32 @@ public static partial class AgentExtensions
         }
 
         return prompts;
+    }
+
+    /// <summary>
+    /// Resolves an MCP prompt type by simple name, preferring the registered
+    /// <see cref="AgentTypeRegistry"/> and falling back to an assembly scan when none is present.
+    /// </summary>
+    private static Type ResolvePromptType(AgentTypeRegistry? registry, string typeName, ILogger? logger)
+    {
+        if (registry is not null)
+        {
+            if (registry.TryGetPromptType(typeName, out var registered))
+                return registered;
+
+            throw new InvalidOperationException(
+                $"Prompt type '{typeName}' is not registered. Known prompt types: "
+                + $"{(registry.PromptTypeNames.Count == 0 ? "(none)" : string.Join(", ", registry.PromptTypeNames.Order()))}. "
+                + "Pass the declaring assembly to AddAgentTypeRegistry().");
+        }
+
+        (logger ?? NullLogger.Instance).LogWarning(
+            "No {RegistryType} registered — falling back to scanning every loaded assembly for prompt type '{TypeName}'. "
+            + "Call services.AddAgentTypeRegistry(assembly) to make resolution deterministic.",
+            nameof(AgentTypeRegistry), typeName);
+
+        return ScanForType(typeName, "Prompt",
+            t => t.GetCustomAttribute<McpServerPromptTypeAttribute>() is not null);
     }
 
     /// <summary>

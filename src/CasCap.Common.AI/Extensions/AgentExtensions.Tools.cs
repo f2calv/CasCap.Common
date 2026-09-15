@@ -113,18 +113,11 @@ public static partial class AgentExtensions
         var tools = new List<AITool>();
 
         var isServiceChecker = serviceProvider.GetService<IServiceProviderIsService>();
+        var registry = serviceProvider.GetService<AgentTypeRegistry>();
 
         foreach (var source in agentConfig.Tools.Where(s => s.Service is not null))
         {
-            var serviceType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a =>
-                {
-                    try { return a.GetTypes(); }
-                    catch (ReflectionTypeLoadException) { return []; }
-                })
-                .FirstOrDefault(t => t.Name == source.Service && !t.IsAbstract)
-                ?? throw new InvalidOperationException(
-                    $"Tool service type '{source.Service}' not found in any loaded assembly.");
+            var serviceType = ResolveToolType(registry, source.Service!, logger);
 
             // Fail fast when the backing service is not registered in DI — this happens
             // when the feature that registers the service is disabled for this deployment.
@@ -162,6 +155,77 @@ public static partial class AgentExtensions
         }
 
         return tools;
+    }
+
+    /// <summary>
+    /// Resolves a tool service type by simple name, preferring the registered
+    /// <see cref="AgentTypeRegistry"/> and falling back to an assembly scan when none is present.
+    /// </summary>
+    private static Type ResolveToolType(AgentTypeRegistry? registry, string typeName, ILogger? logger)
+    {
+        if (registry is not null)
+        {
+            if (registry.TryGetToolType(typeName, out var registered))
+                return registered;
+
+            throw new InvalidOperationException(
+                $"Tool service type '{typeName}' is not registered. Known tool services: "
+                + $"{(registry.ToolTypeNames.Count == 0 ? "(none)" : string.Join(", ", registry.ToolTypeNames.Order()))}. "
+                + "Ensure the feature that registers this service runs before AddAgentTypeRegistry().");
+        }
+
+        (logger ?? NullLogger.Instance).LogWarning(
+            "No {RegistryType} registered — falling back to scanning every loaded assembly for '{TypeName}'. "
+            + "Call services.AddAgentTypeRegistry() after registering tool services to make resolution deterministic.",
+            nameof(AgentTypeRegistry), typeName);
+
+        return ScanForType(typeName, "Tool service",
+            t => !t.IsAbstract && t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Any(m => m.GetCustomAttribute<McpServerToolAttribute>() is not null));
+    }
+
+    /// <summary>
+    /// Legacy fallback: scans every loaded assembly for a uniquely-named matching type.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the previous implementation this reports ambiguity rather than silently taking the
+    /// first match, because which assembly won depended on load order.
+    /// </remarks>
+    internal static Type ScanForType(string typeName, string label, Func<Type, bool> predicate)
+    {
+        var matches = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(GetLoadableTypes)
+            .Where(t => t.Name == typeName && predicate(t))
+            .Distinct()
+            .ToList();
+
+        return matches.Count switch
+        {
+            1 => matches[0],
+            0 => throw new InvalidOperationException(
+                $"{label} type '{typeName}' not found in any loaded assembly."),
+            _ => throw new InvalidOperationException(
+                $"Ambiguous {label.ToLowerInvariant()} type '{typeName}': "
+                + $"{string.Join(", ", matches.Select(t => t.FullName))}. "
+                + "Register an AgentTypeRegistry to resolve types deterministically."),
+        };
+
+        static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+        {
+            Type?[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types;
+            }
+
+            foreach (var type in types)
+                if (type is not null)
+                    yield return type;
+        }
     }
 
     /// <summary>

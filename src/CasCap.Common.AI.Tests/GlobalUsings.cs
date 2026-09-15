@@ -5,3 +5,6 @@ global using CasCap.Common.Services;
 global using Microsoft.Agents.AI;
 global using Microsoft.Extensions.AI;
 global using Xunit;
+global using Microsoft.Extensions.DependencyInjection;
+global using ModelContextProtocol.Server;
+global using System.ComponentModel;

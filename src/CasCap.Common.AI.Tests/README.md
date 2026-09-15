@@ -25,7 +25,8 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
 | `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
 | `AgentRunScopeTests` | 8 | 10 | Depth nesting, callback inheritance, shared/thread-safe attachment collection, drain semantics |
-| **Total** | **50** | **62** | |
+| `AgentTypeRegistryTests` | 11 | 11 | Registry lookup, ambiguous-name rejection, DI and assembly indexing, tool resolution via registry |
+| **Total** | **61** | **73** | |
 
 ## Trait Categories
 
@@ -37,6 +38,7 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `Usage Reporting` | `AgentResponseUsageTests` |
 | `Telemetry` | `AgentTelemetryTests` |
 | `Agent Run Scope` | `AgentRunScopeTests` |
+| `Type Resolution` | `AgentTypeRegistryTests` |
 
 ## Skipped Tests
 
@@ -52,6 +54,7 @@ Tests/
     ├── AgentRunScopeTests.cs
     ├── AgentResponseUsageTests.cs
     ├── AgentTelemetryTests.cs
+    ├── AgentTypeRegistryTests.cs
     └── ToolOutputStrippingChatReducerTests.cs
 ```
 
