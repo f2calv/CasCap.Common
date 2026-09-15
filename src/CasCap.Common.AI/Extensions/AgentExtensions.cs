@@ -195,6 +195,11 @@ public static partial class AgentExtensions
     /// Defaults to <see langword="false"/> — chat content carries household activity and message
     /// text, so enable this only in development.
     /// </param>
+    /// <param name="loggerFactory">
+    /// Optional <see cref="ILoggerFactory"/> used to add the framework's <c>UseLogging</c>
+    /// middleware to both the chat-client and agent pipelines. When <see langword="null"/> no
+    /// logging middleware is added.
+    /// </param>
     /// <returns>A tuple of the built <see cref="IChatClient"/>, <see cref="AIAgent"/>, and the resolved system instructions.</returns>
     public static (IChatClient chatClient, AIAgent agent, string instructions) CreateAgent(
         ProviderConfig provider,
@@ -207,7 +212,8 @@ public static partial class AgentExtensions
         AIConfig? aiConfig = null,
         string? otelSourceName = null,
         TokenCredential? tokenCredential = null,
-        bool enableSensitiveTelemetryData = false)
+        bool enableSensitiveTelemetryData = false,
+        ILoggerFactory? loggerFactory = null)
     {
         httpClient ??= new HttpClient
         {
@@ -268,9 +274,9 @@ public static partial class AgentExtensions
         else
             throw new NotSupportedException($"Agent type '{provider.Type}' is not supported!");
 
-        chatClientBuilder
-            .Use(getResponseFunc: ChatResponseMiddleware, getStreamingResponseFunc: ChatStreamingResponseMiddleware)
-            .UseFunctionInvocation();
+        chatClientBuilder.UseFunctionInvocation();
+        if (loggerFactory is not null)
+            chatClientBuilder.UseLogging(loggerFactory);
         if (otelSourceName is not null)
             chatClientBuilder.UseOpenTelemetry(sourceName: otelSourceName);
         configureChatClient?.Invoke(chatClientBuilder);
@@ -311,8 +317,10 @@ public static partial class AgentExtensions
 
         var agentBuilder = new ChatClientAgent(chatClient, agentOptions)
             .AsBuilder()
-            .Use(AgentRunMiddleware, AgentRunStreamingMiddleware)
             .Use(FunctionCallingMiddleware);
+
+        if (loggerFactory is not null)
+            agentBuilder.UseLogging(loggerFactory);
 
         // Agent-level instrumentation emits an invoke_agent span covering the whole run —
         // the tool-calling loop and any sub-agent delegation nested beneath it. The
