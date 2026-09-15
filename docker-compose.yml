@@ -1,18 +1,38 @@
+# =============================================================================
+# CasCap.Common — Docker Compose
+# =============================================================================
+#
+# Starts the Redis instance the caching tests and samples run against, plus a
+# browser UI for inspecting it.
+#
+#   docker compose up
+#
+# Service endpoints:
+#   Redis        : localhost:6379
+#   P3x Redis UI : http://localhost:7843
+# =============================================================================
 services:
 
   redis:
-    image: redis
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    image: redis:8.10
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     ports:
       - 6379:6379
     volumes:
-      - ./.docker/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./.docker/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   p3x:
-    image: patrikx3/p3x-redis-ui
+    # Upstream recommends the latest tag; pinned anyway so a local run is reproducible.
+    image: patrikx3/p3x-redis-ui:2026.10.100
     ports:
       - 7843:7843
     volumes:
-      - ./.docker/p3x.json:/settings/.p3xrs-conns.json
+      - ./.docker/p3x.json:/settings/.p3xrs-conns.json:ro
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
