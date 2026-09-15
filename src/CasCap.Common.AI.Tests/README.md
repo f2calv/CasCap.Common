@@ -23,7 +23,8 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `AgentExtensionsCreateAgentTests` | 8 | 9 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
 | `AgentCommandHandlerTests` | 15 | 18 | Per-agent isolation of `/model`, `/instructions` and `/session enable\|disable` overrides, instruction prefix/suffix wrapping, session short-circuiting, case-insensitive agent keys |
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
-| **Total** | **39** | **49** | |
+| `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
+| **Total** | **42** | **52** | |
 
 ## Trait Categories
 
@@ -33,6 +34,7 @@ dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `Agent Creation` | `AgentExtensionsCreateAgentTests` |
 | `Agent Commands` | `AgentCommandHandlerTests` |
 | `Usage Reporting` | `AgentResponseUsageTests` |
+| `Telemetry` | `AgentTelemetryTests` |
 
 ## Skipped Tests
 
@@ -46,6 +48,7 @@ Tests/
     ├── AgentCommandHandlerTests.cs
     ├── AgentExtensionsCreateAgentTests.cs
     ├── AgentResponseUsageTests.cs
+    ├── AgentTelemetryTests.cs
     └── ToolOutputStrippingChatReducerTests.cs
 ```
 

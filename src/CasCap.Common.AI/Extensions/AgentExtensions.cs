@@ -179,13 +179,21 @@ public static partial class AgentExtensions
     /// </param>
     /// <param name="otelSourceName">
     /// Optional OpenTelemetry activity source name for AI traces. When provided,
-    /// <c>.UseOpenTelemetry(sourceName:)</c> is added to the <see cref="ChatClientBuilder"/>
-    /// pipeline. Use <see cref="GetAISourceName"/> to derive from <see cref="AppConfig.MetricNamePrefix"/>.
+    /// <c>.UseOpenTelemetry(sourceName:)</c> is added to both the <see cref="ChatClientBuilder"/>
+    /// pipeline (one chat span per LLM round-trip) and the <see cref="AIAgentBuilder"/> pipeline
+    /// (one invoke_agent span per run, with sub-agent delegations nested beneath it).
+    /// Use <see cref="GetAISourceName"/> to derive from <see cref="AppConfig.MetricNamePrefix"/>,
+    /// and register the same name via <c>AddSource(...)</c> on the tracing builder.
     /// </param>
     /// <param name="tokenCredential">
     /// Optional <see cref="TokenCredential"/> for providers that use Azure Entra ID authentication
     /// (e.g. <see cref="AgentType.AzureOpenAI"/>). When <see langword="null"/>, key-based authentication
     /// via <see cref="ProviderConfig.ApiKey"/> is used instead.
+    /// </param>
+    /// <param name="enableSensitiveTelemetryData">
+    /// When <see langword="true"/>, OpenTelemetry spans include prompt and response content.
+    /// Defaults to <see langword="false"/> — chat content carries household activity and message
+    /// text, so enable this only in development.
     /// </param>
     /// <returns>A tuple of the built <see cref="IChatClient"/>, <see cref="AIAgent"/>, and the resolved system instructions.</returns>
     public static (IChatClient chatClient, AIAgent agent, string instructions) CreateAgent(
@@ -198,7 +206,8 @@ public static partial class AgentExtensions
         Assembly? instructionsAssembly = null,
         AIConfig? aiConfig = null,
         string? otelSourceName = null,
-        TokenCredential? tokenCredential = null)
+        TokenCredential? tokenCredential = null,
+        bool enableSensitiveTelemetryData = false)
     {
         httpClient ??= new HttpClient
         {
@@ -304,6 +313,14 @@ public static partial class AgentExtensions
             .AsBuilder()
             .Use(AgentRunMiddleware, AgentRunStreamingMiddleware)
             .Use(FunctionCallingMiddleware);
+
+        // Agent-level instrumentation emits an invoke_agent span covering the whole run —
+        // the tool-calling loop and any sub-agent delegation nested beneath it. The
+        // chat-client-level UseOpenTelemetry above only emits one chat span per LLM
+        // round-trip, which leaves a fan-out looking flat with no parent/child structure.
+        if (otelSourceName is not null)
+            agentBuilder.UseOpenTelemetry(otelSourceName,
+                o => o.EnableSensitiveData = enableSensitiveTelemetryData);
 
         configureAgent?.Invoke(agentBuilder);
 
