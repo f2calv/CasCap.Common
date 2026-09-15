@@ -105,9 +105,10 @@ public static partial class AgentExtensions
     /// When <see langword="null"/> the assembly containing <see cref="AgentExtensions"/> is used.
     /// </param>
     /// <returns>A combined list of <see cref="AITool"/> instances from all declared tool sources.</returns>
+    /// <param name="logger">Optional logger for tool-resolution diagnostics.</param>
     public static List<AITool> CreateToolsForAgent(
         IServiceProvider serviceProvider, AgentConfig agentConfig, AIConfig? aiConfig = null,
-        bool deferResolution = false, bool isDevelopment = false, Assembly? instructionsAssembly = null)
+        bool deferResolution = false, bool isDevelopment = false, Assembly? instructionsAssembly = null, ILogger? logger = null)
     {
         var tools = new List<AITool>();
 
@@ -133,7 +134,7 @@ public static partial class AgentExtensions
                     + "Ensure the feature that registers this service is enabled.");
 
             tools.AddRange(FilterTools(
-                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, isDevelopment));
+                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, isDevelopment, logger));
         }
 
         foreach (var source in agentConfig.Tools.Where(s => s.Agent is not null))
@@ -148,7 +149,7 @@ public static partial class AgentExtensions
 
             if (!targetAgentConfig.Enabled)
             {
-                Log.Information("{ClassName} skipping disabled sub-agent {AgentKey}", nameof(AgentExtensions), source.Agent);
+                (logger ?? NullLogger.Instance).LogDebug("Skipping disabled sub-agent {AgentKey}", source.Agent);
                 continue;
             }
 
@@ -156,8 +157,8 @@ public static partial class AgentExtensions
                 throw new InvalidOperationException(
                     $"Provider '{targetAgentConfig.Provider}' for agent '{source.Agent}' not found in AIConfig.Providers.");
 
-            var agentTool = CreateAgentTool(serviceProvider, source.Agent!, targetAgentConfig, targetProvider, aiConfig, instructionsAssembly);
-            tools.AddRange(FilterTools([agentTool], source, isDevelopment));
+            var agentTool = CreateAgentTool(serviceProvider, source.Agent!, targetAgentConfig, targetProvider, aiConfig, instructionsAssembly, logger);
+            tools.AddRange(FilterTools([agentTool], source, isDevelopment, logger));
         }
 
         return tools;
@@ -181,14 +182,17 @@ public static partial class AgentExtensions
     /// <param name="aiConfig">Optional root AI configuration for instruction prefix/suffix wrapping.</param>
     /// <param name="instructionsAssembly">Optional assembly containing embedded instruction resources for the agent.</param>
     /// <returns>An <see cref="AITool"/> that delegates to the named agent.</returns>
+    /// <param name="logger">Optional logger for sub-agent delegation diagnostics.</param>
     public static AITool CreateAgentTool(
         IServiceProvider serviceProvider,
         string agentKey,
         AgentConfig agentConfig,
         ProviderConfig providerConfig,
         AIConfig? aiConfig = null,
-        Assembly? instructionsAssembly = null)
+        Assembly? instructionsAssembly = null,
+        ILogger? logger = null)
     {
+        logger ??= NullLogger.Instance;
         // TODO (C1 stage 2): the forwardAttachment parameter below is dead — nothing calls
         // SetAmbientBinaryContent, so _ambientBinaryContent is always null and the branch can only
         // log a warning. It still costs tokens on every sub-agent tool schema and invites the model
@@ -203,8 +207,8 @@ public static partial class AgentExtensions
             CancellationToken cancellationToken = default)
         {
             var depth = _ambientDepth.Value + 1;
-            Log.Information("{ClassName} delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
-                nameof(AgentExtensions), agentKey, depth, forwardAttachment, task);
+            logger.LogDebug("Delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
+                agentKey, depth, forwardAttachment, task);
 
             // Fire the ambient delegation callback (e.g. send status message / swap reaction).
             if (_delegationCallback.Value is { } callback)
@@ -233,15 +237,15 @@ public static partial class AgentExtensions
                     var transcoded = await TranscodeToWavAsync(binaryContent, cancellationToken).ConfigureAwait(false);
                     if (transcoded is not null)
                     {
-                        Log.Information("{ClassName} transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
-                            nameof(AgentExtensions), binaryContent.Length, mimeType, transcoded.Length, agentKey);
+                        logger.LogDebug("Transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
+                            binaryContent.Length, mimeType, transcoded.Length, agentKey);
                         binaryContent = transcoded;
                         mimeType = "audio/wav";
                     }
                     else
                     {
-                        Log.Warning("{ClassName} ffmpeg transcode failed, forwarding original {MimeType} bytes to {AgentKey}",
-                            nameof(AgentExtensions), mimeType, agentKey);
+                        logger.LogWarning("ffmpeg transcode failed, forwarding original {MimeType} bytes to {AgentKey}",
+                            mimeType, agentKey);
                     }
                 }
 
@@ -252,17 +256,17 @@ public static partial class AgentExtensions
                 // payload as audio regardless of the transport-level MIME label.
                 if (!mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log.Information("{ClassName} overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
-                        nameof(AgentExtensions), mimeType, agentKey);
+                    logger.LogDebug("Overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
+                        mimeType, agentKey);
                     mimeType = "image/png";
                 }
 
-                Log.Information("{ClassName} forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
-                    nameof(AgentExtensions), binaryContent.Length, mimeType, agentKey);
+                logger.LogDebug("Forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
+                    binaryContent.Length, mimeType, agentKey);
             }
             else if (forwardAttachment)
-                Log.Warning("{ClassName} forwardAttachment=true but no ambient binary content available for {AgentKey}",
-                    nameof(AgentExtensions), agentKey);
+                logger.LogWarning("forwardAttachment=true but no ambient binary content available for {AgentKey}",
+                    agentKey);
 
             var message = BuildChatMessage(task, binaryContent: binaryContent, mimeType: mimeType);
             var resolvedInstructions = ResolveInstructions(agentConfig, instructionsAssembly, aiConfig);
@@ -272,8 +276,8 @@ public static partial class AgentExtensions
 
             _ambientDepth.Value = depth - 1;
 
-            Log.Information("{ClassName} sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
-                nameof(AgentExtensions), agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
+            logger.LogInformation("Sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
+                agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
 
             // Fire the ambient completion callback (e.g. send debug stats for this sub-agent step).
             if (_completionCallback.Value is { } completionCb)
@@ -282,8 +286,8 @@ public static partial class AgentExtensions
             // Bubble up any image attachments from the sub-agent to the parent's ambient collector.
             if (result.Attachments.Count > 0)
             {
-                Log.Information("{ClassName} bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
-                    nameof(AgentExtensions), result.Attachments.Count, agentKey);
+                logger.LogDebug("Bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
+                    result.Attachments.Count, agentKey);
                 _ambientAttachments.Value?.AddRange(result.Attachments);
             }
 
@@ -308,8 +312,9 @@ public static partial class AgentExtensions
     /// all misconfigured tool names; when <see langword="false"/>, logs warnings instead.
     /// </param>
     /// <returns>The filtered tool list.</returns>
+    /// <param name="logger">Optional logger for filter diagnostics.</param>
     public static IEnumerable<AITool> FilterTools(IEnumerable<AITool> tools, ToolSource source,
-        bool isDevelopment = false)
+        bool isDevelopment = false, ILogger? logger = null)
     {
         var toolList = tools.ToList();
         var availableNames = toolList.Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -331,10 +336,10 @@ public static partial class AgentExtensions
             toolList = toolList.Where(t => !source.ExcludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase)).ToList();
         }
 
-        ReportMisconfigured(misconfigured, "tools", isDevelopment);
+        ReportMisconfigured(misconfigured, "tools", isDevelopment, logger);
 
         foreach (var tool in toolList)
-            Log.Information("{ClassName} enabled tool {ToolName}", nameof(AgentExtensions), tool.Name);
+            (logger ?? NullLogger.Instance).LogDebug("Enabled tool {ToolName}", tool.Name);
 
         return toolList;
     }
@@ -342,7 +347,7 @@ public static partial class AgentExtensions
     /// <summary>
     /// Reports misconfigured filter names by throwing in development or logging warnings in production.
     /// </summary>
-    private static void ReportMisconfigured(List<string> misconfigured, string category, bool isDevelopment)
+    private static void ReportMisconfigured(List<string> misconfigured, string category, bool isDevelopment, ILogger? logger = null)
     {
         if (misconfigured.Count == 0)
             return;
@@ -351,7 +356,7 @@ public static partial class AgentExtensions
         if (isDevelopment)
             throw new InvalidOperationException(message);
 
-        Log.Warning("{ClassName} misconfigured {Category}: {Details}",
-            nameof(AgentExtensions), category, string.Join("; ", misconfigured));
+        (logger ?? NullLogger.Instance).LogWarning("Misconfigured {Category}: {Details}",
+            category, string.Join("; ", misconfigured));
     }
 }

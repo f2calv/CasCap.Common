@@ -26,7 +26,6 @@
     <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CasCap.Common.Caching\CasCap.Common.Caching.csproj" />
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
-    <ProjectReference Include="..\CasCap.Common.Logging.Serilog\CasCap.Common.Logging.Serilog.csproj" />
   </ItemGroup>
 
 </Project>

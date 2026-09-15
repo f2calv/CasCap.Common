@@ -1,6 +1,7 @@
 using CasCap.Common.Extensions;
 using Microsoft.Extensions.AI;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CasCap.Common.Services;
 
@@ -60,14 +61,18 @@ namespace CasCap.Common.Services;
 public sealed class ToolOutputStrippingChatReducer : IChatReducer
 {
     private readonly int _targetCount;
+    private readonly ILogger _logger;
 
     /// <summary>Initializes a new instance of the <see cref="ToolOutputStrippingChatReducer"/> class.</summary>
     /// <param name="targetCount">The maximum number of non-system messages to retain.</param>
+    /// <param name="loggerFactory">Optional logger factory; when omitted the reducer logs nothing.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="targetCount"/> is zero or negative.</exception>
-    public ToolOutputStrippingChatReducer(int targetCount)
+    public ToolOutputStrippingChatReducer(int targetCount, ILoggerFactory? loggerFactory = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetCount);
         _targetCount = targetCount;
+        _logger = loggerFactory?.CreateLogger<ToolOutputStrippingChatReducer>()
+            ?? (ILogger)NullLogger<ToolOutputStrippingChatReducer>.Instance;
     }
 
     /// <inheritdoc/>
@@ -85,8 +90,8 @@ public sealed class ToolOutputStrippingChatReducer : IChatReducer
 
         if (toolDropped > 0 || windowTrimmed > 0)
         {
-            Log.Information("{ClassName} reduced {InputCount} \u2192 {OutputCount} messages (tool-only dropped={ToolDropped}, window trimmed={WindowTrimmed}, target={Target})",
-                nameof(ToolOutputStrippingChatReducer), input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
+            _logger.LogDebug("Reduced {InputCount} \u2192 {OutputCount} messages (tool-only dropped={ToolDropped}, window trimmed={WindowTrimmed}, target={Target})",
+                input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
             AgentExtensions.GetCompactionCallback()?.Invoke(input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
         }
 

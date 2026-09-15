@@ -77,86 +77,101 @@ public static partial class AgentExtensions
     #region middleware
 
     /// <summary>
-    /// Function calling middleware that logs the function name, arguments and result for each tool invocation.
+    /// Creates function-calling middleware that traces each tool invocation and strips image blobs
+    /// from tool results, closing over the supplied <paramref name="logger"/>.
     /// </summary>
-    internal static async ValueTask<object?> FunctionCallingMiddleware(
-        AIAgent agent,
-        FunctionInvocationContext context,
-        Func<FunctionInvocationContext, CancellationToken, ValueTask<object?>> next,
-        CancellationToken cancellationToken)
+    /// <remarks>
+    /// A factory rather than a plain method group because the middleware delegate signature is
+    /// fixed by the framework and offers no way to pass a logger.
+    /// </remarks>
+    internal static Func<AIAgent, FunctionInvocationContext, Func<FunctionInvocationContext, CancellationToken, ValueTask<object?>>, CancellationToken, ValueTask<object?>>
+        CreateFunctionCallingMiddleware(ILogger? logger = null)
     {
-        StringBuilder sb = new();
-        sb.Append($"Tool Call: '{context.Function.Name}'");
-        if (context.Arguments.Count > 0)
-            sb.Append($" (Args: {string.Join(",", context.Arguments.Select(x => $"[{x.Key} = {x.Value}]"))})");
-        Log.Information("{ClassName} {FunctionCallDetails}",
-            nameof(AgentExtensions), sb);
+        logger ??= NullLogger.Instance;
+        return FunctionCallingMiddleware;
 
-        object? result;
-        try
+        async ValueTask<object?> FunctionCallingMiddleware(
+            AIAgent agent,
+            FunctionInvocationContext context,
+            Func<FunctionInvocationContext, CancellationToken, ValueTask<object?>> next,
+            CancellationToken cancellationToken)
         {
-            result = await next(context, cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "{ClassName} Function {FunctionName} threw an exception",
-                nameof(AgentExtensions), context.Function.Name);
-            return $"Error: tool '{context.Function.Name}' failed — {ex.GetType().Name}: {ex.Message}";
-        }
-
-        // Strip image blobs to prevent context overflow.
-        // Image bytes serialised as base64 text in FunctionResultContent consume massive token counts
-        // (a 30 KB JPEG → ~42 K chars → ~32 K tokens). Extract the image as an ambient attachment and
-        // return metadata-only so the LLM sees a compact result instead of raw base64 text.
-        if (result is JsonElement je
-            && je.ValueKind is JsonValueKind.Object
-            && je.TryGetProperty("hasImage", out var hasImg) && hasImg.GetBoolean()
-            && je.TryGetProperty("bytes", out var bytesEl) && bytesEl.ValueKind is JsonValueKind.String)
-        {
-            var base64 = bytesEl.GetString();
-            if (!string.IsNullOrEmpty(base64))
+            if (logger.IsEnabled(LogLevel.Trace))
             {
-                var fileName = je.TryGetProperty("blobName", out var nameProp) ? nameProp.GetString() : null;
-                var sizeKb = base64.Length * 3 / 4 / 1024;
-
-                Log.Information("{ClassName} stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
-                    nameof(AgentExtensions), context.Function.Name, sizeKb);
-
-                _ambientAttachments.Value?.Add(new AgentRunAttachment
-                {
-                    Base64Content = base64,
-                    MimeType = "image/jpeg",
-                    FileName = fileName,
-                });
-
-                // Return compact metadata-only result for the LLM.
-                using var doc = JsonDocument.Parse(new
-                {
-                    hasImage = true,
-                    blobName = fileName,
-                    sizeInBytes = base64.Length * 3 / 4,
-                    note = $"Image captured (~{sizeKb}KB JPEG). The image will be delivered to the user as an attachment.",
-                }.ToJson());
-                result = doc.RootElement.Clone();
+                StringBuilder sb = new();
+                sb.Append($"Tool call: '{context.Function.Name}'");
+                if (context.Arguments.Count > 0)
+                    sb.Append($" (args: {string.Join(",", context.Arguments.Select(x => $"[{x.Key} = {x.Value}]"))})");
+                logger.LogTrace("{FunctionCallDetails}", sb);
             }
+
+            object? result;
+            try
+            {
+                result = await next(context, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Tool {FunctionName} threw an exception", context.Function.Name);
+                return $"Error: tool '{context.Function.Name}' failed — {ex.GetType().Name}: {ex.Message}";
+            }
+
+            // Strip image blobs to prevent context overflow.
+            // Image bytes serialised as base64 text in FunctionResultContent consume massive token counts
+            // (a 30 KB JPEG → ~42 K chars → ~32 K tokens). Extract the image as an ambient attachment and
+            // return metadata-only so the LLM sees a compact result instead of raw base64 text.
+            if (result is JsonElement je
+                && je.ValueKind is JsonValueKind.Object
+                && je.TryGetProperty("hasImage", out var hasImg) && hasImg.GetBoolean()
+                && je.TryGetProperty("bytes", out var bytesEl) && bytesEl.ValueKind is JsonValueKind.String)
+            {
+                var base64 = bytesEl.GetString();
+                if (!string.IsNullOrEmpty(base64))
+                {
+                    var fileName = je.TryGetProperty("blobName", out var nameProp) ? nameProp.GetString() : null;
+                    var sizeKb = base64.Length * 3 / 4 / 1024;
+
+                    logger.LogDebug("Stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
+                        context.Function.Name, sizeKb);
+
+                    _ambientAttachments.Value?.Add(new AgentRunAttachment
+                    {
+                        Base64Content = base64,
+                        MimeType = "image/jpeg",
+                        FileName = fileName,
+                    });
+
+                    // Return compact metadata-only result for the LLM.
+                    using var doc = JsonDocument.Parse(new
+                    {
+                        hasImage = true,
+                        blobName = fileName,
+                        sizeInBytes = base64.Length * 3 / 4,
+                        note = $"Image captured (~{sizeKb}KB JPEG). The image will be delivered to the user as an attachment.",
+                    }.ToJson());
+                    result = doc.RootElement.Clone();
+                }
+            }
+
+            if (logger.IsEnabled(LogLevel.Trace))
+            {
+                var resultPreview = result switch
+                {
+                    string s when s.Length > 500 => $"{s[..500]}... ({s.Length} chars)",
+                    JsonElement jsonEl => jsonEl.ToString().Length > 500
+                        ? $"{jsonEl.ToString()[..500]}... ({jsonEl.ToString().Length} chars)"
+                        : jsonEl.ToString(),
+                    _ => result?.ToString()
+                };
+                logger.LogTrace("Tool call result: {Result}", resultPreview);
+            }
+
+            return result;
         }
-
-        var resultPreview = result switch
-        {
-            string s when s.Length > 500 => $"{s[..500]}... ({s.Length} chars)",
-            JsonElement jsonEl => jsonEl.ToString().Length > 500
-                ? $"{jsonEl.ToString()[..500]}... ({jsonEl.ToString().Length} chars)"
-                : jsonEl.ToString(),
-            _ => result?.ToString()
-        };
-        Log.Debug("{ClassName} Function Call Result: {Result}",
-            nameof(AgentExtensions), resultPreview);
-
-        return result;
     }
 
     #endregion
@@ -175,7 +190,7 @@ public static partial class AgentExtensions
     /// audio-handling rework rather than moving it unilaterally.
     /// </para>
     /// </remarks>
-    public static async Task<byte[]?> TranscodeToWavAsync(byte[] inputBytes, CancellationToken cancellationToken)
+    public static async Task<byte[]?> TranscodeToWavAsync(byte[] inputBytes, CancellationToken cancellationToken, ILogger? logger = null)
     {
         // -i pipe:0        read from stdin
         // -f wav           output WAV format
@@ -190,8 +205,8 @@ public static partial class AgentExtensions
 
         if (exitCode != 0)
         {
-            Log.Warning("{ClassName} ffmpeg exited with code {ExitCode}: {StdErr}",
-                nameof(AgentExtensions), exitCode, error);
+            (logger ?? NullLogger.Instance).LogWarning("ffmpeg exited with code {ExitCode}: {StdErr}",
+                exitCode, error);
             return null;
         }
 

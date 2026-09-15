@@ -19,12 +19,13 @@ public static partial class AgentExtensions
     /// A tuple of the <see cref="McpClient"/> (which must be kept alive) and the list of
     /// <see cref="McpClientTool"/> instances representing the remote tools.
     /// </returns>
-    public static async Task<(McpClient Client, List<McpClientTool> Tools)> GetHttpTools(string mcpEndpoint)
+    /// <param name="logger">Optional logger for tool-discovery diagnostics.</param>
+    public static async Task<(McpClient Client, List<McpClientTool> Tools)> GetHttpTools(string mcpEndpoint, ILogger? logger = null)
     {
         var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
         var tools = (await mcpClient.ListToolsAsync().ConfigureAwait(false)).ToList();
         foreach (var tool in tools)
-            Log.Information("{ClassName} {Name} ({Description})", nameof(AgentExtensions), tool.Name, tool.Description);
+            (logger ?? NullLogger.Instance).LogDebug("Discovered remote MCP tool {Name} ({Description})", tool.Name, tool.Description);
         return (mcpClient, tools);
     }
 
@@ -41,12 +42,13 @@ public static partial class AgentExtensions
     /// A tuple of the <see cref="McpClient"/> (which must be kept alive) and the list of
     /// <see cref="McpClientPrompt"/> instances representing the remote prompts.
     /// </returns>
-    public static async Task<(McpClient Client, List<McpClientPrompt> Prompts)> GetHttpPrompts(string mcpEndpoint)
+    /// <param name="logger">Optional logger for prompt-discovery diagnostics.</param>
+    public static async Task<(McpClient Client, List<McpClientPrompt> Prompts)> GetHttpPrompts(string mcpEndpoint, ILogger? logger = null)
     {
         var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
         var prompts = (await mcpClient.ListPromptsAsync().ConfigureAwait(false)).ToList();
         foreach (var prompt in prompts)
-            Log.Information("{ClassName} {Name} ({Description})", nameof(AgentExtensions), prompt.Name, prompt.Description);
+            (logger ?? NullLogger.Instance).LogDebug("Discovered remote MCP prompt {Name} ({Description})", prompt.Name, prompt.Description);
         return (mcpClient, prompts);
     }
 
@@ -78,8 +80,9 @@ public static partial class AgentExtensions
     /// prompt filters; when <see langword="false"/> (default), logs warnings instead.
     /// </param>
     /// <returns>A combined list of <see cref="McpPromptDescriptor"/> instances from all declared service-based prompt sources.</returns>
+    /// <param name="logger">Optional logger for prompt-discovery diagnostics.</param>
     public static List<McpPromptDescriptor> CreatePromptsForAgent(AgentConfig agentConfig,
-        bool isDevelopment = false)
+        bool isDevelopment = false, ILogger? logger = null)
     {
         var prompts = new List<McpPromptDescriptor>();
 
@@ -120,11 +123,11 @@ public static partial class AgentExtensions
                     Parameters = parameters,
                 });
 
-                Log.Information("{ClassName} in-process prompt {Name} ({Description})",
-                    nameof(AgentExtensions), method.Name, description);
+                (logger ?? NullLogger.Instance).LogDebug("Discovered in-process MCP prompt {Name} ({Description})",
+                    method.Name, description);
             }
 
-            prompts.AddRange(FilterPrompts(sourcePrompts, source, isDevelopment));
+            prompts.AddRange(FilterPrompts(sourcePrompts, source, isDevelopment, logger));
         }
 
         return prompts;
@@ -141,8 +144,9 @@ public static partial class AgentExtensions
     /// all misconfigured prompt names; when <see langword="false"/>, logs warnings instead.
     /// </param>
     /// <returns>The filtered prompt list.</returns>
+    /// <param name="logger">Optional logger for filter diagnostics.</param>
     public static IEnumerable<McpPromptDescriptor> FilterPrompts(
-        IEnumerable<McpPromptDescriptor> prompts, PromptSource source, bool isDevelopment = false)
+        IEnumerable<McpPromptDescriptor> prompts, PromptSource source, bool isDevelopment = false, ILogger? logger = null)
     {
         var promptList = prompts.ToList();
         var availableNames = promptList.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -164,10 +168,10 @@ public static partial class AgentExtensions
             promptList = promptList.Where(p => !source.ExcludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase)).ToList();
         }
 
-        ReportMisconfigured(misconfigured, "prompts", isDevelopment);
+        ReportMisconfigured(misconfigured, "prompts", isDevelopment, logger);
 
         foreach (var prompt in promptList)
-            Log.Information("{ClassName} enabled prompt {PromptName}", nameof(AgentExtensions), prompt.Name);
+            (logger ?? NullLogger.Instance).LogDebug("Enabled prompt {PromptName}", prompt.Name);
 
         return promptList;
     }

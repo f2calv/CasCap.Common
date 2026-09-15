@@ -215,6 +215,8 @@ public static partial class AgentExtensions
         bool enableSensitiveTelemetryData = false,
         ILoggerFactory? loggerFactory = null)
     {
+        var agentLogger = loggerFactory?.CreateLogger(nameof(AgentExtensions)) ?? NullLogger.Instance;
+
         httpClient ??= new HttpClient
         {
             BaseAddress = provider.Endpoint,
@@ -309,15 +311,15 @@ public static partial class AgentExtensions
             agentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(
                 new InMemoryChatHistoryProviderOptions
                 {
-                    ChatReducer = new ToolOutputStrippingChatReducer(agentConfig.MaxMessages.Value),
+                    ChatReducer = new ToolOutputStrippingChatReducer(agentConfig.MaxMessages.Value, loggerFactory),
                 });
-            Log.Information("{ClassName} agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
-                nameof(AgentExtensions), agentConfig.Name, agentConfig.MaxMessages.Value);
+            agentLogger.LogDebug("Agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
+                agentConfig.Name, agentConfig.MaxMessages.Value);
         }
 
         var agentBuilder = new ChatClientAgent(chatClient, agentOptions)
             .AsBuilder()
-            .Use(FunctionCallingMiddleware);
+            .Use(CreateFunctionCallingMiddleware(agentLogger));
 
         if (loggerFactory is not null)
             agentBuilder.UseLogging(loggerFactory);
@@ -353,6 +355,7 @@ public static partial class AgentExtensions
     /// An <see cref="AgentRunResult"/> containing the formatted output, the raw response messages,
     /// the elapsed duration and the (possibly new) <see cref="AgentSession"/>.
     /// </returns>
+    /// <param name="logger">Optional logger for agent-run diagnostics.</param>
     public static async Task<AgentRunResult> RunAnalysisAsync(
         this AIAgent agent,
         ProviderConfig provider,
@@ -361,11 +364,13 @@ public static partial class AgentExtensions
         ChatOptions chatOptions,
         AgentSession? session = null,
         TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        ILogger? logger = null)
     {
+        logger ??= NullLogger.Instance;
         var sw = Stopwatch.StartNew();
-        Log.Information("{ClassName} RunAnalysisAsync starting for agent {AgentName}, model={ModelName}, endpoint={Endpoint}",
-            nameof(AgentExtensions), agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
+        logger.LogDebug("Agent run starting for {AgentName}, model={ModelName}, endpoint={Endpoint}",
+            agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
 
         // Set up ambient attachment accumulator so sub-agent tool invocations can bubble up images.
         var isTopLevel = _ambientAttachments.Value is null;
@@ -424,14 +429,14 @@ public static partial class AgentExtensions
                         result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
                         break;
                     case FunctionResultContent frc:
-                        ExtractImageAttachments(frc, result);
+                        ExtractImageAttachments(frc, result, logger);
                         break;
                 }
             }
         }
 
-        Log.Information("{ClassName} RunAnalysisAsync usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-            nameof(AgentExtensions), agentConfig.Name,
+        logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
+            agentConfig.Name,
             result.Usage is not null,
             result.Usage?.InputTokenCount,
             result.Usage?.OutputTokenCount,
@@ -440,14 +445,13 @@ public static partial class AgentExtensions
         // Drain ambient attachments accumulated by sub-agent tool invocations.
         if (isTopLevel && _ambientAttachments.Value is { Count: > 0 } ambient)
         {
-            Log.Information("{ClassName} draining {AttachmentCount} ambient attachment(s) from sub-agent fan-out",
-                nameof(AgentExtensions), ambient.Count);
+            logger.LogDebug("Draining {AttachmentCount} ambient attachment(s) from sub-agent fan-out", ambient.Count);
             result.Attachments.AddRange(ambient);
             _ambientAttachments.Value = null;
         }
 
-        Log.Information("{ClassName} RunAnalysisAsync completed for agent {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
-            nameof(AgentExtensions), agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
+        logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
+            agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
 
         return result;
     }
@@ -458,7 +462,7 @@ public static partial class AgentExtensions
     /// Inspects a <see cref="FunctionResultContent"/> for image-bearing payloads
     /// and extracts them as <see cref="AgentRunAttachment"/> entries on the result.
     /// </summary>
-    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result)
+    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger)
     {
         if (frc.Result is not JsonElement je || je.ValueKind is not JsonValueKind.Object)
             return;
@@ -478,8 +482,8 @@ public static partial class AgentExtensions
             : null;
 
         var sizeKb = base64.Length * 3 / 4 / 1024;
-        Log.Information("{ClassName} extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
-            nameof(AgentExtensions), fileName ?? "(unnamed)", sizeKb);
+        logger.LogDebug("Extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
+            fileName ?? "(unnamed)", sizeKb);
 
         result.Attachments.Add(new AgentRunAttachment
         {
