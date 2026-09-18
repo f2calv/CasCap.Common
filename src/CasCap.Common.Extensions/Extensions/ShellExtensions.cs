@@ -146,7 +146,8 @@ public static class ShellExtensions
             {
                 try { process.Kill(entireProcessTree: true); }
                 catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException
-                    or System.ComponentModel.Win32Exception) { }
+                    or System.ComponentModel.Win32Exception)
+                { }
             }
         }
     }
