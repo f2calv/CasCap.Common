@@ -103,6 +103,38 @@ public abstract class HttpClientBase
         return (res.result, res.error);
     }
 
+    /// <summary>Sends a POST request with a multipart form body and returns the deserialized result or error.</summary>
+    protected virtual async Task<(TResult? result, TError? error)>
+        PostMultipartAsync<TResult, TError>(string requestUri, MultipartFormDataContent content, TimeSpan? timeout = null, List<(string name, string value)>? headers = null, CancellationToken cancellationToken = default)
+        where TResult : class
+        where TError : class
+    {
+        var res = await PostMultipart<TResult, TError>(requestUri, content, timeout, headers, cancellationToken);
+        return (res.result, res.error);
+    }
+
+    /// <summary>
+    /// Sends a POST request with a multipart form body and returns the deserialized result, error, status code and response headers.
+    /// </summary>
+    /// <remarks>
+    /// The caller owns <paramref name="content"/> and its parts, because a part may wrap a stream
+    /// whose lifetime it controls.
+    /// </remarks>
+    protected virtual async Task<(TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)>
+        PostMultipart<TResult, TError>(string requestUri, MultipartFormDataContent content, TimeSpan? timeout = null, List<(string name, string value)>? additionalHeaders = null, CancellationToken cancellationToken = default)
+        where TResult : class
+        where TError : class
+    {
+        if (content is null) throw new ArgumentNullException(nameof(content));
+
+        var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
+        using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        request.Headers.AddOrOverwrite(additionalHeaders);
+        using var cts = CreateLinkedCts(timeout, cancellationToken);
+        using var response = await Client.SendAsync(request, cts.Token).ConfigureAwait(false);
+        return await HandleResult<TResult, TError>(response, cts.Token);
+    }
+
     /// <summary>
     /// Sends a GET request and returns the deserialized result, error, status code and response headers.
     /// </summary>
