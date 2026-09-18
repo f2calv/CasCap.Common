@@ -4,9 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <RootNamespace>CasCap.Common.Extensions</RootNamespace>
+    <UserSecretsId>cascap-common-configuration-tests</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Configuration\CasCap.Common.Configuration.csproj" />
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
     <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>

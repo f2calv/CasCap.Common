@@ -21,6 +21,7 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 
 | Project | Purpose |
 | --- | --- |
+| `CasCap.Common.Configuration` | Standard configuration provider ordering |
 | `CasCap.Common.Extensions` | Library under test |
 | `CasCap.Common.Testing` | xUnit logging & skip attributes |
 
@@ -28,6 +29,7 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 
 | Test class | Methods | Test cases | Coverage |
 | --- | --- | --- | --- |
+| `ConfigurationBuilderExtensionsTests` | 1 | 1 | Standard configuration provider precedence |
 | `EnumExtensionTests` | 8 | 11 | `GetAllItems`, `ParseEnum`, `TryParseEnum`, `ParseEnumFAST` (cache + cross-enum isolation), `ToStringCached`, `GetDisplayName`, `HasFlag` |
 | `StringExtensionTests` | 13 | 21 | `ToSnakeCase`, `UrlCombine`, `String2List`, `SubstringSafe`, `Clean`, `IsEmail`, `ToBase64`, `Split`, `Sanitize`, `MaskPhoneNumber`, `MaskEndpoint` (incl. null), `NormalizeWhitespace` |
 | `HelperExtensionTests` | 9 | 19 | `GetBatches`, `IsNullOrEmpty`/`IsAny`, `ToHashSet`, `ToBoolean`, `ToInt`, `ToDecimal`, `GetDescription`, XML & byte round-trips |
@@ -36,7 +38,7 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 | `BufferExtensionTests` | 2 | 2 | `TryReadLine` line splitting & no-newline behaviour |
 | `ExtensionTests` | 2 | 2 | `UnixTimeMS`, `Decimal2Int` |
 | `IOExtensionTests` | 1 | 1 | File read/write round-trip |
-| **Total** | **47** | **70** | |
+| **Total** | **48** | **71** | |
 
 ### Trait Categories
 
@@ -60,6 +62,8 @@ None.
 
 ```text
 Tests/
+├── Unit/
+│   └── ConfigurationBuilderExtensionsTests.cs
 ├── BufferExtensionTests.cs
 ├── DateTimeExtensionTests.cs
 ├── EnumExtensionTests.cs

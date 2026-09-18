@@ -12,8 +12,8 @@ public static class ConfigurationBuilderExtensions
     /// <summary>
     /// Adds the standard configuration sources used by all projects in the solution:
     /// base path, <c>appsettings.json</c>, environment-specific
-    /// <c>appsettings.{environmentName}.json</c>, environment variables, and optionally
-    /// user secrets from the supplied assembly.
+    /// <c>appsettings.{environmentName}.json</c>, optional local overrides, optionally
+    /// user secrets from the supplied assembly, and environment variables.
     /// </summary>
     /// <param name="builder">The configuration builder to configure.</param>
     /// <param name="environmentName">
@@ -32,11 +32,12 @@ public static class ConfigurationBuilderExtensions
                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
                .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
-               .AddJsonFile($"appsettings.Local.{environmentName}.json", optional: true, reloadOnChange: true)
-               .AddEnvironmentVariables();
+             .AddJsonFile($"appsettings.Local.{environmentName}.json", optional: true, reloadOnChange: true);
 
         if (assembly is not null)
             builder.AddUserSecrets(assembly, optional: true);
+
+        builder.AddEnvironmentVariables();
 
         return builder;
     }

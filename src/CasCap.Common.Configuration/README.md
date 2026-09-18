@@ -10,7 +10,7 @@ dotnet add package CasCap.Common.Configuration
 
 ## Purpose
 
-Provides a standardised way to build the configuration pipeline (appsettings.json, environment overrides, environment variables, user secrets, Azure Key Vault) and to bind configuration sections to `IAppConfig` record types with DataAnnotations validation on startup.
+Provides a standardised way to build the configuration pipeline (`appsettings.json`, environment and local overrides, user secrets, environment variables, Azure Key Vault) and to bind configuration sections to `IAppConfig` record types with DataAnnotations validation on startup.
 
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
@@ -18,9 +18,9 @@ Provides a standardised way to build the configuration pipeline (appsettings.jso
 
 | Class | Key Methods |
 | --- | --- |
-| `ConfigurationBuilderExtensions` | `AddStandardConfiguration()` — sets base path, registers `appsettings.json`, `appsettings.{env}.json`, environment variables, and optional user secrets |
-|  | `AddKeyVaultConfiguration()` — conditionally adds Azure Key Vault (skips silently when URI or credential is `null`) |
-|  | `AddKeyVaultConfigurationFrom()` — partial-builds configuration, extracts Key Vault credentials via delegate, then adds Key Vault |
+| `ConfigurationBuilderExtensions` | `AddStandardConfiguration()` — sets base path, registers base/environment/local JSON, optional user secrets, then environment variables |
+| | `AddKeyVaultConfiguration()` — conditionally adds Azure Key Vault (skips silently when URI or credential is `null`) |
+| | `AddKeyVaultConfigurationFrom()` — partial-builds configuration, extracts Key Vault credentials via delegate, then adds Key Vault |
 | `ConfigurationServiceCollectionExtensions` | `AddCasCapConfiguration<TConfig>()` — binds a configuration section to an `IAppConfig` record with `ValidateDataAnnotations` and `ValidateOnStart` |
 
 ## Usage
@@ -48,8 +48,10 @@ flowchart TD
         BASE["SetBasePath(contentRoot)"]
         APPSETTINGS["appsettings.json"]
         ENV_FILE["appsettings.{Environment}.json"]
+        LOCAL["appsettings.Local.json"]
+        LOCAL_ENV["appsettings.Local.{Environment}.json"]
+        SECRETS["User Secrets<br/>(optional)"]
         ENV_VARS["Environment Variables"]
-        SECRETS["User Secrets<br/>(Development only)"]
     end
 
     subgraph KeyVaultConfig["AddKeyVaultConfiguration()"]
@@ -66,15 +68,17 @@ flowchart TD
     START --> BASE
     BASE --> APPSETTINGS
     APPSETTINGS --> ENV_FILE
-    ENV_FILE --> ENV_VARS
-    ENV_VARS --> SECRETS
+    ENV_FILE --> LOCAL
+    LOCAL --> LOCAL_ENV
+    LOCAL_ENV --> SECRETS
+    SECRETS --> ENV_VARS
 
-    SECRETS --> PARTIAL
+    ENV_VARS --> PARTIAL
     PARTIAL --> EXTRACT
     EXTRACT -."if URI present".-> KV
 
     KV --> VALIDATE
-    SECRETS -."if no Key Vault".-> VALIDATE
+    ENV_VARS -."if no Key Vault".-> VALIDATE
     VALIDATE --> OPTIONS
 ```
 
@@ -82,9 +86,11 @@ flowchart TD
 
 1. `appsettings.json`
 2. `appsettings.{Environment}.json`
-3. Environment Variables
-4. User Secrets (Development only)
-5. Azure Key Vault (if configured)
+3. `appsettings.Local.json` (optional)
+4. `appsettings.Local.{Environment}.json` (optional)
+5. User Secrets (when an assembly is supplied)
+6. Environment Variables
+7. Azure Key Vault (if configured)
 
 ## Dependencies
 
