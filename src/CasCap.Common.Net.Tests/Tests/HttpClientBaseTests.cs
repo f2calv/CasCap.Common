@@ -444,7 +444,8 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         string? capturedContentType = null;
         var handler = MockHandler.WithCapture(async req =>
         {
-            capturedContentType = req.Content!.Headers.ContentType?.MediaType;
+            Assert.NotNull(req.Content);
+            capturedContentType = req.Content.Headers.ContentType?.MediaType;
             capturedBody = await req.Content.ReadAsStringAsync();
         }, new TestPayload { Id = 1, Name = "ok" });
         var client = CreateClient(handler);

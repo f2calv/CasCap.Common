@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <RootNamespace>CasCap.Common.Extensions</RootNamespace>
-    <UserSecretsId>cascap-common-configuration-tests</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

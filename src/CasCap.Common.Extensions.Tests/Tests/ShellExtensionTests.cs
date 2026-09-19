@@ -25,7 +25,7 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.Equal(-1, result.ExitCode);
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
-        Assert.Equal(result.Error!.Length, result.ErrorLength);
+        Assert.Equal(result.Error.Length, result.ErrorLength);
     }
 
     [Fact, Trait("Category", "Shell")]
@@ -37,7 +37,7 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.NotEqual(0, result.ExitCode);
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
-        Assert.Equal(result.Error!.Length, result.ErrorLength);
+        Assert.Equal(result.Error.Length, result.ErrorLength);
     }
 
     [Fact, Trait("Category", "Shell")]
@@ -92,8 +92,9 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
     {
         var output = ShellExtensions.RunProcess(_host, "--version");
 
-        Assert.False(string.IsNullOrWhiteSpace(output));
-        Assert.Equal(output, output!.Trim());
+        Assert.NotNull(output);
+        Assert.NotEmpty(output);
+        Assert.Equal(output, output.Trim());
     }
 
     [Fact, Trait("Category", "Shell")]

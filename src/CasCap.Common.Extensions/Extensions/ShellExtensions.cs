@@ -149,7 +149,10 @@ public static class ShellExtensions
                 try { process.Kill(entireProcessTree: true); }
                 catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException
                     or System.ComponentModel.Win32Exception)
-                { }
+                {
+                    //The process ended between the check and the kill, or the platform refused; either
+                    //  way it is no longer running, which is all this guard wanted.
+                }
             }
         }
     }
@@ -183,7 +186,7 @@ public static class ShellExtensions
     private static string[] SplitArguments(string? arguments) =>
         string.IsNullOrWhiteSpace(arguments)
             ? []
-            : arguments!.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            : arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 #endif
 
     /// <summary>
