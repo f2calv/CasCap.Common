@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!--nullable we disable on a per project basis-->
     <Nullable>enable</Nullable>
+    <!--one secrets store per repository, shared by every project that needs one-->
+    <UserSecretsId>ac83036d-16a3-46a4-95f5-05a41fd70dba</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>

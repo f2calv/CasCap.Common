@@ -50,8 +50,7 @@ public static partial class AgentExtensions
     /// confirm the new audio design does not intend to revive ambient forwarding.
     /// </para>
     /// <para>
-    /// Distinct from <see cref="_ambientAudioDebug"/> and <see cref="TranscodeToWavAsync"/>, which
-    /// are both <b>live</b> — used by <c>TranscribeAudioAsync</c>.
+    /// Distinct from <see cref="_ambientAudioDebug"/>, which is <b>live</b>.
     /// </para>
     /// </remarks>
     private static readonly AsyncLocal<(byte[] Bytes, string MimeType)?> _ambientBinaryContent = new();

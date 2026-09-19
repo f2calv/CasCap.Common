@@ -36,6 +36,22 @@ public class TestHttpClient : HttpClientBase
         where TResult : class where TError : class
         => PostBytesAsync<TResult, TError>(requestUri, bytes, timeout, headers, mediaType, cancellationToken);
 
+    /// <summary>Exposes <see cref="HttpClientBase.PostMultipartAsync{TResult, TError}"/> for testing.</summary>
+    public Task<(TResult? result, TError? error)> TestPostMultipartAsync<TResult, TError>(
+        string requestUri, MultipartFormDataContent content, TimeSpan? timeout = null,
+        List<(string name, string value)>? headers = null,
+        CancellationToken cancellationToken = default)
+        where TResult : class where TError : class
+        => PostMultipartAsync<TResult, TError>(requestUri, content, timeout, headers, cancellationToken);
+
+    /// <summary>Exposes <see cref="HttpClientBase.PostMultipart{TResult, TError}"/> for testing.</summary>
+    public Task<(TResult? result, TError? error, HttpStatusCode statusCode, HttpResponseHeaders responseHeaders)> TestPostMultipart<TResult, TError>(
+        string requestUri, MultipartFormDataContent content, TimeSpan? timeout = null,
+        List<(string name, string value)>? headers = null,
+        CancellationToken cancellationToken = default)
+        where TResult : class where TError : class
+        => PostMultipart<TResult, TError>(requestUri, content, timeout, headers, cancellationToken);
+
     /// <summary>Exposes <see cref="HttpClientBase.GetAsync{TResult, TError}"/> for testing.</summary>
     public Task<(TResult? result, TError? error)> TestGetAsync<TResult, TError>(
         string requestUri, TimeSpan? timeout = null,

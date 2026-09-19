@@ -390,4 +390,161 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     }
 
     #endregion
+
+    #region PostMultipart
+
+    private static MultipartFormDataContent CreateMultipart(string fieldValue = "json")
+    {
+        var content = new MultipartFormDataContent();
+        var file = new ByteArrayContent([1, 2, 3, 4]);
+        file.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        content.Add(file, "file", "audio.wav");
+        content.Add(new StringContent(fieldValue), "response_format");
+        return content;
+    }
+
+    /// <summary>Verifies that PostMultipartAsync deserializes a successful JSON response into the result type.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipartAsync_Success_DeserializesResult()
+    {
+        var handler = MockHandler.ForJson(new TestPayload { Id = 7, Name = "transcript" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        var (result, error) = await client.TestPostMultipartAsync<TestPayload, ErrorPayload>(
+            "/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(7, result.Id);
+        Assert.Equal("transcript", result.Name);
+        Assert.Null(error);
+    }
+
+    /// <summary>Verifies that PostMultipartAsync deserializes an error JSON response into the error type.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipartAsync_Error_DeserializesError()
+    {
+        var handler = MockHandler.ForError(HttpStatusCode.UnsupportedMediaType, new ErrorPayload { Message = "nope" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        var (result, error) = await client.TestPostMultipartAsync<TestPayload, ErrorPayload>(
+            "/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Null(result);
+        Assert.NotNull(error);
+        Assert.Equal("nope", error.Message);
+    }
+
+    /// <summary>Verifies that the multipart body reaches the server with its parts and boundary intact.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_SendsPartsAndBoundary()
+    {
+        string? capturedBody = null;
+        string? capturedContentType = null;
+        var handler = MockHandler.WithCapture(async req =>
+        {
+            Assert.NotNull(req.Content);
+            capturedContentType = req.Content.Headers.ContentType?.MediaType;
+            capturedBody = await req.Content.ReadAsStringAsync();
+        }, new TestPayload { Id = 1, Name = "ok" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        await client.TestPostMultipartAsync<TestPayload, ErrorPayload>(
+            "/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("multipart/form-data", capturedContentType);
+        Assert.NotNull(capturedBody);
+        //The part names are what a transcription backend reads the audio and options from.
+        Assert.Contains("name=file", capturedBody, StringComparison.Ordinal);
+        Assert.Contains("filename=audio.wav", capturedBody, StringComparison.Ordinal);
+        Assert.Contains("name=response_format", capturedBody, StringComparison.Ordinal);
+    }
+
+    /// <summary>Verifies that PostMultipart forwards additional request headers.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_WithHeaders_SendsHeaders()
+    {
+        string? captured = null;
+        var handler = MockHandler.WithCapture(req =>
+        {
+            captured = req.Headers.TryGetValues("X-Test", out var values) ? values.First() : null;
+            return Task.CompletedTask;
+        }, new TestPayload { Id = 1, Name = "ok" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        await client.TestPostMultipartAsync<TestPayload, ErrorPayload>("/api/test", content,
+            headers: [("X-Test", "abc")], cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("abc", captured);
+    }
+
+    /// <summary>Verifies that PostMultipart surfaces the status code and response headers.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_ReturnsStatusCodeAndHeaders()
+    {
+        var handler = MockHandler.ForJsonWithHeaders(new TestPayload { Id = 1, Name = "ok" }, ("X-Trace", "xyz"));
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        var (result, _, statusCode, responseHeaders) = await client.TestPostMultipart<TestPayload, ErrorPayload>(
+            "/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(HttpStatusCode.OK, statusCode);
+        Assert.Equal("xyz", responseHeaders.GetValues("X-Trace").First());
+    }
+
+    /// <summary>Verifies that a byte[] result type returns the raw response body, as audio endpoints need.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_ResultAsBytes_ReturnsRawBytes()
+    {
+        byte[] expected = [0x4F, 0x67, 0x67, 0x53];
+        var handler = MockHandler.ForRawBytes(expected);
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        var (result, error) = await client.TestPostMultipartAsync<byte[], string>(
+            "/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(expected, result);
+        Assert.Null(error);
+    }
+
+    /// <summary>Verifies that the per-request timeout cancels a slow multipart request.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_Timeout_ThrowsOperationCanceled()
+    {
+        var handler = MockHandler.WithDelay(TimeSpan.FromSeconds(10), new TestPayload { Id = 1, Name = "test" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => client.TestPostMultipartAsync<TestPayload, ErrorPayload>("/api/test", content,
+                timeout: TimeSpan.FromMilliseconds(50), cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    /// <summary>Verifies that an absolute request URI bypasses the configured base address.</summary>
+    [Fact, Trait("Category", "HttpClientBase")]
+    public async Task PostMultipart_FullUrl_OverridesBaseAddress()
+    {
+        Uri? captured = null;
+        var handler = MockHandler.WithCapture(req =>
+        {
+            captured = req.RequestUri;
+            return Task.CompletedTask;
+        }, new TestPayload { Id = 1, Name = "ok" });
+        var client = CreateClient(handler);
+        using var content = CreateMultipart();
+
+        await client.TestPostMultipartAsync<TestPayload, ErrorPayload>(
+            "https://elsewhere/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("https://elsewhere/api/test", captured?.ToString());
+    }
+
+    #endregion
 }

@@ -198,14 +198,18 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0042`, `CS1574`, `NETSDK12
 
 ### GitHub Actions (`.github/workflows/ci.yml`)
 
-**Triggers**: Push (except `preview/**`), PRs to `main`, manual dispatch.
+**Triggers**: Push to `main`, PRs to `main`, manual dispatch. Concurrent runs for the same branch or
+pull request are cancelled in favour of the newest.
 
 **Jobs**:
 
 1. **lint** — Reusable workflow from `f2calv/gha-workflows`
 2. **versioning** — GitVersion-based semantic versioning
-3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--maxcpucount:1`
-4. **release** — GitHub release (main branch only, when tag doesn't already exist)
+3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--max-parallel-test-modules 1`
+4. **release** — GitHub release (main branch only, when tag doesn't already exist), gated on `lint`
+
+A pre-release package can be published from a non-default branch through the `push-preview` input on
+a manual dispatch.
 
 ## Making Changes
 
@@ -245,12 +249,3 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0042`, `CS1574`, `NETSDK12
 - [ ] Properties separated by blank lines
 - [ ] `ServiceProvider` instances are disposed in tests
 - [ ] No shared mutable static state in test helpers
-
-## Contributing
-
-1. Fork the repository and create a feature branch
-2. Follow all conventions documented above
-3. Run the full validation checklist before submitting a PR
-4. PRs target the `main` branch and require CI to pass
-5. Versioning is automated via GitVersion — do not manually edit version numbers
-6. When using Copilot to implement code quality or legibility improvements, update the [copilot-instructions.md](.github/copilot-instructions.md) to capture any new conventions so they are applied consistently in future sessions

@@ -290,29 +290,8 @@ public static partial class AgentExtensions
                 binaryContent = ambient.Bytes;
                 mimeType = ambient.MimeType;
 
-                // Transcode non-WAV audio to WAV via ffmpeg (stdin→stdout, no temp files).
-                // Whisper models expect decoded PCM/WAV; Signal sends raw AAC streams which
-                // most STT models cannot decode directly.
-                if (mimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase)
-                    && !mimeType.Equals("audio/wav", StringComparison.OrdinalIgnoreCase)
-                    && !mimeType.Equals("audio/x-wav", StringComparison.OrdinalIgnoreCase))
-                {
-                    var originalBytes = binaryContent;
-                    var originalMimeType = mimeType;
-                    var transcoded = await TranscodeToWavAsync(binaryContent, cancellationToken).ConfigureAwait(false);
-                    if (transcoded is not null)
-                    {
-                        logger.LogDebug("Transcoded {OriginalSize} byte {OriginalMimeType} → {TranscodedSize} byte WAV for {AgentKey}",
-                            binaryContent.Length, mimeType, transcoded.Length, agentKey);
-                        binaryContent = transcoded;
-                        mimeType = "audio/wav";
-                    }
-                    else
-                    {
-                        logger.LogWarning("ffmpeg transcode failed, forwarding original {MimeType} bytes to {AgentKey}",
-                            mimeType, agentKey);
-                    }
-                }
+                // Bytes are forwarded as-is; a host needing a different audio encoding transcodes
+                // before calling SetAmbientBinaryContent.
 
                 // OllamaSharp only maps DataContent with image/* MIME types to the Ollama API
                 // images array (see AbstractionMapper.ToOllamaSharpMessages). Non-image content

@@ -10,7 +10,7 @@ dotnet add package CasCap.Common.Net
 
 ## Purpose
 
-Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consistent surface for `GET`, `POST`, `PUT`, and `DELETE` operations with automatic JSON (de)serialization. Network-related extension methods for headers and query strings are also included. Additionally provides `BasicAuthenticationHandler` for HTTP Basic authentication against `ApiAuthConfig`. The `HttpClientBase` and `BasicAuthenticationHandler` implementations are gated behind `#if NET8_0_OR_GREATER`.
+Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consistent surface for `GET` and `POST` operations — JSON, binary and multipart — with automatic (de)serialization and centralised failure logging. Network-related extension methods for headers and query strings are also included. Additionally provides `BasicAuthenticationHandler` for HTTP Basic authentication against `ApiAuthConfig`. The `HttpClientBase` and `BasicAuthenticationHandler` implementations are gated behind `#if NET8_0_OR_GREATER`.
 
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
@@ -18,7 +18,20 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 
 | Type | Description |
 | --- | --- |
-| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostJson`, `PostBytesAsync`, `PostBytes`, `GetAsync`, `Get` with error handling (net8.0+ only) |
+| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostJson`, `PostBytesAsync`, `PostBytes`, `PostMultipartAsync`, `PostMultipart`, `GetAsync`, `Get` with error handling (net8.0+ only) |
+
+Every method takes a `TResult` and a `TError` type. `string` returns the raw body and `byte[]` returns
+the raw bytes, so an endpoint answering with audio or any other binary payload needs no separate
+plumbing; anything else is deserialized as JSON.
+
+The caller owns the `MultipartFormDataContent` passed to the multipart methods and should dispose it,
+which also disposes the parts added to it.
+
+### Models
+
+| Type | Description |
+| --- | --- |
+| `HttpRetrySafety` | Which requests a resilience pipeline may retry — `SafeMethodsOnly` (default), `AllMethods`, `Never`. Declared in namespace `CasCap.Common.Models` |
 
 ### Authentication
 
@@ -39,8 +52,25 @@ Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consi
 | Class | Key Methods |
 | --- | --- |
 | `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
-| `HttpClientBuilderResilienceExtensions` | `AddStandardResilience()` — adds retry, circuit breaker, and timeout via `Microsoft.Extensions.Http.Resilience` with structured logging |
+| `HttpClientBuilderResilienceExtensions` | `AddStandardResilience(callerName, retrySafety)` — adds retry, circuit breaker, and timeout via `Microsoft.Extensions.Http.Resilience` with structured logging. `IsReplaySafe()` exposes the per-request decision |
 | `HttpClientBuilderAuditExtensions` | `AddHttpAuditing(sourceName)` — adds `HttpAuditHandler` to the HTTP client pipeline to capture request/response audit entries (net8.0+ only) |
+
+### Retry Safety
+
+`AddStandardResilience` defaults to `HttpRetrySafety.SafeMethodsOnly`. Idempotent methods retry
+normally; a POST or PATCH is retried only when the request provably never reached the server, because
+a timeout or a 5xx says nothing about whether it was already processed. Replaying one then applies its
+side effect twice.
+
+Pass `HttpRetrySafety.AllMethods` only where the endpoint is genuinely idempotent — for example
+because it accepts an idempotency key:
+
+```csharp
+using CasCap.Common.Models;
+
+services.AddHttpClient<MyClient>()
+    .AddStandardResilience(nameof(MyClient), HttpRetrySafety.AllMethods);
+```
 
 ## Class Hierarchy
 
@@ -55,14 +85,12 @@ classDiagram
 
     class HttpClientBase {
         <<abstract>>
-        #HttpClient HttpClient
-        #ILogger Logger
-        +PostJsonAsync~T~(uri, body) Task~T~
-        +PostBytesAsync(uri, bytes) Task~HttpResponseMessage~
-        +GetAsync~T~(uri) Task~T~
-        +PutAsync~T~(uri, body) Task~T~
-        +DeleteAsync(uri) Task~HttpResponseMessage~
-        #HandleError(response) void
+        +HttpClient Client
+        #ILogger _logger
+        #PostJsonAsync~TResult,TError~(uri, body) Task
+        #PostBytesAsync~TResult,TError~(uri, bytes) Task
+        #PostMultipartAsync~TResult,TError~(uri, content) Task
+        #GetAsync~TResult,TError~(uri) Task
     }
 
     class YourCustomClient {

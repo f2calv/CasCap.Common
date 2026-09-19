@@ -28,15 +28,17 @@ Verifies HTTP client base class behaviour and network extension methods — head
 
 | Test class | Methods | Test cases | Coverage |
 | --- | --- | --- | --- |
-| `HttpClientBaseTests` | 25 | 25 | `PostJsonAsync`, `PostBytesAsync`, `GetAsync` — success/error deserialization, headers, full-URL override, status/headers capture, raw string/bytes results, timeout & cancellation |
-| `NetExtensionTests` | 18 | 18 | `ToQueryString`, `AddOrOverwrite` (string/list/dictionary), `TryGetValue`, `GetBasicAuthHeaderValue`, `SetBasicAuth` |
-| **Total** | **43** | **43** | |
+| `HttpClientBaseTests` | 33 | 33 | `PostJsonAsync`, `PostBytesAsync`, `PostMultipartAsync`, `GetAsync` — success/error deserialization, headers, full-URL override, status/headers capture, raw string/bytes results, multipart part names and boundary, timeout & cancellation |
+| `HttpClientBuilderResilienceExtensionTests` | 6 | 16 | `IsReplaySafe` — idempotent replay after timeout, non-idempotent refusal after timeout and 5xx, unsent-request exception, transmitted-request refusal, unknown request |
+| `NetExtensionTests` | 16 | 16 | `ToQueryString`, `AddOrOverwrite` (string/list/dictionary), `TryGetValue`, `GetBasicAuthHeaderValue`, `SetBasicAuth` |
+| **Total** | **55** | **65** | |
 
 ### Trait Categories
 
 | Category | Used by |
 | --- | --- |
 | `HttpClientBase` | `HttpClientBaseTests` |
+| `Resilience` | `HttpClientBuilderResilienceExtensionTests` |
 | `Extensions` | `NetExtensionTests` |
 
 ### Skipped Tests
@@ -49,6 +51,7 @@ None.
 Tests/
 ├── ErrorPayload.cs
 ├── HttpClientBaseTests.cs
+├── HttpClientBuilderResilienceExtensionTests.cs
 ├── MockHandler.cs
 ├── NetTests.cs
 ├── TestBase.cs

@@ -1,7 +1,9 @@
 #if NET8_0_OR_GREATER
+using CasCap.Common.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
+using Polly.Retry;
 
 namespace CasCap.Common.Extensions;
 
@@ -21,16 +23,35 @@ public static class HttpClientBuilderResilienceExtensions
     /// Applies <see cref="HttpResiliencePipelineBuilderExtensions.AddStandardResilienceHandler"/>
     /// with an <c>OnRetry</c> callback that emits a structured log message including the caller name,
     /// attempt number, delay and outcome.
+    /// <para>
+    /// The default errs towards under-retrying rather than duplicating work: a timeout or a 5xx says
+    /// nothing about whether the server already acted, so replaying a POST can apply it twice. Losing
+    /// a retry is usually cheaper than a duplicate side effect.
+    /// </para>
     /// </remarks>
     /// <param name="builder">The <see cref="IHttpClientBuilder"/> to configure.</param>
     /// <param name="callerName">
     /// A display name for the calling service (typically <c>nameof(MyService)</c>)
     /// used as the <c>{ClassName}</c> structured-log parameter.
     /// </param>
+    /// <param name="retrySafety">
+    /// Which requests the pipeline may retry. Defaults to
+    /// <see cref="HttpRetrySafety.SafeMethodsOnly"/>, which never replays a POST or PATCH the server
+    /// may already have processed.
+    /// </param>
     /// <returns>The resilience pipeline builder for further configuration.</returns>
-    public static IHttpStandardResiliencePipelineBuilder AddStandardResilience(this IHttpClientBuilder builder, string callerName) =>
+    public static IHttpStandardResiliencePipelineBuilder AddStandardResilience(this IHttpClientBuilder builder,
+        string callerName, HttpRetrySafety retrySafety = HttpRetrySafety.SafeMethodsOnly) =>
         builder.AddStandardResilienceHandler(options =>
         {
+            var shouldHandle = options.Retry.ShouldHandle;
+            options.Retry.ShouldHandle = args => retrySafety switch
+            {
+                HttpRetrySafety.Never => PredicateResult.False(),
+                HttpRetrySafety.AllMethods => shouldHandle(args),
+                _ => IsReplaySafe(args) ? shouldHandle(args) : PredicateResult.False(),
+            };
+
             options.Retry.OnRetry = args =>
             {
                 var logger = args.Context.Properties.GetValue(
@@ -49,5 +70,36 @@ public static class HttpClientBuilderResilienceExtensions
                 return ValueTask.CompletedTask;
             };
         });
+
+    /// <summary>
+    /// Whether replaying this request cannot duplicate a side effect the server already applied.
+    /// </summary>
+    /// <remarks>
+    /// An idempotent method is always safe. Anything else is safe only when the failure happened
+    /// before the request reached the server, so a timeout and any status code are both treated as
+    /// unsafe — the server may have completed the work and only the response was lost.
+    /// </remarks>
+    public static bool IsReplaySafe(RetryPredicateArguments<HttpResponseMessage> args)
+    {
+        var method = args.Context.GetRequestMessage()?.Method;
+        if (method is null || IsIdempotent(method))
+            return true;
+
+        return args.Outcome.Exception is HttpRequestException
+        {
+            HttpRequestError: HttpRequestError.ConnectionError
+                or HttpRequestError.NameResolutionError
+                or HttpRequestError.SecureConnectionError
+                or HttpRequestError.ProxyTunnelError
+        };
+    }
+
+    private static bool IsIdempotent(HttpMethod method) =>
+        method == HttpMethod.Get
+        || method == HttpMethod.Head
+        || method == HttpMethod.Put
+        || method == HttpMethod.Delete
+        || method == HttpMethod.Options
+        || method == HttpMethod.Trace;
 }
 #endif
