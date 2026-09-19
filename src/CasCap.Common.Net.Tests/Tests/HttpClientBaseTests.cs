@@ -540,9 +540,9 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
         using var content = CreateMultipart();
 
         await client.TestPostMultipartAsync<TestPayload, ErrorPayload>(
-            "http://elsewhere/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
+            "https://elsewhere/api/test", content, cancellationToken: TestContext.Current.CancellationToken);
 
-        Assert.Equal("http://elsewhere/api/test", captured?.ToString());
+        Assert.Equal("https://elsewhere/api/test", captured?.ToString());
     }
 
     #endregion
