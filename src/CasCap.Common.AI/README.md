@@ -38,7 +38,7 @@ This library contains **no domain-specific MCP query services** — those live i
 
 | Class | Key Methods |
 | --- | --- |
-| `AgentExtensions` | `CreateAgent` — creates `IChatClient` + `AIAgent` from config (Ollama, AzureOpenAI, OpenAI); `RunAnalysisAsync` — runs inference returning `AgentRunResult`; `CreateToolsFromServiceProvider<T>` — discovers `[McpServerTool]` methods as `AITool`s; `CreateToolsForAgent` — resolves all tool sources with include/exclude filters; `CreateAgentTool` — wraps a peer agent as a callable `AITool` (delegation); `ResolveInstructions` — resolves from embedded resource, file, or inline string; `TranscodeToWavAsync` — audio transcode via `ffmpeg` |
+| `AgentExtensions` | `CreateAgent` — creates `IChatClient` + `AIAgent` from config (Ollama, AzureOpenAI, OpenAI); `RunAnalysisAsync` — runs inference returning `AgentRunResult`; `CreateToolsFromServiceProvider<T>` — discovers `[McpServerTool]` methods as `AITool`s; `CreateToolsForAgent` — resolves all tool sources with include/exclude filters; `CreateAgentTool` — wraps a peer agent as a callable `AITool` (delegation); `ResolveInstructions` — resolves from embedded resource, file, or inline string |
 | `AgentServiceCollectionExtensions` | `AddAgentTypeRegistry` — indexes tool service types from the service collection and prompt types from supplied assemblies |
 | `ChatCommandParser` | `TryParseCommand` — parses `/` slash-commands; `TryCompactSession` — manual session compaction; `GetStateBagEntries` — session state diagnostics |
 
