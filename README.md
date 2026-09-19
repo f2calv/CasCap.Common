@@ -198,14 +198,18 @@ Configured in `Directory.Build.props`: `IDE1006`, `IDE0042`, `CS1574`, `NETSDK12
 
 ### GitHub Actions (`.github/workflows/ci.yml`)
 
-**Triggers**: Push (except `preview/**`), PRs to `main`, manual dispatch.
+**Triggers**: Push to `main`, PRs to `main`, manual dispatch. Concurrent runs for the same branch or
+pull request are cancelled in favour of the newest.
 
 **Jobs**:
 
 1. **lint** — Reusable workflow from `f2calv/gha-workflows`
 2. **versioning** — GitVersion-based semantic versioning
-3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--maxcpucount:1`
-4. **release** — GitHub release (main branch only, when tag doesn't already exist)
+3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--max-parallel-test-modules 1`
+4. **release** — GitHub release (main branch only, when tag doesn't already exist), gated on `lint`
+
+A pre-release package can be published from a non-default branch through the `push-preview` input on
+a manual dispatch.
 
 ## Making Changes
 

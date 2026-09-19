@@ -38,7 +38,8 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 | `BufferExtensionTests` | 2 | 2 | `TryReadLine` line splitting & no-newline behaviour |
 | `ExtensionTests` | 2 | 2 | `UnixTimeMS`, `Decimal2Int` |
 | `IOExtensionTests` | 1 | 1 | File read/write round-trip |
-| **Total** | **48** | **71** | |
+| `ShellExtensionTests` | 17 | 17 | `RunProcess`, `RunProcessDiagnostic`, `RunProcessWithStdinAsync` — success and failure paths, error capture modes, argument and stdin guards, oversized-payload round trip, cancellation, `Bash` platform guards |
+| **Total** | **66** | **86** | |
 
 ### Trait Categories
 
@@ -53,10 +54,14 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 | `Collections` | `FixedSizedQueueTests`, `GetBatches`, `IsNullOrEmpty`, `ToHashSet` |
 | `Serialization` | XML & byte round-trips |
 | `IO` | `IOExtensionTests` |
+| `Shell` | `ShellExtensionTests` |
 
 ### Skipped Tests
 
-None.
+| Test | Reason |
+| --- | --- |
+| `ShellExtensionTests.Bash_OnLinux_ReturnsStandardOutput` | Requires Linux |
+| `ShellExtensionTests.RunProcessWithStdin_ArrayOverloadPreservesArgumentsContainingSpaces` | Requires `printf`, which reports each argument separately |
 
 ## File Structure
 

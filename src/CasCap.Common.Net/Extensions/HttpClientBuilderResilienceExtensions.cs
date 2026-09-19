@@ -23,6 +23,11 @@ public static class HttpClientBuilderResilienceExtensions
     /// Applies <see cref="HttpResiliencePipelineBuilderExtensions.AddStandardResilienceHandler"/>
     /// with an <c>OnRetry</c> callback that emits a structured log message including the caller name,
     /// attempt number, delay and outcome.
+    /// <para>
+    /// The default errs towards under-retrying rather than duplicating work: a timeout or a 5xx says
+    /// nothing about whether the server already acted, so replaying a POST can apply it twice. Losing
+    /// a retry is usually cheaper than a duplicate side effect.
+    /// </para>
     /// </remarks>
     /// <param name="builder">The <see cref="IHttpClientBuilder"/> to configure.</param>
     /// <param name="callerName">

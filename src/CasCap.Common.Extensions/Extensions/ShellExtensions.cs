@@ -62,10 +62,12 @@ public static class ShellExtensions
     /// where no temporary files are needed.
     /// </remarks>
     /// <param name="fileName">The executable to run (e.g. <c>"ffmpeg"</c>).</param>
-    /// <param name="arguments">Command-line arguments.</param>
+    /// <param name="arguments">Command-line arguments, split on spaces.</param>
     /// <param name="stdinBytes">Binary payload to write to the process's standard input.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple of stdout bytes, stderr text, and exit code.</returns>
+    [Obsolete("Arguments are split on spaces, so any argument containing one is passed as several. " +
+        "Use the overload taking IEnumerable<string>, which passes each argument through untouched.")]
     public static async Task<(byte[] Output, string? Error, int ExitCode)> RunProcessWithStdinAsync(
         string fileName, string arguments, byte[] stdinBytes, CancellationToken cancellationToken = default)
     {

@@ -198,18 +198,28 @@ public static partial class AgentExtensions
         // -ac 1            mono
         // -sample_fmt s16  16-bit PCM
         // pipe:1           write to stdout
-        const string args = "-i pipe:0 -f wav -ar 16000 -ac 1 -sample_fmt s16 pipe:1 -loglevel error";
+        string[] args =
+        [
+            "-i", "pipe:0",
+            "-f", "wav",
+            "-ar", "16000",
+            "-ac", "1",
+            "-sample_fmt", "s16",
+            "pipe:1",
+            "-loglevel", "error"
+        ];
 
-        var (output, error, exitCode) = await ShellExtensions.RunProcessWithStdinAsync(
-            "ffmpeg", args, inputBytes, cancellationToken).ConfigureAwait(false);
+        //Length-only capture: ffmpeg diagnostics echo container metadata, which may name third-party files.
+        var result = await ShellExtensions.RunProcessWithStdinAsync(
+            "ffmpeg", args, inputBytes, ProcessErrorCapture.Length, cancellationToken).ConfigureAwait(false);
 
-        if (exitCode != 0)
+        if (!result.Success)
         {
-            (logger ?? NullLogger.Instance).LogWarning("ffmpeg exited with code {ExitCode}: {StdErr}",
-                exitCode, error);
+            (logger ?? NullLogger.Instance).LogWarning("ffmpeg exited with code {ExitCode}, stderr {ErrorLength} chars",
+                result.ExitCode, result.ErrorLength);
             return null;
         }
 
-        return output.Length > 0 ? output : null;
+        return result.Output.Length > 0 ? result.Output : null;
     }
 }
