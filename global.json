@@ -1,8 +1,8 @@
 {
-    "sdk": {
-        "allowPrerelease": false
-    },
-    "test": {
-        "runner": "Microsoft.Testing.Platform"
-    }
+  "sdk": {
+    "allowPrerelease": false
+  },
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
+  }
 }
