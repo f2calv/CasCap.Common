@@ -4,16 +4,11 @@ Unit tests for [CasCap.Common.AI](../CasCap.Common.AI).
 
 ## Running
 
-The repo's xUnit v3 projects build as executables and host the in-process runner, so run the
-test assembly directly:
+The repository uses the .NET 10 native Microsoft.Testing.Platform runner:
 
 ```powershell
-dotnet build src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
-./src/CasCap.Common.AI.Tests/bin/Debug/net10.0/CasCap.Common.AI.Tests.exe
+dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 ```
-
-> `dotnet test` currently reports `Zero tests ran` for every xUnit v3 project in this
-> repository (a CLI/Microsoft.Testing.Platform bridging quirk, not a project-specific fault).
 
 ## Tests
 
