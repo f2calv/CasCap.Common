@@ -72,7 +72,6 @@ public static class JsonExtensions
     public static T[,] To2D<T>(this List<List<T>> source)
     {
         // Adapted from this answer https://stackoverflow.com/a/26291720/3744182
-        // By https://stackoverflow.com/users/3909293/diligent-key-presser
         // To https://stackoverflow.com/questions/26291609/converting-jagged-array-to-2d-array-c-sharp
         var firstDim = source.Count;
         var secondDim = source.Select(row => row.Count).FirstOrDefault();

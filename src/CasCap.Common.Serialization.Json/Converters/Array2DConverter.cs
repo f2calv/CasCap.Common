@@ -27,7 +27,6 @@ public sealed class Array2DConverter : JsonConverterFactory
         public override void Write(Utf8JsonWriter writer, T[,] array, JsonSerializerOptions options)
         {
             // Adapted from this answer https://stackoverflow.com/a/25995025/3744182
-            // By https://stackoverflow.com/users/3258160/pedro
             // To https://stackoverflow.com/questions/21986909/convert-multidimensional-array-to-jagged-array-in-c-sharp
             var rowsFirstIndex = array.GetLowerBound(0);
             var rowsLastIndex = array.GetUpperBound(0);
