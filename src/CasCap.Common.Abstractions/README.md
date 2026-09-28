@@ -64,6 +64,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | Type | Description |
 | --- | --- |
 | [`CommsEvent`](Models/CommsEvent.cs) | A comms stream entry with `Source`, `Message`, `TimestampUtc`, and optional `JsonPayload` for AI agent context |
+| [`MediaReference`](Models/MediaReference.cs) | Pointer to media bytes cached in Redis (`MediaRedisKey`, `MimeType`, `FileName`), carried in `CommsEvent.JsonPayload` so producer and consumer need no shared filesystem (net8.0+ only) |
 
 ### Attributes
 
