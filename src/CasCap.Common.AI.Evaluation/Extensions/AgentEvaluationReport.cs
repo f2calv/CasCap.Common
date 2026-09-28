@@ -176,24 +176,49 @@ public static class AgentEvaluationReport
     public static async Task<string> WriteSessionSummaryAsync(string directory, string referenceProviderKey,
         CancellationToken cancellationToken)
     {
-        var runs = new List<AgentEvaluationRun>();
-        foreach (var file in Directory.EnumerateFiles(directory, "*.runs.jsonl").Order(StringComparer.Ordinal))
-            foreach (var line in await File.ReadAllLinesAsync(file, cancellationToken).ConfigureAwait(false))
-                if (!string.IsNullOrWhiteSpace(line))
-                    runs.Add(JsonSerializer.Deserialize<AgentEvaluationRun>(line, JsonLinesOptions)!);
-
-        var plainChat = new Dictionary<string, List<TimeSpan>>();
-        var chatFile = Path.Combine(directory, PlainChatFileName);
-        if (File.Exists(chatFile))
-            foreach (var line in await File.ReadAllLinesAsync(chatFile, cancellationToken).ConfigureAwait(false))
-                if (JsonSerializer.Deserialize<PlainChatSample>(line, JsonLinesOptions) is { } sample)
-                    (plainChat.TryGetValue(sample.ProviderKey, out var list) ? list : plainChat[sample.ProviderKey] = []).Add(sample.Elapsed);
+        var runs = await ReadRunsAsync(directory, cancellationToken).ConfigureAwait(false);
+        var plainChat = await ReadPlainChatAsync(directory, cancellationToken).ConfigureAwait(false);
 
         var table = ToProviderMarkdown(SummariseProviders(runs, referenceProviderKey, plainChat), referenceProviderKey);
         var scenarios = string.Join(", ", runs.Select(r => r.ScenarioId).Distinct());
         await File.WriteAllTextAsync(Path.Combine(directory, "session.summary.md"),
             $"# Agent evaluation session {SessionFolderName}\n\nScenarios: {scenarios}\n\n{table}", cancellationToken).ConfigureAwait(false);
         return table;
+    }
+
+    private static async Task<List<AgentEvaluationRun>> ReadRunsAsync(string directory, CancellationToken cancellationToken)
+    {
+        var runs = new List<AgentEvaluationRun>();
+        foreach (var file in Directory.EnumerateFiles(directory, "*.runs.jsonl").Order(StringComparer.Ordinal))
+        {
+            var lines = await File.ReadAllLinesAsync(file, cancellationToken).ConfigureAwait(false);
+            runs.AddRange(lines
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .Select(line => JsonSerializer.Deserialize<AgentEvaluationRun>(line, JsonLinesOptions)!));
+        }
+        return runs;
+    }
+
+    private static async Task<Dictionary<string, List<TimeSpan>>> ReadPlainChatAsync(string directory,
+        CancellationToken cancellationToken)
+    {
+        var plainChat = new Dictionary<string, List<TimeSpan>>();
+        var chatFile = Path.Combine(directory, PlainChatFileName);
+        if (!File.Exists(chatFile))
+            return plainChat;
+
+        foreach (var line in await File.ReadAllLinesAsync(chatFile, cancellationToken).ConfigureAwait(false))
+        {
+            if (JsonSerializer.Deserialize<PlainChatSample>(line, JsonLinesOptions) is not { } sample)
+                continue;
+            if (!plainChat.TryGetValue(sample.ProviderKey, out var samples))
+            {
+                samples = [];
+                plainChat[sample.ProviderKey] = samples;
+            }
+            samples.Add(sample.Elapsed);
+        }
+        return plainChat;
     }
 
     /// <summary>

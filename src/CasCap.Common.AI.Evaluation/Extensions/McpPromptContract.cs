@@ -6,6 +6,9 @@ namespace CasCap.Common.Extensions;
 /// </summary>
 public static class McpPromptContract
 {
+    //Bounds matching against rendered prompt text, which the check does not control.
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
+
     /// <summary>Verbs that start tool names in the checked prompt text.</summary>
     public static IReadOnlyList<string> DefaultToolVerbs { get; } =
     [
@@ -37,7 +40,7 @@ public static class McpPromptContract
             .ToHashSet(StringComparer.Ordinal);
 
         var verbs = string.Join("|", (toolVerbs ?? DefaultToolVerbs).Select(Regex.Escape));
-        var referenceRegex = new Regex($@"\b(?:{verbs})[A-Z0-9]\w*\b", RegexOptions.CultureInvariant);
+        var referenceRegex = new Regex($@"\b(?:{verbs})[A-Z0-9]\w*\b", RegexOptions.CultureInvariant, RegexTimeout);
 
         return types
             .Where(t => t.GetCustomAttribute<McpServerPromptTypeAttribute>() is not null)

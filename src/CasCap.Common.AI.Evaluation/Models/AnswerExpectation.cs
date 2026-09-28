@@ -13,6 +13,9 @@ namespace CasCap.Common.Models;
 /// </remarks>
 public sealed partial record AnswerExpectation(string Description, Func<string, bool> IsSatisfiedBy)
 {
+    //Bounds matching against model answers, which are untrusted and can be arbitrarily long.
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
+
     private static readonly string[] NumberWords =
     [
         "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
@@ -42,7 +45,7 @@ public sealed partial record AnswerExpectation(string Description, Func<string, 
     /// <param name="pattern">The pattern, for example one anchoring a state to the entity it describes.</param>
     /// <param name="description">Human-readable statement of the expectation.</param>
     public static AnswerExpectation Matches([StringSyntax(StringSyntaxAttribute.Regex)] string pattern, string description) =>
-        new(description, answer => Regex.IsMatch(answer, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant));
+        new(description, answer => Regex.IsMatch(answer, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout));
 
     /// <summary>Expects every one of <paramref name="expectations"/> to be satisfied.</summary>
     /// <param name="expectations">The expectations to combine.</param>
@@ -72,7 +75,8 @@ public sealed partial record AnswerExpectation(string Description, Func<string, 
     }
 
     private static bool ContainsWord(string text, string phrase) =>
-        Regex.IsMatch(text, $@"(?<![\p{{L}}]){Regex.Escape(phrase)}(?![\p{{L}}])", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        Regex.IsMatch(text, $@"(?<![\p{{L}}]){Regex.Escape(phrase)}(?![\p{{L}}])", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+            RegexTimeout);
 
     [GeneratedRegex(@"-?\d+(?:[.,]\d+)?", RegexOptions.CultureInvariant)]
     private static partial Regex DigitsRegex();
