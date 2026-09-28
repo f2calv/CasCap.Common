@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.AI\CasCap.Common.AI.csproj" />
+    <ProjectReference Include="..\CasCap.Common.AI.Evaluation\CasCap.Common.AI.Evaluation.csproj" />
     <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,15 @@
+global using CasCap.Common.Abstractions;
+global using CasCap.Common.Extensions;
+global using CasCap.Common.Models;
+global using CasCap.Common.Services;
+global using Microsoft.Agents.AI;
+global using Microsoft.Extensions.AI;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using ModelContextProtocol.Server;
+global using System.Diagnostics;
+global using System.Globalization;
+global using System.Reflection;
+global using System.Text;
+global using System.Text.Json;
+global using System.Text.RegularExpressions;
