@@ -4,6 +4,8 @@
 [cascap.common.abstractions-url]: https://nuget.org/packages/CasCap.Common.Abstractions
 [cascap.common.ai-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI?color=blue
 [cascap.common.ai-url]: https://nuget.org/packages/CasCap.Common.AI
+[cascap.common.ai.evaluation-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI.Evaluation?color=blue
+[cascap.common.ai.evaluation-url]: https://nuget.org/packages/CasCap.Common.AI.Evaluation
 [cascap.common.aspnetcore-badge]: https://img.shields.io/nuget/v/CasCap.Common.AspNetCore?color=blue
 [cascap.common.aspnetcore-url]: https://nuget.org/packages/CasCap.Common.AspNetCore
 [cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
@@ -33,12 +35,13 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 15 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
+A .NET class library repository containing 16 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | CasCap.Common.Abstractions                        | [![Nuget][cascap.common.abstractions-badge]][cascap.common.abstractions-url]                           |
 | CasCap.Common.AI                                  | [![Nuget][cascap.common.ai-badge]][cascap.common.ai-url]                                               |
+| CasCap.Common.AI.Evaluation                       | [![Nuget][cascap.common.ai.evaluation-badge]][cascap.common.ai.evaluation-url]                         |
 | CasCap.Common.AspNetCore                          | [![Nuget][cascap.common.aspnetcore-badge]][cascap.common.aspnetcore-url]                               |
 | CasCap.Common.Caching                             | [![Nuget][cascap.common.caching-badge]][cascap.common.caching-url]                                     |
 | CasCap.Common.Configuration                       | [![Nuget][cascap.common.configuration-badge]][cascap.common.configuration-url]                         |
@@ -59,6 +62,7 @@ A .NET class library repository containing 15 NuGet packages with helper functio
 | ------- | ----------- | ------- | -------- |
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ✅ |
+| [**CasCap.Common.AI.Evaluation**](src/CasCap.Common.AI.Evaluation/README.md) | Agent evaluation harness — fixture-backed MCP tools, instruction and tool-surface variants, per-request timing, grading and cross-model comparison reports | net10.0 | ✅ |
 | [**CasCap.Common.AspNetCore**](src/CasCap.Common.AspNetCore/README.md) | Feature-gated ASP.NET Core controller discovery (`[FeatureController]`, `AddFeatureGatedControllers`) so a modular monolith only maps controllers whose feature is enabled on the host | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
@@ -101,6 +105,7 @@ graph TD
     HealthChecks[CasCap.Common.Extensions.Diagnostics.HealthChecks]
     Testing[CasCap.Common.Testing]
     AI[CasCap.Common.AI]
+    AIEvaluation[CasCap.Common.AI.Evaluation]
     AspNetCore[CasCap.Common.AspNetCore]
     OTel[CasCap.Common.OpenTelemetry]
 
@@ -128,6 +133,7 @@ graph TD
     AI --> Caching
     AI --> Extensions
     AI --> LoggingSerilog
+    AIEvaluation --> AI
     OTel --> Abstractions
     OTel --> LoggingSerilog
     OTel --> Services

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Evaluation harness for Microsoft Agent Framework agents built with CasCap.Common.AI — fixture-backed MCP tools, instruction and tool-surface variants, per-request timing, grading and model comparison reports.</Description>
+    <PackageTags>ai,agents,evaluation,mcp,llm,benchmark,agentic</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.AI\CasCap.Common.AI.csproj" />
+  </ItemGroup>
+
+</Project>

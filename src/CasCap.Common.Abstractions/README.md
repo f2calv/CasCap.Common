@@ -20,6 +20,8 @@ This library contains no concrete implementations — only interfaces and abstra
 | --- | --- |
 | [`IAppConfig`](Abstractions/_IAppConfig.cs) | Marker interface implemented by all application configuration records to allow easy identification and generic constraint usage |
 | [`IBgFeature`](Abstractions/IBgFeature.cs) | Identifies a feature-gated background service — exposes a string `FeatureName` and `ExecuteAsync` entry point. Matched case-insensitively against the enabled features set at startup |
+| [`ICommsEventFormatter`](Abstractions/ICommsEventFormatter.cs) | Renders a [`CommsEvent`](Models/CommsEvent.cs) as the text sent to a notification group when it is forwarded without an agent; consumers register a replaceable default (net8.0+ only) |
+| [`ICommsGroupRouter`](Abstractions/ICommsGroupRouter.cs) | Chooses the notification group a [`CommsEvent`](Models/CommsEvent.cs) is delivered to, for example sending operational sources to a monitor group; consumers register a replaceable default (net8.0+ only) |
 | [`IFeature<T>`](Abstractions/IFeature%7BT%7D.cs) | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
 | [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) | Generic write-path event sink contract (unconstrained — accepts both reference and value types). Exposes a `SinkType` property for targeted dispatch filtering. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel. Read-path queries are defined by domain-specific interfaces (e.g. `IFroniusQuery`, `IKnxQuery`) in the consuming projects |
 | [`ILocalCache`](Abstractions/ILocalCache.cs) | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
@@ -63,6 +65,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | Type | Description |
 | --- | --- |
 | [`CommsEvent`](Models/CommsEvent.cs) | A comms stream entry with `Source`, `Message`, `TimestampUtc`, and optional `JsonPayload` for AI agent context |
+| [`MediaReference`](Models/MediaReference.cs) | Pointer to media bytes cached in Redis (`MediaRedisKey`, `MimeType`, `FileName`), carried in `CommsEvent.JsonPayload` so producer and consumer need no shared filesystem (net8.0+ only) |
 
 ### Attributes
 
