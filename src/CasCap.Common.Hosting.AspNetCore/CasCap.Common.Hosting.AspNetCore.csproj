@@ -6,12 +6,43 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>ASP.NET Core helpers for the CasCap feature-flag system — feature-gated controller discovery so a modular monolith deployed as multiple feature-scoped hosts only maps (and documents in OpenAPI) the controllers whose feature is enabled on the current host.</Description>
-    <PackageTags>extensions,helpers,aspnetcore,controllers,feature-flags</PackageTags>
+    <Description>ASP.NET Core hosting defaults for feature-gated controllers, Serilog, and OpenTelemetry metrics, traces, and logs.</Description>
+    <PackageTags>aspnetcore,hosting,controllers,feature-flags,serilog,logging,opentelemetry,observability</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Net\CasCap.Common.Net.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Services\CasCap.Common.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Enrichers.AssemblyName" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Process" />
+    <PackageReference Include="Serilog.Enrichers.Span" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+    <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
 </Project>

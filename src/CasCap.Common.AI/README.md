@@ -211,7 +211,6 @@ Each agent uses its own `AgentSession` keyed by `AgentConfig.Name`. Sub-agents i
 | `CasCap.Common.Abstractions` | Shared abstractions and interfaces |
 | `CasCap.Common.Caching` | Redis caching abstractions |
 | `CasCap.Common.Extensions` | Shared extension helpers |
-| `CasCap.Common.Logging.Serilog` | Serilog structured logging configuration |
 
 ## License
 
