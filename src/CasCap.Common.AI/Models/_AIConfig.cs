@@ -46,16 +46,6 @@ public record AIConfig : IAppConfig
     public string TimeZoneId { get; init; } = "Europe/Berlin";
 
     /// <summary>
-    /// Time-to-live in milliseconds for in-memory polls before automatic expiry.
-    /// </summary>
-    /// <remarks>
-    /// Defaults to <c>3600000</c> ms (1 hour).
-    /// Used by <see cref="CasCap.Services.InMemoryPollTracker"/>.
-    /// </remarks>
-    [Range(1, int.MaxValue)]
-    public int PollTtlMs { get; init; } = 3_600_000;
-
-    /// <summary>
     /// Sliding expiration in days applied to persisted agent sessions.
     /// </summary>
     /// <remarks>
