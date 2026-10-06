@@ -45,13 +45,4 @@ public record AIConfig : IAppConfig
     /// <remarks>Defaults to <c>Europe/Berlin</c>.</remarks>
     public string TimeZoneId { get; init; } = "Europe/Berlin";
 
-    /// <summary>
-    /// Sliding expiration in days applied to persisted agent sessions.
-    /// </summary>
-    /// <remarks>
-    /// Defaults to <c>7</c> days.
-    /// Used by <see cref="CasCap.Services.AgentCommandHandler"/>.
-    /// </remarks>
-    [Range(1, int.MaxValue)]
-    public int SessionTtlDays { get; init; } = 7;
 }

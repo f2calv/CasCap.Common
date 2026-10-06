@@ -237,9 +237,7 @@ public static partial class AgentExtensions
         var instructions = ResolveInstructions(agentConfig,
             instructionsAssembly ?? typeof(AgentExtensions).Assembly, aiConfig);
 
-        // Instructions are NOT set here — BuildChatOptions creates a separate per-request
-        // ChatOptions with Instructions so the /instructions slash command (handled by
-        // AgentCommandHandler.ApplyInstructionsOverride) can override them per-request.
+        // Instructions are set on per-request ChatOptions rather than the shared agent options.
         // The ChatOptions on agentOptions registers tools only.
         var agentOptions = new ChatClientAgentOptions
         {

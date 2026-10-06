@@ -1,6 +1,6 @@
 # CasCap.Common.AI
 
-AI agent framework infrastructure — agent creation, session management, MCP tool/prompt resolution, chat history compaction, and slash-command handling.
+AI agent framework infrastructure for agent creation, MCP tool/prompt resolution, delegation and chat-history compaction.
 
 ## Installation
 
@@ -10,7 +10,7 @@ dotnet add package CasCap.Common.AI
 
 ## Purpose
 
-Provides the shared infrastructure for building multi-agent AI systems with support for multiple providers (Azure OpenAI, OpenAI, Ollama), automatic MCP tool discovery from `[McpServerTool]`-decorated service types, sub-agent delegation (fan-out pattern), persistent session state, and context-window compaction for edge GPU devices.
+Provides the shared infrastructure for building multi-agent AI systems with support for multiple providers (Azure OpenAI, OpenAI, Ollama), automatic MCP tool discovery from `[McpServerTool]`-decorated service types, sub-agent delegation (fan-out pattern), and context-window compaction for edge GPU devices.
 
 This library contains **no domain-specific MCP query services** — those live in downstream consumer projects. It provides the framework that consumer projects use to wire agents, tools, sessions, and prompts together.
 
@@ -20,17 +20,8 @@ This library contains **no domain-specific MCP query services** — those live i
 
 | Type | Description |
 | --- | --- |
-| `AgentCommandHandler` | Shared handler for `ChatCommand` slash-commands (`/session info`, `/session reset`, `/model`, etc.) and agent session persistence. Override state (`/model`, `/instructions`, `/session enable\|disable`) is held **per agent**, keyed by `AgentConfig.Name` |
 | `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from the history while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
-| `InMemorySessionStore` | Volatile in-memory `ISessionStore` backed by `ConcurrentDictionary` |
-| `DistributedCacheSessionStore` | Redis-backed `ISessionStore` wrapping `IDistributedCache` with sliding expiry |
 | `AgentTypeRegistry` | Deterministic name-to-type lookup for tool services and MCP prompt types, built once at startup by `AddAgentTypeRegistry()` |
-
-### Abstractions
-
-| Interface | Description |
-| --- | --- |
-| `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`) |
 
 ### Extensions
 
@@ -38,13 +29,12 @@ This library contains **no domain-specific MCP query services** — those live i
 | --- | --- |
 | `AgentExtensions` | `CreateAgent` — creates `IChatClient` + `AIAgent` from config (Ollama, AzureOpenAI, OpenAI); `RunAnalysisAsync` — runs inference returning `AgentRunResult`; `CreateToolsFromServiceProvider<T>` — discovers `[McpServerTool]` methods as `AITool`s; `CreateToolsForAgent` — resolves all tool sources with include/exclude filters; `CreateAgentTool` — wraps a peer agent as a callable `AITool` (delegation); `ResolveInstructions` — resolves from embedded resource, file, or inline string |
 | `AgentServiceCollectionExtensions` | `AddAgentTypeRegistry` — indexes tool service types from the service collection and prompt types from supplied assemblies |
-| `ChatCommandParser` | `TryParseCommand` — parses `/` slash-commands; `TryCompactSession` — manual session compaction; `GetStateBagEntries` — session state diagnostics |
 
 ### Configuration
 
 | Type | Description |
 | --- | --- |
-| `AIConfig` | Root configuration record (`IAppConfig`) — `Providers`, `Agents`, `McpUrl`, `InstructionsPrefix`/`Suffix`, `TimeZoneId`, `SessionTtlDays` |
+| `AIConfig` | Root configuration record (`IAppConfig`) — `Providers`, `Agents`, `McpUrl`, `InstructionsPrefix`/`Suffix`, `TimeZoneId` |
 | `AgentConfig` | Per-agent behavioural config — `Provider`, `Instructions`/`InstructionsSource`, `MaxMessages` (compaction depth), `Tools` (tool sources), `Prompts` (prompt sources), `Enabled` |
 | `ProviderConfig` | AI provider infrastructure config — `Type` (`AgentType`), `Endpoint`, `ModelName`, `ReasoningEffort`, `ApiKey` |
 
@@ -63,14 +53,12 @@ This library contains **no domain-specific MCP query services** — those live i
 | `ToolCallInfo` | Captures a single tool/function call name and arguments |
 | `McpPromptDescriptor` | Lightweight descriptor for an MCP prompt (remote or in-process) |
 | `AudioDebugArtifacts` | Captures original and transcoded audio bytes for debug messages |
-| `StateBagEntry` | Summary of a single `AgentSessionStateBag` entry (key, size, message counts) |
 
 ### Enums
 
 | Enum | Values |
 | --- | --- |
 | `AgentType` | `None`, `AzureOpenAI`, `AzureAIFoundry`, `Ollama`, `OpenAI` |
-| `ChatCommand` | `Help`, `SessionInfo`, `SessionReset`, `SessionBypass`, `SessionCompact`, `SessionDisable`, `SessionEnable`, `SessionSave`, `SessionLoad`, `SessionDelete`, `Model`, `Instructions` |
 
 ## Service Architecture
 
@@ -103,12 +91,6 @@ graph TD
         OPENAI["OpenAI"]:::config
     end
 
-    subgraph SessionMgmt["Session Management"]
-        CMD["AgentCommandHandler<br/>(slash-commands)"]:::service
-        MEM_STORE["InMemorySessionStore"]:::store
-        DIST_STORE["DistributedCacheSessionStore<br/>(Redis)"]:::store
-    end
-
     subgraph Compaction["Chat History Compaction"]
         REDUCER["ToolOutputStrippingChatReducer<br/>(IChatReducer)"]:::service
     end
@@ -117,8 +99,6 @@ graph TD
     AE --> ToolResolution
     CREATE --> Providers
     CREATE -.configures.-> REDUCER
-    CMD --> MEM_STORE
-    CMD --> DIST_STORE
 ```
 
 ## Agent Instruction Resolution
@@ -174,13 +154,6 @@ var result = await agent.RunAnalysisAsync(provider, agentConfig, message, chatOp
 ### Session Isolation
 
 Each agent uses its own `AgentSession` keyed by `AgentConfig.Name`. Sub-agents invoked via the fan-out pattern (`ToolSource.Agent`) create a fresh stateless session per invocation, ensuring no cross-agent context leakage.
-
-### Session Persistence
-
-| Store | Implementation | Use Case |
-| --- | --- | --- |
-| `InMemorySessionStore` | `ConcurrentDictionary` | Console app (volatile) |
-| `DistributedCacheSessionStore` | Redis via `IDistributedCache` | Server / background service (persistent) |
 
 ## Dependencies
 
