@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// When a change to a cached item is effected by the <see cref="IDistributedCache"/> this service comes into action.
@@ -14,12 +14,18 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
     {
         if (!cachingConfig.Value.LocalCacheInvalidationEnabled) return;
 
-        logger.LogInformation("{ClassName} starting", nameof(LocalCacheExpiryService));
+        CacheLog.Lifecycle(logger, nameof(LocalCacheExpiryService), "starting");
 
         var channelName = nameof(LocalCacheExpiryService);
         var channel = RedisChannel.Pattern(channelName);
-        logger.LogDebug("{ClassName} subscribing to {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
-            nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
+        CacheLog.ChannelSubscription(
+            logger,
+            nameof(LocalCacheExpiryService),
+            "subscribing to",
+            typeof(RedisChannel),
+            channelName,
+            nameof(RedisChannel.IsPattern),
+            channel.IsPattern);
         // Synchronous handler
         remoteCache.Subscriber.Subscribe(channel).OnMessage(channelMessage =>
         {
@@ -36,11 +42,17 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
         }
         catch (OperationCanceledException) { }
 
-        logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
-            nameof(LocalCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
+        CacheLog.ChannelSubscription(
+            logger,
+            nameof(LocalCacheExpiryService),
+            "unsubscribing from",
+            typeof(RedisChannel),
+            channelName,
+            nameof(RedisChannel.IsPattern),
+            channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel).ConfigureAwait(false);
 
-        logger.LogInformation("{ClassName} stopping", nameof(LocalCacheExpiryService));
+        CacheLog.Lifecycle(logger, nameof(LocalCacheExpiryService), "stopping");
     }
 
     /// <summary>
@@ -54,11 +66,9 @@ public sealed class LocalCacheExpiryService(ILogger<LocalCacheExpiryService> log
         if (!clientName.Equals(cachingConfig.Value.PubSubPrefix, StringComparison.OrdinalIgnoreCase))
         {
             if (localCache.Delete(key))
-                logger.LogDebug("{ClassName} cache key {Key} was invalidated by client {ClientName} now removed from {AbstractionName}",
-                    nameof(LocalCacheExpiryService), key, clientName, nameof(ILocalCache));
+                CacheLog.CacheInvalidated(logger, nameof(LocalCacheExpiryService), key, clientName, nameof(ILocalCache));
         }
         else
-            logger.LogTrace("{ClassName} skipped removing {Key} from {AbstractionName} as this instance just raised that event",
-                nameof(LocalCacheExpiryService), key, nameof(ILocalCache));
+            CacheLog.CacheInvalidationSkipped(logger, nameof(LocalCacheExpiryService), key, nameof(ILocalCache));
     }
 }

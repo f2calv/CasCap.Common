@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// <see cref="BackgroundService"/> that resolves all registered <see cref="IBgFeature"/>
@@ -9,21 +9,20 @@
 /// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="IBgFeature.AlwaysEnabled"/>
 /// are launched regardless of the enabled set.
 /// </remarks>
-public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, IOptions<FeatureFlagConfig> featureConfig, IEnumerable<IBgFeature> features) : BackgroundService
+public sealed partial class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, IOptions<FeatureFlagConfig> featureConfig, IEnumerable<IBgFeature> features) : BackgroundService
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
-        logger.LogInformation("{ClassName} starting", nameof(FeatureFlagBgService));
+        LogStarting(logger, nameof(FeatureFlagBgService));
         var runningFeatures = new List<(string Name, Task Task)>(features.Count());
         foreach (var feature in features)
         {
             if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
                 || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
             {
-                logger.LogInformation("{ClassName} starting {FeatureName}",
-                    nameof(FeatureFlagBgService), feature.GetType().Name);
+                LogFeatureStarting(logger, nameof(FeatureFlagBgService), feature.GetType().Name);
                 runningFeatures.Add((feature.FeatureName, feature.ExecuteAsync(stoppingToken)));
             }
         }
@@ -43,14 +42,25 @@ public sealed class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, I
             var completedFeature = runningFeatures[completedFeatureIndex];
             await completedFeature.Task.ConfigureAwait(false);
             runningFeatures.RemoveAt(completedFeatureIndex);
-            logger.LogInformation("{ClassName} {FeatureName} completed",
-                nameof(FeatureFlagBgService), completedFeature.Name);
+            LogFeatureCompleted(logger, nameof(FeatureFlagBgService), completedFeature.Name);
         }
 
         if (!stoppingToken.IsCancellationRequested)
             throw new InvalidOperationException(
                 $"All enabled background features completed before host cancellation: {string.Join(", ", startedFeatureNames)}.");
 
-        logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService));
+        LogExiting(logger, nameof(FeatureFlagBgService));
     }
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} starting")]
+    private static partial void LogStarting(ILogger logger, string className);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} starting {FeatureName}")]
+    private static partial void LogFeatureStarting(ILogger logger, string className, string featureName);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {FeatureName} completed")]
+    private static partial void LogFeatureCompleted(ILogger logger, string className, string featureName);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} exiting")]
+    private static partial void LogExiting(ILogger logger, string className);
 }

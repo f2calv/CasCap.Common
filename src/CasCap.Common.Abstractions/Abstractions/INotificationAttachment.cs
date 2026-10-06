@@ -4,8 +4,8 @@ namespace CasCap.Common.Abstractions;
 public interface INotificationAttachment
 {
     /// <summary>The attachment identifier used to retrieve the attachment content.</summary>
-    string? Id { get; }
+    public string? Id { get; }
 
     /// <summary>The MIME content type (e.g. <c>"image/jpeg"</c>, <c>"audio/aac"</c>).</summary>
-    string? ContentType { get; }
+    public string? ContentType { get; }
 }

@@ -32,8 +32,8 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-        var res = await PostJson<TResult, TError>(requestUri, req, timeout, headers, mediaType, cancellationToken);
-        return (res.result, res.error);
+        var (result, error, _, _) = await PostJson<TResult, TError>(requestUri, req, timeout, headers, mediaType, cancellationToken);
+        return (result, error);
     }
 
     /// <summary>
@@ -65,8 +65,8 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-        var res = await PostBytes<TResult, TError>(requestUri, bytes, timeout, headers, mediaType, cancellationToken);
-        return (res.result, res.error);
+        var (result, error, _, _) = await PostBytes<TResult, TError>(requestUri, bytes, timeout, headers, mediaType, cancellationToken);
+        return (result, error);
     }
 
     /// <summary>
@@ -99,8 +99,8 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-        var res = await Get<TResult, TError>(requestUri, timeout, headers, cancellationToken);
-        return (res.result, res.error);
+        var (result, error, _, _) = await Get<TResult, TError>(requestUri, timeout, headers, cancellationToken);
+        return (result, error);
     }
 
     /// <summary>Sends a POST request with a multipart form body and returns the deserialized result or error.</summary>
@@ -109,8 +109,8 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-        var res = await PostMultipart<TResult, TError>(requestUri, content, timeout, headers, cancellationToken);
-        return (res.result, res.error);
+        var (result, error, _, _) = await PostMultipart<TResult, TError>(requestUri, content, timeout, headers, cancellationToken);
+        return (result, error);
     }
 
     /// <summary>
@@ -125,7 +125,11 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(content);
+#else
         if (content is null) throw new ArgumentNullException(nameof(content));
+#endif
 
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
         using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
@@ -183,12 +187,11 @@ public abstract class HttpClientBase
         }
         else
         {
-            if (typeof(TError).Equals(typeof(string)))
-                tpl.error = (TError)(object)await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            else if (typeof(TError).Equals(typeof(byte[])))
-                tpl.error = (TError)(object)await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            else
-                tpl.error = (await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).FromJson<TError>();
+            tpl.error = typeof(TError).Equals(typeof(string))
+                ? (TError)(object)await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)
+                : typeof(TError).Equals(typeof(byte[]))
+                ? (TError)(object)await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false)
+                : (await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).FromJson<TError>();
             _logger.LogError("{ClassName} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
             //var err = $"requestUri= fail";
             //if (response.RequestMessage.Content.)

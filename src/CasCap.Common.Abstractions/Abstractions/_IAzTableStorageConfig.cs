@@ -12,8 +12,8 @@ public interface IAzTableStorageConfig
     /// (e.g. <c>https://account.table.core.windows.net</c>).
     /// Otherwise it is used as a full connection string that already contains authentication details.
     /// </remarks>
-    string AzureTableStorageConnectionString { get; }
+    public string AzureTableStorageConnectionString { get; }
 
     /// <summary>Kubernetes health check probe type for the Azure Table Storage dependency.</summary>
-    KubernetesProbeTypes HealthCheckAzureTableStorage { get; }
+    public KubernetesProbeTypes HealthCheckAzureTableStorage { get; }
 }

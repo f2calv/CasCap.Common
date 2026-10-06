@@ -12,6 +12,6 @@ public interface ICommsGroupRouter
     /// <summary>Returns the exact group name <paramref name="commsEvent"/> should be sent to.</summary>
     /// <param name="commsEvent">The stream event to route.</param>
     /// <returns>The exact group name, including case and spaces.</returns>
-    string ResolveGroup(CommsEvent commsEvent);
+    public string ResolveGroup(CommsEvent commsEvent);
 }
 #endif

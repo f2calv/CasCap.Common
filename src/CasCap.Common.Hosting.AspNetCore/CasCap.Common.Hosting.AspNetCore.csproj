@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Reusable OpenTelemetry configuration with standard metrics, traces, and log exporters.</Description>
-    <PackageTags>opentelemetry,observability,metrics,traces,logs,otlp</PackageTags>
+    <Description>ASP.NET Core hosting defaults for feature-gated controllers, Serilog, and OpenTelemetry metrics, traces, and logs.</Description>
+    <PackageTags>aspnetcore,hosting,controllers,feature-flags,serilog,logging,opentelemetry,observability</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Abstractions\CasCap.Common.Abstractions.csproj" />
-    <ProjectReference Include="..\CasCap.Common.Logging.Serilog\CasCap.Common.Logging.Serilog.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Logging\CasCap.Common.Logging.csproj" />
     <ProjectReference Include="..\CasCap.Common.Net\CasCap.Common.Net.csproj" />
     <ProjectReference Include="..\CasCap.Common.Services\CasCap.Common.Services.csproj" />
   </ItemGroup>
@@ -30,6 +30,18 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Enrichers.AssemblyName" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Process" />
+    <PackageReference Include="Serilog.Enrichers.Span" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+    <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 

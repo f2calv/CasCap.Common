@@ -21,7 +21,7 @@ public class IOExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         Directory.Delete(path, true);
         await filePath1.WriteAllTextAsync("khfsjgfjsgf", CancellationToken.None);
         filePath1.AppendTextFile("testing 123");
-        filePath2.WriteAllBytes(Array.Empty<byte>());
+        filePath2.WriteAllBytes([]);
 
         //Assert
         Assert.True(Directory.Exists(path));

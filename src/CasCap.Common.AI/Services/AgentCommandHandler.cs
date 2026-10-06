@@ -97,7 +97,8 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
 
             case ChatCommand.SessionReset:
                 await sessionStore.DeleteAsync(sessionKey).ConfigureAwait(false);
-                logger.LogInformation("{ClassName} session reset via slash command", nameof(AgentCommandHandler));
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{ClassName} session reset via slash command", nameof(AgentCommandHandler));
                 return "Session reset. The next message will start a fresh conversation.";
 
             case ChatCommand.SessionBypass:
@@ -111,21 +112,23 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
 
             case ChatCommand.SessionDisable:
                 UpdateOverrides(agentName, o => o with { SessionEnabled = false });
-                logger.LogInformation("{ClassName} session persistence disabled via slash command for {AgentName}",
-                    nameof(AgentCommandHandler), agentName);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{ClassName} session persistence disabled via slash command for {AgentName}",
+                        nameof(AgentCommandHandler), agentName);
                 return "Session persistence disabled. Each message will start a fresh conversation.";
 
             case ChatCommand.SessionEnable:
                 UpdateOverrides(agentName, o => o with { SessionEnabled = true });
-                logger.LogInformation("{ClassName} session persistence enabled via slash command for {AgentName}",
-                    nameof(AgentCommandHandler), agentName);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{ClassName} session persistence enabled via slash command for {AgentName}",
+                        nameof(AgentCommandHandler), agentName);
                 return "Session persistence enabled.";
 
             case ChatCommand.SessionSave:
-                return await SaveSnapshotAsync(agent, agentName, sessionKey, argument).ConfigureAwait(false);
+                return await SaveSnapshotAsync(agentName, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionLoad:
-                return await LoadSnapshotAsync(agent, agentName, sessionKey, argument).ConfigureAwait(false);
+                return await LoadSnapshotAsync(agentName, sessionKey, argument).ConfigureAwait(false);
 
             case ChatCommand.SessionDelete:
                 return await DeleteSnapshotAsync(agentName, argument).ConfigureAwait(false);
@@ -134,8 +137,9 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                 if (string.IsNullOrWhiteSpace(argument))
                     return $"Current model override: {GetModelOverride(agentName) ?? "(none — using provider default)"}";
                 var modelOverride = UpdateOverrides(agentName, o => o with { Model = argument }).Model;
-                logger.LogInformation("{ClassName} model overridden to {Model} via slash command for {AgentName}",
-                    nameof(AgentCommandHandler), modelOverride, agentName);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{ClassName} model overridden to {Model} via slash command for {AgentName}",
+                        nameof(AgentCommandHandler), modelOverride, agentName);
                 if (onModelChanged is not null)
                     await onModelChanged(argument).ConfigureAwait(false);
                 return $"Model overridden to: {modelOverride}";
@@ -152,8 +156,9 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
                     return $"Current instructions override ({current.Length} chars): {preview}";
                 }
                 var instructionsOverride = UpdateOverrides(agentName, o => o with { Instructions = argument }).Instructions!;
-                logger.LogInformation("{ClassName} instructions overridden via slash command for {AgentName} ({Length} chars)",
-                    nameof(AgentCommandHandler), agentName, instructionsOverride.Length);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{ClassName} instructions overridden via slash command for {AgentName} ({Length} chars)",
+                        nameof(AgentCommandHandler), agentName, instructionsOverride.Length);
                 return $"Instructions overridden ({instructionsOverride.Length} chars).";
 
             default:
@@ -171,7 +176,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         var json = await sessionStore.GetAsync(sessionKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(json))
             return null;
-        JsonElement reloaded = json.FromJson<JsonElement>(JsonSerializerOptions.Web)!;
+        var reloaded = json.FromJson<JsonElement>(JsonSerializerOptions.Web)!;
         return await agent.DeserializeSessionAsync(reloaded, JsonSerializerOptions.Web).ConfigureAwait(false);
     }
 
@@ -278,7 +283,7 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
     }
 
     /// <summary>Copies the active session to a named snapshot key.</summary>
-    private async Task<string> SaveSnapshotAsync(AIAgent agent, string agentName, string sessionKey, string snapshotName)
+    private async Task<string> SaveSnapshotAsync(string agentName, string sessionKey, string snapshotName)
     {
         if (string.IsNullOrWhiteSpace(snapshotName))
             return "Usage: /session save <name>";
@@ -288,13 +293,14 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
         var snapshotKey = BuildSnapshotKey(agentName, snapshotName);
         await sessionStore.SetAsync(snapshotKey, json, _sessionTtl).ConfigureAwait(false);
         var sizeBytes = Encoding.UTF8.GetByteCount(json);
-        logger.LogInformation("{ClassName} session snapshot saved as {SnapshotName} ({SizeBytes} bytes)",
-            nameof(AgentCommandHandler), snapshotName, sizeBytes);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("{ClassName} session snapshot saved as {SnapshotName} ({SizeBytes} bytes)",
+                nameof(AgentCommandHandler), snapshotName, sizeBytes);
         return $"Session saved as \"{snapshotName}\" ({sizeBytes:N0} bytes).";
     }
 
     /// <summary>Loads a named snapshot into the active session key.</summary>
-    private async Task<string> LoadSnapshotAsync(AIAgent agent, string agentName, string sessionKey, string snapshotName)
+    private async Task<string> LoadSnapshotAsync(string agentName, string sessionKey, string snapshotName)
     {
         if (string.IsNullOrWhiteSpace(snapshotName))
             return "Usage: /session load <name>";
@@ -304,8 +310,9 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
             return $"No snapshot named \"{snapshotName}\" found.";
         await sessionStore.SetAsync(sessionKey, json, _sessionTtl).ConfigureAwait(false);
         var sizeBytes = Encoding.UTF8.GetByteCount(json);
-        logger.LogInformation("{ClassName} session snapshot {SnapshotName} loaded into active session ({SizeBytes} bytes)",
-            nameof(AgentCommandHandler), snapshotName, sizeBytes);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("{ClassName} session snapshot {SnapshotName} loaded into active session ({SizeBytes} bytes)",
+                nameof(AgentCommandHandler), snapshotName, sizeBytes);
         return $"Snapshot \"{snapshotName}\" loaded into active session ({sizeBytes:N0} bytes).";
     }
 
@@ -316,8 +323,9 @@ public sealed class AgentCommandHandler(ILogger<AgentCommandHandler> logger, IOp
             return "Usage: /session delete <name>";
         var snapshotKey = BuildSnapshotKey(agentName, snapshotName);
         await sessionStore.DeleteAsync(snapshotKey).ConfigureAwait(false);
-        logger.LogInformation("{ClassName} session snapshot {SnapshotName} deleted",
-            nameof(AgentCommandHandler), snapshotName);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("{ClassName} session snapshot {SnapshotName} deleted",
+                nameof(AgentCommandHandler), snapshotName);
         return $"Snapshot \"{snapshotName}\" deleted.";
     }
 

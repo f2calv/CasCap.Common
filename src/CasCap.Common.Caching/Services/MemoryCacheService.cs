@@ -43,11 +43,9 @@ public class MemoryCacheService : ILocalCache
     {
         key = FormatKey(key);
         if (_localCache.TryGetValue(key, out T? cacheEntry))
-            _logger.LogTrace("{ClassName} retrieved object with {Key} from {ApiName}",
-                nameof(MemoryCacheService), key, nameof(MemoryCache));
+            CacheLog.CacheLookup(_logger, nameof(MemoryCacheService), "retrieved", key, typeof(T), nameof(MemoryCache));
         else
-            _logger.LogTrace("{ClassName} could not retrieve object with {Key} from {ApiName}",
-                nameof(MemoryCacheService), key, nameof(MemoryCache));
+            CacheLog.CacheLookup(_logger, nameof(MemoryCacheService), "could not retrieve", key, typeof(T), nameof(MemoryCache));
         return cacheEntry;
     }
 
@@ -70,8 +68,7 @@ public class MemoryCacheService : ILocalCache
             options.SetAbsoluteExpiration(absoluteExpiration.Value);
         _ = _localCache.Set(key, cacheEntry, options);
         _cacheKeys.TryAdd(key, 0);
-        _logger.LogTrace("{ClassName} stored {ObjectType} with {Key} in {ApiName} (options {@Options})",
-            nameof(MemoryCacheService), typeof(T), key, nameof(MemoryCache), options);
+        CacheLog.MemoryStored(_logger, nameof(MemoryCacheService), typeof(T), key, nameof(MemoryCache), options);
     }
 
     private void EvictionCallback(object key, object value, EvictionReason reason, object state)
@@ -80,8 +77,7 @@ public class MemoryCacheService : ILocalCache
         {
             var args = new PostEvictionEventArgs(key, value, reason, state);
             OnRaisePostEvictionEvent(args);
-            _logger.LogTrace("{ClassName} evicted object with {Key} from {ApiName} (reason {Reason})",
-                nameof(MemoryCacheService), nameof(MemoryCache), args.Key, args.Reason);
+            CacheLog.MemoryEvicted(_logger, nameof(MemoryCacheService), nameof(MemoryCache), args.Key, args.Reason);
             _cacheKeys.TryRemove((string)key, out var _);
         }
     }
@@ -90,18 +86,16 @@ public class MemoryCacheService : ILocalCache
     public bool Delete(string key)
     {
         key = FormatKey(key);
-        _localCache.TryGetValue(key, out object? cacheEntry);
+        _localCache.TryGetValue(key, out var cacheEntry);
         if (cacheEntry is not null)
         {
             _localCache.Remove(key);
             _cacheKeys.TryRemove(key, out var _);
-            _logger.LogTrace("{ClassName} deleted object with {Key} from {ApiName}",
-                nameof(MemoryCacheService), nameof(MemoryCache), key);
+            CacheLog.MemoryDeleted(_logger, nameof(MemoryCacheService), "deleted", key, nameof(MemoryCache));
             return true;
         }
         else
-            _logger.LogTrace("{ClassName} could not delete object with {Key} from {ApiName} (not present)",
-                nameof(MemoryCacheService), nameof(MemoryCache), key);
+            CacheLog.MemoryDeleted(_logger, nameof(MemoryCacheService), "could not delete", key, nameof(MemoryCache));
         return false;
     }
 
@@ -113,8 +107,7 @@ public class MemoryCacheService : ILocalCache
         {
             _localCache.Remove(cacheKey);
             _cacheKeys.TryRemove(cacheKey, out _);
-            _logger.LogTrace("{ClassName} deleted object with {Key} from {ApiName}",
-                nameof(MemoryCacheService), cacheKey, nameof(MemoryCache));
+            CacheLog.MemoryDeleted(_logger, nameof(MemoryCacheService), "deleted", cacheKey, nameof(MemoryCache));
             i++;
         }
         return i;

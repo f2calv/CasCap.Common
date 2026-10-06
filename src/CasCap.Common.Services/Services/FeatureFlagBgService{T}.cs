@@ -6,21 +6,20 @@ namespace CasCap.Common.Services;
 /// in the configured <see cref="IFeatureConfig{T}.EnabledFeatures"/> bitmask.
 /// </summary>
 [Obsolete("Use the non-generic FeatureFlagBgService with string-based feature names instead.")]
-public sealed class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
+public sealed partial class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> logger, IOptions<FeatureConfig<T>> featureOptions, IEnumerable<IFeature<T>> features) : BackgroundService
     where T : Enum
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
-        logger.LogInformation("{ClassName} starting", nameof(FeatureFlagBgService<T>));
+        LogStarting(logger, nameof(FeatureFlagBgService<>));
         var tasks = new List<Task>(features.Count());
         foreach (var feature in features)
         {
             if (featureOptions.Value.EnabledFeatures.HasFlag(feature.FeatureType))
             {
-                logger.LogInformation("{ClassName} starting {FeatureName}",
-                    nameof(FeatureFlagBgService<T>), feature.GetType().Name);
+                LogFeatureStarting(logger, nameof(FeatureFlagBgService<>), feature.GetType().Name);
                 tasks.Add(feature.ExecuteAsync(stoppingToken));
             }
         }
@@ -29,6 +28,15 @@ public sealed class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService<T>> log
         //await-await-WhenAny propagates the first faulted task immediately so the
         //service crashes and the pod restarts rather than running in a degraded state.
         await await Task.WhenAny(tasks);
-        logger.LogInformation("{ClassName} exiting", nameof(FeatureFlagBgService<T>));
+        LogExiting(logger, nameof(FeatureFlagBgService<>));
     }
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} starting")]
+    private static partial void LogStarting(ILogger logger, string className);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} starting {FeatureName}")]
+    private static partial void LogFeatureStarting(ILogger logger, string className, string featureName);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} exiting")]
+    private static partial void LogExiting(ILogger logger, string className);
 }

@@ -6,8 +6,8 @@
 [cascap.common.ai-url]: https://nuget.org/packages/CasCap.Common.AI
 [cascap.common.ai.evaluation-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI.Evaluation?color=blue
 [cascap.common.ai.evaluation-url]: https://nuget.org/packages/CasCap.Common.AI.Evaluation
-[cascap.common.aspnetcore-badge]: https://img.shields.io/nuget/v/CasCap.Common.AspNetCore?color=blue
-[cascap.common.aspnetcore-url]: https://nuget.org/packages/CasCap.Common.AspNetCore
+[cascap.common.hosting.aspnetcore-badge]: https://img.shields.io/nuget/v/CasCap.Common.Hosting.AspNetCore?color=blue
+[cascap.common.hosting.aspnetcore-url]: https://nuget.org/packages/CasCap.Common.Hosting.AspNetCore
 [cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
 [cascap.common.caching-url]: https://nuget.org/packages/CasCap.Common.Caching
 [cascap.common.configuration-badge]: https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue
@@ -18,12 +18,8 @@
 [cascap.common.extensions.diagnostics.healthchecks-url]: https://nuget.org/packages/CasCap.Common.Extensions.Diagnostics.HealthChecks
 [cascap.common.logging-badge]: https://img.shields.io/nuget/v/CasCap.Common.Logging?color=blue
 [cascap.common.logging-url]: https://nuget.org/packages/CasCap.Common.Logging
-[cascap.common.logging.serilog-badge]: https://img.shields.io/nuget/v/CasCap.Common.Logging.Serilog?color=blue
-[cascap.common.logging.serilog-url]: https://nuget.org/packages/CasCap.Common.Logging.Serilog
 [cascap.common.net-badge]: https://img.shields.io/nuget/v/CasCap.Common.Net?color=blue
 [cascap.common.net-url]: https://nuget.org/packages/CasCap.Common.Net
-[cascap.common.opentelemetry-badge]: https://img.shields.io/nuget/v/CasCap.Common.OpenTelemetry?color=blue
-[cascap.common.opentelemetry-url]: https://nuget.org/packages/CasCap.Common.OpenTelemetry
 [cascap.common.Serialization.json-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.Json?color=blue
 [cascap.common.Serialization.json-url]: https://nuget.org/packages/CasCap.Common.Serialization.Json
 [cascap.common.Serialization.messagepack-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.MessagePack?color=blue
@@ -35,22 +31,20 @@
 
 ![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 16 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
+A .NET class library repository containing 14 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
 
 | Library                                           | Package                                                                                                |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | CasCap.Common.Abstractions                        | [![Nuget][cascap.common.abstractions-badge]][cascap.common.abstractions-url]                           |
 | CasCap.Common.AI                                  | [![Nuget][cascap.common.ai-badge]][cascap.common.ai-url]                                               |
 | CasCap.Common.AI.Evaluation                       | [![Nuget][cascap.common.ai.evaluation-badge]][cascap.common.ai.evaluation-url]                         |
-| CasCap.Common.AspNetCore                          | [![Nuget][cascap.common.aspnetcore-badge]][cascap.common.aspnetcore-url]                               |
+| CasCap.Common.Hosting.AspNetCore                  | [![Nuget][cascap.common.hosting.aspnetcore-badge]][cascap.common.hosting.aspnetcore-url]               |
 | CasCap.Common.Caching                             | [![Nuget][cascap.common.caching-badge]][cascap.common.caching-url]                                     |
 | CasCap.Common.Configuration                       | [![Nuget][cascap.common.configuration-badge]][cascap.common.configuration-url]                         |
 | CasCap.Common.Extensions                          | [![Nuget][cascap.common.extensions-badge]][cascap.common.extensions-url]                               |
 | CasCap.Common.Extensions.Diagnostics.HealthChecks | [![Nuget][cascap.common.extensions.diagnostics.healthchecks-badge]][cascap.common.extensions.diagnostics.healthchecks-url] |
 | CasCap.Common.Logging                             | [![Nuget][cascap.common.logging-badge]][cascap.common.logging-url]                                     |
-| CasCap.Common.Logging.Serilog                     | [![Nuget][cascap.common.logging.serilog-badge]][cascap.common.logging.serilog-url]                     |
 | CasCap.Common.Net                                 | [![Nuget][cascap.common.net-badge]][cascap.common.net-url]                                             |
-| CasCap.Common.OpenTelemetry                        | [![Nuget][cascap.common.opentelemetry-badge]][cascap.common.opentelemetry-url]                         |
 | CasCap.Common.Serialization.Json                  | [![Nuget][cascap.common.Serialization.json-badge]][cascap.common.Serialization.json-url]               |
 | CasCap.Common.Serialization.MessagePack           | [![Nuget][cascap.common.Serialization.messagepack-badge]][cascap.common.Serialization.messagepack-url] |
 | CasCap.Common.Services                            | [![Nuget][cascap.common.services-badge]][cascap.common.services-url]                                   |
@@ -63,15 +57,13 @@ A .NET class library repository containing 16 NuGet packages with helper functio
 | [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ✅ |
 | [**CasCap.Common.AI.Evaluation**](src/CasCap.Common.AI.Evaluation/README.md) | Agent evaluation harness — fixture-backed MCP tools, instruction and tool-surface variants, per-request timing, grading and cross-model comparison reports | net10.0 | ✅ |
-| [**CasCap.Common.AspNetCore**](src/CasCap.Common.AspNetCore/README.md) | Feature-gated ASP.NET Core controller discovery (`[FeatureController]`, `AddFeatureGatedControllers`) so a modular monolith only maps controllers whose feature is enabled on the host | net8.0; net9.0; net10.0 | ✅ |
+| [**CasCap.Common.Hosting.AspNetCore**](src/CasCap.Common.Hosting.AspNetCore/README.md) | ASP.NET Core hosting defaults for feature-gated controllers, Serilog logging, and OpenTelemetry metrics, traces, and logs | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Logging.Serilog**](src/CasCap.Common.Logging.Serilog/README.md) | Reusable Serilog configuration with standard enrichers, console sink, and health-check filtering | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase`, `BasicAuthenticationHandler`, HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.OpenTelemetry**](src/CasCap.Common.OpenTelemetry/README.md) | Reusable OpenTelemetry configuration with standard metrics, traces, and log exporters via OTLP gRPC | net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
 | [**CasCap.Common.Services**](src/CasCap.Common.Services/README.md) | `FeatureFlagBgService<T>` and `IFeature<T>` abstractions | net8.0; net9.0; net10.0 | ✅ |
@@ -93,7 +85,6 @@ Project reference relationships between libraries (NuGet-only dependencies omitt
 ```mermaid
 graph TD
     Logging[CasCap.Common.Logging]
-    LoggingSerilog[CasCap.Common.Logging.Serilog]
     Abstractions[CasCap.Common.Abstractions]
     Extensions[CasCap.Common.Extensions]
     Configuration[CasCap.Common.Configuration]
@@ -106,11 +97,9 @@ graph TD
     Testing[CasCap.Common.Testing]
     AI[CasCap.Common.AI]
     AIEvaluation[CasCap.Common.AI.Evaluation]
-    AspNetCore[CasCap.Common.AspNetCore]
-    OTel[CasCap.Common.OpenTelemetry]
+    HostingAspNetCore[CasCap.Common.Hosting.AspNetCore]
 
     Extensions --> Logging
-    LoggingSerilog --> Logging
     Configuration --> Abstractions
     Configuration --> Logging
     SerJson --> Extensions
@@ -132,11 +121,11 @@ graph TD
     AI --> Abstractions
     AI --> Caching
     AI --> Extensions
-    AI --> LoggingSerilog
     AIEvaluation --> AI
-    OTel --> Abstractions
-    OTel --> LoggingSerilog
-    OTel --> Services
+    HostingAspNetCore --> Abstractions
+    HostingAspNetCore --> Logging
+    HostingAspNetCore --> Net
+    HostingAspNetCore --> Services
 ```
 
 Test project relationships:

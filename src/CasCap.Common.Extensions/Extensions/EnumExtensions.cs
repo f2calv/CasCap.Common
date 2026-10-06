@@ -41,18 +41,17 @@ public static class EnumExtensions
     /// </summary>
     /// <param name="enumValue">The enum value.</param>
     /// <returns>The display name if defined; otherwise the enum value's string representation.</returns>
-    public static string GetDisplayName(this Enum enumValue)
-    {
+    public static string GetDisplayName(this Enum enumValue) =>
 #pragma warning disable CS8603 // Possible null reference return.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return enumValue.GetType()
+        enumValue.GetType()
                         .GetMember(enumValue.ToString())
                         .First()
                         .GetCustomAttribute<DisplayAttribute>()
                         .GetName();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning restore CS8603 // Possible null reference return.
-    }
+
 
     /// <summary>Determines whether the enum value has any of the specified flags set.</summary>
     /// <typeparam name="TEnum">A flags <see cref="Enum"/> type.</typeparam>

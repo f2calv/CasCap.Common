@@ -193,15 +193,13 @@ public static partial class AgentExtensions
                 ?? throw new InvalidOperationException(
                     $"Agent '{agentConfig.Name}' requires an {nameof(ProviderConfig.Endpoint)} for {nameof(AgentType.AzureOpenAI)}.");
 
-            AzureOpenAIClient azureClient;
-            if (tokenCredential is not null)
-                azureClient = new AzureOpenAIClient(endpoint, tokenCredential,
-                    new AzureOpenAIClientOptions { NetworkTimeout = Timeout.InfiniteTimeSpan });
-            else if (provider.ApiKey is not null)
-                azureClient = new AzureOpenAIClient(endpoint, new ApiKeyCredential(provider.ApiKey),
-                    new AzureOpenAIClientOptions { NetworkTimeout = Timeout.InfiniteTimeSpan });
-            else
-                throw new InvalidOperationException(
+            var azureClient = tokenCredential is not null
+                ? new AzureOpenAIClient(endpoint, tokenCredential,
+                    new AzureOpenAIClientOptions { NetworkTimeout = Timeout.InfiniteTimeSpan })
+                : provider.ApiKey is not null
+                ? new AzureOpenAIClient(endpoint, new ApiKeyCredential(provider.ApiKey),
+                    new AzureOpenAIClientOptions { NetworkTimeout = Timeout.InfiniteTimeSpan })
+                : throw new InvalidOperationException(
                     $"Agent '{agentConfig.Name}' requires either a {nameof(TokenCredential)} or {nameof(ProviderConfig.ApiKey)} for {nameof(AgentType.AzureOpenAI)}.");
 
             chatClientBuilder = azureClient
@@ -234,7 +232,7 @@ public static partial class AgentExtensions
             chatClientBuilder.UseOpenTelemetry(sourceName: otelSourceName);
         configureChatClient?.Invoke(chatClientBuilder);
 
-        IChatClient chatClient = chatClientBuilder.Build();
+        var chatClient = chatClientBuilder.Build();
 
         var instructions = ResolveInstructions(agentConfig,
             instructionsAssembly ?? typeof(AgentExtensions).Assembly, aiConfig);
@@ -264,8 +262,9 @@ public static partial class AgentExtensions
                 {
                     ChatReducer = new ToolOutputStrippingChatReducer(agentConfig.MaxMessages.Value, loggerFactory),
                 });
-            agentLogger.LogDebug("Agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
-                agentConfig.Name, agentConfig.MaxMessages.Value);
+            if (agentLogger.IsEnabled(LogLevel.Debug))
+                agentLogger.LogDebug("Agent {AgentName} configured with automatic compaction (MaxMessages={MaxMessages})",
+                    agentConfig.Name, agentConfig.MaxMessages.Value);
         }
 
         var agentBuilder = new ChatClientAgent(chatClient, agentOptions)
@@ -285,7 +284,7 @@ public static partial class AgentExtensions
 
         configureAgent?.Invoke(agentBuilder);
 
-        AIAgent agent = agentBuilder.Build();
+        var agent = agentBuilder.Build();
 
         return (chatClient, agent, instructions);
     }
@@ -326,8 +325,9 @@ public static partial class AgentExtensions
     {
         logger ??= NullLogger.Instance;
         var sw = Stopwatch.StartNew();
-        logger.LogDebug("Agent run starting for {AgentName}, model={ModelName}, endpoint={Endpoint}",
-            agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
+        if (logger.IsEnabled(LogLevel.Debug))
+            logger.LogDebug("Agent run starting for {AgentName}, model={ModelName}, endpoint={Endpoint}",
+                agentConfig.Name, provider.ModelName, provider.Endpoint.MaskEndpoint());
 
         // Establish the run scope. A caller-supplied scope wins; a sub-agent delegation will
         // already have installed a child scope; otherwise start a fresh top-level one.
@@ -390,18 +390,19 @@ public static partial class AgentExtensions
                             result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
                             break;
                         case FunctionResultContent frc:
-                            ExtractImageAttachments(frc, result, logger, activeScope);
+                            ExtractImageAttachments(frc, result, logger);
                             break;
                     }
                 }
             }
 
-            logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
-                agentConfig.Name,
-                result.Usage is not null,
-                result.Usage?.InputTokenCount,
-                result.Usage?.OutputTokenCount,
-                result.Usage?.TotalTokenCount);
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("Agent run usage for {AgentName}: hasUsage={HasUsage}, input={InputTokens}, output={OutputTokens}, total={TotalTokens}",
+                    agentConfig.Name,
+                    result.Usage is not null,
+                    result.Usage?.InputTokenCount,
+                    result.Usage?.OutputTokenCount,
+                    result.Usage?.TotalTokenCount);
 
             // Only the top-level run drains the shared scope — sub-agent runs leave their
             // attachments in place so they bubble up to the parent result.
@@ -410,13 +411,15 @@ public static partial class AgentExtensions
                 var drained = activeScope.DrainAttachments();
                 if (drained.Count > 0)
                 {
-                    logger.LogDebug("Draining {AttachmentCount} attachment(s) from sub-agent fan-out", drained.Count);
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("Draining {AttachmentCount} attachment(s) from sub-agent fan-out", drained.Count);
                     result.Attachments.AddRange(drained);
                 }
             }
 
-            logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
-                agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
+                    agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
 
             return result;
         }
@@ -430,7 +433,7 @@ public static partial class AgentExtensions
     /// Inspects a <see cref="FunctionResultContent"/> for image-bearing payloads
     /// and extracts them as <see cref="AgentRunAttachment"/> entries on the result.
     /// </summary>
-    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger, AgentRunScope scope)
+    private static void ExtractImageAttachments(FunctionResultContent frc, AgentRunResult result, ILogger logger)
     {
         if (frc.Result is not JsonElement je || je.ValueKind is not JsonValueKind.Object)
             return;
@@ -450,8 +453,9 @@ public static partial class AgentExtensions
             : null;
 
         var sizeKb = base64.Length * 3 / 4 / 1024;
-        logger.LogDebug("Extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
-            fileName ?? "(unnamed)", sizeKb);
+        if (logger.IsEnabled(LogLevel.Debug))
+            logger.LogDebug("Extracted image attachment {FileName} (~{SizeKb}KB) from tool result",
+                fileName ?? "(unnamed)", sizeKb);
 
         result.Attachments.Add(new AgentRunAttachment
         {

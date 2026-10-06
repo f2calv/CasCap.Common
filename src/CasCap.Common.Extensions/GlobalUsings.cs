@@ -1,4 +1,4 @@
-﻿global using CasCap.Common.Exceptions;
+global using CasCap.Common.Exceptions;
 global using System;
 global using System.Collections;
 global using System.Collections.Generic;

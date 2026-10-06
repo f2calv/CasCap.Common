@@ -4,11 +4,11 @@ namespace CasCap.Common.Abstractions;
 public interface INotificationGroup
 {
     /// <summary>The group identifier used when sending messages to the group.</summary>
-    string Id { get; }
+    public string Id { get; }
 
     /// <summary>The display name of the group.</summary>
-    string Name { get; }
+    public string Name { get; }
 
     /// <summary>The member identifiers (e.g. phone numbers) in the group.</summary>
-    string[] Members { get; }
+    public string[] Members { get; }
 }

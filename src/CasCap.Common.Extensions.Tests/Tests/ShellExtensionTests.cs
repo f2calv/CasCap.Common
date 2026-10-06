@@ -145,20 +145,14 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
     }
 
     [Fact, Trait("Category", "Shell")]
-    public async Task RunProcessWithStdin_NullArguments_Throws()
-    {
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            ShellExtensions.RunProcessWithStdinAsync(_host, null!, [],
-                ProcessErrorCapture.Text, TestContext.Current.CancellationToken));
-    }
+    public async Task RunProcessWithStdin_NullArguments_Throws() => await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                                                                             ShellExtensions.RunProcessWithStdinAsync(_host, null!, [],
+                                                                                 ProcessErrorCapture.Text, TestContext.Current.CancellationToken));
 
     [Fact, Trait("Category", "Shell")]
-    public async Task RunProcessWithStdin_NullStdin_Throws()
-    {
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            ShellExtensions.RunProcessWithStdinAsync(_host, [], null!,
-                ProcessErrorCapture.Text, TestContext.Current.CancellationToken));
-    }
+    public async Task RunProcessWithStdin_NullStdin_Throws() => await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                                                                         ShellExtensions.RunProcessWithStdinAsync(_host, [], null!,
+                                                                             ProcessErrorCapture.Text, TestContext.Current.CancellationToken));
 
     //The contract that makes the legacy overload obsolete: one array element is always one argument,
     //  where the string overload would split this into four. printf prints each argument on its own
@@ -178,15 +172,15 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
             .Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
         Assert.Equal(0, result.ExitCode);
-        Assert.Single(lines);
-        Assert.Equal(withSpaces, lines[0]);
+        var line = Assert.Single(lines);
+        Assert.Equal(withSpaces, line);
     }
 
     [Fact, Trait("Category", "Shell")]
     public void Bash_NullOrWhitespace_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => string.Empty.Bash());
-        Assert.Throws<ArgumentNullException>(() => "   ".Bash());
+        Assert.Throws<ArgumentNullException>(string.Empty.Bash);
+        Assert.Throws<ArgumentNullException>("   ".Bash);
     }
 
     [Fact, Trait("Category", "Shell")]
@@ -195,7 +189,7 @@ public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(
         Assert.SkipWhen(RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
             "Bash is supported on this platform, so the guard cannot be observed.");
 
-        Assert.Throws<PlatformNotSupportedException>(() => "echo hello".Bash());
+        Assert.Throws<PlatformNotSupportedException>("echo hello".Bash);
     }
 
     [Fact, Trait("Category", "Shell")]

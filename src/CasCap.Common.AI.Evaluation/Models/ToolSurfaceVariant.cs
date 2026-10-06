@@ -51,13 +51,10 @@ public sealed record ToolSurfaceVariant
     /// <param name="toolName">The model-facing tool name.</param>
     /// <param name="disposition">How the harness classifies the tool.</param>
     public bool IsOffered(string agentKey, string toolName, ToolDisposition disposition)
-    {
-        if (HiddenTools.Contains(toolName, StringComparer.OrdinalIgnoreCase))
-            return false;
-        if (disposition is ToolDisposition.Delegation || !ToolAllowLists.TryGetValue(agentKey, out var allowList))
-            return true;
-        return allowList.Contains(toolName, StringComparer.OrdinalIgnoreCase);
-    }
+        => !HiddenTools.Contains(toolName, StringComparer.OrdinalIgnoreCase)
+            && (disposition is ToolDisposition.Delegation
+                || !ToolAllowLists.TryGetValue(agentKey, out var allowList)
+                || allowList.Contains(toolName, StringComparer.OrdinalIgnoreCase));
 
     /// <summary>Returns the proposed tools for an agent.</summary>
     /// <param name="agentKey">The agent being built.</param>

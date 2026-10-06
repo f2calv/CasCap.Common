@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Serialization.Tests;
+namespace CasCap.Common.Serialization.Tests;
 
 /// <summary>Tests for MessagePack serialization extension methods.</summary>
 public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
@@ -18,7 +18,7 @@ public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         Assert.NotNull(obj2);
         Assert.Equal(obj, obj2);
         Assert.ThrowsAny<Exception>(() => new MyTestClass5().ToMessagePack());
-        Assert.ThrowsAny<Exception>(() => (Array.Empty<byte>()).FromMessagePack<MyTestClass4>());
+        Assert.ThrowsAny<Exception>(() => Array.Empty<byte>().FromMessagePack<MyTestClass4>());
     }
 
     /// <summary>A test model used to verify MessagePack serialization round-trips.</summary>
@@ -29,18 +29,15 @@ public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(tes
         public int ID { get; set; } = 1337;
 
         /// <summary>A UTC timestamp.</summary>
-        public DateTime utcNow { get; set; } = DateTime.UtcNow;
+        public DateTime UtcNow { get; set; } = DateTime.UtcNow;
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            return obj is MyTestClass4 @class &&
+        public override bool Equals(object? obj) => obj is MyTestClass4 @class &&
                    ID == @class.ID &&
-                   utcNow == @class.utcNow;
-        }
+                   UtcNow == @class.UtcNow;
 
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(ID, utcNow);
+        public override int GetHashCode() => HashCode.Combine(ID, UtcNow);
     }
 
     /// <summary>A test model with a nested object, used to verify MessagePack serialization failure cases.</summary>

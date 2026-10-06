@@ -54,8 +54,8 @@ public class AgentRunScopeTests
 
         grandchild.AddAttachment(new AgentRunAttachment { Base64Content = "abc", MimeType = "image/jpeg" });
 
-        Assert.Single(root.Attachments);
-        Assert.Equal("abc", root.Attachments[0].Base64Content);
+        var attachment = Assert.Single(root.Attachments);
+        Assert.Equal("abc", attachment.Base64Content);
     }
 
     [Fact]

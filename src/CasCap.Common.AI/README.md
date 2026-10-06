@@ -24,7 +24,6 @@ This library contains **no domain-specific MCP query services** — those live i
 | `ToolOutputStrippingChatReducer` | `IChatReducer` that strips `FunctionCallContent`/`FunctionResultContent` from the history while retaining a sliding window of recent exchanges — critical for reducing context size on edge devices |
 | `InMemorySessionStore` | Volatile in-memory `ISessionStore` backed by `ConcurrentDictionary` |
 | `DistributedCacheSessionStore` | Redis-backed `ISessionStore` wrapping `IDistributedCache` with sliding expiry |
-| `InMemoryPollTracker` | In-memory `IPollTracker` with automatic TTL-based expiry for agent-created polls |
 | `AgentTypeRegistry` | Deterministic name-to-type lookup for tool services and MCP prompt types, built once at startup by `AddAgentTypeRegistry()` |
 
 ### Abstractions
@@ -32,7 +31,6 @@ This library contains **no domain-specific MCP query services** — those live i
 | Interface | Description |
 | --- | --- |
 | `ISessionStore` | Persistence abstraction for serialised agent session state (`GetAsync`, `SetAsync`, `DeleteAsync`) |
-| `IPollTracker` | Tracks active polls created by agents and records incoming votes (`TrackPoll`, `RecordVote`, `GetPoll`, `RemovePoll`, `GetActivePolls`) |
 
 ### Extensions
 
@@ -46,7 +44,7 @@ This library contains **no domain-specific MCP query services** — those live i
 
 | Type | Description |
 | --- | --- |
-| `AIConfig` | Root configuration record (`IAppConfig`) — `Providers`, `Agents`, `McpUrl`, `InstructionsPrefix`/`Suffix`, `TimeZoneId`, `PollTtlMs`, `SessionTtlDays` |
+| `AIConfig` | Root configuration record (`IAppConfig`) — `Providers`, `Agents`, `McpUrl`, `InstructionsPrefix`/`Suffix`, `TimeZoneId`, `SessionTtlDays` |
 | `AgentConfig` | Per-agent behavioural config — `Provider`, `Instructions`/`InstructionsSource`, `MaxMessages` (compaction depth), `Tools` (tool sources), `Prompts` (prompt sources), `Enabled` |
 | `ProviderConfig` | AI provider infrastructure config — `Type` (`AgentType`), `Endpoint`, `ModelName`, `ReasoningEffort`, `ApiKey` |
 
@@ -64,8 +62,6 @@ This library contains **no domain-specific MCP query services** — those live i
 | `PromptSource` | Identifies a prompt source — in-process `Service` or remote `Endpoint` with include/exclude filters |
 | `ToolCallInfo` | Captures a single tool/function call name and arguments |
 | `McpPromptDescriptor` | Lightweight descriptor for an MCP prompt (remote or in-process) |
-| `ActivePoll` | Tracks an active poll with thread-safe vote recording and result summary |
-| `PollStatusResult` | MCP tool result summarising a poll's current vote tally (all properties carry `[Description]`) |
 | `AudioDebugArtifacts` | Captures original and transcoded audio bytes for debug messages |
 | `StateBagEntry` | Summary of a single `AgentSessionStateBag` entry (key, size, message counts) |
 
@@ -115,10 +111,6 @@ graph TD
 
     subgraph Compaction["Chat History Compaction"]
         REDUCER["ToolOutputStrippingChatReducer<br/>(IChatReducer)"]:::service
-    end
-
-    subgraph Polling["Poll Tracking"]
-        POLL["InMemoryPollTracker"]:::service
     end
 
     AE --> AgentCreation
@@ -211,7 +203,6 @@ Each agent uses its own `AgentSession` keyed by `AgentConfig.Name`. Sub-agents i
 | `CasCap.Common.Abstractions` | Shared abstractions and interfaces |
 | `CasCap.Common.Caching` | Redis caching abstractions |
 | `CasCap.Common.Extensions` | Shared extension helpers |
-| `CasCap.Common.Logging.Serilog` | Serilog structured logging configuration |
 
 ## License
 

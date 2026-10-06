@@ -57,15 +57,12 @@ public static class HttpClientBuilderResilienceExtensions
                 var logger = args.Context.Properties.GetValue(
                     new ResiliencePropertyKey<ILogger>("logger"), null!);
 
-                if (logger is not null)
-                {
-                    logger.LogWarning(
+                logger?.LogWarning(
                         "{ClassName} resilience retry attempt {AttemptNumber} after {Delay}ms, outcome: {Outcome}",
                         callerName,
                         args.AttemptNumber,
                         args.RetryDelay.TotalMilliseconds,
                         args.Outcome.Exception?.Message ?? args.Outcome.Result?.StatusCode.ToString());
-                }
 
                 return ValueTask.CompletedTask;
             };
@@ -82,16 +79,15 @@ public static class HttpClientBuilderResilienceExtensions
     public static bool IsReplaySafe(RetryPredicateArguments<HttpResponseMessage> args)
     {
         var method = args.Context.GetRequestMessage()?.Method;
-        if (method is null || IsIdempotent(method))
-            return true;
-
-        return args.Outcome.Exception is HttpRequestException
-        {
-            HttpRequestError: HttpRequestError.ConnectionError
-                or HttpRequestError.NameResolutionError
-                or HttpRequestError.SecureConnectionError
-                or HttpRequestError.ProxyTunnelError
-        };
+        return method is null
+            || IsIdempotent(method)
+            || args.Outcome.Exception is HttpRequestException
+            {
+                HttpRequestError: HttpRequestError.ConnectionError
+                    or HttpRequestError.NameResolutionError
+                    or HttpRequestError.SecureConnectionError
+                    or HttpRequestError.ProxyTunnelError
+            };
     }
 
     private static bool IsIdempotent(HttpMethod method) =>

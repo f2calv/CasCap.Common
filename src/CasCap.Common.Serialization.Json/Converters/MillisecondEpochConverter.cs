@@ -1,4 +1,4 @@
-﻿#if NET8_0_OR_GREATER
+#if NET8_0_OR_GREATER
 namespace CasCap.Common.Converters;
 
 /// <summary>
@@ -9,12 +9,11 @@ public sealed class MillisecondEpochConverter : JsonConverter<DateTime?>
 {
     /// <inheritdoc/>
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType == JsonTokenType.Null) return null;
-        if (reader.TokenType == JsonTokenType.Number)
-            return reader.TryGetInt64(out var n) ? n.FromUnixTimeMs() : null;
-        return long.TryParse(reader.GetString(), out var t) ? t.FromUnixTimeMs() : null;
-    }
+        => reader.TokenType == JsonTokenType.Null
+            ? null
+            : reader.TokenType == JsonTokenType.Number
+            ? reader.TryGetInt64(out var n) ? n.FromUnixTimeMs() : null
+            : long.TryParse(reader.GetString(), out var t) ? t.FromUnixTimeMs() : null;
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, DateTime? dateTimeValue, JsonSerializerOptions options)

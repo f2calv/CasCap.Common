@@ -1,7 +1,7 @@
-namespace CasCap.Common.Net.Tests;
 
 using CasCap.Common.Services;
 
+namespace CasCap.Common.Net.Tests;
 /// <summary>Concrete subclass of <see cref="HttpClientBase"/> that exposes the protected methods for testing.</summary>
 public class TestHttpClient : HttpClientBase
 {

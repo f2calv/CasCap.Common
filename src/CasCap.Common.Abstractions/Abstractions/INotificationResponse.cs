@@ -4,5 +4,5 @@ namespace CasCap.Common.Abstractions;
 public interface INotificationResponse
 {
     /// <summary>The server-assigned timestamp for the sent notification.</summary>
-    string Timestamp { get; }
+    public string Timestamp { get; }
 }

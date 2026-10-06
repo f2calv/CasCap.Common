@@ -60,8 +60,8 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         request.Headers.AddOrOverwrite("X-Custom", "value1");
         request.Headers.AddOrOverwrite("X-Custom", "value2");
         var values = request.Headers.GetValues("X-Custom").ToList();
-        Assert.Single(values);
-        Assert.Equal("value2", values[0]);
+        var value = Assert.Single(values);
+        Assert.Equal("value2", value);
     }
 
     /// <summary>Verifies that AddOrOverwrite adds multiple headers from a list.</summary>
@@ -130,8 +130,8 @@ public class NetExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(te
         var headers = new Dictionary<string, string> { ["X-Custom"] = "new" };
         request.Headers.AddOrOverwrite(headers);
         var values = request.Headers.GetValues("X-Custom").ToList();
-        Assert.Single(values);
-        Assert.Equal("new", values[0]);
+        var value = Assert.Single(values);
+        Assert.Equal("new", value);
     }
 
     /// <summary>Verifies that TryGetValue returns the first value of an existing header.</summary>

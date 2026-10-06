@@ -91,7 +91,7 @@ public class AgentEvaluationToolTests
         var recorder = new EvaluationRecorder();
         var tool = CreateFixtureTool("list_orders", recorder, ToolSurfaceVariant.Baseline, responder: null);
 
-        var result = await tool.InvokeAsync(new AIFunctionArguments(), TestContext.Current.CancellationToken);
+        var result = await tool.InvokeAsync([], TestContext.Current.CancellationToken);
 
         Assert.True(Assert.IsType<JsonElement>(result).TryGetProperty("error", out _));
         Assert.False(Assert.Single(recorder.ToolCalls).FixtureFound);

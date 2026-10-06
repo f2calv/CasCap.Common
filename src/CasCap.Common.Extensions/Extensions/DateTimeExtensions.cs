@@ -28,7 +28,7 @@ public static class DateTimeExtensions
         //TODO: plug in known holidays dates somehow?
         var days = dtEnd.Date.Subtract(dtStart).Days;
         var missingDates = Enumerable.Range(1, days).Select(p => dtStart.AddDays(p)).ToArray();
-        return missingDates.ToList();
+        return [.. missingDates];
     }
 
     /// <summary>Returns the number of seconds remaining until midnight (UTC).</summary>
@@ -90,7 +90,7 @@ public static class DateTimeExtensions
     public static long ToUnixTimeMs(this DateTime dt) => dt.ToUnixTime() * 1000;
 
     /// <summary>Determines whether the specified date falls on a weekend.</summary>
-    public static bool IsWeekend(this DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    public static bool IsWeekend(this DateTime date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
 
     /// <summary>Determines whether the specified date falls on a weekday.</summary>
     public static bool IsWeekday(this DateTime date) => !date.IsWeekend();
@@ -99,10 +99,7 @@ public static class DateTimeExtensions
     public static DateTime ToUtc(this DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
     /// <summary>Formats a <see cref="DateTime"/> as a time string if today, otherwise as a date string.</summary>
-    public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss")
-    {
-        return thisDateTime.ToString(thisDateTime.Date == DateTime.UtcNow.Date ? timeFormat : dateFormat);
-    }
+    public static string ToDateOrTime(this DateTime thisDateTime, string dateFormat = "yyyy-MM-dd", string timeFormat = "HH:mm:ss") => thisDateTime.ToString(thisDateTime.Date == DateTime.UtcNow.Date ? timeFormat : dateFormat);
 
     /// <summary>Returns the first day of the week containing the specified date.</summary>
     public static DateTime FirstDayOfWeek(this DateTime dt, DayOfWeek startOfWeek)
@@ -141,7 +138,7 @@ public static class DateTimeExtensions
 
     /// <summary>Returns the absolute difference in months between two dates.</summary>
     public static int MonthDifference(this DateTime lValue, DateTime rValue)
-        => Math.Abs(lValue.Month - rValue.Month + 12 * (lValue.Year - rValue.Year));
+        => Math.Abs(lValue.Month - rValue.Month + (12 * (lValue.Year - rValue.Year)));
 
     /// <summary>
     /// Converts a nullable <see cref="DateTime"/> to its string representation using current culture info.
@@ -158,23 +155,12 @@ public static class DateTimeExtensions
     /// <summary>
     /// Converts a nullable <see cref="DateTime"/> to its string representation using the specified provider.
     /// </summary>
-    public static string ToString(this DateTime? date, IFormatProvider provider)
-    {
-        if (date.HasValue)
-            return date.Value.ToString(provider);
-        return string.Empty;
-    }
+    public static string ToString(this DateTime? date, IFormatProvider provider) => date.HasValue ? date.Value.ToString(provider) : string.Empty;
 
     /// <summary>
     /// Converts a nullable <see cref="DateTime"/> to its string representation using the specified format and provider.
     /// </summary>
-    public static string ToString(this DateTime? date, string format, IFormatProvider provider)
-    {
-        if (date.HasValue)
-            return date.Value.ToString(format, provider);
-        else
-            return string.Empty;
-    }
+    public static string ToString(this DateTime? date, string format, IFormatProvider provider) => date.HasValue ? date.Value.ToString(format, provider) : string.Empty;
 
     /// <summary>Returns a human-readable relative date string (e.g. "2 days ago").</summary>
     public static string ToRelativeDateString(this DateTime date) => GetRelativeDateValue(date, DateTime.UtcNow);
@@ -193,7 +179,7 @@ public static class DateTimeExtensions
 
     private static string GetRelativeDateValue(DateTime date, DateTime comparedTo)
     {
-        TimeSpan ts = comparedTo.Subtract(date);
+        var ts = comparedTo.Subtract(date);
         if (ts.TotalDays >= 365)
             return string.Concat("on ", date.ToString("MMMM d, yyyy"));
         if (ts.TotalDays >= 7)
@@ -208,10 +194,7 @@ public static class DateTimeExtensions
             return "more than an hour ago";
         else if (ts.TotalMinutes >= 5)
             return string.Format("{0:N0} minutes ago", ts.TotalMinutes);
-        if (ts.TotalMinutes >= 1)
-            return "a few minutes ago";
-        else
-            return "less than a minute ago";
+        return ts.TotalMinutes >= 1 ? "a few minutes ago" : "less than a minute ago";
     }
 
     #endregion

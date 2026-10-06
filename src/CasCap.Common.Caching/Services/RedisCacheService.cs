@@ -7,7 +7,6 @@ public sealed class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;
-    private readonly IConnectionMultiplexer _connectionMultiplexer;
 #if NET8_0_OR_GREATER
     private readonly TimeProvider _timeProvider;
 #endif
@@ -22,7 +21,7 @@ public sealed class RedisCacheService : IRemoteCache
     {
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
-        _connectionMultiplexer = connectionMultiplexer;
+        Connection = connectionMultiplexer;
 #if NET8_0_OR_GREATER
         _timeProvider = timeProvider;
 #endif
@@ -33,7 +32,7 @@ public sealed class RedisCacheService : IRemoteCache
     }
 
     /// <inheritdoc/>
-    public IConnectionMultiplexer Connection => _connectionMultiplexer;
+    public IConnectionMultiplexer Connection { get; }
 
     /// <inheritdoc/>
     public IDatabase Db => Connection.GetDatabase(_cachingConfig.RemoteCache.DatabaseId);
@@ -42,7 +41,7 @@ public sealed class RedisCacheService : IRemoteCache
     public ISubscriber Subscriber => Connection.GetSubscriber();
 
     /// <inheritdoc/>
-    public IServer Server => Connection.GetServer(_connectionMultiplexer.GetEndPoints()[0]);
+    public IServer Server => Connection.GetServer(Connection.GetEndPoints()[0]);
 
     private string FormatKey(string key) => _cachingConfig.FormatCacheKey(key);
 
@@ -56,26 +55,26 @@ public sealed class RedisCacheService : IRemoteCache
 
     /// <inheritdoc/>
     public string? Get(string key, CommandFlags flags = CommandFlags.None)
-        => _Get(FormatKey(key), flags);
+        => GetCore(FormatKey(key), flags);
 
     /// <inheritdoc/>
     public byte[]? GetBytes(string key, CommandFlags flags = CommandFlags.None)
-        => (byte[]?)_Get(FormatKey(key), flags);
+        => (byte[]?)GetCore(FormatKey(key), flags);
 
-    private RedisValue _Get(string key, CommandFlags flags = CommandFlags.None)
+    private RedisValue GetCore(string key, CommandFlags flags = CommandFlags.None)
         => TryGetExpiration(key, out var slidingExpiration)
             ? Db.StringGetSetExpiry(key, slidingExpiration, flags)
             : Db.StringGet(key, flags);
 
     /// <inheritdoc/>
     public async Task<string?> GetAsync(string key, CommandFlags flags = CommandFlags.None)
-        => await _GetAsync(FormatKey(key), flags).ConfigureAwait(false);
+        => await GetCoreAsync(FormatKey(key), flags).ConfigureAwait(false);
 
     /// <inheritdoc/>
     public async Task<byte[]?> GetBytesAsync(string key, CommandFlags flags = CommandFlags.None)
-        => (byte[]?)(await _GetAsync(FormatKey(key), flags).ConfigureAwait(false));
+        => (byte[]?)await GetCoreAsync(FormatKey(key), flags).ConfigureAwait(false);
 
-    private async Task<RedisValue> _GetAsync(string key, CommandFlags flags = CommandFlags.None)
+    private async Task<RedisValue> GetCoreAsync(string key, CommandFlags flags = CommandFlags.None)
         => TryGetExpiration(key, out var slidingExpiration)
             ? await Db.StringGetSetExpiryAsync(key, slidingExpiration, flags).ConfigureAwait(false)
             : await Db.StringGetAsync(key, flags).ConfigureAwait(false);
@@ -120,9 +119,7 @@ public sealed class RedisCacheService : IRemoteCache
     public ValueTask<bool> ExtendSlidingExpirationAsync(string key, CommandFlags flags = CommandFlags.FireAndForget)
     {
         key = FormatKey(key);
-        if (TryGetExpiration(key, out var slidingExpiration))
-            return new(Db.KeyExpireAsync(key, slidingExpiration, flags: flags));
-        return default;
+        return TryGetExpiration(key, out var slidingExpiration) ? new(Db.KeyExpireAsync(key, slidingExpiration, flags: flags)) : default;
     }
 
     private void UpdateExpirations(string key, ref TimeSpan? slidingExpiration, DateTimeOffset? absoluteExpiration = null)
@@ -188,8 +185,7 @@ public sealed class RedisCacheService : IRemoteCache
             o = await Db.StringGetWithExpiryAsync(key, flags).ConfigureAwait(false);
         if (o.Value.HasValue)
         {
-            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
-                nameof(RedisCacheService), typeof(T), key);
+            CacheLog.CacheLookup(_logger, nameof(RedisCacheService), "retrieved", key, typeof(T), nameof(RedisCacheService));
             if (_cachingConfig.RemoteCache.SerializationType == SerializationType.Json)
             {
                 var json = o.Value.ToString()!;
@@ -206,8 +202,7 @@ public sealed class RedisCacheService : IRemoteCache
                 tpl.expiry = o.Expiry;
         }
         else
-            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key} failed",
-                nameof(RedisCacheService), typeof(T), key);
+            CacheLog.CacheLookup(_logger, nameof(RedisCacheService), "could not retrieve", key, typeof(T), nameof(RedisCacheService));
 
         return tpl;
 
@@ -249,7 +244,7 @@ public sealed class RedisCacheService : IRemoteCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{ClassName} some failure", nameof(RedisCacheService));
+                CacheLog.LuaFailure(_logger, ex, nameof(RedisCacheService));
                 throw;
             }
 
@@ -278,9 +273,7 @@ public sealed class RedisCacheService : IRemoteCache
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
         {
-            var script = GetType().Assembly.GetManifestResourceString(resourceName);
-            if (script is null)
-                throw new GenericException($"Lua script '{resourceName}' is null or empty");
+            var script = GetType().Assembly.GetManifestResourceString(resourceName) ?? throw new GenericException($"Lua script '{resourceName}' is null or empty");
             LoadLuaScript(resourceName, script);
         }
     }
@@ -291,7 +284,7 @@ public sealed class RedisCacheService : IRemoteCache
     public LoadedLuaScript? LoadLuaScript(string scriptName, string script)
     {
         var prepared = LuaScript.Prepare(script);
-        _logger.LogTrace("{ClassName} loading Lua script '{ScriptName}'", nameof(RedisCacheService), scriptName);
+        CacheLog.LuaScriptLoading(_logger, nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);
 #if NET8_0_OR_GREATER
         if (!LuaScripts.TryAdd(scriptName, loaded))
@@ -300,8 +293,7 @@ public sealed class RedisCacheService : IRemoteCache
             LuaScripts.Add(scriptName, loaded);
         else
 #endif
-            _logger.LogWarning("{ClassName} loading Lua script '{ScriptName}' failed, duplicate name found",
-                nameof(RedisCacheService), scriptName);
+            CacheLog.DuplicateLuaScript(_logger, nameof(RedisCacheService), scriptName);
 
         return loaded;
     }

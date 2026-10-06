@@ -40,7 +40,7 @@ public static class MessagePackExtensions
     {
         try
         {
-            T obj = MessagePackSerializer.Deserialize<T>(bytes);
+            var obj = MessagePackSerializer.Deserialize<T>(bytes);
             return obj;
         }
         catch (Exception ex)

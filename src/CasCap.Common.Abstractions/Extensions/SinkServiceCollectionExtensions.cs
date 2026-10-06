@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// Extension methods for registering <see cref="IEventSink{T}"/> implementations
 /// based on <see cref="SinkTypeAttribute"/> and <see cref="SinkConfig"/> configuration.
 /// </summary>
-public static class SinkServiceCollectionExtensions
+public static partial class SinkServiceCollectionExtensions
 {
     /// <summary>
     /// Well-known keyed-service key for the primary event sink — the sink whose query
@@ -65,8 +65,8 @@ public static class SinkServiceCollectionExtensions
             var attr = sinkType.GetCustomAttribute<SinkTypeAttribute>()!;
             if (!sinkOptions.AvailableSinks.TryGetValue(attr.SinkType, out var sinkConfig) || !sinkConfig.Enabled)
             {
-                logger?.LogDebug("{ClassName} {EventType} sink {SinkType} ({SinkClass}) skipped (disabled)",
-                    nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sinkType.Name);
+                if (logger is not null)
+                    LogSinkSkipped(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sinkType.Name);
                 continue;
             }
 
@@ -95,8 +95,8 @@ public static class SinkServiceCollectionExtensions
 
                         registeredSinks.Remove(replacedType);
                         descriptorsBySink.Remove(replacedType);
-                        logger?.LogInformation("{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})",
-                            nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, replacedType.Name, iface.Name);
+                        if (logger is not null)
+                            LogSinkReplaced(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, replacedType.Name, iface.Name);
                     }
 
                     // Remove sinks registered BEFORE this call (e.g. from a different assembly
@@ -115,8 +115,8 @@ public static class SinkServiceCollectionExtensions
                     {
                         services.Remove(sd);
                         registeredSinks.Remove(sd.ImplementationType!);
-                        logger?.LogInformation("{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})",
-                            nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sd.ImplementationType!.Name, iface.Name);
+                        if (logger is not null)
+                            LogSinkReplaced(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sd.ImplementationType!.Name, iface.Name);
                     }
                 }
             }
@@ -147,21 +147,47 @@ public static class SinkServiceCollectionExtensions
                     var ifaceDesc = ServiceDescriptor.Singleton(iface, sp => sp.GetRequiredKeyedService<IEventSink<TEvent>>(attr.SinkType));
                     services.Add(ifaceDesc);
                     newDescriptors.Add(ifaceDesc);
-                    logger?.LogInformation("{ClassName} {EventType} sink {SinkType} registered as {Interface}",
-                        nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, iface.Name);
+                    if (logger is not null)
+                        LogSinkInterfaceRegistered(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, iface.Name);
                 }
             }
 
             descriptorsBySink[sinkType] = newDescriptors;
 
-            logger?.LogInformation("{ClassName} {EventType} sink {SinkType} ({SinkClass}) registered",
-                nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sinkType.Name);
+            if (logger is not null)
+                LogSinkRegistered(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, attr.SinkType, sinkType.Name);
         }
 
-        logger?.LogInformation("{ClassName} {EventType} sinks registered: {Count} of {Total} available",
-            nameof(SinkServiceCollectionExtensions), eventTypeName, registeredSinks.Count, sinkOptions.AvailableSinks.Count);
+        if (logger is not null)
+            LogSinksRegistered(logger, nameof(SinkServiceCollectionExtensions), eventTypeName, registeredSinks.Count, sinkOptions.AvailableSinks.Count);
 
         return registeredSinks;
     }
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {EventType} sink {SinkType} ({SinkClass}) skipped (disabled)")]
+    private static partial void LogSinkSkipped(ILogger logger, string className, string eventType, string sinkType, string sinkClass);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})")]
+    private static partial void LogSinkReplaced(
+        ILogger logger,
+        string className,
+        string eventType,
+        string sinkType,
+        string replacedSink,
+        string @interface);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} registered as {Interface}")]
+    private static partial void LogSinkInterfaceRegistered(
+        ILogger logger,
+        string className,
+        string eventType,
+        string sinkType,
+        string @interface);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} ({SinkClass}) registered")]
+    private static partial void LogSinkRegistered(ILogger logger, string className, string eventType, string sinkType, string sinkClass);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sinks registered: {Count} of {Total} available")]
+    private static partial void LogSinksRegistered(ILogger logger, string className, string eventType, int count, int total);
 }
 #endif

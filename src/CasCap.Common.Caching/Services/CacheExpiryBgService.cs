@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// Background service that runs <see cref="LocalCacheExpiryService"/> and <see cref="RemoteCacheExpiryService"/> concurrently.
@@ -7,7 +7,7 @@ public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger, I
     LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : BackgroundService
 {
     /// <inheritdoc/>
-    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
         var config = cachingConfig.Value;
@@ -20,13 +20,13 @@ public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger, I
             tasks.Add(remoteCacheExpirySvc.ExecuteAsync(stoppingToken));
         if (tasks.Count == 0)
         {
-            logger.LogInformation("{ClassName} exiting immediately, all expiry sub-services are disabled", nameof(CacheExpiryBgService));
+            CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "exiting immediately, all expiry sub-services are disabled");
             return;
         }
-        logger.LogInformation("{ClassName} starting", nameof(CacheExpiryBgService));
+        CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "starting");
         // await-await-WhenAny propagates the first faulted task immediately so the
         // service crashes and the pod restarts rather than running in a degraded state.
         await await Task.WhenAny(tasks).ConfigureAwait(false);
-        logger.LogInformation("{ClassName} exiting", nameof(CacheExpiryBgService));
+        CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "exiting");
     }
 }

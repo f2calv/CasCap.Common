@@ -24,8 +24,10 @@ public static partial class AgentExtensions
     {
         var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
         var tools = (await mcpClient.ListToolsAsync().ConfigureAwait(false)).ToList();
+        var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var tool in tools)
-            (logger ?? NullLogger.Instance).LogDebug("Discovered remote MCP tool {Name} ({Description})", tool.Name, tool.Description);
+            if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                effectiveLogger.LogDebug("Discovered remote MCP tool {Name} ({Description})", tool.Name, tool.Description);
         return (mcpClient, tools);
     }
 
@@ -47,8 +49,10 @@ public static partial class AgentExtensions
     {
         var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
         var prompts = (await mcpClient.ListPromptsAsync().ConfigureAwait(false)).ToList();
+        var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var prompt in prompts)
-            (logger ?? NullLogger.Instance).LogDebug("Discovered remote MCP prompt {Name} ({Description})", prompt.Name, prompt.Description);
+            if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                effectiveLogger.LogDebug("Discovered remote MCP prompt {Name} ({Description})", prompt.Name, prompt.Description);
         return (mcpClient, prompts);
     }
 
@@ -118,8 +122,10 @@ public static partial class AgentExtensions
                     Parameters = parameters,
                 });
 
-                (logger ?? NullLogger.Instance).LogDebug("Discovered in-process MCP prompt {Name} ({Description})",
-                    method.Name, description);
+                var effectiveLogger = logger ?? NullLogger.Instance;
+                if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                    effectiveLogger.LogDebug("Discovered in-process MCP prompt {Name} ({Description})",
+                        method.Name, description);
             }
 
             prompts.AddRange(FilterPrompts(sourcePrompts, source, isDevelopment, logger));
@@ -136,19 +142,20 @@ public static partial class AgentExtensions
     {
         if (registry is not null)
         {
-            if (registry.TryGetPromptType(typeName, out var registered))
-                return registered;
-
-            throw new InvalidOperationException(
+            return registry.TryGetPromptType(typeName, out var registered)
+                ? registered
+                : throw new InvalidOperationException(
                 $"Prompt type '{typeName}' is not registered. Known prompt types: "
                 + $"{(registry.PromptTypeNames.Count == 0 ? "(none)" : string.Join(", ", registry.PromptTypeNames.Order()))}. "
                 + "Pass the declaring assembly to AddAgentTypeRegistry().");
         }
 
-        (logger ?? NullLogger.Instance).LogWarning(
-            "No {RegistryType} registered — falling back to scanning every loaded assembly for prompt type '{TypeName}'. "
-            + "Call services.AddAgentTypeRegistry(assembly) to make resolution deterministic.",
-            nameof(AgentTypeRegistry), typeName);
+        var effectiveLogger = logger ?? NullLogger.Instance;
+        if (effectiveLogger.IsEnabled(LogLevel.Warning))
+            effectiveLogger.LogWarning(
+                "No {RegistryType} registered — falling back to scanning every loaded assembly for prompt type '{TypeName}'. "
+                + "Call services.AddAgentTypeRegistry(assembly) to make resolution deterministic.",
+                nameof(AgentTypeRegistry), typeName);
 
         return ScanForType(typeName, "Prompt",
             t => t.GetCustomAttribute<McpServerPromptTypeAttribute>() is not null);
@@ -178,7 +185,7 @@ public static partial class AgentExtensions
             foreach (var name in source.IncludePrompts)
                 if (!availableNames.Contains(name))
                     misconfigured.Add($"included prompt '{name}' not found");
-            promptList = promptList.Where(p => source.IncludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            promptList = [.. promptList.Where(p => source.IncludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
         if (source.ExcludePrompts.Length > 0)
@@ -186,13 +193,15 @@ public static partial class AgentExtensions
             foreach (var name in source.ExcludePrompts)
                 if (!availableNames.Contains(name))
                     misconfigured.Add($"excluded prompt '{name}' not found");
-            promptList = promptList.Where(p => !source.ExcludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            promptList = [.. promptList.Where(p => !source.ExcludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
         ReportMisconfigured(misconfigured, "prompts", isDevelopment, logger);
 
+        var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var prompt in promptList)
-            (logger ?? NullLogger.Instance).LogDebug("Enabled prompt {PromptName}", prompt.Name);
+            if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                effectiveLogger.LogDebug("Enabled prompt {PromptName}", prompt.Name);
 
         return promptList;
     }
@@ -204,15 +213,15 @@ public static partial class AgentExtensions
     /// <param name="mcpPrompts">The remote prompts returned by <c>ListPromptsAsync</c>.</param>
     /// <returns>A list of <see cref="McpPromptDescriptor"/> mapped from the remote prompts.</returns>
     public static List<McpPromptDescriptor> ToPromptDescriptors(this IEnumerable<McpClientPrompt> mcpPrompts) =>
-        mcpPrompts.Select(p => new McpPromptDescriptor
+        [.. mcpPrompts.Select(p => new McpPromptDescriptor
         {
             Name = p.Name,
             Description = p.Description,
-            Parameters = (p.ProtocolPrompt.Arguments ?? []).Select(a => new McpPromptDescriptor.Parameter
+            Parameters = [.. (p.ProtocolPrompt.Arguments ?? []).Select(a => new McpPromptDescriptor.Parameter
             {
                 Name = a.Name,
                 Description = a.Description,
                 Required = a.Required ?? false,
-            }).ToList(),
-        }).ToList();
+            })],
+        })];
 }

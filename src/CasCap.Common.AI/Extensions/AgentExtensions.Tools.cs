@@ -41,7 +41,7 @@ public static partial class AgentExtensions
             .Where(m => m.GetCustomAttribute<McpServerToolAttribute>() is not null);
 
         // Resolve eagerly unless deferred resolution is requested (e.g. to break circular singleton chains).
-        object? target = deferResolution ? null : serviceProvider.GetRequiredService(serviceType);
+        var target = deferResolution ? null : serviceProvider.GetRequiredService(serviceType);
 
         foreach (var method in methods)
         {
@@ -53,7 +53,7 @@ public static partial class AgentExtensions
             };
 
             var aiFunction = deferResolution
-                ? AIFunctionFactory.Create(method, (AIFunctionArguments _) => serviceProvider.GetRequiredService(serviceType), options)
+                ? AIFunctionFactory.Create(method, _ => serviceProvider.GetRequiredService(serviceType), options)
                 : AIFunctionFactory.Create(method, target, options);
 
             tools.Add(aiFunction);
@@ -142,7 +142,9 @@ public static partial class AgentExtensions
 
             if (!targetAgentConfig.Enabled)
             {
-                (logger ?? NullLogger.Instance).LogDebug("Skipping disabled sub-agent {AgentKey}", source.Agent);
+                var effectiveLogger = logger ?? NullLogger.Instance;
+                if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                    effectiveLogger.LogDebug("Skipping disabled sub-agent {AgentKey}", source.Agent);
                 continue;
             }
 
@@ -165,10 +167,9 @@ public static partial class AgentExtensions
     {
         if (registry is not null)
         {
-            if (registry.TryGetToolType(typeName, out var registered))
-                return registered;
-
-            throw new InvalidOperationException(
+            return registry.TryGetToolType(typeName, out var registered)
+                ? registered
+                : throw new InvalidOperationException(
                 $"Tool service type '{typeName}' is not registered. Known tool services: "
                 + $"{(registry.ToolTypeNames.Count == 0 ? "(none)" : string.Join(", ", registry.ToolTypeNames.Order()))}. "
                 + "Ensure the feature that registers this service runs before AddAgentTypeRegistry().");
@@ -273,8 +274,9 @@ public static partial class AgentExtensions
             var parentScope = GetCurrentScope() ?? new AgentRunScope();
             var subScope = parentScope.ForSubAgent();
             var depth = subScope.Depth;
-            logger.LogDebug("Delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment}): {Task}",
-                agentKey, depth, forwardAttachment, task);
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("Delegating to sub-agent {AgentKey} (depth={NestingDepth}, forwardAttachment={ForwardAttachment})",
+                    agentKey, depth, forwardAttachment);
 
             // Notify the host that a delegation is starting (e.g. status message / reaction swap).
             if (parentScope.OnDelegation is { } onDelegation)
@@ -300,17 +302,22 @@ public static partial class AgentExtensions
                 // payload as audio regardless of the transport-level MIME label.
                 if (!mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                 {
-                    logger.LogDebug("Overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
-                        mimeType, agentKey);
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("Overriding MIME type {OriginalMimeType} → image/png for OllamaSharp transport to {AgentKey}",
+                            mimeType, agentKey);
                     mimeType = "image/png";
                 }
 
-                logger.LogDebug("Forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
-                    binaryContent.Length, mimeType, agentKey);
+                if (logger.IsEnabled(LogLevel.Debug))
+                    logger.LogDebug("Forwarding {Size} byte attachment ({MimeType}) to sub-agent {AgentKey}",
+                        binaryContent.Length, mimeType, agentKey);
             }
             else if (forwardAttachment)
-                logger.LogWarning("forwardAttachment=true but no ambient binary content available for {AgentKey}",
-                    agentKey);
+            {
+                if (logger.IsEnabled(LogLevel.Warning))
+                    logger.LogWarning("forwardAttachment=true but no ambient binary content available for {AgentKey}",
+                        agentKey);
+            }
 
             var message = BuildChatMessage(task, binaryContent: binaryContent, mimeType: mimeType);
             var resolvedInstructions = ResolveInstructions(agentConfig, instructionsAssembly, aiConfig);
@@ -318,8 +325,9 @@ public static partial class AgentExtensions
             var result = await agent.RunAnalysisAsync(providerConfig, agentConfig, message, chatOptions,
                 cancellationToken: cancellationToken, logger: logger, scope: subScope).ConfigureAwait(false);
 
-            logger.LogInformation("Sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
-                agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Sub-agent {AgentKey} completed in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}",
+                    agentKey, result.Elapsed, result.ToolCallCount, result.Attachments.Count);
 
             // Notify the host that this delegation finished (e.g. record debug stats for the step).
             if (parentScope.OnCompletion is { } onCompletion)
@@ -328,8 +336,9 @@ public static partial class AgentExtensions
             // Bubble any image attachments up to the shared scope so the top-level run drains them.
             if (result.Attachments.Count > 0)
             {
-                logger.LogDebug("Bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
-                    result.Attachments.Count, agentKey);
+                if (logger.IsEnabled(LogLevel.Debug))
+                    logger.LogDebug("Bubbling {AttachmentCount} attachment(s) from sub-agent {AgentKey} to parent",
+                        result.Attachments.Count, agentKey);
                 foreach (var attachment in result.Attachments)
                     subScope.AddAttachment(attachment);
             }
@@ -368,7 +377,7 @@ public static partial class AgentExtensions
             foreach (var name in source.IncludeTools)
                 if (!availableNames.Contains(name))
                     misconfigured.Add($"included tool '{name}' not found");
-            toolList = toolList.Where(t => source.IncludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            toolList = [.. toolList.Where(t => source.IncludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
         if (source.ExcludeTools.Length > 0)
@@ -376,13 +385,15 @@ public static partial class AgentExtensions
             foreach (var name in source.ExcludeTools)
                 if (!availableNames.Contains(name))
                     misconfigured.Add($"excluded tool '{name}' not found");
-            toolList = toolList.Where(t => !source.ExcludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            toolList = [.. toolList.Where(t => !source.ExcludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
         ReportMisconfigured(misconfigured, "tools", isDevelopment, logger);
 
+        var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var tool in toolList)
-            (logger ?? NullLogger.Instance).LogDebug("Enabled tool {ToolName}", tool.Name);
+            if (effectiveLogger.IsEnabled(LogLevel.Debug))
+                effectiveLogger.LogDebug("Enabled tool {ToolName}", tool.Name);
 
         return toolList;
     }
@@ -399,7 +410,9 @@ public static partial class AgentExtensions
         if (isDevelopment)
             throw new InvalidOperationException(message);
 
-        (logger ?? NullLogger.Instance).LogWarning("Misconfigured {Category}: {Details}",
-            category, string.Join("; ", misconfigured));
+        var effectiveLogger = logger ?? NullLogger.Instance;
+        if (effectiveLogger.IsEnabled(LogLevel.Warning))
+            effectiveLogger.LogWarning("Misconfigured {Category}: {Details}",
+                category, string.Join("; ", misconfigured));
     }
 }

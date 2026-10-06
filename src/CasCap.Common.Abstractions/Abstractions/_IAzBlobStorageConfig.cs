@@ -12,11 +12,11 @@ public interface IAzBlobStorageConfig
     /// (e.g. <c>https://account.blob.core.windows.net</c>).
     /// Otherwise it is used as a full connection string that already contains authentication details.
     /// </remarks>
-    string AzureBlobStorageConnectionString { get; }
+    public string AzureBlobStorageConnectionString { get; }
 
     /// <summary>Azure Blob Storage container name.</summary>
-    string AzureBlobStorageContainerName { get; }
+    public string AzureBlobStorageContainerName { get; }
 
     /// <summary>Kubernetes health check probe type for the Azure Blob Storage dependency.</summary>
-    KubernetesProbeTypes HealthCheckAzureBlobStorage { get; }
+    public KubernetesProbeTypes HealthCheckAzureBlobStorage { get; }
 }

@@ -4,12 +4,12 @@ namespace CasCap.Common.Diagnostics.HealthChecks.Abstractions;
 public interface IHealthCheckConfig
 {
     /// <summary>The health check endpoint URI to probe.</summary>
-    string HealthCheckUri { get; }
+    public string HealthCheckUri { get; }
 
     /// <summary>The HTTP status codes considered healthy. Defaults to <c>[200]</c>.</summary>
 #if NETSTANDARD2_0
-    IReadOnlyList<int> HealthCheckExpectedHttpStatusCodes { get; }
+    public IReadOnlyList<int> HealthCheckExpectedHttpStatusCodes { get; }
 #else
-    IReadOnlyList<int> HealthCheckExpectedHttpStatusCodes => [200];
+    public IReadOnlyList<int> HealthCheckExpectedHttpStatusCodes => [200];
 #endif
 }

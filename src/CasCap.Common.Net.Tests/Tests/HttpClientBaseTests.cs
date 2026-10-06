@@ -1,9 +1,9 @@
-namespace CasCap.Common.Net.Tests;
 
 using CasCap.Common.Services;
 using System.Text;
 using System.Text.Json;
 
+namespace CasCap.Common.Net.Tests;
 /// <summary>Tests for <see cref="HttpClientBase"/> protected HTTP methods.</summary>
 public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
@@ -52,10 +52,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_NullBody_SendsEmptyJsonObject()
     {
         string? capturedBody = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            capturedBody = await req.Content!.ReadAsStringAsync();
-        }, new TestPayload { Id = 0, Name = "empty" });
+        var handler = MockHandler.WithCapture(async req => capturedBody = await req.Content!.ReadAsStringAsync(), new TestPayload { Id = 0, Name = "empty" });
         var client = CreateClient(handler);
 
         var (result, _) = await client.TestPostJsonAsync<TestPayload, ErrorPayload>("/api/test", null, cancellationToken: TestContext.Current.CancellationToken);
@@ -69,10 +66,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            headerValue = req.Headers.GetValues("X-Custom").FirstOrDefault();
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => headerValue = req.Headers.GetValues("X-Custom").FirstOrDefault(), new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Custom", "myvalue") };
@@ -86,10 +80,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostJson_FullUrl_OverridesBaseAddress()
     {
         Uri? capturedUri = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            capturedUri = req.RequestUri;
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => capturedUri = req.RequestUri, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         await client.TestPostJsonAsync<TestPayload, ErrorPayload>("http://other-host/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
@@ -106,11 +97,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             new TestPayload { Id = 1, Name = "test" },
             ("X-Response-Id", "abc"));
         var client = CreateClient(handler);
+        var (_, _, statusCode, responseHeaders) = await client.TestPostJson<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
 
-        var res = await client.TestPostJson<TestPayload, ErrorPayload>("/api/test", new { Id = 1 }, cancellationToken: TestContext.Current.CancellationToken);
-
-        Assert.Equal(HttpStatusCode.OK, res.statusCode);
-        Assert.Equal("abc", res.responseHeaders.GetValues("X-Response-Id").First());
+        Assert.Equal(HttpStatusCode.OK, statusCode);
+        Assert.Equal("abc", responseHeaders.GetValues("X-Response-Id").First());
     }
 
     /// <summary>Verifies that PostJson throws <see cref="OperationCanceledException"/> when the request times out.</summary>
@@ -202,10 +192,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostBytes_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            headerValue = req.Headers.GetValues("X-Upload-Id").FirstOrDefault();
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => headerValue = req.Headers.GetValues("X-Upload-Id").FirstOrDefault(), new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("X-Upload-Id", "upload-123") };
@@ -219,10 +206,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task PostBytes_SetsContentType()
     {
         string? contentType = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            contentType = req.Content!.Headers.ContentType?.MediaType;
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => contentType = req.Content!.Headers.ContentType?.MediaType, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         await client.TestPostBytesAsync<TestPayload, ErrorPayload>("/api/upload", [0x01], mediaType: "image/png", cancellationToken: TestContext.Current.CancellationToken);
@@ -280,10 +264,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task GetAsync_WithHeaders_SendsHeaders()
     {
         string? headerValue = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            headerValue = req.Headers.GetValues("Authorization").FirstOrDefault();
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => headerValue = req.Headers.GetValues("Authorization").FirstOrDefault(), new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         var headers = new List<(string name, string value)> { ("Authorization", "Bearer token123") };
@@ -300,11 +281,10 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
             new TestPayload { Id = 1, Name = "test" },
             ("X-Total-Count", "42"));
         var client = CreateClient(handler);
+        var (_, _, statusCode, responseHeaders) = await client.TestGet<TestPayload, ErrorPayload>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
 
-        var res = await client.TestGet<TestPayload, ErrorPayload>("/api/data", cancellationToken: TestContext.Current.CancellationToken);
-
-        Assert.Equal(HttpStatusCode.OK, res.statusCode);
-        Assert.Equal("42", res.responseHeaders.GetValues("X-Total-Count").First());
+        Assert.Equal(HttpStatusCode.OK, statusCode);
+        Assert.Equal("42", responseHeaders.GetValues("X-Total-Count").First());
     }
 
     /// <summary>Verifies that a full URL in GetAsync overrides the client base address.</summary>
@@ -312,10 +292,7 @@ public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(
     public async Task GetAsync_FullUrl_OverridesBaseAddress()
     {
         Uri? capturedUri = null;
-        var handler = MockHandler.WithCapture(async req =>
-        {
-            capturedUri = req.RequestUri;
-        }, new TestPayload { Id = 1, Name = "test" });
+        var handler = MockHandler.WithCapture(async req => capturedUri = req.RequestUri, new TestPayload { Id = 1, Name = "test" });
         var client = CreateClient(handler);
 
         await client.TestGetAsync<TestPayload, ErrorPayload>("http://external-api.com/data", cancellationToken: TestContext.Current.CancellationToken);

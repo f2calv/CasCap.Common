@@ -41,7 +41,8 @@ public sealed class FileHttpAuditStore(
             bufferSize: 4096, useAsync: true);
         await JsonSerializer.SerializeAsync(stream, entry, s_jsonOptions, cancellationToken).ConfigureAwait(false);
 
-        logger.LogTrace("{ClassName} wrote audit entry to {FilePath}", nameof(FileHttpAuditStore), filePath);
+        if (logger.IsEnabled(LogLevel.Trace))
+            logger.LogTrace("{ClassName} wrote audit entry", nameof(FileHttpAuditStore));
     }
 }
 #endif

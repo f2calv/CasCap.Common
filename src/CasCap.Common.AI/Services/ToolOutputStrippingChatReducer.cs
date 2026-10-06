@@ -91,8 +91,9 @@ public sealed class ToolOutputStrippingChatReducer : IChatReducer
 
         if (toolDropped > 0 || windowTrimmed > 0)
         {
-            _logger.LogDebug("Reduced {InputCount} \u2192 {OutputCount} messages (tool-only dropped={ToolDropped}, window trimmed={WindowTrimmed}, target={Target})",
-                input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("Reduced {InputCount} \u2192 {OutputCount} messages (tool-only dropped={ToolDropped}, window trimmed={WindowTrimmed}, target={Target})",
+                    input.Count, result.Count, toolDropped, windowTrimmed, _targetCount);
             AgentExtensions.GetCurrentScope()?.OnCompaction?.Invoke(
                 new CompactionStats(input.Count, result.Count, toolDropped, windowTrimmed, _targetCount));
         }

@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Serialization.Tests;
+namespace CasCap.Common.Serialization.Tests;
 
 /// <summary>Tests for JSON serialization extension methods.</summary>
 public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
@@ -33,7 +33,7 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
         var obja4 = json4.FromJson<MyTestClass3>();
 
         //Assert
-        Assert.ThrowsAny<Exception>(() => erroneousDates.FromJson<List<DateTime>>());
+        Assert.ThrowsAny<Exception>(erroneousDates.FromJson<List<DateTime>>);
         Assert.NotNull(json1);
         Assert.NotNull(json2);
         Assert.NotNull(json3);
@@ -51,17 +51,14 @@ public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutput
         public int ID { get; set; } = 1337;
 
         /// <summary>A UTC timestamp.</summary>
-        public DateTime utcNow { get; set; } = DateTime.UtcNow;
+        public DateTime UtcNow { get; set; } = DateTime.UtcNow;
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            return obj is MyTestClass3 @class &&
+        public override bool Equals(object? obj) => obj is MyTestClass3 @class &&
                    ID == @class.ID &&
-                   utcNow == @class.utcNow;
-        }
+                   UtcNow == @class.UtcNow;
 
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(ID, utcNow);
+        public override int GetHashCode() => HashCode.Combine(ID, UtcNow);
     }
 }

@@ -18,10 +18,9 @@ public static class AgentEvaluationReport
     /// <summary>Groups runs by scenario, model and variants, preserving first-seen order.</summary>
     /// <param name="runs">The runs to aggregate.</param>
     public static IReadOnlyList<AgentEvaluationSummary> Summarise(IEnumerable<AgentEvaluationRun> runs) =>
-        runs
+        [.. runs
             .GroupBy(r => (r.ScenarioId, r.ProviderKey, r.ModelName, r.InstructionVariant, r.ToolSurfaceVariant))
-            .Select(g => Summarise(g.Key, [.. g]))
-            .ToList();
+            .Select(g => Summarise(g.Key, [.. g]))];
 
     /// <summary>
     /// Returns the 95% Wilson score interval for a binomial proportion, which stays meaningful for the small
@@ -37,9 +36,9 @@ public static class AgentEvaluationReport
 
         var p = (double)successes / trials;
         var z2 = z * z;
-        var denominator = 1 + z2 / trials;
-        var centre = (p + z2 / (2 * trials)) / denominator;
-        var halfWidth = z * Math.Sqrt(p * (1 - p) / trials + z2 / (4d * trials * trials)) / denominator;
+        var denominator = 1 + (z2 / trials);
+        var centre = (p + (z2 / (2 * trials))) / denominator;
+        var halfWidth = z * Math.Sqrt((p * (1 - p) / trials) + (z2 / (4d * trials * trials))) / denominator;
         return (Math.Max(0d, centre - halfWidth), Math.Min(1d, centre + halfWidth));
     }
 
@@ -112,9 +111,9 @@ public static class AgentEvaluationReport
     {
         var cellMedians = runs
             .GroupBy(r => (r.ProviderKey, Cell: (r.ScenarioId, r.InstructionVariant, r.ToolSurfaceVariant)))
-            .ToDictionary(g => g.Key, g => Percentile(g.Select(r => r.Elapsed).ToList(), 0.5));
+            .ToDictionary(g => g.Key, g => Percentile([.. g.Select(r => r.Elapsed)], 0.5));
 
-        return runs
+        return [.. runs
             .GroupBy(r => (r.ProviderKey, r.ModelName))
             .Select(g =>
             {
@@ -136,9 +135,9 @@ public static class AgentEvaluationReport
                     Passed = providerRuns.Count(r => r.Passed),
                     ToolSelectionsCorrect = providerRuns.Count(r => r.ToolSelectionPassed),
                     Errors = providerRuns.Count(r => r.Error is not null),
-                    MedianRun = Percentile(providerRuns.Select(r => r.Elapsed).ToList(), 0.5),
-                    P90Run = Percentile(providerRuns.Select(r => r.Elapsed).ToList(), 0.9),
-                    MedianRequest = Percentile(providerRuns.SelectMany(r => r.RoundTrips).Select(r => r.Elapsed).ToList(), 0.5),
+                    MedianRun = Percentile([.. providerRuns.Select(r => r.Elapsed)], 0.5),
+                    P90Run = Percentile([.. providerRuns.Select(r => r.Elapsed)], 0.9),
+                    MedianRequest = Percentile([.. providerRuns.SelectMany(r => r.RoundTrips).Select(r => r.Elapsed)], 0.5),
                     MedianPlainChat = plainChat?.GetValueOrDefault(g.Key.ProviderKey) is { Count: > 0 } chats ? Percentile(chats, 0.5) : null,
                     MeanRequests = providerRuns.Average(r => r.RoundTrips.Count),
                     MeanInputTokens = inputTokens.Count == 0 ? null : inputTokens.Average(),
@@ -148,8 +147,7 @@ public static class AgentEvaluationReport
                     SpeedupVersusReference = ratios.Count == 0 ? null : Math.Exp(ratios.Average(Math.Log)),
                 };
             })
-            .OrderBy(s => s.MedianRun)
-            .ToList();
+            .OrderBy(s => s.MedianRun)];
     }
 
     /// <summary>Renders provider summaries as a Markdown table.</summary>
@@ -241,7 +239,7 @@ public static class AgentEvaluationReport
         return directory;
     }
 
-    private static TimeSpan Percentile(IReadOnlyList<TimeSpan> values, double percentile)
+    private static TimeSpan Percentile(List<TimeSpan> values, double percentile)
     {
         if (values.Count == 0)
             return TimeSpan.Zero;
@@ -282,13 +280,12 @@ public static class AgentEvaluationReport
             MeanToolCalls = runs.Count == 0 ? 0d : runs.Average(r => r.ToolCalls.Count),
             MeanInputTokens = inputTokens.Count == 0 ? null : inputTokens.Average(),
             MeanOutputTokens = outputTokens.Count == 0 ? null : outputTokens.Average(),
-            TopFailureReasons = runs
+            TopFailureReasons = [.. runs
                 .SelectMany(r => r.FailureReasons)
                 .GroupBy(reason => reason)
                 .OrderByDescending(g => g.Count())
                 .Take(3)
-                .Select(g => $"{g.Key} ×{g.Count()}")
-                .ToList(),
+                .Select(g => $"{g.Key} ×{g.Count()}")],
         };
     }
 

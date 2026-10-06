@@ -15,20 +15,14 @@ namespace CasCap.Common.Services;
 /// </para>
 /// <para>Register via <c>services.AddAgentTypeRegistry(...)</c>.</para>
 /// </remarks>
-public sealed class AgentTypeRegistry
+/// <remarks>Initializes a new instance of the <see cref="AgentTypeRegistry"/> class.</remarks>
+/// <param name="toolTypes">Types exposing <see cref="McpServerToolAttribute"/>-decorated methods.</param>
+/// <param name="promptTypes">Types decorated with <see cref="McpServerPromptTypeAttribute"/>.</param>
+/// <exception cref="InvalidOperationException">Two distinct types share a simple name.</exception>
+public sealed class AgentTypeRegistry(IEnumerable<Type> toolTypes, IEnumerable<Type> promptTypes)
 {
-    private readonly FrozenDictionary<string, Type> _toolTypes;
-    private readonly FrozenDictionary<string, Type> _promptTypes;
-
-    /// <summary>Initializes a new instance of the <see cref="AgentTypeRegistry"/> class.</summary>
-    /// <param name="toolTypes">Types exposing <see cref="McpServerToolAttribute"/>-decorated methods.</param>
-    /// <param name="promptTypes">Types decorated with <see cref="McpServerPromptTypeAttribute"/>.</param>
-    /// <exception cref="InvalidOperationException">Two distinct types share a simple name.</exception>
-    public AgentTypeRegistry(IEnumerable<Type> toolTypes, IEnumerable<Type> promptTypes)
-    {
-        _toolTypes = BuildIndex(toolTypes, "tool service");
-        _promptTypes = BuildIndex(promptTypes, "prompt");
-    }
+    private readonly FrozenDictionary<string, Type> _toolTypes = BuildIndex(toolTypes, "tool service");
+    private readonly FrozenDictionary<string, Type> _promptTypes = BuildIndex(promptTypes, "prompt");
 
     private static FrozenDictionary<string, Type> BuildIndex(IEnumerable<Type> types, string label)
     {

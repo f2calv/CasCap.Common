@@ -2,7 +2,7 @@ namespace Microsoft.Extensions.Logging;
 
 /// <summary><see cref="ILogger"/> implementation that captures log entries and writes them to xUnit's <see cref="ITestOutputHelper"/>.</summary>
 [ExcludeFromCodeCoverage]
-class TestLogger(ITestOutputHelper output) : ILogger
+internal class TestLogger(ITestOutputHelper output) : ILogger
 {
     private readonly List<LogEntry> _entries = [];
 
