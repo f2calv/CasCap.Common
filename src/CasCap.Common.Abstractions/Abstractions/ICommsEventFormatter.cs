@@ -11,6 +11,6 @@ public interface ICommsEventFormatter
     /// <summary>Formats <paramref name="commsEvent"/> for direct delivery.</summary>
     /// <param name="commsEvent">The stream event to render.</param>
     /// <returns>The message text.</returns>
-    string Format(CommsEvent commsEvent);
+    public string Format(CommsEvent commsEvent);
 }
 #endif

@@ -11,12 +11,9 @@ public class MockDto(DateTime someDateTimeUtc)
     public DateTime SomeDateTimeUtc { get; init; } = someDateTimeUtc;
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        return obj is MockDto @class &&
+    public override bool Equals(object? obj) => obj is MockDto @class &&
                SomeId == @class.SomeId &&
                SomeDateTimeUtc == @class.SomeDateTimeUtc;
-    }
 
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(SomeId, SomeDateTimeUtc);

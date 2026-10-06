@@ -18,18 +18,14 @@ public class HttpClientBuilderResilienceExtensionTests
     public static TheoryData<string> NonIdempotentMethods() => ["POST", "PATCH"];
 
     [Theory, MemberData(nameof(IdempotentMethods))]
-    public void IdempotentMethod_IsReplaySafe_AfterTimeout(string method)
-    {
+    public void IdempotentMethod_IsReplaySafe_AfterTimeout(string method) =>
         //A lost response cannot duplicate a side effect when replaying the request is harmless.
         Assert.True(Evaluate(method, new TimeoutRejectedException()));
-    }
 
     [Theory, MemberData(nameof(NonIdempotentMethods))]
-    public void NonIdempotentMethod_IsNotReplaySafe_AfterTimeout(string method)
-    {
+    public void NonIdempotentMethod_IsNotReplaySafe_AfterTimeout(string method) =>
         //The server may have completed the work and only the response was lost.
         Assert.False(Evaluate(method, new TimeoutRejectedException()));
-    }
 
     [Theory, MemberData(nameof(NonIdempotentMethods))]
     public void NonIdempotentMethod_IsNotReplaySafe_AfterServerError(string method) =>

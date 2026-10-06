@@ -7,6 +7,6 @@ public interface IAppConfig
 {
 #if NET8_0_OR_GREATER
     /// <summary>Configuration section path used for options binding (e.g. <c>"CasCap:MyConfig"</c>).</summary>
-    static abstract string ConfigurationSectionName { get; }
+    public static abstract string ConfigurationSectionName { get; }
 #endif
 }

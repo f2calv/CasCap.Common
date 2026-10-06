@@ -23,7 +23,7 @@ public static class OpenTelemetryExtensions
         Action<MeterProviderBuilder>? configureMetrics = null,
         Action<TracerProviderBuilder>? configureTracing = null)
     {
-        if (metricsConfig.OtlpExporterEndpoint is null || metricsConfig.OtlpExporterEndpoint == default)
+        if (metricsConfig.OtlpExporterEndpoint is null or default(Uri?))
         {
             Serilog.Log.Warning("OtlpExporterEndpoint is null/empty so skipping OpenTelemetry registration");
             return;
@@ -79,17 +79,9 @@ public static class OpenTelemetryExtensions
             {
                 tracingBuilder.SetResourceBuilder(resourceBuilder);
                 if (!builder.Environment.IsDevelopment())
-                    tracingBuilder.AddAspNetCoreInstrumentation(o =>
-                    {
-                        o.Filter = context =>
-                        {
-                            if (context.Request.Path.StartsWithSegments("/metrics", StringComparison.OrdinalIgnoreCase))
-                                return false;
-                            if (context.Request.Path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase))
-                                return false;
-                            return true;
-                        };
-                    });
+                    tracingBuilder.AddAspNetCoreInstrumentation(o => o.Filter = context =>
+                        !context.Request.Path.StartsWithSegments("/metrics", StringComparison.OrdinalIgnoreCase)
+                        && !context.Request.Path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase));
                 tracingBuilder.AddHttpClientInstrumentation();
                 if (!builder.Environment.IsDevelopment() && connectionMultiplexer is not null)
                     tracingBuilder.AddRedisInstrumentation(connectionMultiplexer, configure => { });

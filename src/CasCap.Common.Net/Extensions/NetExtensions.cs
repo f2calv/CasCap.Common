@@ -7,11 +7,7 @@ public static class NetExtensions
     /// Retrieves the first value for the specified response header name, or <c>null</c> if not found.
     /// </summary>
     public static string? TryGetValue(this HttpResponseHeaders headers, string name)
-    {
-        if (headers.TryGetValues(name, out var headerValues))
-            return headerValues.FirstOrDefault();
-        return null;
-    }
+        => headers.TryGetValues(name, out var headerValues) ? headerValues.FirstOrDefault() : null;
 
     /// <summary>Converts a <see cref="NameValueCollection"/> to a URL-encoded query string.</summary>
     public static string ToQueryString(this NameValueCollection nvc)
@@ -29,8 +25,8 @@ public static class NetExtensions
     public static void AddOrOverwrite(this HttpRequestHeaders headers, List<(string name, string value)>? additionalHeaders)
     {
         if (!additionalHeaders.IsNullOrEmpty())
-            foreach (var header in additionalHeaders!)
-                headers.AddOrOverwrite(header.name, header.value);
+            foreach (var (name, value) in additionalHeaders!)
+                headers.AddOrOverwrite(name, value);
     }
 
     /// <inheritdoc cref="AddOrOverwrite(HttpRequestHeaders, List{ValueTuple{string, string}}?)"/>

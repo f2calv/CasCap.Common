@@ -8,7 +8,7 @@ namespace CasCap.Common.Extensions;
 /// </summary>
 public sealed class AsyncDuplicateLock
 {
-    sealed class RefCounted<T>(T value)
+    private sealed class RefCounted<T>(T value)
     {
         public int RefCount { get; set; } = 1;
         public T Value { get; private set; } = value;
@@ -51,7 +51,7 @@ public sealed class AsyncDuplicateLock
         return new Releaser { Key = key };
     }
 
-    sealed class Releaser : IDisposable
+    private sealed class Releaser : IDisposable
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public object Key { get; set; }

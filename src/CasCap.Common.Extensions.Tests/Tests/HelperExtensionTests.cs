@@ -6,6 +6,8 @@ namespace CasCap.Common.Extensions.Tests;
 /// <summary>Tests for collection, parsing and serialization helpers in <see cref="HelperExtensions"/>.</summary>
 public class HelperExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    private static readonly int[] s_duplicateValues = [1, 1, 2, 3, 3];
+
     private enum Described
     {
         [Description("A friendly description")] Friendly = 1,
@@ -44,7 +46,7 @@ public class HelperExtensionTests(ITestOutputHelper testOutputHelper) : TestBase
     [Fact, Trait("Category", "Collections")]
     public void ToHashSet_DeduplicatesValues()
     {
-        var hs = new[] { 1, 1, 2, 3, 3 }.ToHashSet();
+        var hs = s_duplicateValues.ToHashSet();
         Assert.Equal([1, 2, 3], hs.OrderBy(x => x));
     }
 

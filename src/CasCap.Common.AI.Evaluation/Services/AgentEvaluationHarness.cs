@@ -39,20 +39,17 @@ public sealed class AgentEvaluationHarness(
     /// </summary>
     /// <param name="providerKey">Key into <c>CasCap:AIConfig:Providers</c>.</param>
     public string? GetUnavailableReason(string providerKey)
-    {
-        if (!aiConfig.Providers.TryGetValue(providerKey, out var provider))
-            return "not defined in CasCap:AIConfig:Providers";
-
-        return provider.Type switch
-        {
-            AgentType.AzureAIFoundry => $"{nameof(AgentType.AzureAIFoundry)} is not supported by CasCap.Common.AI",
-            AgentType.AzureOpenAI or AgentType.Ollama when provider.Endpoint is null => "no Endpoint configured",
-            AgentType.AzureOpenAI when tokenCredential is null && string.IsNullOrWhiteSpace(provider.ApiKey)
-                => "no Entra ID credential or ApiKey configured",
-            AgentType.OpenAI when string.IsNullOrWhiteSpace(provider.ApiKey) => "no ApiKey configured",
-            _ => null,
-        };
-    }
+        => !aiConfig.Providers.TryGetValue(providerKey, out var provider)
+            ? "not defined in CasCap:AIConfig:Providers"
+            : provider.Type switch
+            {
+                AgentType.AzureAIFoundry => $"{nameof(AgentType.AzureAIFoundry)} is not supported by CasCap.Common.AI",
+                AgentType.AzureOpenAI or AgentType.Ollama when provider.Endpoint is null => "no Endpoint configured",
+                AgentType.AzureOpenAI when tokenCredential is null && string.IsNullOrWhiteSpace(provider.ApiKey)
+                    => "no Entra ID credential or ApiKey configured",
+                AgentType.OpenAI when string.IsNullOrWhiteSpace(provider.ApiKey) => "no ApiKey configured",
+                _ => null,
+            };
 
     /// <summary>
     /// Returns the model-facing names of every tool a scenario could reference: all catalogued tools, every
@@ -123,7 +120,7 @@ public sealed class AgentEvaluationHarness(
 
         var answer = string.Empty;
         string? error = null;
-        var throttlingBefore = throttlingMonitor?.Snapshot() ?? default;
+        var (ThrottledResponses, Retries) = throttlingMonitor?.Snapshot() ?? default;
         var stopwatch = Stopwatch.StartNew();
         try
         {
@@ -165,8 +162,8 @@ public sealed class AgentEvaluationHarness(
             AnswerPassed = answerPassed,
             ToolSelectionPassed = toolSelectionPassed,
             FailureReasons = error is null ? reasons : [$"run failed: {error}", .. reasons],
-            ThrottledResponses = throttlingAfter.ThrottledResponses - throttlingBefore.ThrottledResponses,
-            Retries = throttlingAfter.Retries - throttlingBefore.Retries,
+            ThrottledResponses = throttlingAfter.ThrottledResponses - ThrottledResponses,
+            Retries = throttlingAfter.Retries - Retries,
         };
     }
 
@@ -234,7 +231,7 @@ public sealed class AgentEvaluationHarness(
         }
 
         var variant = run.ToolSurfaceVariant;
-        return shipped
+        return [.. shipped
             .Select(t => (Tool: t, Disposition: toolCatalog.Classify(t)))
             .Where(t => variant.IsOffered(agentKey, t.Tool.Name, t.Disposition))
             .Concat(variant.GetCandidateTools(agentKey).Select(t => (Tool: t, Disposition: ToolDisposition.Query)))
@@ -245,8 +242,7 @@ public sealed class AgentEvaluationHarness(
                 run.ToolResponses.GetValueOrDefault(t.Tool.Name),
                 run.Recorder,
                 variant.GetDescription(t.Tool.Name),
-                variant.RewriteSchema(t.Tool.Name, t.Tool.JsonSchema)))
-            .ToList();
+                variant.RewriteSchema(t.Tool.Name, t.Tool.JsonSchema)))];
     }
 
     private void ConfigureChatClient(ChatClientBuilder builder, RunContext run, string agentKey)

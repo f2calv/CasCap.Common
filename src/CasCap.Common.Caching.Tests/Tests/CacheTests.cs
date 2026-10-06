@@ -67,11 +67,11 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         {
             //each time this is called the slidingExpiration should be reset...
             //var result = await remoteCache.GetCacheEntryWithTTL<MockDto>(key);//wont work because it doesn't use GETEX
-            var result = await remoteCache.GetCacheEntryWithExpiryAsync<MockDto>(key);
+            var (expiry, cacheEntry) = await remoteCache.GetCacheEntryWithExpiryAsync<MockDto>(key);
 
-            Assert.NotNull(result.cacheEntry);
-            Assert.NotNull(result.expiry);
-            Assert.True(result.expiry.Value.TotalSeconds >= slidingExpirationSeconds - checkIntervalSeconds);
+            Assert.NotNull(cacheEntry);
+            Assert.NotNull(expiry);
+            Assert.True(expiry.Value.TotalSeconds >= slidingExpirationSeconds - checkIntervalSeconds);
             await Task.Delay(checkIntervalSeconds * 1000, CancellationToken.None);
         }
         await Task.Delay(slidingExpirationSeconds * 1000, CancellationToken.None);
@@ -175,9 +175,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             if (!inserted)
                 throw new NullReferenceException($"{nameof(inserted)} should be true here");
             //retrieve from cache
-            bytesFromCache = remoteCache.GetBytes(key);
-            if (bytesFromCache is null)
-                throw new NullReferenceException($"{nameof(bytesFromCache)} should not be null here");
+            bytesFromCache = remoteCache.GetBytes(key) ?? throw new NullReferenceException($"{nameof(bytesFromCache)} should not be null here");
             //deserialize
             objFromCache = bytesFromCache.FromMessagePack<MockDto>();
         }
@@ -252,9 +250,7 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             if (!inserted)
                 throw new NullReferenceException($"{nameof(inserted)} should be true here");
             //retrieve from cache
-            bytesFromCache = await remoteCache.GetBytesAsync(key);
-            if (bytesFromCache is null)
-                throw new NullReferenceException($"{nameof(bytesFromCache)} should not be null here");
+            bytesFromCache = await remoteCache.GetBytesAsync(key) ?? throw new NullReferenceException($"{nameof(bytesFromCache)} should not be null here");
             //deserialize
             objFromCache = bytesFromCache.FromMessagePack<MockDto>();
         }
@@ -359,10 +355,9 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         //Act
         //check if object exists
         var objInitial = await distCacheSvc.Get<MockDto>(key);
-        if (objInitial is null)
-            objInitial = new MockDto(DateTime.UtcNow);
-        else
-            throw new GenericException("object should not exist in the cache at the start of the test");
+        objInitial = objInitial is null
+            ? new MockDto(DateTime.UtcNow)
+            : throw new GenericException("object should not exist in the cache at the start of the test");
         //insert into both local and remote cache
         await distCacheSvc.Set(key, objInitial, absoluteExpiration: absoluteExpiration);
         //retrieve from dist cache (i.e. get from local)

@@ -14,18 +14,11 @@ public static class SerilogWebApplicationExtensions
     {
         app.Services.AddStaticLogging();
 
-        app.UseSerilogRequestLogging(options =>
-        {
-            options.GetLevel = (httpContext, _, exception) =>
-            {
-                if (exception is null
+        app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exception) => exception is null
                     && httpContext.Response.StatusCode == StatusCodes.Status200OK
-                    && httpContext.Request.Path.StartsWithSegments("/healthz"))
-                    return LogEventLevel.Verbose;
-
-                return LogEventLevel.Information;
-            };
-        });
+                    && httpContext.Request.Path.StartsWithSegments("/healthz")
+                    ? LogEventLevel.Verbose
+                    : LogEventLevel.Information);
 
         return app;
     }

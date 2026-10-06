@@ -4,11 +4,11 @@ namespace CasCap.Common.Abstractions;
 public interface INotificationMessage
 {
     /// <summary>The message text to send.</summary>
-    string Message { get; }
+    public string Message { get; }
 
     /// <summary>The sender's identifier (e.g. a phone number or account name).</summary>
-    string Sender { get; }
+    public string Sender { get; }
 
     /// <summary>The intended recipients of the message.</summary>
-    string[] Recipients { get; }
+    public string[] Recipients { get; }
 }

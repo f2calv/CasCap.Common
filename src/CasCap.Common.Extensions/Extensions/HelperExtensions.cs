@@ -239,10 +239,7 @@ public static class HelperExtensions
     public static bool ToBoolean(this string input)
     {
         if (input == "1") input = "true";
-        if (bool.TryParse(input.Trim(), out var output))
-            return output;
-        else
-            return false;
+        return bool.TryParse(input.Trim(), out var output) && output;
     }
 
     #region ParseDecimal
@@ -257,9 +254,9 @@ public static class HelperExtensions
     private static decimal ParseDecimal(string input)
     {
         var output = 0m;
-        if (!string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output))
-            throw new GenericException("TryParse failed");
-        return output;
+        return !string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output)
+            ? throw new GenericException("TryParse failed")
+            : output;
     }
     #endregion
 
@@ -295,7 +292,7 @@ public static class HelperExtensions
 
     private static DateTime ParseDateTime(string input, DateTime _def)
     {
-        DateTime output = _def;
+        var output = _def;
         if (string.IsNullOrWhiteSpace(input))
             output = _def;
         else

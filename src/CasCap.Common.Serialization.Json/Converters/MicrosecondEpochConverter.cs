@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Converters;
+namespace CasCap.Common.Converters;
 
 /// <summary>
 /// <see cref="System.Text.Json.Serialization.JsonConverter{T}"/> that converts a microsecond Unix epoch
@@ -15,12 +15,11 @@ public sealed class MicrosecondEpochConverter : JsonConverter<DateTime?>
 
     /// <inheritdoc/>
     public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType == JsonTokenType.Null) return null;
-        if (reader.TokenType == JsonTokenType.Number)
-            return reader.TryGetInt64(out var n) ? _epoch.AddMilliseconds(n / 1000d) : null;
-        return long.TryParse(reader.GetString(), out var t) ? _epoch.AddMilliseconds(t / 1000d) : null;
-    }
+        => reader.TokenType == JsonTokenType.Null
+            ? null
+            : reader.TokenType == JsonTokenType.Number
+            ? reader.TryGetInt64(out var n) ? _epoch.AddMilliseconds(n / 1000d) : null
+            : long.TryParse(reader.GetString(), out var t) ? _epoch.AddMilliseconds(t / 1000d) : null;
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, DateTime? dateTimeValue, JsonSerializerOptions options)

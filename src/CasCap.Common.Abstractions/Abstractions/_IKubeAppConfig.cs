@@ -11,17 +11,17 @@ namespace CasCap.Common.Abstractions;
 public interface IKubeAppConfig
 {
     /// <summary>Kubernetes node name the pod is scheduled on.</summary>
-    string? NodeName { get; }
+    public string? NodeName { get; }
 
     /// <summary>Kubernetes pod name.</summary>
-    string? PodName { get; }
+    public string? PodName { get; }
 
     /// <summary>Kubernetes namespace the pod belongs to.</summary>
-    string? Namespace { get; }
+    public string? Namespace { get; }
 
     /// <summary>Cluster-internal IP address of the pod.</summary>
-    IPAddress? PodIp { get; }
+    public IPAddress? PodIp { get; }
 
     /// <summary>Kubernetes service account name assigned to the pod.</summary>
-    string? ServiceAccountName { get; }
+    public string? ServiceAccountName { get; }
 }

@@ -9,8 +9,8 @@ namespace CasCap.Common.Abstractions;
 public interface IFeature<T> where T : Enum
 {
     /// <summary>Enum used to identify the feature type of the implementation.</summary>
-    T FeatureType { get; }
+    public T FeatureType { get; }
 
     /// <summary>Launches the service.</summary>
-    Task ExecuteAsync(CancellationToken cancellationToken);
+    public Task ExecuteAsync(CancellationToken cancellationToken);
 }

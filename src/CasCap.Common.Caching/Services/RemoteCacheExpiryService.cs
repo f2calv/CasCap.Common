@@ -1,4 +1,4 @@
-﻿namespace CasCap.Common.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>
 /// This <see cref="RemoteCacheExpiryService"/> subscribes to '__keyspace@0__:expired' events and performs
@@ -12,19 +12,24 @@ public sealed class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> l
     /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("{ClassName} starting", nameof(RemoteCacheExpiryService));
+        CacheLog.Lifecycle(logger, nameof(RemoteCacheExpiryService), "starting");
 
         var channelName = $"__keyevent@{cachingConfig.Value.RemoteCache.DatabaseId}__:expired";
         var channel = RedisChannel.Literal(channelName);
-        logger.LogDebug("{ClassName} subscribing to {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
-            nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
+        CacheLog.ChannelSubscription(
+            logger,
+            nameof(RemoteCacheExpiryService),
+            "subscribing to",
+            typeof(RedisChannel),
+            channelName,
+            nameof(RedisChannel.IsPattern),
+            channel.IsPattern);
         await remoteCache.Subscriber.SubscribeAsync(channel, (redisChannel, redisValue) =>
         {
             var key = redisValue.ToString();
             //lets do housekeeping
             var success = remoteCache.SlidingExpirations.TryRemove(redisValue.ToString(), out var _);
-            logger.LogTrace("{ClassName} expiration detected key={Key}, removal status={Success}, {Count} item(s) remaining",
-                nameof(RemoteCacheExpiryService), key, success, remoteCache.SlidingExpirations.Count);
+            CacheLog.ExpirationDetected(logger, nameof(RemoteCacheExpiryService), key, success, remoteCache.SlidingExpirations.Count);
         }).ConfigureAwait(false);
 
         //keep alive until cancellation is requested; the expected cancellation must not surface as an exception so the
@@ -35,10 +40,16 @@ public sealed class RemoteCacheExpiryService(ILogger<RemoteCacheExpiryService> l
         }
         catch (OperationCanceledException) { }
 
-        logger.LogDebug("{ClassName} unsubscribing from {ObjectType} name {ChannelName}, {PropertyName}={IsPattern}",
-            nameof(RemoteCacheExpiryService), typeof(RedisChannel), channelName, nameof(RedisChannel.IsPattern), channel.IsPattern);
+        CacheLog.ChannelSubscription(
+            logger,
+            nameof(RemoteCacheExpiryService),
+            "unsubscribing from",
+            typeof(RedisChannel),
+            channelName,
+            nameof(RedisChannel.IsPattern),
+            channel.IsPattern);
         await remoteCache.Subscriber.UnsubscribeAsync(channel).ConfigureAwait(false);
 
-        logger.LogInformation("{ClassName} stopping", nameof(RemoteCacheExpiryService));
+        CacheLog.Lifecycle(logger, nameof(RemoteCacheExpiryService), "stopping");
     }
 }

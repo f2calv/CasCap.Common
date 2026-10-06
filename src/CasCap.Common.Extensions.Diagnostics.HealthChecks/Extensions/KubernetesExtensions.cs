@@ -17,6 +17,6 @@ public static class KubernetesExtensions
             output.Add(KubernetesProbeTypes.Liveness.GetDescription());
         if (e.HasFlag(KubernetesProbeTypes.Startup))
             output.Add(KubernetesProbeTypes.Startup.GetDescription());
-        return output.ToArray();
+        return [.. output];
     }
 }

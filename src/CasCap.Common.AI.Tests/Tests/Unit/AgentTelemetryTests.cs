@@ -39,7 +39,7 @@ public class AgentTelemetryTests
             _listener = new ActivityListener
             {
                 ShouldListenTo = source => source.Name == sourceName,
-                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
                 ActivityStopped = Activities.Add,
             };
             ActivitySource.AddActivityListener(_listener);

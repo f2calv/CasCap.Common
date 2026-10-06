@@ -1,9 +1,8 @@
-﻿#if NETSTANDARD2_0
+#if NETSTANDARD2_0
 using System.ComponentModel;
 
-namespace System.Runtime.CompilerServices
-{
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    internal class IsExternalInit { }
-}
+namespace System.Runtime.CompilerServices;
+
+[EditorBrowsable(EditorBrowsableState.Never)]
+internal class IsExternalInit { }
 #endif

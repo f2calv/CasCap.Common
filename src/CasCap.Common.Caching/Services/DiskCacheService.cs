@@ -63,7 +63,7 @@ public sealed class DiskCacheService : ILocalCache
             File.Delete(key);
             _slidingExpirations.TryRemove(key, out var _);
             _absoluteExpirations.TryRemove(key, out var _);
-            _logger.LogTrace("{ClassName} retrieved object with {Key} but deleted it due to expiration", nameof(DiskCacheService), key);
+            CacheLog.DiskEntryExpired(_logger, nameof(DiskCacheService), key);
         }
         else if (exists)
         {
@@ -80,12 +80,10 @@ public sealed class DiskCacheService : ILocalCache
             else
                 throw new NotSupportedException($"{nameof(_cachingConfig.DiskCache.SerializationType)} {_cachingConfig.DiskCache.SerializationType} is not supported!");
             UpdateExpirations(key, ref slidingExpiration, ref absoluteExpiration);
-            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key}",
-                nameof(DiskCacheService), typeof(T), key);
+            CacheLog.CacheLookup(_logger, nameof(DiskCacheService), "retrieved", key, typeof(T), nameof(DiskCacheService));
         }
         else
-            _logger.LogTrace("{ClassName} retrieved object {ObjectType} with {Key} failed",
-                nameof(DiskCacheService), typeof(T), key);
+            CacheLog.CacheLookup(_logger, nameof(DiskCacheService), "could not retrieve", key, typeof(T), nameof(DiskCacheService));
         return cacheEntry;
     }
 
@@ -95,7 +93,7 @@ public sealed class DiskCacheService : ILocalCache
         key = FormatKey(key);
         key = ConvertKeyToFilePath(key);//this must happen first!
         CachingExtensions.ValidateExpirations(key, slidingExpiration, absoluteExpiration);
-        _logger.LogTrace("{ClassName} attempting to store object with {Key}", nameof(DiskCacheService), key);
+        CacheLog.CacheEntryOperation(_logger, nameof(DiskCacheService), "attempting to store", key);
         if (cacheEntry is not null)
         {
             if (_cachingConfig.DiskCache.SerializationType == SerializationType.Json)
@@ -154,11 +152,9 @@ public sealed class DiskCacheService : ILocalCache
     /// <summary>Converts a Redis cache key into a valid file path.</summary>
     /// <remarks>TODO: need to use more comprehensive regex here for the instead of search/replace.</remarks>
     private string ConvertKeyToFilePath(string key)
-    {
-        if (string.IsNullOrWhiteSpace(_diskCacheFolder))
-            throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingConfig.DiskCacheFolder)}");
-        return _diskCacheFolder.Extend(key.Replace(":", "_"));
-    }
+        => string.IsNullOrWhiteSpace(_diskCacheFolder)
+            ? throw new ArgumentException($"to use {nameof(DiskCacheService)} you must set the {nameof(_cachingConfig.DiskCacheFolder)}")
+            : _diskCacheFolder.Extend(key.Replace(":", "_"));
 
     /// <summary>
     /// Asynchronously retrieves an object from disk, optionally creating it via <paramref name="createItem"/> if not found.
@@ -187,9 +183,9 @@ public sealed class DiskCacheService : ILocalCache
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{ClassName} deserialization error for {Key}", nameof(DiskCacheService), key);
+                CacheLog.DeserializationError(_logger, ex, nameof(DiskCacheService), key);
             }
-            _logger.LogTrace("{ClassName} retrieved cacheEntry {Key}", nameof(DiskCacheService), key);
+            CacheLog.CacheEntryOperation(_logger, nameof(DiskCacheService), "retrieved", key);
         }
         else if (createItem is not null)
         {
@@ -198,7 +194,7 @@ public sealed class DiskCacheService : ILocalCache
             {
                 // Key not in cache, so populate
                 cacheEntry = await createItem().ConfigureAwait(false);
-                _logger.LogTrace("{ClassName} attempted to populate a new cacheEntry object {Key}", nameof(DiskCacheService), key);
+                CacheLog.CacheEntryOperation(_logger, nameof(DiskCacheService), "attempted to populate", key);
                 if (cacheEntry is not null)
                     Set(key, cacheEntry, null);
             }
@@ -226,14 +222,14 @@ public sealed class DiskCacheService : ILocalCache
         var files = 0L;
         foreach (var file in di.GetFiles())
         {
-            _logger.LogTrace("{ClassName} attempting deletion of file {FileName}", nameof(DiskCacheService), file.Name);
+            CacheLog.FileSystemDeletion(_logger, nameof(DiskCacheService), "file", file.Name);
             file.Delete();
             files++;
         }
         var directories = 0L;
         foreach (var dir in di.GetDirectories())
         {
-            _logger.LogTrace("{ClassName} attempting deletion of directory {DirectoryName}", nameof(DiskCacheService), dir.Name);
+            CacheLog.FileSystemDeletion(_logger, nameof(DiskCacheService), "directory", dir.Name);
             dir.Delete(true);
             directories++;
         }

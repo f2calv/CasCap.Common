@@ -6,18 +6,24 @@ namespace CasCap.Common.Serialization.Tests;
 /// <summary>Tests for the custom <see cref="JsonConverter"/> implementations.</summary>
 public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
+    private static readonly JsonSerializerOptions s_array2DOptions = new() { Converters = { new Array2DConverter() } };
+    private static readonly JsonSerializerOptions s_microsecondEpochOptions = new() { Converters = { new MicrosecondEpochConverter() } };
+    private static readonly JsonSerializerOptions s_millisecondEpochOptions = new() { Converters = { new MillisecondEpochConverter() } };
+    private static readonly JsonSerializerOptions s_parseEnumOptions = new() { Converters = { new ParseEnumConverter<DayOfWeek>() } };
+    private static readonly JsonSerializerOptions s_rawJsonOptions = new() { Converters = { new RawJsonStringConverter() } };
+    private static readonly JsonSerializerOptions s_stringToIntOptions = new() { Converters = { new StringToIntConverter() } };
+
     /// <summary>Round-trips a 2-D array through <see cref="Array2DConverter"/> preserving values and shape.</summary>
     [Fact]
     [Trait("Category", "Serialization")]
     public void Array2DConverter_RoundTripsRectangularArray()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new Array2DConverter() } };
         var original = new[,] { { 1, 2, 3 }, { 4, 5, 6 } };
 
         //Act
-        var json = JsonSerializer.Serialize(original, options);
-        var roundTripped = JsonSerializer.Deserialize<int[,]>(json, options);
+        var json = JsonSerializer.Serialize(original, s_array2DOptions);
+        var roundTripped = JsonSerializer.Deserialize<int[,]>(json, s_array2DOptions);
 
         //Assert
         Assert.Equal("[[1,2,3],[4,5,6]]", json);
@@ -33,14 +39,13 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void MicrosecondEpochConverter_RoundTripsUtcDateTime()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new MicrosecondEpochConverter() } };
         // 2020-01-01T00:00:00Z in microseconds since the Unix epoch.
         const long micros = 1_577_836_800_000_000;
         var json = micros.ToString();
 
         //Act
-        var dt = JsonSerializer.Deserialize<DateTime?>(json, options);
-        var written = JsonSerializer.Serialize(dt, options);
+        var dt = JsonSerializer.Deserialize<DateTime?>(json, s_microsecondEpochOptions);
+        var written = JsonSerializer.Serialize(dt, s_microsecondEpochOptions);
 
         //Assert
         Assert.NotNull(dt);
@@ -54,10 +59,8 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void MicrosecondEpochConverter_ReadsNull()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new MicrosecondEpochConverter() } };
-
         //Act
-        var dt = JsonSerializer.Deserialize<DateTime?>("null", options);
+        var dt = JsonSerializer.Deserialize<DateTime?>("null", s_microsecondEpochOptions);
 
         //Assert
         Assert.Null(dt);
@@ -69,14 +72,13 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void MillisecondEpochConverter_RoundTripsUtcDateTime()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new MillisecondEpochConverter() } };
         // 2020-01-01T00:00:00Z in milliseconds since the Unix epoch.
         const long millis = 1_577_836_800_000;
         var json = millis.ToString();
 
         //Act
-        var dt = JsonSerializer.Deserialize<DateTime?>(json, options);
-        var written = JsonSerializer.Serialize(dt, options);
+        var dt = JsonSerializer.Deserialize<DateTime?>(json, s_millisecondEpochOptions);
+        var written = JsonSerializer.Serialize(dt, s_millisecondEpochOptions);
 
         //Assert
         Assert.NotNull(dt);
@@ -93,11 +95,9 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void ParseEnumConverter_ReadsCaseInsensitiveAndWritesName(string json, DayOfWeek expected)
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new ParseEnumConverter<DayOfWeek>() } };
-
         //Act
-        var value = JsonSerializer.Deserialize<DayOfWeek>(json, options);
-        var written = JsonSerializer.Serialize(value, options);
+        var value = JsonSerializer.Deserialize<DayOfWeek>(json, s_parseEnumOptions);
+        var written = JsonSerializer.Serialize(value, s_parseEnumOptions);
 
         //Assert
         Assert.Equal(expected, value);
@@ -110,11 +110,10 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void RawJsonStringConverter_EmbedsValidJsonRaw()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new RawJsonStringConverter() } };
         const string nested = "{\"a\":1,\"b\":[2,3]}";
 
         //Act
-        var written = JsonSerializer.Serialize(nested, options);
+        var written = JsonSerializer.Serialize(nested, s_rawJsonOptions);
 
         //Assert — no escaping; embedded as a nested object.
         Assert.Equal(nested, written);
@@ -126,10 +125,8 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void RawJsonStringConverter_WritesNonJsonAsString()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new RawJsonStringConverter() } };
-
         //Act
-        var written = JsonSerializer.Serialize("hello world", options);
+        var written = JsonSerializer.Serialize("hello world", s_rawJsonOptions);
 
         //Assert
         Assert.Equal("\"hello world\"", written);
@@ -141,10 +138,8 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void RawJsonStringConverter_WritesNull()
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new RawJsonStringConverter() } };
-
         //Act
-        var written = JsonSerializer.Serialize((string?)null, options);
+        var written = JsonSerializer.Serialize((string?)null, s_rawJsonOptions);
 
         //Assert
         Assert.Equal("null", written);
@@ -159,11 +154,9 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void StringToIntConverter_ParsesNumericString(string json, int expected)
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new StringToIntConverter() } };
-
         //Act
-        var value = JsonSerializer.Deserialize<int?>(json, options);
-        var written = JsonSerializer.Serialize(value, options);
+        var value = JsonSerializer.Deserialize<int?>(json, s_stringToIntOptions);
+        var written = JsonSerializer.Serialize(value, s_stringToIntOptions);
 
         //Assert
         Assert.Equal(expected, value);
@@ -178,10 +171,8 @@ public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(t
     public void StringToIntConverter_ReturnsNullForInvalidInput(string json)
     {
         //Arrange
-        var options = new JsonSerializerOptions { Converters = { new StringToIntConverter() } };
-
         //Act
-        var value = JsonSerializer.Deserialize<int?>(json, options);
+        var value = JsonSerializer.Deserialize<int?>(json, s_stringToIntOptions);
 
         //Assert
         Assert.Null(value);

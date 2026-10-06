@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Extensions.Logging;
+namespace Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Provides a static <see cref="ILoggerFactory"/> for creating loggers outside of dependency injection.

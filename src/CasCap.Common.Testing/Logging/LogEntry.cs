@@ -2,7 +2,7 @@ namespace Microsoft.Extensions.Logging;
 
 /// <summary>Immutable log entry captured by <see cref="TestLogger"/>.</summary>
 [ExcludeFromCodeCoverage]
-class LogEntry(LogLevel level, string message)
+internal class LogEntry(LogLevel level, string message)
 {
     /// <summary>UTC timestamp when the entry was recorded.</summary>
     public DateTime Timestamp { get; } = DateTime.Now;

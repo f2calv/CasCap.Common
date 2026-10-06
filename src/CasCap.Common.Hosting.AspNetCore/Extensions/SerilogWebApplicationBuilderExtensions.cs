@@ -39,10 +39,7 @@ public static class SerilogWebApplicationBuilderExtensions
         // InitializeOpenTelemetry MUST run after this because ClearProviders removes providers registered earlier.
         builder.Logging.ClearProviders();
 
-        builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
-        {
-            loggerConfiguration.AddCasCapDefaults(hostContext.Configuration);
-        }, writeToProviders: true);
+        builder.Host.UseSerilog((hostContext, loggerConfiguration) => loggerConfiguration.AddCasCapDefaults(hostContext.Configuration), writeToProviders: true);
 
         return ApplicationLogging.CreateLogger(categoryName);
     }

@@ -1,5 +1,6 @@
 #if NET8_0_OR_GREATER
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -34,9 +35,10 @@ public sealed class BasicAuthenticationHandler(
         var authHeader = Request.Headers.Authorization.ToString();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith($"{SchemeName} ", StringComparison.OrdinalIgnoreCase))
         {
-            Logger.LogDebug(
-                "{ClassName} authentication header missing or not Basic for {Method} {Path}",
-                nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+            if (Logger.IsEnabled(LogLevel.Debug))
+                Logger.LogDebug(
+                    "{ClassName} authentication header missing or not Basic for {Method} {Path}",
+                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
@@ -47,9 +49,10 @@ public sealed class BasicAuthenticationHandler(
             var separatorIndex = decodedCredentials.IndexOf(':');
             if (separatorIndex < 0)
             {
-                Logger.LogDebug(
-                    "{ClassName} invalid Basic header format for {Method} {Path}",
-                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                if (Logger.IsEnabled(LogLevel.Debug))
+                    Logger.LogDebug(
+                        "{ClassName} invalid Basic header format for {Method} {Path}",
+                        nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Basic authentication header format."));
             }
 
@@ -58,15 +61,17 @@ public sealed class BasicAuthenticationHandler(
 
             if (username != _apiAuthConfig.Username || password != _apiAuthConfig.Password)
             {
-                Logger.LogDebug(
-                    "{ClassName} invalid credentials for {Method} {Path} with {SuppliedUsername}",
-                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path, username);
+                if (Logger.IsEnabled(LogLevel.Debug))
+                    Logger.LogDebug(
+                        "{ClassName} invalid credentials for {Method} {Path}",
+                        nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid username or password."));
             }
 
-            Logger.LogDebug(
-                "{ClassName} authenticated {Username} for {Method} {Path}",
-                nameof(BasicAuthenticationHandler), username, Request.Method, Request.Path);
+            if (Logger.IsEnabled(LogLevel.Debug))
+                Logger.LogDebug(
+                    "{ClassName} authenticated request for {Method} {Path}",
+                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
 
             var claims = new[] { new Claim(ClaimTypes.Name, username) };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
@@ -77,9 +82,10 @@ public sealed class BasicAuthenticationHandler(
         }
         catch (FormatException)
         {
-            Logger.LogDebug(
-                "{ClassName} invalid Base64 in Basic header for {Method} {Path}",
-                nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+            if (Logger.IsEnabled(LogLevel.Debug))
+                Logger.LogDebug(
+                    "{ClassName} invalid Base64 in Basic header for {Method} {Path}",
+                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
             return Task.FromResult(AuthenticateResult.Fail("Invalid Base64 encoding in Basic authentication header."));
         }
     }

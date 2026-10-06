@@ -102,7 +102,7 @@ public static class IOExtensions
     /// <param name="path">The file path to write to.</param>
     /// <param name="str">The string content to write.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    public async static Task WriteAllTextAsync(this string path, string str, CancellationToken cancellationToken)
+    public static async Task WriteAllTextAsync(this string path, string str, CancellationToken cancellationToken)
     {
         var dir = Path.GetDirectoryName(path);
         if (dir is not null)
@@ -188,16 +188,16 @@ public static class IOExtensions
     {
         var path = basePath.Extend(relativePath);
         var dirName = Path.GetDirectoryName(path);
-        if (dirName is not null && !directories.Contains(dirName) && !Directory.Exists(dirName))
+        if (dirName is not null && !_directories.Contains(dirName) && !Directory.Exists(dirName))
         {
             //Debugger.Break();
             Directory.CreateDirectory(dirName);
-            directories.Add(dirName);
+            _directories.Add(dirName);
         }
         return path;
     }
 
-    private static HashSet<string> directories { get; set; } = [];
+    private static readonly HashSet<string> _directories = [];
 
     /// <summary>Recursively calculates the total size of all files in the specified folder.</summary>
     /// <param name="folder">The folder path to calculate the size of.</param>

@@ -48,10 +48,10 @@ public static partial class AgentExtensions
                 throw new FileNotFoundException(
                     $"InstructionsSource '{source}' not found as an embedded resource or file.", source);
         }
-        if (string.IsNullOrWhiteSpace(instructions))
-            throw new NotSupportedException(
-                $"either {nameof(agentConfig.Instructions)} or {nameof(agentConfig.InstructionsSource)} must be set");
-        return WrapInstructions(instructions, aiConfig);
+        return string.IsNullOrWhiteSpace(instructions)
+            ? throw new NotSupportedException(
+                $"either {nameof(agentConfig.Instructions)} or {nameof(agentConfig.InstructionsSource)} must be set")
+            : WrapInstructions(instructions, aiConfig);
     }
 
     /// <summary>
@@ -65,10 +65,9 @@ public static partial class AgentExtensions
 
         var prefix = aiConfig.InstructionsPrefix;
         var suffix = aiConfig.InstructionsSuffix;
-        if (string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix))
-            return agentInstructions;
-
-        return string.Concat(
+        return string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix)
+            ? agentInstructions
+            : string.Concat(
             string.IsNullOrWhiteSpace(prefix) ? string.Empty : prefix + " ",
             agentInstructions,
             string.IsNullOrWhiteSpace(suffix) ? string.Empty : " " + suffix);
@@ -135,8 +134,9 @@ public static partial class AgentExtensions
                     var fileName = je.TryGetProperty("blobName", out var nameProp) ? nameProp.GetString() : null;
                     var sizeKb = base64.Length * 3 / 4 / 1024;
 
-                    logger.LogDebug("Stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
-                        context.Function.Name, sizeKb);
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("Stripped image blob from tool result {FunctionName} (~{SizeKb}KB), stored as ambient attachment",
+                            context.Function.Name, sizeKb);
 
                     GetCurrentScope()?.AddAttachment(new AgentRunAttachment
                     {

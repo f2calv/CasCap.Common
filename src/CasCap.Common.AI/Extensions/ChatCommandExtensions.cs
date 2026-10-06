@@ -13,13 +13,12 @@ public static class ChatCommandParser
     /// Ordered longest-prefix-first so that <c>/session save</c> is matched before <c>/session</c>.
     /// </summary>
     public static readonly IReadOnlyList<KeyValuePair<string, ChatCommand>> CommandPrefixMap =
-        Enum.GetValues<ChatCommand>()
+        [.. Enum.GetValues<ChatCommand>()
             .Select(cmd => (cmd, prefix: typeof(ChatCommand).GetField(cmd.ToString())
                 ?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? string.Empty))
             .Where(t => !string.IsNullOrEmpty(t.prefix))
             .OrderByDescending(t => t.prefix.Length)
-            .Select(t => new KeyValuePair<string, ChatCommand>(t.prefix.ToLowerInvariant(), t.cmd))
-            .ToList();
+            .Select(t => new KeyValuePair<string, ChatCommand>(t.prefix.ToLowerInvariant(), t.cmd))];
 
     /// <summary>
     /// Human-readable one-line descriptions for each <see cref="ChatCommand"/>, used by both

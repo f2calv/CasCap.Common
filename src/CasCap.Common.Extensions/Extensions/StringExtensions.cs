@@ -99,11 +99,9 @@ public static class StringExtensions
     }
 
     /// <summary>Determines whether the string is a valid email address.</summary>
-    public static bool IsEmail(this string thisString)
-    {
+    public static bool IsEmail(this string thisString) =>
         //same as new aspNetEmail.EmailMessage().ValidateRegEx
-        return thisString is not null && rgxEmail.IsMatch(thisString);
-    }
+        thisString is not null && rgxEmail.IsMatch(thisString);
 
     /// <summary>Converts a UTF-8 string to its Base64 representation.</summary>
     public static string ToBase64(this string thisString)
@@ -113,10 +111,7 @@ public static class StringExtensions
     }
 
     /// <summary>Split a string by the given separator (default ';'), removing empty entries. Accepts nulls :)</summary>
-    public static string[] SplitClean(this string _s, char sep = ';')
-    {
-        return (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
-    }
+    public static string[] SplitClean(this string _s, char sep = ';') => (_s ?? string.Empty).Split([sep], StringSplitOptions.RemoveEmptyEntries);
 
     /// <summary>Strips characters that are non-conducive to being in a file name.</summary>
     public static string? Sanitize(this string? input, string replacement = SingleSpace)

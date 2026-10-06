@@ -5,7 +5,7 @@ namespace CasCap.Common.Diagnostics.HealthChecks;
 /// Implements <see cref="IHealthCheck"/> with a standard probe-and-report pattern so that
 /// derived classes only need to supply their DI parameters and a display name.
 /// </summary>
-public abstract class HttpEndpointCheckBase(
+public abstract partial class HttpEndpointCheckBase(
     ILogger logger,
     HttpClient client,
     IHealthCheckConfig healthCheckConfig,
@@ -13,7 +13,7 @@ public abstract class HttpEndpointCheckBase(
     bool initialConnectionActive = false) : IHealthCheck
 {
 #if NETSTANDARD2_0
-    private static readonly IReadOnlyList<int> DefaultExpectedStatusCodes = new[] { 200 };
+    private static readonly IReadOnlyList<int> DefaultExpectedStatusCodes = [200];
 #else
     private static readonly IReadOnlyList<int> DefaultExpectedStatusCodes = [200];
 #endif
@@ -30,7 +30,7 @@ public abstract class HttpEndpointCheckBase(
     /// <inheritdoc/>
     public virtual async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("{ClassName} healthcheck executing...", GetType().Name);
+        LogHealthCheckExecuting(logger, GetType().Name);
         var result = await IsAccessible(healthCheckConfig, cancellationToken).ConfigureAwait(false);
         if (result)
         {
@@ -65,7 +65,7 @@ public abstract class HttpEndpointCheckBase(
     {
         requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
         healthCheckExpectedHttpStatusCodes ??= DefaultExpectedStatusCodes;
-        logger.LogDebug("{ClassName} health check executing", nameof(HttpEndpointCheckBase));
+        LogHealthCheckExecutingDebug(logger, nameof(HttpEndpointCheckBase));
         HttpResponseMessage? result = null;
         try
         {
@@ -74,32 +74,56 @@ public abstract class HttpEndpointCheckBase(
         catch (HttpRequestException ex)
         {
             // Handle timeout.
-            logger.LogWarning(ex, "{ClassName} failure", nameof(HttpEndpointCheckBase));
+            LogHealthCheckFailure(logger, ex, nameof(HttpEndpointCheckBase));
         }
         // Filter by InnerException.
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
             // Handle timeout.
-            logger.LogDebug(ex, "{ClassName} timed out", nameof(HttpEndpointCheckBase));
+            LogHealthCheckTimeout(logger, ex, nameof(HttpEndpointCheckBase));
         }
         catch (TaskCanceledException ex)
         {
             // Handle cancellation.
-            logger.LogWarning(ex, "{ClassName} canceled", nameof(HttpEndpointCheckBase));
+            LogHealthCheckCanceled(logger, ex, nameof(HttpEndpointCheckBase));
         }
         catch (Exception ex)
         {
-            logger.LogTrace(ex, "{ClassName} http endpoint failure", nameof(HttpEndpointCheckBase));
+            LogHttpEndpointFailure(logger, ex, nameof(HttpEndpointCheckBase));
         }
         if (result is not null && healthCheckExpectedHttpStatusCodes.Contains((int)result.StatusCode))
         {
-            logger.LogDebug("{ClassName} {RequestUri} is accessible", nameof(HttpEndpointCheckBase), requestUri);
+            LogEndpointAccessible(logger, nameof(HttpEndpointCheckBase), requestUri);
             return true;
         }
         else
         {
-            logger.LogDebug("{ClassName} {RequestUri} is inaccessible", nameof(HttpEndpointCheckBase), requestUri);
+            LogEndpointInaccessible(logger, nameof(HttpEndpointCheckBase), requestUri);
             return false;
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} healthcheck executing...")]
+    private static partial void LogHealthCheckExecuting(ILogger logger, string className);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} health check executing")]
+    private static partial void LogHealthCheckExecutingDebug(ILogger logger, string className);
+
+    [LoggerMessage(LogLevel.Warning, "{ClassName} failure")]
+    private static partial void LogHealthCheckFailure(ILogger logger, Exception exception, string className);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} timed out")]
+    private static partial void LogHealthCheckTimeout(ILogger logger, Exception exception, string className);
+
+    [LoggerMessage(LogLevel.Warning, "{ClassName} canceled")]
+    private static partial void LogHealthCheckCanceled(ILogger logger, Exception exception, string className);
+
+    [LoggerMessage(LogLevel.Trace, "{ClassName} http endpoint failure")]
+    private static partial void LogHttpEndpointFailure(ILogger logger, Exception exception, string className);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {RequestUri} is accessible")]
+    private static partial void LogEndpointAccessible(ILogger logger, string className, string requestUri);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {RequestUri} is inaccessible")]
+    private static partial void LogEndpointInaccessible(ILogger logger, string className, string requestUri);
 }

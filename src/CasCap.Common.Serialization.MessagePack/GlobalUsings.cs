@@ -1,1 +1,1 @@
-﻿global using MessagePack;
+global using MessagePack;

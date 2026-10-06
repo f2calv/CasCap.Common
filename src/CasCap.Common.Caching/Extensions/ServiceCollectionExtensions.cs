@@ -30,7 +30,11 @@ public static class ServiceCollectionExtensions
         string? sectionName = null,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(configuration);
+#else
         if (configuration is null) throw new ArgumentNullException(nameof(configuration));
+#endif
 
         sectionName ??= CachingConfig.ConfigurationSectionName;
         var section = configuration.GetSection(sectionName);
@@ -53,7 +57,11 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingConfig cachingConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(cachingConfig);
+#else
         if (cachingConfig is null) throw new ArgumentNullException(nameof(cachingConfig));
+#endif
 
         services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Configure(options =>
@@ -93,7 +101,11 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configureConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(configureConfig);
+#else
         if (configureConfig is null) throw new ArgumentNullException(nameof(configureConfig));
+#endif
 
         services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Configure(configureConfig)

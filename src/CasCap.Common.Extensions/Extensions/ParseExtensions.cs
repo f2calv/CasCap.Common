@@ -33,10 +33,7 @@ public static class ParseExtensions
     {
         var s = val.ToString();
         var dot = s.IndexOf('.');
-        if (dot == -1)
-            return 0;
-        else
-            return s.Length - dot;
+        return dot == -1 ? 0 : s.Length - dot;
     }
 
 #if NET8_0_OR_GREATER
@@ -47,10 +44,7 @@ public static class ParseExtensions
     /// <param name="val">The value to inspect.</param>
     /// <returns>The number of decimal places.</returns>
     public static int GetDecimalCount<T>(this T val)
-        where T : INumber<T>
-    {
-        return val.ToString()!.GetDecimalCount();
-    }
+        where T : INumber<T> => val.ToString()!.GetDecimalCount();
 #endif
 
     /// <summary>Use when converting a DateTime value from a string to an actual DateTime.</summary>
@@ -58,20 +52,14 @@ public static class ParseExtensions
     /// <param name="date">Pass in the DateOnly here when Ticks string doesn't contain it for brevity.</param>
     /// <param name="kind">The <see cref="DateTimeKind"/> to assign to the resulting <see cref="DateTime"/>.</param>
     public static DateTime CsvStr2Date(this string f, DateTime? date = null, DateTimeKind kind = DateTimeKind.Utc)
-    {
-        DateTime dt;
-        if (f.Length == 18)//"635990653080800000".Length
-            dt = new DateTime(f.Decimal2Long(), kind);
-        else if (f.Length == 23 && DateTime.TryParse(f, out var _dt1))//"yyyy-MM-dd HH:mm:ss.fff".Length
-            dt = _dt1;
-        else if (f.Length == 14)//"63599065308080".Length
-            dt = new DateTime(f.Decimal2Long(4), kind);
-        else if (f.Length == 12 && date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var _dt2))//"HH:mm:ss.fff".Length
-            dt = _dt2;
-        else
-            throw new NotSupportedException("invalid date format string");
-        return dt;
-    }
+        => f.Length switch
+        {
+            18 => new DateTime(f.Decimal2Long(), kind), //"635990653080800000".Length
+            23 when DateTime.TryParse(f, out var parsed) => parsed, //"yyyy-MM-dd HH:mm:ss.fff".Length
+            14 => new DateTime(f.Decimal2Long(4), kind), //"63599065308080".Length
+            12 when date.HasValue && DateTime.TryParse(date.Value.To_yyyy_MM_dd() + " " + f, out var parsed) => parsed,
+            _ => throw new NotSupportedException("invalid date format string"),
+        };
 
     /// <summary>Converts a <see cref="DateTime"/> to its tick count string representation.</summary>
     /// <param name="date">The date to convert.</param>
@@ -110,7 +98,7 @@ public static class ParseExtensions
             var digit = input[i];
             if (digit != 46)
             {
-                output = output * 10 + (digit - _zero);
+                output = (output * 10) + (digit - _zero);
                 if (decimalExists)
                 {
                     // there are decimal places so reduce the exp value accordingly
@@ -139,13 +127,7 @@ public static class ParseExtensions
     /// <summary>Parses the input string as a <see cref="decimal"/>.</summary>
     /// <param name="input">The string to parse.</param>
     /// <returns>The parsed decimal value.</returns>
-    public static decimal String2Decimal(this string input)//TODO: make this fast and not just a bog standard decimal.TryParse
-    {
-        if (decimal.TryParse(input, out decimal val))
-            return val;
-        else
-            throw new GenericException($"{nameof(String2Decimal)} issue! :/");
-    }
+    public static decimal String2Decimal(this string input) => decimal.TryParse(input, out var val) ? val : throw new GenericException($"{nameof(String2Decimal)} issue! :/");//TODO: make this fast and not just a bog standard decimal.TryParse
 
     /// <summary>Fast parser that converts a string-ified decimal to its <see cref="long"/> equivalent.</summary>
     /// <param name="input">The string to parse.</param>
@@ -177,7 +159,7 @@ public static class ParseExtensions
             var digit = input[i];
             if (digit != 46)
             {
-                output = output * 10 + (digit - _zero);
+                output = (output * 10) + (digit - _zero);
                 if (decimalExists)
                 {
                     // there are decimal places so reduce the exp value accordingly
@@ -213,7 +195,7 @@ public static class ParseExtensions
             var b = input[i];
             if (b == (byte)'.')
                 break;
-            output = output * 10 + (b - '0');
+            output = (output * 10) + (b - '0');
         }
         return output;
     }
@@ -228,7 +210,7 @@ public static class ParseExtensions
             var b = input[i];
             if (b == (byte)'.')
                 break;
-            output = output * 10 + (b - '0');
+            output = (output * 10) + (b - '0');
         }
         return output;
     }
@@ -237,25 +219,13 @@ public static class ParseExtensions
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting decimal value.</returns>
-    public static decimal Int2Decimal(this int input, int exp = 0)//uses of this should be *very* limited
-    {
-        if (exp > 0)
-            return input / (decimal)Pow(exp);
-        else
-            return input;
-    }
+    public static decimal Int2Decimal(this int input, int exp = 0) => exp > 0 ? input / (decimal)Pow(exp) : input;//uses of this should be *very* limited
 
     /// <summary>Converts an <see cref="int"/> to a <see cref="double"/> by dividing by 10^exp.</summary>
     /// <param name="input">The integer input.</param>
     /// <param name="exp">The exponent to divide by.</param>
     /// <returns>The resulting double value.</returns>
-    public static double Int2Double(this int input, int exp = 0)
-    {
-        if (exp > 0)
-            return input / (double)Pow(exp);
-        else
-            return input;
-    }
+    public static double Int2Double(this int input, int exp = 0) => exp > 0 ? input / (double)Pow(exp) : input;
 
     //this will be faster than the bitmask variant below
     private static int Pow(int exp) => exp switch

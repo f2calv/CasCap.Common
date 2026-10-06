@@ -12,12 +12,12 @@ public interface IBgFeature
     /// <summary>
     /// Sentinel value for <see cref="FeatureName"/> indicating the service runs in every feature combination.
     /// </summary>
-    const string AlwaysEnabled = "All";
+    public const string AlwaysEnabled = "All";
 #endif
 
     /// <summary>The feature name that gates this service (matched case-insensitively against enabled features).</summary>
-    string FeatureName { get; }
+    public string FeatureName { get; }
 
     /// <summary>Launches the service.</summary>
-    Task ExecuteAsync(CancellationToken cancellationToken);
+    public Task ExecuteAsync(CancellationToken cancellationToken);
 }

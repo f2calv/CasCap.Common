@@ -5,7 +5,7 @@ namespace CasCap.Common.Abstractions;
 public interface IEventSink<T>
 {
     /// <summary>The sink type identifier used for targeted dispatch filtering.</summary>
-    string SinkType { get; }
+    public string SinkType { get; }
 
     /// <summary>
     /// Performs any one-time initialization required by the sink (e.g. starting background flush loops).
@@ -13,13 +13,13 @@ public interface IEventSink<T>
     /// </summary>
     /// <param name="cancellationToken">Token that signals when the application is shutting down.</param>
 #if NETSTANDARD2_0
-    Task InitializeAsync(CancellationToken cancellationToken);
+    public Task InitializeAsync(CancellationToken cancellationToken);
 #else
-    Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 #endif
 
     /// <summary>Writes a single event to the sink.</summary>
-    Task WriteEvent(T @event, CancellationToken cancellationToken = default);
+    public Task WriteEvent(T @event, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Performs housekeeping by removing entries whose identifiers are not in <paramref name="validIds"/>.
@@ -28,8 +28,8 @@ public interface IEventSink<T>
     /// <param name="validIds">The set of identifiers that should be retained.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
 #if NETSTANDARD2_0
-    Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
+    public Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
 #else
-    Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default) => Task.CompletedTask;
 #endif
 }

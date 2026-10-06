@@ -96,8 +96,13 @@ public static class ShellExtensions
         ProcessErrorCapture errorCapture = ProcessErrorCapture.Text,
         CancellationToken cancellationToken = default)
     {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(stdinBytes);
+#else
         if (arguments is null) throw new ArgumentNullException(nameof(arguments));
         if (stdinBytes is null) throw new ArgumentNullException(nameof(stdinBytes));
+#endif
 
         var startInfo = new ProcessStartInfo(fileName)
         {

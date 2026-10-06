@@ -42,7 +42,7 @@ public static class McpPromptContract
         var verbs = string.Join("|", (toolVerbs ?? DefaultToolVerbs).Select(Regex.Escape));
         var referenceRegex = new Regex($@"\b(?:{verbs})[A-Z0-9]\w*\b", RegexOptions.CultureInvariant, RegexTimeout);
 
-        return types
+        return [.. types
             .Where(t => t.GetCustomAttribute<McpServerPromptTypeAttribute>() is not null)
             .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
             .Where(m => m.GetCustomAttribute<McpServerPromptAttribute>() is not null)
@@ -50,8 +50,7 @@ public static class McpPromptContract
                 .Select(m => m.Value)
                 .Where(name => !toolNames.Contains(name))
                 .Select(name => $"{p.DeclaringType!.Name}.{p.Name} references {name}"))
-            .Distinct()
-            .ToList();
+            .Distinct()];
     }
 
     private static string Render(MethodInfo prompt)

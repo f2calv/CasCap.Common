@@ -50,15 +50,12 @@ public sealed class McpToolCatalog
     /// </summary>
     /// <param name="tool">The tool to classify.</param>
     public ToolDisposition Classify(AIFunction tool)
-    {
-        if (tool.Name.StartsWith("invoke_", StringComparison.Ordinal))
-            return ToolDisposition.Delegation;
-        if (tool.UnderlyingMethod?.GetCustomAttribute<McpServerToolAttribute>()?.ReadOnly == true)
-            return ToolDisposition.Query;
-        return _queryPrefixes.Any(p => tool.Name.StartsWith(p, StringComparison.Ordinal))
+        => tool.Name.StartsWith("invoke_", StringComparison.Ordinal)
+            ? ToolDisposition.Delegation
+            : tool.UnderlyingMethod?.GetCustomAttribute<McpServerToolAttribute>()?.ReadOnly == true
+                || _queryPrefixes.Any(p => tool.Name.StartsWith(p, StringComparison.Ordinal))
             ? ToolDisposition.Query
             : ToolDisposition.SideEffect;
-    }
 
     /// <summary>Returns every in-process tool across all catalogued types.</summary>
     /// <param name="serviceProvider">Resolves backing services only if a tool is invoked unwrapped; defaults to none.</param>
@@ -93,10 +90,9 @@ public sealed class McpToolCatalog
                 tools.AddRange(AgentExtensions.FilterTools(GetAllTools(serviceProvider), source, isDevelopment: true, logger)
                     .Cast<AIFunction>());
 
-        return tools
+        return [.. tools
             .GroupBy(t => t.Name, StringComparer.Ordinal)
-            .Select(g => g.First())
-            .ToList();
+            .Select(g => g.First())];
     }
 
     private static IEnumerable<AIFunction> CreateTools(IServiceProvider serviceProvider, Type type) =>

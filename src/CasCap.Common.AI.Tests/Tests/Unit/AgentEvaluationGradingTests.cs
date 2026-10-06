@@ -41,10 +41,10 @@ public class AgentEvaluationGradingTests
     [InlineData(3, 5, 0.231, 0.882)]
     public void WilsonInterval(int successes, int trials, double lower, double upper)
     {
-        var interval = AgentEvaluationReport.WilsonInterval(successes, trials);
+        var (Lower, Upper) = AgentEvaluationReport.WilsonInterval(successes, trials);
 
-        Assert.Equal(lower, interval.Lower, 0.001);
-        Assert.Equal(upper, interval.Upper, 0.001);
+        Assert.Equal(lower, Lower, 0.001);
+        Assert.Equal(upper, Upper, 0.001);
     }
 
     [Fact]

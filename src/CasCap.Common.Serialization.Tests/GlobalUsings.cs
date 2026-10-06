@@ -1,4 +1,4 @@
-﻿global using CasCap.Common.Extensions;
+global using CasCap.Common.Extensions;
 global using MessagePack;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
