@@ -21,6 +21,11 @@ public record ToolSource : IValidatableObject
     /// </summary>
     public string? Endpoint { get; init; }
 
+    /// <summary>Logical tenant credential name used only with <see cref="Endpoint"/>.</summary>
+    /// <remarks>The credential value remains in the consuming application's secret provider.</remarks>
+    [MaxLength(200)]
+    public string? Credential { get; init; }
+
     /// <summary>
     /// Key of another <see cref="AgentConfig"/> in <see cref="AIConfig.Agents"/> that should be
     /// exposed as a single callable tool on this agent (fan-out / agent delegation pattern).
@@ -64,5 +69,10 @@ public record ToolSource : IValidatableObject
             yield return new ValidationResult(
                 $"{nameof(Service)}, {nameof(Endpoint)}, and {nameof(Agent)} are mutually exclusive.",
                 [nameof(Service), nameof(Endpoint), nameof(Agent)]);
+
+        if (!string.IsNullOrWhiteSpace(Credential) && string.IsNullOrWhiteSpace(Endpoint))
+            yield return new ValidationResult(
+                $"{nameof(Credential)} is valid only with {nameof(Endpoint)}.",
+                [nameof(Credential), nameof(Endpoint)]);
     }
 }

@@ -21,8 +21,19 @@ public static partial class AgentExtensions
     /// </returns>
     /// <param name="logger">Optional logger for tool-discovery diagnostics.</param>
     public static async Task<(McpClient Client, List<McpClientTool> Tools)> GetHttpTools(string mcpEndpoint, ILogger? logger = null)
+        => await GetHttpTools(mcpEndpoint, additionalHeaders: null, logger).ConfigureAwait(false);
+
+    /// <summary>Creates an authenticated remote MCP connection and retrieves its available tools.</summary>
+    /// <param name="mcpEndpoint">The URL of the remote MCP server endpoint.</param>
+    /// <param name="additionalHeaders">Optional request headers such as Authorization.</param>
+    /// <param name="logger">Optional logger for tool-discovery diagnostics.</param>
+    /// <returns>The owned MCP client and discovered tools.</returns>
+    public static async Task<(McpClient Client, List<McpClientTool> Tools)> GetHttpTools(
+        string mcpEndpoint,
+        IReadOnlyDictionary<string, string>? additionalHeaders,
+        ILogger? logger = null)
     {
-        var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
+        var mcpClient = await CreateMcpClientAsync(mcpEndpoint, additionalHeaders).ConfigureAwait(false);
         var tools = (await mcpClient.ListToolsAsync().ConfigureAwait(false)).ToList();
         var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var tool in tools)
@@ -47,7 +58,7 @@ public static partial class AgentExtensions
     /// <param name="logger">Optional logger for prompt-discovery diagnostics.</param>
     public static async Task<(McpClient Client, List<McpClientPrompt> Prompts)> GetHttpPrompts(string mcpEndpoint, ILogger? logger = null)
     {
-        var mcpClient = await CreateMcpClientAsync(mcpEndpoint).ConfigureAwait(false);
+        var mcpClient = await CreateMcpClientAsync(mcpEndpoint, additionalHeaders: null).ConfigureAwait(false);
         var prompts = (await mcpClient.ListPromptsAsync().ConfigureAwait(false)).ToList();
         var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var prompt in prompts)
@@ -60,14 +71,20 @@ public static partial class AgentExtensions
     /// Creates a new <see cref="McpClient"/> connected to a remote MCP server via Streamable HTTP.
     /// </summary>
     /// <param name="mcpEndpoint">The URL of the remote MCP server endpoint.</param>
+    /// <param name="additionalHeaders">Optional headers included in every transport request.</param>
     /// <returns>A connected <see cref="McpClient"/>. The caller owns disposal.</returns>
-    private static Task<McpClient> CreateMcpClientAsync(string mcpEndpoint) =>
+    private static Task<McpClient> CreateMcpClientAsync(
+        string mcpEndpoint,
+        IReadOnlyDictionary<string, string>? additionalHeaders) =>
         McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions
         {
             TransportMode = HttpTransportMode.StreamableHttp,
             Endpoint = new Uri(mcpEndpoint),
             ConnectionTimeout = Timeout.InfiniteTimeSpan,
             Name = $"{Environment.MachineName}-McpClient",
+            AdditionalHeaders = additionalHeaders is null
+                ? null
+                : new Dictionary<string, string>(additionalHeaders, StringComparer.OrdinalIgnoreCase),
         }));
 
     /// <summary>

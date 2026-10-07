@@ -48,7 +48,7 @@ This library contains **no domain-specific MCP query services** — those live i
 | `CompactionStats` | Summary of a single chat-history compaction pass |
 | `AgentInfo` | MCP-friendly projection of `AgentConfig` (all properties carry `[Description]`) |
 | `ProviderInfo` | MCP-friendly projection of `ProviderConfig` excluding sensitive fields (all properties carry `[Description]`) |
-| `ToolSource` | Identifies a tool source — in-process `Service`, remote `Endpoint`, or peer `Agent` (fan-out delegation) with `IncludeTools`/`ExcludeTools` filters |
+| `ToolSource` | Identifies an in-process `Service`, remote `Endpoint`, or peer `Agent`; remote endpoints may carry a logical `Credential` reference resolved by the host |
 | `PromptSource` | Identifies a prompt source — in-process `Service` or remote `Endpoint` with include/exclude filters |
 | `ToolCallInfo` | Captures a single tool/function call name and arguments |
 | `McpPromptDescriptor` | Lightweight descriptor for an MCP prompt (remote or in-process) |

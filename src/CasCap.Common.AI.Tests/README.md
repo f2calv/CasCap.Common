@@ -16,6 +16,7 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | --- | --- | --- | --- |
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
 | `AgentExtensionsCreateAgentTests` | 9 | 13 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
+| `ToolSourceValidationTests` | 2 | 2 | Remote MCP logical credential references are valid only with endpoint sources |
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
 | `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
 | `AgentRunScopeTests` | 8 | 10 | Depth nesting, callback inheritance, shared/thread-safe attachment collection, drain semantics |
@@ -23,14 +24,14 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `AgentEvaluationGradingTests` | 7 | 18 | Number, phrase, anchored-pattern and combined answer checks, required/forbidden/side-effect grading, Wilson intervals |
 | `AgentEvaluationToolTests` | 11 | 18 | Tool classification and filtering, fixture and sandbox responses, variant descriptions and schemas, harness tool assembly and provider availability, MCP prompt contract |
 | `AgentEvaluationReportTests` | 5 | 7 | Per-cell and cross-model summaries, speed ratios, session files, visible-thinking detection |
-| **Total** | **70** | **102** | |
+| **Total** | **72** | **104** | |
 
 ## Trait Categories
 
 | Category | Applied to |
 | --- | --- |
 | `Chat Reduction` | `ToolOutputStrippingChatReducerTests` |
-| `Agent Creation` | `AgentExtensionsCreateAgentTests` |
+| `Agent Creation` | `AgentExtensionsCreateAgentTests`, `ToolSourceValidationTests` |
 | `Usage Reporting` | `AgentResponseUsageTests` |
 | `Telemetry` | `AgentTelemetryTests` |
 | `Agent Run Scope` | `AgentRunScopeTests` |
@@ -55,7 +56,8 @@ Tests/
     ├── AgentResponseUsageTests.cs
     ├── AgentTelemetryTests.cs
     ├── AgentTypeRegistryTests.cs
-    └── ToolOutputStrippingChatReducerTests.cs
+    ├── ToolOutputStrippingChatReducerTests.cs
+    └── ToolSourceValidationTests.cs
 ```
 
 ## Notes
