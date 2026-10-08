@@ -36,11 +36,10 @@ public sealed class PrefixKeyVaultSecretManager : KeyVaultSecretManager
         if (!secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException($"Secret '{secret.Name}' is outside the configured Key Vault prefix.");
 
-        var suffix = secret.Name[_sourcePrefix.Length..]
+        var suffix = secret.Name.Substring(_sourcePrefix.Length)
             .Replace(Separator, ConfigurationPath.KeyDelimiter);
-        if (string.IsNullOrWhiteSpace(suffix))
-            throw new InvalidOperationException("A Key Vault secret name must contain a suffix after the configured prefix.");
-
-        return ConfigurationPath.Combine(_destinationPrefix, suffix);
+        return string.IsNullOrWhiteSpace(suffix)
+            ? throw new InvalidOperationException("A Key Vault secret name must contain a suffix after the configured prefix.")
+            : ConfigurationPath.Combine(_destinationPrefix, suffix);
     }
 }
