@@ -55,4 +55,39 @@ public sealed class PrefixKeyVaultSecretManagerTests
 
         Assert.Throws<InvalidOperationException>(() => manager.GetKey(secret));
     }
+
+    [Fact]
+    public void ExclusiveRoot_LoadsSelectedAndLegacyButRejectsOtherRootSecrets()
+    {
+        var manager = new PrefixKeyVaultSecretManager(
+            "AgentRuntime--SmartHaus--Exec",
+            "CasCap:AgentRuntimeAzureAuthConfig",
+            "AgentRuntime");
+
+        var selected = manager.Load(new KeyVaultSecret(
+            "AgentRuntime--SmartHaus--Exec--ClientId",
+            "selected").Properties);
+        var otherApplication = manager.Load(new KeyVaultSecret(
+            "AgentRuntime--CAS--Exec--ClientId",
+            "excluded").Properties);
+        var legacy = manager.Load(new KeyVaultSecret("AppConfig--KeyVaultName", "legacy").Properties);
+
+        Assert.True(selected);
+        Assert.False(otherApplication);
+        Assert.True(legacy);
+    }
+
+    [Fact]
+    public void ExclusiveRoot_LegacySecretUsesDefaultMapping()
+    {
+        var manager = new PrefixKeyVaultSecretManager(
+            "AgentRuntime--SmartHaus--Exec",
+            "CasCap:AgentRuntimeAzureAuthConfig",
+            "AgentRuntime");
+        var secret = new KeyVaultSecret("AppConfig--KeyVaultName", "legacy");
+
+        var key = manager.GetKey(secret);
+
+        Assert.Equal("AppConfig:KeyVaultName", key);
+    }
 }

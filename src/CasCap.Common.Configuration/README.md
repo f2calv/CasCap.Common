@@ -42,7 +42,8 @@ Prefix-filtered providers keep vault names identity-specific while presenting on
 ```csharp
 var secretManager = new PrefixKeyVaultSecretManager(
     "AgentRuntime--SmartHaus--Exec",
-    "CasCap:AgentRuntimeAzureAuthConfig");
+    "CasCap:AgentRuntimeAzureAuthConfig",
+    "AgentRuntime");
 
 configurationBuilder.AddKeyVaultConfigurationFrom(
     config =>
@@ -54,7 +55,8 @@ configurationBuilder.AddKeyVaultConfigurationFrom(
 ```
 
 For example, `AgentRuntime--SmartHaus--Exec--ClientId` becomes
-`CasCap:AgentRuntimeAzureAuthConfig:ClientId`. Secrets outside the source prefix are not loaded.
+`CasCap:AgentRuntimeAzureAuthConfig:ClientId`. Other `AgentRuntime--*` secrets are excluded, while
+legacy secrets outside that reserved root retain the default Key Vault configuration mapping.
 
 ## Configuration Hierarchy
 

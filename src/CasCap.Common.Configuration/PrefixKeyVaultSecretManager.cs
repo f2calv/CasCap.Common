@@ -9,12 +9,20 @@ public sealed class PrefixKeyVaultSecretManager : KeyVaultSecretManager
     private const string Separator = "--";
 
     private readonly string _destinationPrefix;
+    private readonly string? _exclusiveRootPrefix;
     private readonly string _sourcePrefix;
 
     /// <summary>Initializes a prefix-filtering and remapping secret manager.</summary>
     /// <param name="sourcePrefix">The Key Vault name prefix to load, without a trailing separator.</param>
     /// <param name="destinationPrefix">The configuration section receiving the stripped secret-name suffix.</param>
-    public PrefixKeyVaultSecretManager(string sourcePrefix, string destinationPrefix)
+    /// <param name="exclusiveRootPrefix">
+    /// Optional reserved root. Secrets outside this root retain default mapping; secrets inside it
+    /// must match <paramref name="sourcePrefix"/> or are excluded.
+    /// </param>
+    public PrefixKeyVaultSecretManager(
+        string sourcePrefix,
+        string destinationPrefix,
+        string? exclusiveRootPrefix = null)
     {
         if (string.IsNullOrWhiteSpace(sourcePrefix))
             throw new ArgumentException("A non-empty Key Vault source prefix is required.", nameof(sourcePrefix));
@@ -23,18 +31,29 @@ public sealed class PrefixKeyVaultSecretManager : KeyVaultSecretManager
 
         _sourcePrefix = sourcePrefix.TrimEnd('-') + Separator;
         _destinationPrefix = destinationPrefix.TrimEnd(ConfigurationPath.KeyDelimiter.ToCharArray());
+        _exclusiveRootPrefix = string.IsNullOrWhiteSpace(exclusiveRootPrefix)
+            ? null
+            : exclusiveRootPrefix.TrimEnd('-') + Separator;
     }
 
     /// <inheritdoc/>
     public override bool Load(SecretProperties secret) =>
         base.Load(secret)
-        && secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase);
+        && (secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase)
+            || (_exclusiveRootPrefix is not null
+                && !secret.Name.StartsWith(_exclusiveRootPrefix, StringComparison.OrdinalIgnoreCase)));
 
     /// <inheritdoc/>
     public override string GetKey(KeyVaultSecret secret)
     {
         if (!secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            if (_exclusiveRootPrefix is not null
+                && !secret.Name.StartsWith(_exclusiveRootPrefix, StringComparison.OrdinalIgnoreCase))
+                return base.GetKey(secret);
+
             throw new InvalidOperationException($"Secret '{secret.Name}' is outside the configured Key Vault prefix.");
+        }
 
         var suffix = secret.Name.Substring(_sourcePrefix.Length)
             .Replace(Separator, ConfigurationPath.KeyDelimiter);

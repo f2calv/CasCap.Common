@@ -6,7 +6,7 @@ Unit and local integration coverage for `CasCap.Common.Configuration`.
 
 | Class | Methods | Cases | Category | Description |
 | --- | ---: | ---: | --- | --- |
-| `PrefixKeyVaultSecretManagerTests` | 4 | 5 | Key Vault | Prefix validation, filtering, remapping, and rejection |
+| `PrefixKeyVaultSecretManagerTests` | 6 | 7 | Key Vault | Prefix validation, filtering, remapping, exclusive-root isolation, and rejection |
 | `KeyVaultPrefixIntegrationTests` | 1 | 1 | Integration, Key Vault | Live selected-prefix loading and exclusion from a caller-configured vault |
 
 ## Local Configuration
