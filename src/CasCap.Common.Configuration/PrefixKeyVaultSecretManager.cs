@@ -31,7 +31,7 @@ public sealed class PrefixKeyVaultSecretManager : KeyVaultSecretManager
 
         _sourcePrefix = sourcePrefix.TrimEnd('-') + Separator;
         _destinationPrefix = destinationPrefix.TrimEnd(ConfigurationPath.KeyDelimiter.ToCharArray());
-        _exclusiveRootPrefix = string.IsNullOrWhiteSpace(exclusiveRootPrefix)
+        _exclusiveRootPrefix = exclusiveRootPrefix is null || string.IsNullOrWhiteSpace(exclusiveRootPrefix)
             ? null
             : exclusiveRootPrefix.TrimEnd('-') + Separator;
     }
