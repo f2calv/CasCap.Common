@@ -40,20 +40,18 @@ public sealed class PrefixKeyVaultSecretManager : KeyVaultSecretManager
     public override bool Load(SecretProperties secret) =>
         base.Load(secret)
         && (secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase)
-            || (_exclusiveRootPrefix is not null
-                && !secret.Name.StartsWith(_exclusiveRootPrefix, StringComparison.OrdinalIgnoreCase)));
+            || (_exclusiveRootPrefix is { } rootPrefix
+                && !secret.Name.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase)));
 
     /// <inheritdoc/>
     public override string GetKey(KeyVaultSecret secret)
     {
         if (!secret.Name.StartsWith(_sourcePrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            if (_exclusiveRootPrefix is not null
-                && !secret.Name.StartsWith(_exclusiveRootPrefix, StringComparison.OrdinalIgnoreCase))
-                return base.GetKey(secret);
-
-            throw new InvalidOperationException($"Secret '{secret.Name}' is outside the configured Key Vault prefix.");
-        }
+            return _exclusiveRootPrefix is { } rootPrefix
+                && !secret.Name.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase)
+                    ? base.GetKey(secret)
+                    : throw new InvalidOperationException(
+                        $"Secret '{secret.Name}' is outside the configured Key Vault prefix.");
 
         var suffix = secret.Name.Substring(_sourcePrefix.Length)
             .Replace(Separator, ConfigurationPath.KeyDelimiter);
