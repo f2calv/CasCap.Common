@@ -16,6 +16,7 @@
     <Project Path="src/CasCap.Common.Hosting.AspNetCore/CasCap.Common.Hosting.AspNetCore.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
+    <Project Path="src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj" />
     <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj" />

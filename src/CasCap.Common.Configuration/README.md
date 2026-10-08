@@ -21,6 +21,7 @@ Provides a standardised way to build the configuration pipeline (`appsettings.js
 | `ConfigurationBuilderExtensions` | `AddStandardConfiguration()` — sets base path, registers base/environment/local JSON, optional user secrets, then environment variables |
 | | `AddKeyVaultConfiguration()` — conditionally adds Azure Key Vault (skips silently when URI or credential is `null`) |
 | | `AddKeyVaultConfigurationFrom()` — partial-builds configuration, extracts Key Vault credentials via delegate, then adds Key Vault |
+| `PrefixKeyVaultSecretManager` | Loads one Key Vault name prefix and remaps its suffix beneath a standard configuration section |
 | `ConfigurationServiceCollectionExtensions` | `AddCasCapConfiguration<TConfig>()` — binds a configuration section to an `IAppConfig` record with `ValidateDataAnnotations` and `ValidateOnStart` |
 
 ## Usage
@@ -35,6 +36,25 @@ var configuration = new ConfigurationBuilder()
     })
     .Build();
 ```
+
+Prefix-filtered providers keep vault names identity-specific while presenting one options contract:
+
+```csharp
+var secretManager = new PrefixKeyVaultSecretManager(
+    "AgentRuntime--SmartHaus--Exec",
+    "CasCap:AgentRuntimeAzureAuthConfig");
+
+configurationBuilder.AddKeyVaultConfigurationFrom(
+    config =>
+    {
+        var appConfig = config.GetSection(AppConfig.ConfigurationSectionName).Get<AppConfig>();
+        return (appConfig?.KeyVaultUri, appConfig?.TokenCredential);
+    },
+    secretManager);
+```
+
+For example, `AgentRuntime--SmartHaus--Exec--ClientId` becomes
+`CasCap:AgentRuntimeAzureAuthConfig:ClientId`. Secrets outside the source prefix are not loaded.
 
 ## Configuration Hierarchy
 
