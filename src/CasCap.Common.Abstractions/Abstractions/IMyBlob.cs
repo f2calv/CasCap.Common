@@ -4,7 +4,7 @@ namespace CasCap.Common.Abstractions;
 public interface IMyBlob
 {
     /// <summary>The raw bytes of the blob content.</summary>
-    public byte[] bytes { get; init; }
+    public byte[] Bytes { get; init; }
 
     /// <summary>The UTC timestamp when the blob was created.</summary>
     public DateTime DateCreatedUtc { get; init; }

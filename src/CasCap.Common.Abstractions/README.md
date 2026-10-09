@@ -25,7 +25,7 @@ This library contains no concrete implementations — only interfaces and abstra
 | [`IFeature<T>`](Abstractions/IFeature%7BT%7D.cs) | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
 | [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) | Generic write-path event sink contract (unconstrained — accepts both reference and value types). Exposes a `SinkType` property for targeted dispatch filtering. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel. Read-path queries are defined by domain-specific interfaces (e.g. `IFroniusQuery`, `IKnxQuery`) in the consuming projects |
 | [`ILocalCache`](Abstractions/ILocalCache.cs) | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
-| [`IMyBlob`](Abstractions/IMyBlob.cs) | Represents a blob with associated metadata (`bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
+| [`IMyBlob`](Abstractions/IMyBlob.cs) | Represents a blob with associated metadata (`Bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
 | [`INotifier`](Abstractions/INotifier.cs) | Abstracts a notification service capable of sending and receiving messages with optional attachment support |
 | [`INotificationMessage`](Abstractions/INotificationMessage.cs) | Represents an outgoing notification message (text, sender, recipients, attachments) |
 | [`INotificationAttachment`](Abstractions/INotificationAttachment.cs) | Metadata for an attachment received as part of a notification (`Id`, `ContentType`) |

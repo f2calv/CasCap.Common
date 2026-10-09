@@ -28,24 +28,26 @@ public class AgentTelemetryTests
     }
 
     /// <summary>Collects activities emitted by a single source for the duration of a test.</summary>
-    private sealed class ActivityCollector : IDisposable
+    private sealed class ActivityCollector(string sourceName) : IDisposable
     {
-        private readonly ActivityListener _listener;
+        private readonly (List<Activity> Activities, ActivityListener Listener) _state = CreateState(sourceName);
 
-        public List<Activity> Activities { get; } = [];
+        public List<Activity> Activities => _state.Activities;
 
-        public ActivityCollector(string sourceName)
+        private static (List<Activity> Activities, ActivityListener Listener) CreateState(string name)
         {
-            _listener = new ActivityListener
+            var activities = new List<Activity>();
+            var listener = new ActivityListener
             {
-                ShouldListenTo = source => source.Name == sourceName,
+                ShouldListenTo = source => source.Name == name,
                 Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-                ActivityStopped = Activities.Add,
+                ActivityStopped = activities.Add,
             };
-            ActivitySource.AddActivityListener(_listener);
+            ActivitySource.AddActivityListener(listener);
+            return (activities, listener);
         }
 
-        public void Dispose() => _listener.Dispose();
+        public void Dispose() => _state.Listener.Dispose();
     }
 
     private static AIAgent BuildInstrumentedAgent(string sourceName, string agentName, params ChatResponse[] responses) =>

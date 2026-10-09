@@ -4,6 +4,12 @@ namespace CasCap.Common.Services;
 /// Builds an agent's production tool surface from its <see cref="AgentConfig.Tools"/> sources, without
 /// resolving or starting any of the services behind the tools.
 /// </summary>
+/// <param name="toolTypes">Types whose <see cref="McpServerToolAttribute"/> methods become tools.</param>
+/// <param name="queryPrefixes">
+/// Tool-name prefixes treated as read-only when a tool is not annotated
+/// <see cref="McpServerToolAttribute.ReadOnly"/>; defaults to <see cref="DefaultQueryPrefixes"/>.
+/// </param>
+/// <exception cref="ArgumentException">Two tool types share a simple name.</exception>
 /// <remarks>
 /// Service sources use the same <see cref="AgentExtensions.CreateToolsFromServiceProvider(IServiceProvider, Type, bool)"/>
 /// and <see cref="AgentExtensions.FilterTools"/> path as <see cref="AgentExtensions.CreateToolsForAgent"/>, with
@@ -11,26 +17,12 @@ namespace CasCap.Common.Services;
 /// <see cref="AgentExtensions.CreateToolsForAgent"/>; when requested they are mapped onto the in-process tools
 /// of the same names, which assumes the remote MCP endpoint serves the same tool classes.
 /// </remarks>
-public sealed class McpToolCatalog
+public sealed class McpToolCatalog(
+    IEnumerable<Type> toolTypes,
+    IEnumerable<string>? queryPrefixes = null)
 {
-    private readonly Dictionary<string, Type> _toolTypes;
-    private readonly IReadOnlyList<string> _queryPrefixes;
-
-    /// <summary>Initializes the catalog from explicit MCP tool types.</summary>
-    /// <param name="toolTypes">Types whose <see cref="McpServerToolAttribute"/> methods become tools.</param>
-    /// <param name="queryPrefixes">
-    /// Tool-name prefixes treated as read-only when a tool is not annotated
-    /// <see cref="McpServerToolAttribute.ReadOnly"/>; defaults to <see cref="DefaultQueryPrefixes"/>.
-    /// </param>
-    /// <exception cref="ArgumentException">Two tool types share a simple name.</exception>
-    public McpToolCatalog(IEnumerable<Type> toolTypes, IEnumerable<string>? queryPrefixes = null)
-    {
-        _toolTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
-        foreach (var type in toolTypes)
-            if (!_toolTypes.TryAdd(type.Name, type) && _toolTypes[type.Name] != type)
-                throw new ArgumentException($"Ambiguous tool type name '{type.Name}'.", nameof(toolTypes));
-        _queryPrefixes = queryPrefixes?.ToList() ?? DefaultQueryPrefixes;
-    }
+    private readonly Dictionary<string, Type> _toolTypes = CreateToolTypes(toolTypes);
+    private readonly IReadOnlyList<string> _queryPrefixes = queryPrefixes?.ToList() ?? DefaultQueryPrefixes;
 
     /// <summary>Read-only tool-name prefixes used when a tool carries no <see cref="McpServerToolAttribute.ReadOnly"/> annotation.</summary>
     public static IReadOnlyList<string> DefaultQueryPrefixes { get; } = ["get_", "list_", "search_", "test_", "validate_"];
@@ -97,4 +89,13 @@ public sealed class McpToolCatalog
 
     private static IEnumerable<AIFunction> CreateTools(IServiceProvider serviceProvider, Type type) =>
         AgentExtensions.CreateToolsFromServiceProvider(serviceProvider, type, deferResolution: true).Cast<AIFunction>();
+
+    private static Dictionary<string, Type> CreateToolTypes(IEnumerable<Type> toolTypes)
+    {
+        var types = new Dictionary<string, Type>(StringComparer.Ordinal);
+        foreach (var type in toolTypes)
+            if (!types.TryAdd(type.Name, type) && types[type.Name] != type)
+                throw new ArgumentException($"Ambiguous tool type name '{type.Name}'.", nameof(toolTypes));
+        return types;
+    }
 }

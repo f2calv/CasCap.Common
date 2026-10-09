@@ -11,6 +11,9 @@ namespace CasCap.Common.Services;
 /// <see cref="FunctionResultContent"/> from the chat history while retaining the most
 /// recent <c>targetCount</c> non-system exchanges.
 /// </summary>
+/// <param name="targetCount">The maximum number of non-system messages to retain.</param>
+/// <param name="loggerFactory">Optional logger factory; when omitted the reducer logs nothing.</param>
+/// <exception cref="ArgumentOutOfRangeException"><paramref name="targetCount"/> is zero or negative.</exception>
 /// <remarks>
 /// <para>
 /// Tool-call and tool-result messages are the primary source of context bloat on
@@ -59,22 +62,13 @@ namespace CasCap.Common.Services;
 /// See https://github.com/microsoft/agent-framework/tree/main/dotnet/src/Microsoft.Agents.AI/Compaction
 /// </para>
 /// </remarks>
-public sealed class ToolOutputStrippingChatReducer : IChatReducer
+public sealed class ToolOutputStrippingChatReducer(
+    int targetCount,
+    ILoggerFactory? loggerFactory = null) : IChatReducer
 {
-    private readonly int _targetCount;
-    private readonly ILogger _logger;
-
-    /// <summary>Initializes a new instance of the <see cref="ToolOutputStrippingChatReducer"/> class.</summary>
-    /// <param name="targetCount">The maximum number of non-system messages to retain.</param>
-    /// <param name="loggerFactory">Optional logger factory; when omitted the reducer logs nothing.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="targetCount"/> is zero or negative.</exception>
-    public ToolOutputStrippingChatReducer(int targetCount, ILoggerFactory? loggerFactory = null)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetCount);
-        _targetCount = targetCount;
-        _logger = loggerFactory?.CreateLogger<ToolOutputStrippingChatReducer>()
-            ?? (ILogger)NullLogger<ToolOutputStrippingChatReducer>.Instance;
-    }
+    private readonly int _targetCount = ValidateTargetCount(targetCount);
+    private readonly ILogger _logger = loggerFactory?.CreateLogger<ToolOutputStrippingChatReducer>()
+        ?? (ILogger)NullLogger<ToolOutputStrippingChatReducer>.Instance;
 
     /// <inheritdoc/>
     public Task<IEnumerable<ChatMessage>> ReduceAsync(
@@ -170,5 +164,11 @@ public sealed class ToolOutputStrippingChatReducer : IChatReducer
         result.AddRange(retained);
 
         return result;
+    }
+
+    private static int ValidateTargetCount(int targetCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetCount);
+        return targetCount;
     }
 }
