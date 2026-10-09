@@ -3,6 +3,7 @@ using Azure.Core;
 using OllamaSharp;
 using OpenAI;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Text.Json;
 
 namespace CasCap.Common.Extensions;
@@ -167,6 +168,7 @@ public static partial class AgentExtensions
         ILoggerFactory? loggerFactory = null)
     {
         var agentLogger = loggerFactory?.CreateLogger(nameof(AgentExtensions)) ?? NullLogger.Instance;
+        var suppliedHttpClient = httpClient;
 
         httpClient ??= new HttpClient
         {
@@ -213,11 +215,15 @@ public static partial class AgentExtensions
                 ?? throw new InvalidOperationException(
                     $"Agent '{agentConfig.Name}' requires an {nameof(ProviderConfig.ApiKey)} for {nameof(AgentType.OpenAI)}.");
 
-            chatClientBuilder = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions
+            var clientOptions = new OpenAIClientOptions
             {
                 Endpoint = provider.Endpoint,
                 NetworkTimeout = Timeout.InfiniteTimeSpan,
-            })
+            };
+            if (suppliedHttpClient is not null)
+                clientOptions.Transport = new HttpClientPipelineTransport(suppliedHttpClient);
+
+            chatClientBuilder = new OpenAIClient(new ApiKeyCredential(apiKey), clientOptions)
                 .GetChatClient(provider.ModelName)
                 .AsIChatClient()
                 .AsBuilder();

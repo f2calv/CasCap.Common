@@ -15,7 +15,7 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | Class | Methods | Cases | Covers |
 | --- | --- | --- | --- |
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
-| `AgentExtensionsCreateAgentTests` | 9 | 13 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, unsupported provider types |
+| `AgentExtensionsCreateAgentTests` | 10 | 14 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, caller-supplied transport, unsupported provider types |
 | `ToolSourceValidationTests` | 2 | 2 | Remote MCP logical credential references are valid only with endpoint sources |
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
 | `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
@@ -24,7 +24,8 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `AgentEvaluationGradingTests` | 7 | 18 | Number, phrase, anchored-pattern and combined answer checks, required/forbidden/side-effect grading, Wilson intervals |
 | `AgentEvaluationToolTests` | 11 | 18 | Tool classification and filtering, fixture and sandbox responses, variant descriptions and schemas, harness tool assembly and provider availability, MCP prompt contract |
 | `AgentEvaluationReportTests` | 5 | 7 | Per-cell and cross-model summaries, speed ratios, session files, visible-thinking detection |
-| **Total** | **72** | **104** | |
+| `LlamaCppIntegrationTests` | 4 | 4 | Opt-in real text, streaming, multimodal, and framework-session inference against local llama.cpp |
+| **Total** | **77** | **109** | |
 
 ## Trait Categories
 
@@ -37,16 +38,40 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `Agent Run Scope` | `AgentRunScopeTests` |
 | `Type Resolution` | `AgentTypeRegistryTests` |
 | `Agent Evaluation` | `AgentEvaluationGradingTests`, `AgentEvaluationToolTests`, `AgentEvaluationReportTests` |
+| `Integration`, `Local llama.cpp` | `LlamaCppIntegrationTests` |
 
 ## Skipped Tests
 
-None.
+The four `LlamaCppIntegrationTests` are skipped unless explicitly enabled on a non-CI workstation.
+
+## Local llama.cpp Tests
+
+These tests call a real OpenAI-compatible llama.cpp endpoint. They never run in CI and require an
+explicit opt-in plus local environment configuration:
+
+```powershell
+$env:CASCAP_RUN_LOCAL_LLAMA_CPP_TESTS = 'true'
+$env:CASCAP_LOCAL_LLAMA_CPP_ENDPOINT = 'http://localhost:8080'
+$env:CASCAP_LOCAL_LLAMA_CPP_MODEL = '<loaded-model-name>'
+$env:CASCAP_LOCAL_LLAMA_CPP_VISION_MODEL = '<loaded-vision-model-name>' # Optional
+dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj --filter-trait 'Category=Local llama.cpp'
+```
+
+`CASCAP_LOCAL_LLAMA_CPP_API_KEY` defaults to `sk-no-key-required`.
+`CASCAP_LOCAL_LLAMA_CPP_TIMEOUT_SECONDS` defaults to 120 seconds. Local endpoints, model names and
+credentials remain environment-only. When the endpoint is behind Basic auth, set both
+`CASCAP_LOCAL_LLAMA_CPP_BASIC_AUTH_USERNAME` and `CASCAP_LOCAL_LLAMA_CPP_BASIC_AUTH_PASSWORD`.
 
 ## File Structure
 
 ```text
 Tests/
 ├── AgentEvaluationTestData.cs
+├── Integration/
+│   ├── LlamaCppIntegrationTests.cs
+│   ├── LocalLlamaCppFactAttribute.cs
+│   ├── LocalLlamaCppTestEnvironment.cs
+│   └── LocalLlamaCppTestSettings.cs
 └── Unit/
     ├── AgentEvaluationGradingTests.cs
     ├── AgentEvaluationReportTests.cs

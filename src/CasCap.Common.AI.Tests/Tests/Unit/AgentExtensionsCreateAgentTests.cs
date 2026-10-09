@@ -8,6 +8,51 @@ namespace CasCap.Common.AI.Tests.Unit;
 [Trait("Category", "Agent Creation")]
 public class AgentExtensionsCreateAgentTests
 {
+    private sealed class BasicAuthenticationHandler : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", "dGVzdDp0ZXN0");
+            return base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        public bool SawBasicAuthorization { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            SawBasicAuthorization = request.Headers.Authorization?.Scheme == "Basic";
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "id": "chatcmpl-test",
+                      "object": "chat.completion",
+                      "created": 1,
+                      "model": "test-model",
+                      "choices": [
+                                                {
+                          "index": 0,
+                          "message": { "role": "assistant", "content": "ok" },
+                          "finish_reason": "stop"
+                        }
+                      ]
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json"),
+            });
+        }
+    }
+
     private static AgentConfig NewAgentConfig(string name = "test-agent") => new()
     {
         Provider = "test-provider",
@@ -102,6 +147,29 @@ public class AgentExtensionsCreateAgentTests
 
         Assert.NotNull(chatClient);
         Assert.NotNull(agent);
+    }
+
+    [Fact]
+    public async Task CreateAgent_OpenAIWithHttpClientUsesSuppliedTransport()
+    {
+        var recordingHandler = new RecordingHandler();
+        using var httpClient = new HttpClient(new BasicAuthenticationHandler { InnerHandler = recordingHandler })
+        {
+            BaseAddress = new Uri("https://openai-compatible.example.com"),
+        };
+        var (chatClient, _, _) = AgentExtensions.CreateAgent(
+            NewProviderConfig(AgentType.OpenAI, httpClient.BaseAddress, "sk-test"),
+            NewAgentConfig(),
+            httpClient);
+        using (chatClient)
+        {
+            var response = await chatClient.GetResponseAsync(
+                [new ChatMessage(ChatRole.User, "hello")],
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Equal("ok", response.Text);
+            Assert.True(recordingHandler.SawBasicAuthorization);
+        }
     }
 
     [Theory]
