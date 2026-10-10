@@ -9,7 +9,7 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="builder">Web application builder.</param>
     /// <param name="metricsConfig">Metrics configuration providing service name, metric prefix, and OTLP endpoint.</param>
-    /// <param name="gitMetadata">Git metadata for resource attributes.</param>
+    /// <param name="applicationMetadata">Application metadata for resource attributes.</param>
     /// <param name="connectionMultiplexer">Optional Redis connection multiplexer for trace instrumentation.</param>
     /// <param name="apiAuthConfig">Optional basic-auth credentials applied as an <c>Authorization</c> header on every OTLP export — required only when the collector endpoint sits behind an authenticating ingress.</param>
     /// <param name="configureMetrics">Optional callback to add app-specific metrics configuration.</param>
@@ -17,7 +17,7 @@ public static class OpenTelemetryExtensions
     public static void InitializeOpenTelemetry(
         this WebApplicationBuilder builder,
         IMetricsConfig metricsConfig,
-        GitMetadata gitMetadata,
+        ApplicationMetadata applicationMetadata,
         IConnectionMultiplexer? connectionMultiplexer = null,
         ApiAuthConfig? apiAuthConfig = null,
         Action<MeterProviderBuilder>? configureMetrics = null,
@@ -52,7 +52,7 @@ public static class OpenTelemetryExtensions
 
         var attributes = new Dictionary<string, object>
         {
-            { "service.version", gitMetadata.GIT_TAG },
+            { "service.version", applicationMetadata.Version },
             { "deployment.environment", builder.Environment.GetAcronym() }
         };
         var resourceBuilder = ResourceBuilder.CreateDefault().AddService(

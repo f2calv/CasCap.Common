@@ -8,22 +8,19 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">Case-insensitive set of feature names to enable at runtime.</param>
-    /// <param name="addGitMetadataService">
-    /// When <see langword="true"/>, registers <see cref="GitMetadataBgService"/> as a hosted service
-    /// that periodically logs git build metadata from environment variables.
+    /// <param name="addApplicationMetadataService">
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService(this IServiceCollection services,
         IReadOnlySet<string> enabledFeatures,
-        bool addGitMetadataService = false)
+        bool addApplicationMetadataService = false)
     {
         services.Configure<FeatureFlagConfig>(o => o.EnabledFeatures = new HashSet<string>(enabledFeatures, StringComparer.OrdinalIgnoreCase));
         services.AddHostedService<FeatureFlagBgService>();
 
-        if (addGitMetadataService)
-        {
-            services.TryAddSingleton<GitMetadata>();
-            services.AddHostedService<GitMetadataBgService>();
-        }
+        if (addApplicationMetadataService)
+            AddApplicationMetadataService(services);
 
         return services;
     }
@@ -34,12 +31,12 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">The bitwise combination of enabled feature flags.</param>
-    /// <param name="addGitMetadataService">
-    /// When <see langword="true"/>, registers <see cref="GitMetadataBgService"/> as a hosted service
-    /// that periodically logs git build metadata from environment variables.
+    /// <param name="addApplicationMetadataService">
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService<T>(this IServiceCollection services, T enabledFeatures,
-        bool addGitMetadataService = false)
+        bool addApplicationMetadataService = false)
         where T : Enum
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -48,7 +45,7 @@ public static class ServiceCollectionExtensions
             if (enabledFeatures.HasFlag(value))
                 names.Add(value.ToString());
         }
-        return services.AddFeatureFlagService(names, addGitMetadataService);
+        return services.AddFeatureFlagService(names, addApplicationMetadataService);
     }
 
     /// <summary>
@@ -57,13 +54,13 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <param name="sectionName">Configuration section name for <see cref="FeatureConfig{T}"/>.</param>
-    /// <param name="addGitMetadataService">
-    /// When <see langword="true"/>, registers <see cref="GitMetadataBgService"/> as a hosted service
-    /// that periodically logs git build metadata from environment variables.
+    /// <param name="addApplicationMetadataService">
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// that periodically logs application build metadata.
     /// </param>
     [Obsolete("Use the non-generic AddFeatureFlagService overload with string-based feature names instead.")]
     public static IServiceCollection AddFeatureFlagService<T>(this IServiceCollection services, IConfiguration configuration, string sectionName,
-        bool addGitMetadataService = false)
+        bool addApplicationMetadataService = false)
         where T : Enum
     {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -71,12 +68,19 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<FeatureFlagBgService<T>>();
 #pragma warning restore CS0618
 
-        if (addGitMetadataService)
-        {
-            services.TryAddSingleton<GitMetadata>();
-            services.AddHostedService<GitMetadataBgService>();
-        }
+        if (addApplicationMetadataService)
+            AddApplicationMetadataService(services);
 
         return services;
+    }
+
+    private static void AddApplicationMetadataService(IServiceCollection services)
+    {
+        services.TryAddSingleton<ApplicationMetadata>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddOptionsWithValidateOnStart<ApplicationMetadataConfig>()
+            .BindConfiguration(ApplicationMetadataConfig.ConfigurationSectionName)
+            .Validate(config => config.LogInterval > TimeSpan.Zero, "LogInterval must be greater than zero.");
+        services.AddHostedService<ApplicationMetadataBgService>();
     }
 }

@@ -24,26 +24,27 @@ The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but
 | --- | --- |
 | `FeatureFlagBgService` | `BackgroundService` that resolves, executes, and continuously observes enabled `IBgFeature` implementations until host cancellation |
 | `FeatureFlagBgService<T>` | **[Obsolete]** Generic predecessor that used a bitwise enum via `IFeature<T>.FeatureType` |
-| `GitMetadataBgService` | Background service that periodically logs git build metadata (repository, tag, branch, commit) from environment variables to aid debugging |
+| `ApplicationMetadataBgService` | Logs assembly-backed application metadata at startup and periodically to aid debugging |
 
 ### Extensions
 
 | Extension | Description |
 | --- | --- |
-| `ServiceCollectionExtensions.AddFeatureFlagService()` | Registers `FeatureFlagBgService` and configures `FeatureFlagConfig` from a set of enabled feature name strings. Optionally registers `GitMetadataBgService` when `addGitMetadataService=true` |
+| `ServiceCollectionExtensions.AddFeatureFlagService()` | Registers `FeatureFlagBgService` and configures `FeatureFlagConfig` from a set of enabled feature name strings. Optionally registers `ApplicationMetadataBgService` when `addApplicationMetadataService=true` |
 | `ServiceCollectionExtensions.AddFeatureFlagService<T>()` | **[Obsolete]** Bridge overload that converts a flags enum to a `HashSet<string>` and delegates to the non-generic overload |
 
 ### Models
 
 | Type | Description |
 | --- | --- |
-| `GitMetadata` | Build metadata record from the CI/CD pipeline — properties bind to environment variables injected by GitHub Actions and Helm deployments (repository, branch, commit, tag, workflow name, run ID, run number) |
+| `ApplicationMetadata` | Immutable application version, source revision and build context read from generated assembly metadata |
 
 ### Configuration
 
 | Type | Description |
 | --- | --- |
 | `FeatureFlagConfig` | Configuration class carrying the `EnabledFeatures` string set — configured via `IOptions<FeatureFlagConfig>` |
+| `ApplicationMetadataConfig` | Periodic metadata logging options; `LogInterval` defaults to one minute and must be positive |
 | `FeatureConfig<T>` | **[Obsolete]** Record carrying the `EnabledFeatures` flags — bound from configuration via `IOptions<FeatureConfig<T>>` |
 
 ## Dependencies
