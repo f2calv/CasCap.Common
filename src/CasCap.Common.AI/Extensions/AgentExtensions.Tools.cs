@@ -95,10 +95,6 @@ public static partial class AgentExtensions
     /// When <see langword="true"/>, defers service resolution to invocation time.
     /// When <see langword="false"/> (default), resolves eagerly.
     /// </param>
-    /// <param name="isDevelopment">
-    /// When <see langword="true"/>, throws an <see cref="InvalidOperationException"/> for misconfigured
-    /// tool filters; when <see langword="false"/> (default), logs warnings instead.
-    /// </param>
     /// <param name="instructionsAssembly">
     /// The assembly containing embedded instruction resources. Forwarded to sub-agent tool
     /// creation so that <see cref="AgentConfig.InstructionsSource"/> resolves correctly.
@@ -108,7 +104,7 @@ public static partial class AgentExtensions
     /// <param name="logger">Optional logger for tool-resolution diagnostics.</param>
     public static List<AITool> CreateToolsForAgent(
         IServiceProvider serviceProvider, AgentConfig agentConfig, AIConfig? aiConfig = null,
-        bool deferResolution = false, bool isDevelopment = false, Assembly? instructionsAssembly = null, ILogger? logger = null)
+        bool deferResolution = false, Assembly? instructionsAssembly = null, ILogger? logger = null)
     {
         var tools = new List<AITool>();
 
@@ -127,7 +123,7 @@ public static partial class AgentExtensions
                     + "Ensure the feature that registers this service is enabled.");
 
             tools.AddRange(FilterTools(
-                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, isDevelopment, logger));
+                CreateToolsFromServiceProvider(serviceProvider, serviceType, deferResolution), source, logger));
         }
 
         foreach (var source in agentConfig.Tools.Where(s => s.Agent is not null))
@@ -153,7 +149,7 @@ public static partial class AgentExtensions
                     $"Provider '{targetAgentConfig.Provider}' for agent '{source.Agent}' not found in AIConfig.Providers.");
 
             var agentTool = CreateAgentTool(serviceProvider, source.Agent!, targetAgentConfig, targetProvider, aiConfig, instructionsAssembly, logger);
-            tools.AddRange(FilterTools([agentTool], source, isDevelopment, logger));
+            tools.AddRange(FilterTools([agentTool], source, logger));
         }
 
         return tools;
@@ -359,14 +355,11 @@ public static partial class AgentExtensions
     /// </summary>
     /// <param name="tools">The unfiltered tool list from a single source.</param>
     /// <param name="source">The <see cref="ToolSource"/> carrying the filter arrays.</param>
-    /// <param name="isDevelopment">
-    /// When <see langword="true"/>, throws an <see cref="InvalidOperationException"/> listing
-    /// all misconfigured tool names; when <see langword="false"/>, logs warnings instead.
-    /// </param>
     /// <returns>The filtered tool list.</returns>
     /// <param name="logger">Optional logger for filter diagnostics.</param>
+    /// <exception cref="InvalidOperationException">An included or excluded tool name does not exist.</exception>
     public static IEnumerable<AITool> FilterTools(IEnumerable<AITool> tools, ToolSource source,
-        bool isDevelopment = false, ILogger? logger = null)
+        ILogger? logger = null)
     {
         var toolList = tools.ToList();
         var availableNames = toolList.Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -388,7 +381,7 @@ public static partial class AgentExtensions
             toolList = [.. toolList.Where(t => !source.ExcludeTools.Contains(t.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
-        ReportMisconfigured(misconfigured, "tools", isDevelopment, logger);
+        ThrowIfMisconfigured(misconfigured, "tools");
 
         var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var tool in toolList)
@@ -399,20 +392,13 @@ public static partial class AgentExtensions
     }
 
     /// <summary>
-    /// Reports misconfigured filter names by throwing in development or logging warnings in production.
+    /// Throws when include or exclude filters name items that do not exist, so a definition never
+    /// runs with a silently smaller tool or prompt set.
     /// </summary>
-    private static void ReportMisconfigured(List<string> misconfigured, string category, bool isDevelopment, ILogger? logger = null)
+    private static void ThrowIfMisconfigured(List<string> misconfigured, string category)
     {
-        if (misconfigured.Count == 0)
-            return;
-
-        var message = $"{nameof(AgentExtensions)} misconfigured {category}: {string.Join("; ", misconfigured)}";
-        if (isDevelopment)
-            throw new InvalidOperationException(message);
-
-        var effectiveLogger = logger ?? NullLogger.Instance;
-        if (effectiveLogger.IsEnabled(LogLevel.Warning))
-            effectiveLogger.LogWarning("Misconfigured {Category}: {Details}",
-                category, string.Join("; ", misconfigured));
+        if (misconfigured.Count > 0)
+            throw new InvalidOperationException(
+                $"{nameof(AgentExtensions)} misconfigured {category}: {string.Join("; ", misconfigured)}");
     }
 }

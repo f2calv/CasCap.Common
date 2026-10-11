@@ -73,13 +73,13 @@ public sealed class McpToolCatalog(
             if (!_toolTypes.TryGetValue(source.Service!, out var type))
                 throw new InvalidOperationException(
                     $"Agent '{agentConfig.Name}' references unknown tool service '{source.Service}'.");
-            tools.AddRange(AgentExtensions.FilterTools(CreateTools(serviceProvider, type), source, isDevelopment: true, logger)
+            tools.AddRange(AgentExtensions.FilterTools(CreateTools(serviceProvider, type), source, logger)
                 .Cast<AIFunction>());
         }
 
         if (endpointToolsMapped)
             foreach (var source in agentConfig.Tools.Where(s => s.Endpoint is not null))
-                tools.AddRange(AgentExtensions.FilterTools(GetAllTools(serviceProvider), source, isDevelopment: true, logger)
+                tools.AddRange(AgentExtensions.FilterTools(GetAllTools(serviceProvider), source, logger)
                     .Cast<AIFunction>());
 
         return [.. tools

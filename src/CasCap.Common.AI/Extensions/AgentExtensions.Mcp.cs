@@ -96,10 +96,6 @@ public static partial class AgentExtensions
     /// <see cref="PromptSource"/> are applied to the resulting prompt list.
     /// </summary>
     /// <param name="agentConfig">The agent whose <see cref="AgentConfig.Prompts"/> are resolved.</param>
-    /// <param name="isDevelopment">
-    /// When <see langword="true"/>, throws an <see cref="InvalidOperationException"/> for misconfigured
-    /// prompt filters; when <see langword="false"/> (default), logs warnings instead.
-    /// </param>
     /// <returns>A combined list of <see cref="McpPromptDescriptor"/> instances from all declared service-based prompt sources.</returns>
     /// <param name="logger">Optional logger for prompt-discovery diagnostics.</param>
     /// <param name="registry">
@@ -107,7 +103,7 @@ public static partial class AgentExtensions
     /// <see langword="null"/> every loaded assembly is scanned instead.
     /// </param>
     public static List<McpPromptDescriptor> CreatePromptsForAgent(AgentConfig agentConfig,
-        bool isDevelopment = false, ILogger? logger = null, AgentTypeRegistry? registry = null)
+        ILogger? logger = null, AgentTypeRegistry? registry = null)
     {
         var prompts = new List<McpPromptDescriptor>();
 
@@ -145,7 +141,7 @@ public static partial class AgentExtensions
                         method.Name, description);
             }
 
-            prompts.AddRange(FilterPrompts(sourcePrompts, source, isDevelopment, logger));
+            prompts.AddRange(FilterPrompts(sourcePrompts, source, logger));
         }
 
         return prompts;
@@ -184,14 +180,11 @@ public static partial class AgentExtensions
     /// </summary>
     /// <param name="prompts">The unfiltered prompt list from a single source.</param>
     /// <param name="source">The <see cref="PromptSource"/> carrying the filter arrays.</param>
-    /// <param name="isDevelopment">
-    /// When <see langword="true"/>, throws an <see cref="InvalidOperationException"/> listing
-    /// all misconfigured prompt names; when <see langword="false"/>, logs warnings instead.
-    /// </param>
     /// <returns>The filtered prompt list.</returns>
     /// <param name="logger">Optional logger for filter diagnostics.</param>
+    /// <exception cref="InvalidOperationException">An included or excluded prompt name does not exist.</exception>
     public static IEnumerable<McpPromptDescriptor> FilterPrompts(
-        IEnumerable<McpPromptDescriptor> prompts, PromptSource source, bool isDevelopment = false, ILogger? logger = null)
+        IEnumerable<McpPromptDescriptor> prompts, PromptSource source, ILogger? logger = null)
     {
         var promptList = prompts.ToList();
         var availableNames = promptList.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -213,7 +206,7 @@ public static partial class AgentExtensions
             promptList = [.. promptList.Where(p => !source.ExcludePrompts.Contains(p.Name, StringComparer.OrdinalIgnoreCase))];
         }
 
-        ReportMisconfigured(misconfigured, "prompts", isDevelopment, logger);
+        ThrowIfMisconfigured(misconfigured, "prompts");
 
         var effectiveLogger = logger ?? NullLogger.Instance;
         foreach (var prompt in promptList)

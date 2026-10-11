@@ -227,7 +227,7 @@ public sealed class AgentEvaluationHarness(
 
             var agentTool = AgentExtensions.CreateAgentTool(serviceProvider, targetKey, ApplyInstructionVariant(run, targetKey),
                 run.Provider, aiConfig, instructionsAssembly, logger);
-            shipped.AddRange(AgentExtensions.FilterTools([agentTool], source, isDevelopment: true, logger).Cast<AIFunction>());
+            shipped.AddRange(AgentExtensions.FilterTools([agentTool], source, logger).Cast<AIFunction>());
         }
 
         var variant = run.ToolSurfaceVariant;
