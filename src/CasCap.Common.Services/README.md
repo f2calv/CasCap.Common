@@ -12,7 +12,7 @@ dotnet add package CasCap.Common.Services
 
 Contains `FeatureFlagBgService`, a `BackgroundService` that inspects the configured `FeatureFlagConfig.EnabledFeatures` set at startup and launches the matching `IBgFeature` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
 
-The launcher observes every enabled child for the full host lifetime. A child may complete successfully while other children continue running. Child faults propagate to the host, and completion of every enabled child before host cancellation is treated as an unexpected lifecycle failure. Host cancellation completes the launcher cleanly.
+The launcher observes every enabled child for the full host lifetime. A child may complete successfully while other children continue running. Child faults propagate to the host, and completion of every enabled child before host cancellation is treated as an unexpected lifecycle failure. Host cancellation completes the launcher cleanly. A run-to-completion child, such as a queue-driven job, must call `IHostApplicationLifetime.StopApplication()` before returning; the launcher then exits cleanly instead of reporting a failure.
 
 The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but marked `[Obsolete]`.
 

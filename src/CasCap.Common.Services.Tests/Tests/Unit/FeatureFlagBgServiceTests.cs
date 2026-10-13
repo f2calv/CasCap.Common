@@ -88,6 +88,23 @@ public sealed class FeatureFlagBgServiceTests
     }
 
     [Fact, Trait("Category", "BackgroundService")]
+    public async Task AllChildrenComplete_AfterStopApplication_CompletesCleanly()
+    {
+        var lifetime = new TestHostApplicationLifetime();
+        var runOnceFeature = new TestBgFeature("RunOnce", _ =>
+        {
+            lifetime.StopApplication();
+            return Task.CompletedTask;
+        });
+        using var sut = CreateService([runOnceFeature], lifetime, "RunOnce");
+
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await sut.ExecuteTask!.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+
+        Assert.True(sut.ExecuteTask.IsCompletedSuccessfully);
+    }
+
+    [Fact, Trait("Category", "BackgroundService")]
     public async Task Cancellation_CompletesCleanly()
     {
         var activeStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -126,13 +143,35 @@ public sealed class FeatureFlagBgServiceTests
     }
 
     private static FeatureFlagBgService CreateService(IEnumerable<IBgFeature> features, params string[] enabledFeatures)
+        => CreateService(features, new TestHostApplicationLifetime(), enabledFeatures);
+
+    private static FeatureFlagBgService CreateService(
+        IEnumerable<IBgFeature> features,
+        IHostApplicationLifetime lifetime,
+        params string[] enabledFeatures)
         => new(
             NullLogger<FeatureFlagBgService>.Instance,
             Options.Create(new FeatureFlagConfig
             {
                 EnabledFeatures = new HashSet<string>(enabledFeatures, StringComparer.OrdinalIgnoreCase),
             }),
-            features);
+            features,
+            lifetime);
+
+    private sealed class TestHostApplicationLifetime : IHostApplicationLifetime, IDisposable
+    {
+        private readonly CancellationTokenSource _stopping = new();
+
+        public CancellationToken ApplicationStarted => CancellationToken.None;
+
+        public CancellationToken ApplicationStopping => _stopping.Token;
+
+        public CancellationToken ApplicationStopped => CancellationToken.None;
+
+        public void StopApplication() => _stopping.Cancel();
+
+        public void Dispose() => _stopping.Dispose();
+    }
 
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature
     {

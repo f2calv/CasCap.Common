@@ -7,9 +7,15 @@ namespace CasCap.Common.Services;
 /// </summary>
 /// <remarks>
 /// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="IBgFeature.AlwaysEnabled"/>
-/// are launched regardless of the enabled set.
+/// are launched regardless of the enabled set. A run-to-completion feature ends the process by calling
+/// <see cref="IHostApplicationLifetime.StopApplication"/> before returning; any other completion of every
+/// enabled feature is treated as a fault.
 /// </remarks>
-public sealed partial class FeatureFlagBgService(ILogger<FeatureFlagBgService> logger, IOptions<FeatureFlagConfig> featureConfig, IEnumerable<IBgFeature> features) : BackgroundService
+public sealed partial class FeatureFlagBgService(
+    ILogger<FeatureFlagBgService> logger,
+    IOptions<FeatureFlagConfig> featureConfig,
+    IEnumerable<IBgFeature> features,
+    IHostApplicationLifetime appLifetime) : BackgroundService
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,7 +51,7 @@ public sealed partial class FeatureFlagBgService(ILogger<FeatureFlagBgService> l
             LogFeatureCompleted(logger, nameof(FeatureFlagBgService), completedFeature.Name);
         }
 
-        if (!stoppingToken.IsCancellationRequested)
+        if (!stoppingToken.IsCancellationRequested && !appLifetime.ApplicationStopping.IsCancellationRequested)
             throw new InvalidOperationException(
                 $"All enabled background features completed before host cancellation: {string.Join(", ", startedFeatureNames)}.");
 

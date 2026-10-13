@@ -27,9 +27,9 @@ Verifies feature selection, background-service lifecycle behavior, and assembly-
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
-| `FeatureFlagBgServiceTests` | 6 | 6 | Finite sibling completion, first and later faults, all-child completion, cancellation, and disabled features |
-| `FeatureFlagBgServiceHostTests` | 1 | 1 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault |
-| **Total** | **8** | **8** | |
+| `FeatureFlagBgServiceTests` | 7 | 7 | Finite sibling completion, first and later faults, all-child completion with and without a requested stop, cancellation, and disabled features |
+| `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
+| **Total** | **10** | **10** | |
 
 ### Trait Categories
 
