@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace CasCap.Common.Models;
 
 /// <summary>
@@ -24,6 +26,8 @@ public sealed class AgentRunScope
 {
     private readonly List<AgentRunAttachment> _attachments;
     private readonly Lock _attachmentsLock;
+    // Per scope, not shared with sub-agents: call IDs are only unique within one model conversation.
+    private readonly ConcurrentDictionary<string, bool> _failedToolCalls = new(StringComparer.Ordinal);
 
     /// <summary>Initializes a new top-level scope.</summary>
     public AgentRunScope()
@@ -89,4 +93,12 @@ public sealed class AgentRunScope
 
     /// <summary>Creates a child scope for a sub-agent delegation, sharing callbacks and attachments.</summary>
     public AgentRunScope ForSubAgent() => new(this, Depth + 1);
+
+    /// <summary>Records that the tool call with <paramref name="callId"/> threw or returned an error result.</summary>
+    /// <param name="callId">The model-assigned call identifier.</param>
+    public void MarkToolCallFailed(string callId) => _failedToolCalls[callId] = true;
+
+    /// <summary>Gets whether the tool call with <paramref name="callId"/> was recorded as failed.</summary>
+    /// <param name="callId">The model-assigned call identifier.</param>
+    public bool IsToolCallFailed(string callId) => _failedToolCalls.ContainsKey(callId);
 }

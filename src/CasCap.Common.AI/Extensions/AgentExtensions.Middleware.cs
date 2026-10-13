@@ -1,3 +1,4 @@
+using ModelContextProtocol.Protocol;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -115,8 +116,17 @@ public static partial class AgentExtensions
             }
             catch (Exception ex)
             {
+                GetCurrentScope()?.MarkToolCallFailed(context.CallContent.CallId);
                 logger.LogError(ex, "Tool {FunctionName} threw an exception", context.Function.Name);
                 return $"Error: tool '{context.Function.Name}' failed — {ex.GetType().Name}: {ex.Message}";
+            }
+
+            // MCP servers report tool failures as a successful call whose result carries isError=true.
+            if (IsErrorToolResult(result))
+            {
+                GetCurrentScope()?.MarkToolCallFailed(context.CallContent.CallId);
+                if (logger.IsEnabled(LogLevel.Warning))
+                    logger.LogWarning("Tool {FunctionName} returned an error result", context.Function.Name);
             }
 
             // Strip image blobs to prevent context overflow.
@@ -173,6 +183,16 @@ public static partial class AgentExtensions
             return result;
         }
     }
+
+    /// <summary>Gets whether a tool result is an MCP <see cref="CallToolResult"/> with <c>isError</c> set, raw or serialized.</summary>
+    /// <param name="result">The value returned by the tool.</param>
+    public static bool IsErrorToolResult(object? result) => result switch
+    {
+        CallToolResult { IsError: true } => true,
+        JsonElement { ValueKind: JsonValueKind.Object } element =>
+            element.TryGetProperty("isError", out var isError) && isError.ValueKind is JsonValueKind.True,
+        _ => false,
+    };
 
     #endregion
 }

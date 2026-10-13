@@ -28,4 +28,8 @@
     <ProjectReference Include="..\CasCap.Common.Extensions\CasCap.Common.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="CasCap.Common.AI.Tests" />
+  </ItemGroup>
+
 </Project>

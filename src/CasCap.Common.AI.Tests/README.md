@@ -17,22 +17,25 @@ dotnet test --project src/CasCap.Common.AI.Tests/CasCap.Common.AI.Tests.csproj
 | `ToolOutputStrippingChatReducerTests` | 11 | 17 | Tool-content stripping, orphaned tool-call prevention, sliding window, system-message retention, metadata preservation, input immutability, argument validation |
 | `AgentExtensionsCreateAgentTests` | 10 | 14 | Provider validation for Ollama / Azure OpenAI / OpenAI endpoints and credentials, caller-supplied transport, unsupported provider types |
 | `ToolSourceValidationTests` | 2 | 2 | Remote MCP logical credential references are valid only with endpoint sources |
+| `ToolFilterTests` | 3 | 4 | Include-list filtering always rejects unresolved tool names, regardless of hosting environment |
+| `ToolFailureTests` | 3 | 6 | Throwing tools and MCP `isError` results are flagged on `ToolCalls` and counted in `ToolErrorCount` |
 | `AgentResponseUsageTests` | 5 | 5 | Framework usage aggregation across tool-call round-trips, `RunAnalysisAsync` usage/tool-call reporting |
 | `AgentTelemetryTests` | 3 | 3 | Agent-level OpenTelemetry spans, sub-agent span nesting, sensitive-data opt-in |
-| `AgentRunScopeTests` | 8 | 10 | Depth nesting, callback inheritance, shared/thread-safe attachment collection, drain semantics |
+| `AgentRunScopeTests` | 9 | 11 | Depth nesting, callback inheritance, shared/thread-safe attachment collection, drain semantics, per-scope tool failures |
 | `AgentTypeRegistryTests` | 11 | 11 | Registry lookup, ambiguous-name rejection, DI and assembly indexing, tool resolution via registry |
 | `AgentEvaluationGradingTests` | 7 | 18 | Number, phrase, anchored-pattern and combined answer checks, required/forbidden/side-effect grading, Wilson intervals |
 | `AgentEvaluationToolTests` | 11 | 18 | Tool classification and filtering, fixture and sandbox responses, variant descriptions and schemas, harness tool assembly and provider availability, MCP prompt contract |
 | `AgentEvaluationReportTests` | 5 | 7 | Per-cell and cross-model summaries, speed ratios, session files, visible-thinking detection |
 | `LlamaCppIntegrationTests` | 4 | 4 | Opt-in real text, streaming, multimodal, and framework-session inference against local llama.cpp |
-| **Total** | **77** | **109** | |
+| **Total** | **84** | **120** | |
 
 ## Trait Categories
 
 | Category | Applied to |
 | --- | --- |
 | `Chat Reduction` | `ToolOutputStrippingChatReducerTests` |
-| `Agent Creation` | `AgentExtensionsCreateAgentTests`, `ToolSourceValidationTests` |
+| `Agent Creation` | `AgentExtensionsCreateAgentTests`, `ToolSourceValidationTests`, `ToolFilterTests` |
+| `Tool Failures` | `ToolFailureTests` |
 | `Usage Reporting` | `AgentResponseUsageTests` |
 | `Telemetry` | `AgentTelemetryTests` |
 | `Agent Run Scope` | `AgentRunScopeTests` |
@@ -81,6 +84,8 @@ Tests/
     ├── AgentResponseUsageTests.cs
     ├── AgentTelemetryTests.cs
     ├── AgentTypeRegistryTests.cs
+    ├── ToolFailureTests.cs
+    ├── ToolFilterTests.cs
     ├── ToolOutputStrippingChatReducerTests.cs
     └── ToolSourceValidationTests.cs
 ```

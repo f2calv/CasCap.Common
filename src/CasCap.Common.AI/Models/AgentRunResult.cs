@@ -78,6 +78,9 @@ public sealed class AgentRunResult(string agentName)
     /// <summary>Tools invoked during the agent run, in call order (may contain duplicates).</summary>
     public List<ToolCallInfo> ToolCalls { get; } = [];
 
+    /// <summary>Number of <see cref="ToolCalls"/> that threw or returned an error result.</summary>
+    public int ToolErrorCount => ToolCalls.Count(toolCall => toolCall.Failed);
+
     /// <summary>Tracks whether the current streaming position is inside <c>&lt;think&gt;</c> tags.</summary>
     public bool IsThinking { get; set; }
 

@@ -11,6 +11,20 @@ public class AgentRunScopeTests
     public void Depth_DefaultsToZero() =>
         Assert.Equal(0, new AgentRunScope().Depth);
 
+    /// <summary>Call IDs are only unique within one model conversation, so failures stay on their own scope.</summary>
+    [Fact]
+    public void MarkToolCallFailed_IsScopedToItsRun()
+    {
+        var root = new AgentRunScope();
+        var child = root.ForSubAgent();
+
+        child.MarkToolCallFailed("call-1");
+
+        Assert.True(child.IsToolCallFailed("call-1"));
+        Assert.False(root.IsToolCallFailed("call-1"));
+        Assert.False(child.IsToolCallFailed("call-2"));
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]

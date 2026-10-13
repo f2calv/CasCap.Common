@@ -391,7 +391,7 @@ public static partial class AgentExtensions
                     {
                         case FunctionCallContent fcc:
                             result.ToolCallCount++;
-                            result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments));
+                            result.ToolCalls.Add(new ToolCallInfo(fcc.Name, fcc.Arguments, activeScope.IsToolCallFailed(fcc.CallId)));
                             break;
                         case FunctionResultContent frc:
                             ExtractImageAttachments(frc, result, logger);
@@ -422,8 +422,8 @@ public static partial class AgentExtensions
             }
 
             if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
-                    agentConfig.Name, elapsed, result.ToolCallCount, result.Attachments.Count, outputText.Length);
+                logger.LogInformation("Agent run completed for {AgentName} in {Duration}, toolCalls={ToolCallCount}, toolErrors={ToolErrorCount}, attachments={AttachmentCount}, outputLength={OutputLength}",
+                    agentConfig.Name, elapsed, result.ToolCallCount, result.ToolErrorCount, result.Attachments.Count, outputText.Length);
 
             return result;
         }
