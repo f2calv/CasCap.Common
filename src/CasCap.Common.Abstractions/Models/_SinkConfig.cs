@@ -22,6 +22,13 @@ public record SinkConfig
     };
 
     /// <summary>
+    /// The sink type that answers domain queries when several enabled sinks implement them.
+    /// Every enabled sink still receives every event; when this sink type is not enabled, the last
+    /// registered query-capable sink answers.
+    /// </summary>
+    public string QuerySinkType { get; init; } = "Redis";
+
+    /// <summary>
     /// Returns a copy of this configuration with the specified sink type disabled.
     /// Used in lite registration scenarios to exclude sinks that require heavy
     /// infrastructure dependencies.

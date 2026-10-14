@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Verifies feature selection, background-service lifecycle behavior, and assembly-backed application metadata.
+Verifies feature selection, background-service lifecycle behavior, assembly-backed application metadata, and event-sink registration.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
@@ -29,7 +29,8 @@ Verifies feature selection, background-service lifecycle behavior, and assembly-
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
 | `FeatureFlagBgServiceTests` | 7 | 7 | Finite sibling completion, first and later faults, all-child completion with and without a requested stop, cancellation, and disabled features |
 | `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
-| **Total** | **10** | **10** | |
+| `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
+| **Total** | **13** | **13** | |
 
 ### Trait Categories
 
@@ -37,6 +38,7 @@ Verifies feature selection, background-service lifecycle behavior, and assembly-
 | --- | --- |
 | `BackgroundService` | Feature-flag background-service tests |
 | `Metadata` | Application metadata tests |
+| `Sinks` | Event-sink registration tests |
 
 ### Skipped Tests
 
@@ -49,5 +51,6 @@ Tests/
 └── Unit/
     ├── ApplicationMetadataTests.cs
     ├── FeatureFlagBgServiceHostTests.cs
-    └── FeatureFlagBgServiceTests.cs
+    ├── FeatureFlagBgServiceTests.cs
+    └── SinkServiceCollectionExtensionsTests.cs
 ```
