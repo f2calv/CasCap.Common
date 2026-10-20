@@ -1,30 +1,25 @@
 # CasCap.Common.Net.Tests
 
-xUnit tests for `CasCap.Common.Net`.
-
-## Purpose
-
-Verifies HTTP client base class behaviour and network extension methods — header parsing, query-string building, and `HttpClientBase` request/response handling.
+xUnit v3 tests for typed HTTP request/response handling, retry safety and network extensions in `CasCap.Common.Net`.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-## Dependencies
+## Running
 
-### NuGet Packages
+From the repository root with the .NET 10 SDK:
 
-| Package |
-| --- |
-| [xunit.v3](https://www.nuget.org/packages/xunit.v3) |
-| [Microsoft.Testing.Extensions.CodeCoverage](https://www.nuget.org/packages/microsoft.testing.extensions.codecoverage) |
+```bash
+dotnet test --project src/CasCap.Common.Net.Tests/CasCap.Common.Net.Tests.csproj --framework net10.0
+```
 
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Net` | Library under test |
-| `CasCap.Common.Testing` | xUnit logging & skip attributes |
+The HTTP tests use local stub handlers, not live API endpoints. No credentials or external service
+are required.
 
 ## Tests
+
+Counts are declared methods and expanded data rows per target framework, not execution results.
+The resilience theory sources contribute six idempotent methods, two non-idempotent methods per
+applicable theory, and four pre-transmission failure cases.
 
 | Test class | Methods | Test cases | Coverage |
 | --- | --- | --- | --- |
@@ -43,7 +38,7 @@ Verifies HTTP client base class behaviour and network extension methods — head
 
 ### Skipped Tests
 
-None.
+No declared or conditional skips.
 
 ## File Structure
 
@@ -53,7 +48,7 @@ Tests/
 ├── HttpClientBaseTests.cs
 ├── HttpClientBuilderResilienceExtensionTests.cs
 ├── MockHandler.cs
-├── NetTests.cs
+├── NetExtensionTests.cs
 ├── TestBase.cs
 ├── TestHttpClient.cs
 └── TestPayload.cs

@@ -1,13 +1,22 @@
 # CasCap.Common.Configuration.Tests
 
-Unit and local integration coverage for `CasCap.Common.Configuration`.
+Unit and optional live Key Vault tests for prefix filtering and configuration-key mapping in `CasCap.Common.Configuration`.
 
-## Tests
+**Target framework:** `net10.0`
 
-| Class | Methods | Cases | Category | Description |
-| --- | ---: | ---: | --- | --- |
-| `PrefixKeyVaultSecretManagerTests` | 6 | 7 | Key Vault | Prefix validation, filtering, remapping, exclusive-root isolation, and rejection |
-| `KeyVaultPrefixIntegrationTests` | 1 | 1 | Integration, Key Vault | Live selected-prefix loading and exclusion from a caller-configured vault |
+## Running
+
+From the repository root with the .NET 10 SDK:
+
+```bash
+dotnet test --project src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj
+```
+
+The unit cases are offline. To exclude the live test explicitly:
+
+```bash
+dotnet test --project src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj --filter-not-trait "Category=Integration"
+```
 
 ## Local Configuration
 
@@ -24,13 +33,42 @@ The live integration test reads `KeyVaultConfigurationTests` from the repository
 }
 ```
 
-Missing configuration or an unavailable certificate skips the live test. Values and credentials are never logged.
+The example values are placeholders. Supply actual values through the repository's User Secrets
+store, never tracked configuration. The certificate must be in the current user's personal
+certificate store and the identity must be allowed to read the vault.
 
-## Running Locally
+The test is read-only: prepare the selected-prefix and excluded-prefix fixture secrets separately,
+using the constants and expectations in
+[KeyVaultPrefixIntegrationTests](Tests/Integration/KeyVaultPrefixIntegrationTests.cs).
+It does not create vault contents or initiate interactive sign-in.
 
-```powershell
-dotnet test --project src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj
-```
+## Tests
+
+Counts are declared methods and expanded data rows, not execution results.
+
+| Test class | Methods | Test cases | Scope |
+| --- | ---: | ---: | --- |
+| `PrefixKeyVaultSecretManagerTests` | 6 | 7 | Prefix validation, filtering, remapping, exclusive-root isolation and rejection |
+| `KeyVaultPrefixIntegrationTests` | 1 | 1 | Live selected-prefix loading and exclusion |
+| **Total** | **7** | **8** | |
+
+### Trait Categories
+
+| Category | Used by |
+| --- | --- |
+| `Key Vault` | Both classes |
+| `Integration` | Live vault test |
+
+### Skipped Tests
+
+One case has conditional skips; these are alternatives, not two skipped cases:
+
+| Test | Cases | Skip condition |
+| --- | ---: | --- |
+| Live prefix integration test | 1 | Missing/invalid bootstrap configuration or configured certificate not installed |
+
+Once prerequisites are present, authentication, access and fixture assertion failures fail the test
+rather than being treated as skips.
 
 ## Layout
 

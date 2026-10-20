@@ -1,6 +1,6 @@
 # CasCap.Common.Testing
 
-xUnit v3 test infrastructure — logging redirection and conditional-skip attributes for CI environments.
+xUnit v3 helpers for routing .NET logs to test output, stubbing HTTP responses, creating temporary files and conditionally skipping tests in CI.
 
 ## Installation
 
@@ -8,53 +8,78 @@ xUnit v3 test infrastructure — logging redirection and conditional-skip attrib
 dotnet add package CasCap.Common.Testing
 ```
 
-## Purpose
-
-Provides utilities that route `ILogger` output to xUnit's `ITestOutputHelper` via a custom `ILoggerProvider`, `[Fact]`/`[Theory]` attributes that automatically skip tests when running under Azure DevOps or GitHub Actions, and small helpers for stubbing HTTP and creating throwaway files.
-
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-### Test Helpers
+## Usage
 
-| Type | Description |
-| --- | --- |
-| `StubHttpMessageHandler` | `HttpMessageHandler` returning canned responses, so HTTP code can be tested without a network |
-| `TempFile` | Creates a uniquely named file under the temporary folder and deletes it on dispose |
+### Capture Application Logs
 
-### Extensions
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Xunit;
 
-| Extension | Description |
-| --- | --- |
-| `ServiceCollectionExtensions.AddXUnitLogging()` | Registers the test logging provider (`TestLogProvider`) into the DI container |
+public sealed class LoggingTests(ITestOutputHelper output)
+{
+    [Fact]
+    public void CapturesLogs()
+    {
+        var services = new ServiceCollection();
+        services.AddXUnitLogging(output);
+        using var provider = services.BuildServiceProvider();
 
-### Logging
+        var logger = provider.GetRequiredService<ILogger<LoggingTests>>();
+        logger.LogInformation("Test logging is connected");
 
-| Type | Description |
-| --- | --- |
-| `TestLogProvider` | `ILoggerProvider` that forwards log entries to xUnit's `ITestOutputHelper` |
-| `TestLogger` | `ILogger` implementation backing `TestLogProvider` |
+        Assert.IsType<TestLogProvider>(
+            provider.GetRequiredService<ILoggerProvider>());
+    }
+}
+```
 
-### xUnit Attributes
+`AddXUnitLogging` installs `TestLogProvider` at `Trace` level and connects the static
+`ApplicationLogging` factory. That static factory is process-wide; tests must account for sharing it.
+
+### Stub HTTP Without a Network
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using CasCap.Common.Xunit;
+
+using var handler = new StubHttpMessageHandler(_ =>
+    new HttpResponseMessage(HttpStatusCode.OK)
+    {
+        Content = new StringContent("example")
+    });
+using var client = new HttpClient(handler);
+var response = await client.GetStringAsync("https://example.com/resource");
+```
+
+The handler accepts synchronous or asynchronous response factories. Return a fresh response for
+each request. It can also be assigned as a `DelegatingHandler.InnerHandler`.
+
+### Temporary Files
+
+`TempFile.Create()` creates an empty file. `CreateAsync` accepts text or bytes plus a cancellation
+token. Both expose the generated `Path`; disposing the helper attempts to delete the file.
+
+```csharp
+using CasCap.Common.Xunit;
+
+using var file = TempFile.Create(".json");
+```
+
+## Conditional CI Skips
 
 | Attribute | Description |
 | --- | --- |
-| `SkipIfCIBuildFactAttribute` | Skips the `[Fact]` when running on any CI server (Azure DevOps or GitHub Actions) |
-| `SkipIfCIBuildTheoryAttribute` | Skips the `[Theory]` when running on any CI server |
+| `SkipIfCIBuildFactAttribute` | Skips the `[Fact]` on Azure DevOps or GitHub Actions |
+| `SkipIfCIBuildTheoryAttribute` | Skips the `[Theory]` on Azure DevOps or GitHub Actions |
 | `SkipIfGithubActionsBuildFactAttribute` | Skips the `[Fact]` when running on GitHub Actions |
 | `SkipIfGithubActionsBuildTheoryAttribute` | Skips the `[Theory]` when running on GitHub Actions |
 | `SkipIfAzureDevOpsBuildFactAttribute` | Skips the `[Fact]` when running on Azure DevOps |
 | `SkipIfAzureDevOpsBuildTheoryAttribute` | Skips the `[Theory]` when running on Azure DevOps |
 
-## Dependencies
-
-### NuGet Packages
-
-| Package |
-| --- |
-| [xunit.v3.extensibility.core](https://www.nuget.org/packages/xunit.v3.extensibility.core) |
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+These attributes live in `CasCap.Common.Xunit`. Their environment checks target the named CI
+systems; they are not a general detector for every CI vendor.

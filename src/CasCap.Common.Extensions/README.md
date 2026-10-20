@@ -8,38 +8,35 @@ General-purpose extension methods and helper utilities for .NET applications.
 dotnet add package CasCap.Common.Extensions
 ```
 
-## Purpose
-
-Provides commonly-used extension methods for date/time, strings, enums, parsing, I/O, buffers, collections, and XML — used as a foundational utility library across the CasCap ecosystem.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Extensions
+## Usage
+
+```csharp
+using System;
+using CasCap.Common.Extensions;
+
+var columnName = "OrderTotal".ToSnakeCase();
+var endpoint = "https://example.com/api/".UrlCombine("/items");
+
+Console.WriteLine(columnName); // order_total
+Console.WriteLine(endpoint);   // https://example.com/api/items
+```
+
+## Available Helpers
 
 | Class | Key Methods |
 | --- | --- |
-| [`DateTimeExtensions`](Extensions/DateTimeExtensions.cs) | `TruncateToHour()`, `TruncateToDay()`, `TruncateToMonth()`, `GetMissingDates()`, `FromUnixTime()`, `ToUnixTime()`, `IsWeekend()`, `AddWeekdays()`, `ToRelativeDateString()` |
-| [`StringExtensions`](Extensions/StringExtensions.cs) | `ToSnakeCase()`, `UrlCombine()`, `IsEmail()`, `MaskPhoneNumber()`, `MaskEndpoint()`, `NormalizeWhitespace()`, `Sanitize()` |
-| [`HelperExtensions`](Extensions/HelperExtensions.cs) | `FromXml()`, `GetBatches()`, `ToConcurrentDictionary()`, `IsIntegration()`, `IsTest()`, `Compress()`, `Decompress()` |
-| [`EnumExtensions`](Extensions/EnumExtensions.cs) | `GetAllItems()`, `GetAllCombinations()`, `ToStringCached()`, `GetDisplayName()`, `HasFlag()` |
-| [`ParseExtensions`](Extensions/ParseExtensions.cs) | `GetDecimalCount()`, `CsvStr2Date()`, `CsvDate2Str()`, `Decimal2Int()`, `Decimal2Long()` |
-| [`IOExtensions`](Extensions/IOExtensions.cs) | `WriteAllBytes()`, `WriteAllTextAsync()`, `AppendTextFile()` |
-| [`ShellExtensions`](Extensions/ShellExtensions.cs) | `RunProcess()`, `RunProcessDiagnostic()`, `RunProcessWithStdinAsync()`, `Bash()` |
-| [`BufferExtensions`](Extensions/BufferExtensions.cs) | `TryReadLine()` (NET8+) |
+| `DateTimeExtensions` | Date truncation, Unix time, missing dates and weekday calculations |
+| `StringExtensions` | Case conversion, URL combination, validation, masking and whitespace normalization |
+| `HelperExtensions` | Collections, XML, byte conversion and compression |
+| `EnumExtensions` | Enum enumeration, parsing, cached names and display names |
+| `ParseExtensions` | Numeric conversions and CSV date parsing |
+| `IOExtensions` | File creation, writing and appending |
+| `ShellExtensions` | Process execution, binary stdin/stdout and Linux Bash commands |
+| `BufferExtensions` | `TryReadLine()` for sequence buffers; .NET 8+ only |
 
-### Exceptions
-
-| Type | Description |
-| --- | --- |
-| `GenericException` | Generic catch-all exception type |
-
-### Models
-
-| Type | Description |
-| --- | --- |
-| `FixedSizedQueue<T>` | Fixed-capacity `ConcurrentQueue<T>` that auto-dequeues oldest items when full |
-| `ProcessResult` | Readonly record struct returned by `RunProcessWithStdinAsync` — `Output`, `Error`, `ErrorLength`, `ExitCode`, and `Success` |
-| `ProcessErrorCapture` | Whether standard error is retained as `Text` or counted and discarded as `Length` |
+`FixedSizedQueue<T>` provides a fixed-capacity concurrent queue that evicts the oldest items.
 
 ## Piping Binary Data Through a Process
 
@@ -51,6 +48,8 @@ along with its children whenever the method stops waiting on it.
 Pass each argument as its own array element; nothing is quoted or escaped on the way through:
 
 ```csharp
+using System;
+using CasCap.Common.Extensions;
 using CasCap.Common.Models;
 
 var result = await ShellExtensions.RunProcessWithStdinAsync(
@@ -59,24 +58,15 @@ var result = await ShellExtensions.RunProcessWithStdinAsync(
     inputBytes,
     ProcessErrorCapture.Length);
 
-if (result.Success)
-    Use(result.Output);
+if (!result.Success)
+    throw new InvalidOperationException($"Transcoding failed with exit code {result.ExitCode}.");
+
+byte[] audioBytes = result.Output;
 ```
 
-Choose `ProcessErrorCapture.Length` when the diagnostics may echo third-party file names or other
-content that should not be retained; the count still proves whether anything was written.
+The example assumes `inputBytes` contains the media to convert and `ffmpeg` is installed. Choose
+`ProcessErrorCapture.Length` when diagnostics may contain third-party content: `Error` is discarded,
+while `ErrorLength` records its length. `ProcessErrorCapture.Text` retains the diagnostic string.
+`ProcessResult.Success` reflects the exit code; cancellation propagates to the caller.
 
-The overload taking a single `arguments` string is obsolete because it splits on spaces, so any
-argument containing one arrives as several.
-
-## Dependencies
-
-### NuGet Packages
-
-This project has no direct NuGet package references.
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+`Bash()` is supported only on Linux. Other process helpers require the named executable on the host.

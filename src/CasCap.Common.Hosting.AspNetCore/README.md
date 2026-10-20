@@ -8,46 +8,70 @@ ASP.NET Core hosting defaults for feature-gated controllers, Serilog logging, an
 dotnet add package CasCap.Common.Hosting.AspNetCore
 ```
 
-## Feature-Gated Controllers
-
-In a modular monolith the whole controller surface compiles into one process, but each deployment (pod/host) typically enables only a subset of features (see `CasCap.Common.Services` / `FeatureFlagConfig.EnabledFeatures`) and registers only that subset's services. Without gating, every controllers-enabled host maps every controller and returns **HTTP 500** when a controller's feature-scoped dependency is not registered — and advertises endpoints in Swagger it cannot actually serve.
-
-Mark a controller with `[FeatureController(...)]` and call `AddFeatureGatedControllers(enabledFeatures)` so the controller is only routed (and shown in OpenAPI/Swagger) on hosts where one of its features is enabled. **Unmarked** controllers are always available (their dependencies must be registered on every host that maps controllers).
-
-> This is the single-assembly (type-level) equivalent of gating controllers by `ApplicationPart` at the assembly level. Prefer assembly-level gating (`AddApplicationPart` per enabled feature) when each feature's controllers live in their own assembly, since that also avoids loading off-feature assemblies.
-
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
 ## Usage
 
-```csharp
-// Controller — only mapped where the PafGen feature is enabled:
-[ApiController]
-[FeatureController(FeatureNames.PafGen)]
-[Route("api/v{version:apiVersion}/paf/srzone")]
-public sealed class SrZoneController(IPafPlotCollectionSource source) : ControllerBase { /* ... */ }
+In an ASP.NET Core application, enable the controller features this host can serve:
 
-// Composition root:
-builder.Services.AddControllers()
-    .AddFeatureGatedControllers(enabledFeatures); // same set passed to AddFeatureFlagService(...)
+```csharp
+using System;
+using System.Collections.Generic;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Extensions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+
+var builder = WebApplication.CreateBuilder(args);
+var enabledFeatures = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Reports" };
+builder.Services.AddControllers().AddFeatureGatedControllers(enabledFeatures);
+
+var app = builder.Build();
+app.MapControllers();
+app.Run();
+
+[ApiController]
+[FeatureController("Reports")]
+[Route("api/reports")]
+public sealed class ReportsController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Get() => Ok(new { Status = "ready" });
+}
 ```
 
-### Types
+## Feature-Gated Controllers
 
-| Type | Description |
-| --- | --- |
-| `FeatureControllerAttribute` | Marks a controller with the feature name(s) that must be enabled for it to be discovered. Unmarked = always available |
-| `FeatureGatedControllerFeatureProvider` | `IApplicationFeatureProvider<ControllerFeature>` that prunes marked controllers whose feature is not enabled on the host |
+`[FeatureController(...)]` accepts one or more names. A marked controller is discoverable when any
+name overlaps the supplied enabled set; unmarked controllers remain available. Use a case-insensitive
+set consistently with the feature launcher. Register dependencies for every controller retained on
+the host. Gating controls discovery; it is not authentication or authorization.
 
-### Extensions
+Use the same set with
+[CasCap.Common.Services](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Services)
+when background features share those names. If controllers live in separate assemblies, application
+part selection can gate entire assemblies instead.
 
-| Extension | Description |
-| --- | --- |
-| `MvcBuilderExtensions.AddFeatureGatedControllers()` | Adds the `FeatureGatedControllerFeatureProvider` to the MVC application-part manager for the supplied enabled-feature set |
+## Service Architecture
+
+```mermaid
+flowchart TD
+    DISCOVER["MVC controller discovery"] --> MARKED{"FeatureController attribute?"}
+    MARKED -->|No| KEEP["Retain controller"]
+    MARKED -->|Yes| ENABLED{"Any marked feature enabled?"}
+    ENABLED -->|Yes| KEEP
+    ENABLED -->|No| REMOVE["Remove controller from discovery"]
+    KEEP --> ROUTES["Controller routes and API discovery"]
+```
 
 ## Serilog
 
-`GetBootstrapLogger` provides early startup logging, while `InitializeSerilog` configures Serilog as the host logging pipeline. Serilog owns the pipeline through `UseSerilog(..., writeToProviders: true)` so one `Serilog` configuration section controls the console and forwards events to Microsoft.Extensions.Logging providers, including OpenTelemetry.
+`SerilogExtensions.GetBootstrapLogger()` provides early startup logging. Call
+`builder.InitializeSerilog()` to configure the host pipeline, then initialize OpenTelemetry if
+needed. This ordering matters: Serilog initialization clears existing logging providers.
+Serilog reads the `Serilog` section and forwards events to Microsoft logging providers, including
+the OpenTelemetry exporter.
 
 | Extension | Description |
 | --- | --- |
@@ -59,7 +83,9 @@ builder.Services.AddControllers()
 
 ## OpenTelemetry
 
-`InitializeOpenTelemetry` registers metrics, traces, and logs with OTLP gRPC export. It uses `IMetricsConfig` for the service name, metric prefix, and exporter endpoint.
+`InitializeOpenTelemetry` registers metrics, traces and logs with OTLP gRPC export. It takes an
+`IMetricsConfig`, `ApplicationMetadata`, and optional Redis connection, exporter authentication
+and metric/trace customization callbacks.
 
 | Extension | Description |
 | --- | --- |
@@ -67,50 +93,63 @@ builder.Services.AddControllers()
 | `MeterProviderBuilderExtensions.AddHistogramView(...)` | Registers explicit histogram bucket boundaries for a prefixed instrument |
 | `MetricBoundaries.Symmetric(...)` | Mirrors positive boundaries into a signed set around zero |
 
-Registration is skipped when `IMetricsConfig.OtlpExporterEndpoint` is `null`. Development hosts expose the Prometheus exporter; non-development hosts add ASP.NET Core, runtime, process, HTTP client, and optional Redis instrumentation.
+Registration is skipped when `OtlpExporterEndpoint` is null. Development hosts register a Prometheus
+exporter; exposing its endpoint still requires application setup. Non-development hosts add
+ASP.NET Core, runtime and process metrics. HTTP client tracing is enabled in both environments;
+ASP.NET Core and optional Redis tracing are added outside Development.
 
-### Configuration Examples
+## Configuration Examples
 
-Minimal configuration disables telemetry:
+The library consumes `IMetricsConfig`; it does not bind a fixed `AppConfig` section. The application
+chooses an options type and section. This example uses `Telemetry`:
+
+```csharp
+using System;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Extensions;
+using CasCap.Common.Models;
+using Microsoft.Extensions.Configuration;
+using Serilog;
+
+builder.InitializeSerilog();
+var telemetry = builder.Configuration.GetSection("Telemetry").Get<TelemetryOptions>()
+    ?? new TelemetryOptions();
+builder.InitializeOpenTelemetry(telemetry, new ApplicationMetadata());
+
+public sealed record TelemetryOptions : IMetricsConfig
+{
+    public string MetricNamePrefix { get; init; } = "example";
+    public string OtelServiceName { get; init; } = "Example.App";
+    public Uri? OtlpExporterEndpoint { get; init; }
+}
+```
+
+Run these registrations before `builder.Build()` in the Usage example. Place the options type
+after the program's top-level statements.
+
+### No Telemetry Export
 
 ```json
 {
-    "AppConfig": {
-        "MetricNamePrefix": "app",
+    "Telemetry": {
+        "MetricNamePrefix": "example",
         "OtelServiceName": "Example.App"
     }
 }
 ```
 
-Configured OTLP export:
+### OTLP Export
 
 ```json
 {
-    "AppConfig": {
-        "MetricNamePrefix": "app",
+    "Telemetry": {
+        "MetricNamePrefix": "example",
         "OtelServiceName": "Example.App",
         "OtlpExporterEndpoint": "http://otel-collector.example.com:4317"
     }
 }
 ```
 
-## Dependencies
-
-### Framework References
-
-| Reference | Purpose |
-| --- | --- |
-| `Microsoft.AspNetCore.App` | ASP.NET Core MVC application-part / controller-feature types (`IApplicationFeatureProvider<ControllerFeature>`, `IMvcBuilder`) |
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Abstractions` | Host and metrics configuration contracts |
-| `CasCap.Common.Logging` | Shared `ApplicationLogging` logger factory |
-| `CasCap.Common.Net` | Basic-auth header creation for authenticated OTLP exporters |
-| `CasCap.Common.Services` | Git build metadata for telemetry resource attributes |
-
-### NuGet Packages
-
-The package includes the Serilog ASP.NET Core pipeline, standard Serilog enrichers and console sink, OpenTelemetry hosting/export packages, ASP.NET Core, HTTP, process, runtime, and Redis instrumentation, and `StackExchange.Redis` integration.
+Use a caller-controlled endpoint and protect exporter credentials with a secret provider. Telemetry
+can leave the application through the configured collector; review resource attributes and emitted
+events before enabling it.

@@ -8,34 +8,60 @@ Multi-tier distributed caching library implementing the cache-aside pattern with
 dotnet add package CasCap.Common.Caching
 ```
 
-## Purpose
-
-Provides a complete caching infrastructure with local (in-process) and remote (Redis) cache tiers, synchronised expiration via Redis Pub/Sub, and configurable serialization (JSON or MessagePack). Includes background services for cache expiry management, an async duplicate-lock mechanism to prevent thundering-herd scenarios, and optional Redis-based distributed locking via RedLock.net.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Services
+## Usage
+
+For local memory caching, disable the remote tier explicitly:
+
+```csharp
+using System;
+using CasCap.Common.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using AppCache = CasCap.Common.Abstractions.IDistributedCache;
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddCasCapCaching(options =>
+    options.RemoteCache = options.RemoteCache with { IsEnabled = false });
+
+using var host = builder.Build();
+await host.StartAsync();
+var cache = host.Services.GetRequiredService<AppCache>();
+
+await cache.Set("greeting", "Hello", slidingExpiration: TimeSpan.FromMinutes(5));
+Console.WriteLine(await cache.Get<string>("greeting")); // Hello
+await host.StopAsync();
+```
+
+`CasCap.Common.Abstractions.IDistributedCache` is the object-cache API, not Microsoft's byte-cache
+interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. `Set`,
+`Delete` and `DeleteAll` affect the enabled layers.
+
+To use application configuration, replace the registration with
+`builder.Services.AddCasCapCaching(builder.Configuration)`. The section defaults to
+`CasCap:CachingConfig`. Overloads also accept a `CachingConfig` instance or an `Action<CachingConfig>`.
+A non-empty connection string opens Redis during registration and returns its `ConnectionMultiplexer`
+for reuse. Without one, registration supplies `NullRemoteCache`; it does not automatically turn off
+`RemoteCache.IsEnabled`.
+
+Select memory or disk with the `LocalCacheType` argument. This selects the implementation;
+enabling `DiskCache` in JSON alone does not switch from memory to disk.
+
+## Cache Layers
 
 | Service | Description |
 | --- | --- |
-| `DistributedCacheService` | Multi-tier cache orchestrator that always supports the configured local cache and falls back to Redis only when remote caching is enabled. Supports opt-in Redis-based distributed locking (Redlock) to prevent thundering herd across instances |
+| `DistributedCacheService` | Reads local first, then an enabled remote tier, then an optional factory; supports opt-in Redis locking |
 | `RedisCacheService` | `IRemoteCache` implementation wrapping StackExchange.Redis with optional Lua script support |
 | `NullRemoteCache` | No-op `IRemoteCache` implementation used for local-only caching. Redis infrastructure properties throw `NotSupportedException` |
 | `MemoryCacheService` | `ILocalCache` implementation backed by `IMemoryCache` |
 | `DiskCacheService` | `ILocalCache` implementation persisting cache entries to disk |
-| `CacheExpiryBgService` | Background service coordinating expiry synchronisation between local and remote caches. Registered unless `CacheExpiryServiceEnabled` is `false` |
+| `CacheExpiryBgService` | Coordinates expiry subscribers when Redis is registered and `CacheExpiryServiceEnabled` is true |
 | `LocalCacheExpiryService` | Handles local cache entry expiration. Disable via `LocalCacheExpiryServiceEnabled` |
 | `RemoteCacheExpiryService` | Handles remote cache entry expiration. Disable via `RemoteCacheExpiryServiceEnabled` |
 
-### Extensions
-
-| Extension | Description |
-| --- | --- |
-| `ServiceCollectionExtensions.AddCasCapCaching()` | Always registers `ILocalCache`, `IRemoteCache`, and `IDistributedCache`. Uses `NullRemoteCache` when the remote connection string is null or whitespace; otherwise, registers Redis services only. When `CachingConfig.HealthCheckRedis` is not `None`, also registers a Redis connectivity health check tagged with the configured Kubernetes probe type(s) |
-| `CachingExtensions` | Helper methods for cache key formatting and serialization |
-| `AsyncDuplicateLock` | Prevents duplicate concurrent cache population for the same key |
-
-### Configuration
+## Configuration
 
 | Type | Description |
 | --- | --- |
@@ -43,9 +69,33 @@ Provides a complete caching infrastructure with local (in-process) and remote (R
 | `RedlockConfig` | Timing parameters for Redis distributed locks with named profile support — root defaults (`ExpiryMs` 5s, `WaitMs` 5s, `RetryMs` 250ms) tuned for cache-miss protection. `RedisKeyFormat` for lock key prefixing. Built-in `LeaderElection` profile (30s/60s/5s) for long-lived locks. Custom profiles via `Profiles` dictionary |
 | `RedlockProfiles` | Well-known profile name constants — `CacheMiss`, `LeaderElection` |
 | `RedlockTimingProfile` | Timing values for a single named lock profile — `ExpiryMs`, `WaitMs`, `RetryMs` |
-| `CacheParameters` | Per-layer cache configuration (TTL, size limits) |
+| `CacheParameters` | Per-layer enablement, database, startup clearing and serialization |
 
-### Enums
+`CacheParameters` exposes `IsEnabled`, `DatabaseId`, `ClearOnStartup` and `SerializationType`;
+entry lifetimes are passed to `Get` or `Set`, not stored in this record.
+`ClearOnStartup` defaults to false. Enabling it can delete existing cache data.
+
+Important defaults:
+
+| Setting | Default |
+| --- | --- |
+| `RemoteCacheConnectionString` | null; no Redis registration |
+| `MemoryCache.IsEnabled`, `DiskCache.IsEnabled`, `RemoteCache.IsEnabled` | true; select and configure layers deliberately |
+| `MemoryCache.SerializationType` | `None` |
+| `DiskCache.SerializationType` | `Json` |
+| `RemoteCache.SerializationType` | `MessagePack` |
+| `LocalCacheInvalidationEnabled` | true |
+| `CacheExpiryServiceEnabled`, `LocalCacheExpiryServiceEnabled`, `RemoteCacheExpiryServiceEnabled` | true |
+| `ExpirationSyncMode` | `None` |
+| `DistributedLockingEnabled`, `UseBuiltInLuaScripts`, `CacheAsideDisabled` | false |
+| `HealthCheckRedis` | `Liveness`; Redis health-check registration is .NET 8+ only |
+| `MemoryCacheSizeLimit` | null; no configured limit |
+| `CacheKeyFormat` | `{0}` |
+
+`PubSubPrefix` distinguishes this instance's own invalidation messages; choose a distinct value per
+instance when overriding it. `HealthCheckRedis: None` suppresses Redis check registration.
+
+### Serialization and Expiration Modes
 
 | Enum | Values |
 | --- | --- |
@@ -71,7 +121,7 @@ flowchart TD
 
         subgraph RemoteCaches["Remote Cache"]
             REDIS["RedisCacheService<br/>(StackExchange.Redis)"]
-          NULL_REMOTE["NullRemoteCache<br/>(Local-only no-op)"]
+            NULL_REMOTE["NullRemoteCache<br/>(Local-only no-op)"]
         end
 
         subgraph BackgroundServices["Background Services"]
@@ -82,12 +132,12 @@ flowchart TD
     end
 
     REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
-    LOCK["AsyncDuplicateLock<br/>(Prevent thundering herd)"]
+    LOCK["AsyncDuplicateLock<br/>(In-process coordination)"]
     REDLOCK["IDistributedLockFactory<br/>(RedLock.net — optional)"]
 
     CLIENT --> DIST
-    DIST --> MEM
-    DIST --> DISK
+    DIST -->|Choose one local implementation| MEM
+    DIST -->|Choose one local implementation| DISK
     DIST --> REDIS
     DIST -.local-only.-> NULL_REMOTE
     DIST -.uses.-> LOCK
@@ -109,7 +159,8 @@ flowchart TD
 
 ## Configuration Examples
 
-All configuration lives under the `CasCap:CachingConfig` section in `appsettings.json`. Properties omitted from the JSON use their record defaults.
+The configuration overload reads `CasCap:CachingConfig`. Omitted properties retain record defaults.
+The examples below are alternatives, not a set of sections to merge indiscriminately.
 
 ### Minimal — local memory cache only
 
@@ -131,7 +182,7 @@ All configuration lives under the `CasCap:CachingConfig` section in `appsettings
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "RemoteCacheConnectionString": "redis.example.com:6379,abortConnect=false",
       "RemoteCache": {
         "SerializationType": "Json"
       }
@@ -148,7 +199,7 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "RemoteCacheConnectionString": "redis.example.com:6379,abortConnect=false",
       "CacheExpiryServiceEnabled": true,
       "LocalCacheExpiryServiceEnabled": false,
       "RemoteCacheExpiryServiceEnabled": true
@@ -163,7 +214,7 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "RemoteCacheConnectionString": "redis.example.com:6379,abortConnect=false",
       "DistributedLockingEnabled": true,
       "RemoteCache": {
         "SerializationType": "Json"
@@ -179,7 +230,7 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "localhost:6379,abortConnect=false",
+      "RemoteCacheConnectionString": "redis.example.com:6379,abortConnect=false",
       "DistributedLockingEnabled": true,
       "RemoteCache": {
         "SerializationType": "Json"
@@ -201,18 +252,18 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
 }
 ```
 
-### Fully configured — production-style deployment
+### Extended Configuration
 
 ```json
 {
   "CasCap": {
     "CachingConfig": {
-      "RemoteCacheConnectionString": "redis-sentinel:26379,serviceName=mymaster,abortConnect=false,connectTimeout=1000",
+      "RemoteCacheConnectionString": "redis.example.com:6379,abortConnect=false,connectTimeout=1000",
       "DistributedLockingEnabled": true,
-      "CacheKeyFormat": "Production:{0}",
+      "CacheKeyFormat": "Example:{0}",
       "MemoryCacheSizeLimit": 500,
       "UseBuiltInLuaScripts": true,
-      "DiskCacheFolder": "/var/cache/cascap",
+      "DiskCacheFolder": "./cache",
       "ExpirationSyncMode": "ExpireViaPubSub",
       "MemoryCache": {
         "IsEnabled": true,
@@ -230,7 +281,7 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
         "SerializationType": "MessagePack"
       },
       "Redlock": {
-        "RedisKeyFormat": "Production:RedLock:{0}",
+        "RedisKeyFormat": "Example:RedLock:{0}",
         "ExpiryMs": 5000,
         "WaitMs": 5000,
         "RetryMs": 250,
@@ -252,27 +303,10 @@ Each background service can be switched off independently. `CacheExpiryServiceEn
 }
 ```
 
-## Dependencies
+Replace the example endpoint and supply authentication through a secret provider, not tracked JSON.
+For Redis expiration housekeeping, enable expired-key event notifications on the server, such as
+`notify-keyspace-events Ex`. Run the application host so its enabled subscribers execute.
 
-### NuGet Packages
-
-| Package |
-| --- |
-| [Microsoft.Extensions.Caching.Memory](https://www.nuget.org/packages/microsoft.extensions.caching.memory) |
-| [Microsoft.Extensions.Configuration.Json](https://www.nuget.org/packages/microsoft.extensions.configuration.json) |
-| [Microsoft.Extensions.Options.ConfigurationExtensions](https://www.nuget.org/packages/microsoft.extensions.options.configurationextensions) |
-| [Microsoft.Extensions.Options.DataAnnotations](https://www.nuget.org/packages/microsoft.extensions.options.dataannotations) |
-| [RedLock.net](https://www.nuget.org/packages/redlock.net) |
-| [StackExchange.Redis](https://www.nuget.org/packages/stackexchange.redis) |
-| [AspNetCore.HealthChecks.Redis](https://www.nuget.org/packages/aspnetcore.healthchecks.redis) |
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Abstractions` | `ILocalCache`, `IAppConfig` contracts |
-| `CasCap.Common.Extensions` | General-purpose helper utilities |
-| `CasCap.Common.Serialization.Json` | JSON serialization for cache values |
-| `CasCap.Common.Serialization.MessagePack` | MessagePack serialization for cache values |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
-| `CasCap.Common.Extensions.Diagnostics.HealthChecks` | Kubernetes probe tag helpers (`KubernetesProbeTypes.GetTags()`) |
+Distributed locking coordinates factory execution across instances but is not a guarantee of
+exactly-once work. Handle a missing cache result if lock acquisition fails. Use `CacheAsideDisabled`
+to call the factory directly; sets and deletes then become no-ops.

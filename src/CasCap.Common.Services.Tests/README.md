@@ -1,28 +1,23 @@
 # CasCap.Common.Services.Tests
 
-## Purpose
-
-Verifies feature selection, background-service lifecycle behavior, assembly-backed application metadata, and event-sink registration.
+xUnit v3 tests for feature selection, background-service lifecycle, assembly-backed application metadata and event-sink registration.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-## Dependencies
+## Running
 
-### NuGet Packages
+From the repository root with the .NET 10 SDK:
 
-| Package |
-| --- |
-| [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting) |
-| [Microsoft.Testing.Extensions.CodeCoverage](https://www.nuget.org/packages/Microsoft.Testing.Extensions.CodeCoverage) |
-| [xunit.v3](https://www.nuget.org/packages/xunit.v3) |
+```bash
+dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj --framework net10.0
+```
 
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Services` | Library under test |
+Tests create local hosts and in-memory sink implementations. No credentials or external service
+are required. Host tests deliberately exercise child failures and shutdown paths.
 
 ## Tests
+
+Counts are declared methods and cases per target framework, not execution results.
 
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
@@ -42,7 +37,7 @@ Verifies feature selection, background-service lifecycle behavior, assembly-back
 
 ### Skipped Tests
 
-None.
+No declared or conditional skips.
 
 ## File Structure
 

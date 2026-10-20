@@ -1,45 +1,39 @@
 # CasCap.Common.Extensions.Tests
 
-xUnit tests for `CasCap.Common.Extensions`.
-
-## Purpose
-
-Verifies general-purpose extension methods — enum helpers, parsing utilities, I/O operations, and collection extensions.
+xUnit v3 tests for enum, string, date, parsing, collection, file and process helpers, plus configuration-source precedence.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-## Dependencies
+## Running
 
-### NuGet Packages
+From the repository root with the .NET 10 SDK:
 
-| Package |
-| --- |
-| [xunit.v3](https://www.nuget.org/packages/xunit.v3) |
-| [Microsoft.Testing.Extensions.CodeCoverage](https://www.nuget.org/packages/microsoft.testing.extensions.codecoverage) |
+```bash
+dotnet test --project src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj --framework net10.0
+```
 
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Configuration` | Standard configuration provider ordering |
-| `CasCap.Common.Extensions` | Library under test |
-| `CasCap.Common.Testing` | xUnit logging & skip attributes |
+No external service or credentials are required. File tests create and remove files under the test
+output's `cache` directory. Shell tests launch child processes, including `dotnet`; stdin round-trip
+tests use `cmd.exe`/`more` on Windows or `cat` elsewhere. Linux-specific cases also need Bash and
+`printf`. Run where those processes and temporary writes are permitted.
 
 ## Tests
+
+Counts are declared methods and expanded data rows per target framework, before conditional skips.
 
 | Test class | Methods | Test cases | Coverage |
 | --- | --- | --- | --- |
 | `ConfigurationBuilderExtensionsTests` | 1 | 1 | Standard configuration provider precedence |
 | `EnumExtensionTests` | 8 | 11 | `GetAllItems`, `ParseEnum`, `TryParseEnum`, `ParseEnumFAST` (cache + cross-enum isolation), `ToStringCached`, `GetDisplayName`, `HasFlag` |
 | `StringExtensionTests` | 13 | 21 | `ToSnakeCase`, `UrlCombine`, `String2List`, `SubstringSafe`, `Clean`, `IsEmail`, `ToBase64`, `Split`, `Sanitize`, `MaskPhoneNumber`, `MaskEndpoint` (incl. null), `NormalizeWhitespace` |
-| `HelperExtensionTests` | 9 | 19 | `GetBatches`, `IsNullOrEmpty`/`IsAny`, `ToHashSet`, `ToBoolean`, `ToInt`, `ToDecimal`, `GetDescription`, XML & byte round-trips |
+| `HelperExtensionTests` | 9 | 17 | `GetBatches`, `IsNullOrEmpty`/`IsAny`, `ToHashSet`, `ToBoolean`, `ToInt`, `ToDecimal`, `GetDescription`, XML & byte round-trips |
 | `DateTimeExtensionTests` | 8 | 10 | `TruncateToHour`/`Day`/`Month`, `GetMissingDates`, `IsWeekend`, `ToUtc`, `To_yyyy_MM_dd`, `GetTimeDifference` |
 | `FixedSizedQueueTests` | 4 | 4 | Eviction, `Clear`, constructor seeding & guard clauses |
 | `BufferExtensionTests` | 2 | 2 | `TryReadLine` line splitting & no-newline behaviour |
 | `ExtensionTests` | 2 | 2 | `UnixTimeMS`, `Decimal2Int` |
 | `IOExtensionTests` | 1 | 1 | File read/write round-trip |
 | `ShellExtensionTests` | 17 | 17 | `RunProcess`, `RunProcessDiagnostic`, `RunProcessWithStdinAsync` — success and failure paths, error capture modes, argument and stdin guards, oversized-payload round trip, cancellation, `Bash` platform guards |
-| **Total** | **66** | **86** | |
+| **Total** | **65** | **86** | |
 
 ### Trait Categories
 
@@ -58,10 +52,14 @@ Verifies general-purpose extension methods — enum helpers, parsing utilities, 
 
 ### Skipped Tests
 
-| Test | Reason |
-| --- | --- |
-| `ShellExtensionTests.Bash_OnLinux_ReturnsStandardOutput` | Requires Linux |
-| `ShellExtensionTests.RunProcessWithStdin_ArrayOverloadPreservesArgumentsContainingSpaces` | Requires `printf`, which reports each argument separately |
+| Test | Cases | Skip condition |
+| --- | ---: | --- |
+| `ShellExtensionTests.Bash_OnLinux_ReturnsStandardOutput` | 1 | Non-Linux host |
+| `ShellExtensionTests.RunProcessWithStdin_ArrayOverloadPreservesArgumentsContainingSpaces` | 1 | Non-Linux host; uses `printf` |
+| `ShellExtensionTests.Bash_OffLinux_Throws` | 1 | Linux host; the unsupported-platform guard does not apply |
+
+Two cases skip on Windows/non-Linux hosts; one skips on Linux. These are source-declared conditions,
+not measured results from the current machine.
 
 ## File Structure
 
@@ -76,6 +74,7 @@ Tests/
 ├── FixedSizedQueueTests.cs
 ├── HelperExtensionTests.cs
 ├── IOExtensionTests.cs
+├── ShellExtensionTests.cs
 ├── StringExtensionTests.cs
-└── TestsBase.cs
+└── TestBase.cs
 ```

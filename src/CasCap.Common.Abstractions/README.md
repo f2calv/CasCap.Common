@@ -1,6 +1,6 @@
 # CasCap.Common.Abstractions
 
-Core interface definitions shared across the CasCap ecosystem. This project provides the foundational contracts that other CasCap libraries and applications may depend upon.
+Shared contracts for .NET configuration, background features, caching, notifications, event sinks and telemetry.
 
 ## Installation
 
@@ -8,79 +8,69 @@ Core interface definitions shared across the CasCap ecosystem. This project prov
 dotnet add package CasCap.Common.Abstractions
 ```
 
-## Purpose
-
-This library contains no concrete implementations — only interfaces and abstractions that define the contracts between components.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Interfaces
+## Usage
+
+Implement `IAppConfig` to give a configuration type a section name. On .NET 8+, the interface
+requires that static property:
+
+```csharp
+using CasCap.Common.Abstractions;
+
+public sealed record ExampleConfig : IAppConfig
+{
+    public static string ConfigurationSectionName => "Example";
+    public bool Enabled { get; init; }
+}
+```
+
+This package supplies contracts and shared models; it does not load application configuration or
+start background features by itself. Use
+[CasCap.Common.Configuration](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Configuration)
+for binding and
+[CasCap.Common.Services](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Services)
+for feature execution.
+
+## Public Contracts
 
 | Interface | Description |
 | --- | --- |
-| [`IAppConfig`](Abstractions/_IAppConfig.cs) | Marker interface implemented by all application configuration records to allow easy identification and generic constraint usage |
-| [`IBgFeature`](Abstractions/IBgFeature.cs) | Identifies a feature-gated background service — exposes a string `FeatureName` and `ExecuteAsync` entry point. Matched case-insensitively against the enabled features set at startup |
-| [`ICommsEventFormatter`](Abstractions/ICommsEventFormatter.cs) | Renders a [`CommsEvent`](Models/CommsEvent.cs) as the text sent to a notification group when it is forwarded without an agent; consumers register a replaceable default (net8.0+ only) |
-| [`ICommsGroupRouter`](Abstractions/ICommsGroupRouter.cs) | Chooses the notification group a [`CommsEvent`](Models/CommsEvent.cs) is delivered to, for example sending operational sources to a monitor group; consumers register a replaceable default (net8.0+ only) |
-| [`IFeature<T>`](Abstractions/IFeature%7BT%7D.cs) | **[Obsolete]** Generic predecessor of `IBgFeature` that used a bitwise feature-flag enum via `FeatureType`. Retained for backward compatibility |
-| [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) | Generic write-path event sink contract (unconstrained — accepts both reference and value types). Exposes a `SinkType` property for targeted dispatch filtering. Domain events are fanned out to every registered `IEventSink<T>` implementation in parallel. Read-path queries are defined by domain-specific interfaces (e.g. `IFroniusQuery`, `IKnxQuery`) in the consuming projects |
-| [`ILocalCache`](Abstractions/ILocalCache.cs) | Abstraction for an in-process cache provider supporting `Get`, `Set`, `Delete`, and `DeleteAll` |
-| [`IMyBlob`](Abstractions/IMyBlob.cs) | Represents a blob with associated metadata (`Bytes`, `DateCreatedUtc`, `BlobName`, `SizeInBytes`, `HasImage`) |
-| [`INotifier`](Abstractions/INotifier.cs) | Abstracts a notification service capable of sending and receiving messages with optional attachment support |
-| [`INotificationMessage`](Abstractions/INotificationMessage.cs) | Represents an outgoing notification message (text, sender, recipients, attachments) |
-| [`INotificationAttachment`](Abstractions/INotificationAttachment.cs) | Metadata for an attachment received as part of a notification (`Id`, `ContentType`) |
-| [`INotificationGroup`](Abstractions/INotificationGroup.cs) | Represents a named group in a notification service (`Id`, `Name`, members) |
-| [`INotificationResponse`](Abstractions/INotificationResponse.cs) | Response returned after sending a notification (`Timestamp`) |
-| [`IReceivedNotification`](Abstractions/IReceivedNotification.cs) | Represents a notification received from an external messaging service (`Sender`, `GroupId`, `Message`, attachments) |
-| [`IHttpAuditStore`](Abstractions/IHttpAuditStore.cs) | Abstraction for persisting HTTP audit entries (net8.0+ only) |
-| [`IAzBlobStorageConfig`](Abstractions/_IAzBlobStorageConfig.cs) | Exposes Azure Blob Storage connection properties (endpoint/connection string, container name, health check probe type) for feature-specific configuration records |
-| [`IAzTableStorageConfig`](Abstractions/_IAzTableStorageConfig.cs) | Exposes Azure Table Storage connection properties (endpoint/connection string, health check probe type) for feature-specific configuration records |
-| [`IFeatureConfig<T>`](Abstractions/_IFeatureConfig%7BT%7D.cs) | **[Obsolete]** Pairs with `IFeature<T>` to carry the enabled `EnabledFeatures` flags into the `BackgroundService` launcher |
-| [`IKubeAppConfig`](Abstractions/_IKubeAppConfig.cs) | Exposes Kubernetes-specific runtime properties (node name, pod name, namespace, pod IP, service account name) |
-| [`IMetricsConfig`](Abstractions/_IMetricsConfig.cs) | Exposes OpenTelemetry metric configuration (metric name prefix, OTel service name) |
+| `IAppConfig` | Application options contract with a section name on .NET 8+ |
+| `IBgFeature` | Named background feature with `FeatureName` and `ExecuteAsync` |
+| `IEventSink<T>` | Event write path, initialization and housekeeping for reference or value types |
+| `ILocalCache` | Local cache get, set and deletion operations |
+| `INotifier` | Notification send/receive operations |
+| `INotificationMessage`, `INotificationAttachment`, `INotificationGroup`, `INotificationResponse`, `IReceivedNotification` | Notification payload and result contracts |
+| `ICommsEventFormatter`, `ICommsGroupRouter` | Communication-event formatting and routing; .NET 8+ only |
+| `IHttpAuditStore` | HTTP audit persistence; .NET 8+ only |
+| `IMyBlob` | Blob data and metadata |
+| `IAzBlobStorageConfig`, `IAzTableStorageConfig` | Azure storage configuration contracts |
+| `IKubeAppConfig`, `IMetricsConfig` | Host identity and telemetry configuration |
 
-### Enums
+## Shared Models
 
 | Type | Description |
 | --- | --- |
-| [`KubernetesProbeTypes`](_Enums.cs) | `[Flags]` enum for Kubernetes container health probe types: `None`, `Readiness`, `Liveness`, `Startup` |
+| `KubernetesProbeTypes` | Flags for readiness, liveness and startup probes |
+| `CommsEvent` | Communication event with source, timestamp, message and optional JSON payload |
+| `MediaReference` | Cached-media pointer; .NET 8+ only |
+| `HttpAuditEntry` | HTTP request/response audit record; .NET 8+ only |
+| `ApiAuthConfig` | Required basic-auth username/password and anonymous path prefixes; .NET 8+ only |
+| `SinkConfig`, `SinkConfigParams`, `SinkSettingKeys` | Sink selection and settings; .NET 8+ only |
 
-### Configuration Types
+Probe tag conversion is supplied by
+[CasCap.Common.Extensions.Diagnostics.HealthChecks](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Extensions.Diagnostics.HealthChecks),
+not this package.
 
-| Type | Description |
-| --- | --- |
-| [`ApiAuthConfig`](Models/_ApiAuthConfig.cs) | Basic authentication settings for a REST API (`Username`, `Password`, `AnonymousPathPrefixes`) |
-| [`SinkConfig`](Models/_SinkConfig.cs) | Dictionary of [`SinkTypeAttribute`](Attributes/SinkTypeAttribute.cs) name → [`SinkConfigParams`](Models/_SinkConfigParams.cs) |
-| [`SinkConfigParams`](Models/_SinkConfigParams.cs) | Per-sink settings: `Enabled`, and a `Settings` dictionary for sink-specific key/value settings |
-| [`SinkSettingKeys`](Models/SinkSettingKeys.cs) | Compile-time constants for common sink setting keys |
+## Event Sink Registration
 
-### Models
+On .NET 8+, decorate sink implementations with `[SinkType("Console")]`, enable the matching
+`AvailableSinks` entry, and call `services.AddEventSinks<TEvent>(sinkConfig, assemblies)`.
+Registration discovers implementations; it does not dispatch events. The application resolves the
+registered `IEventSink<TEvent>` instances and invokes their write methods.
 
-| Type | Description |
-| --- | --- |
-| [`HttpAuditEntry`](Abstractions/HttpAuditEntry.cs) | Represents a single HTTP request/response audit record — `Source`, `HttpMethod`, `RequestUri`, `StatusCode`, `ElapsedMs`, `RequestBody`, `ResponseBody` (net8.0+ only) |
-
-### Event Models
-
-| Type | Description |
-| --- | --- |
-| [`CommsEvent`](Models/CommsEvent.cs) | A comms stream entry with `Source`, `Message`, `TimestampUtc`, and optional `JsonPayload` for AI agent context |
-| [`MediaReference`](Models/MediaReference.cs) | Pointer to media bytes cached in Redis (`MediaRedisKey`, `MimeType`, `FileName`), carried in `CommsEvent.JsonPayload` so producer and consumer need no shared filesystem (net8.0+ only) |
-
-### Attributes
-
-| Attribute | Description |
-| --- | --- |
-| [`SinkTypeAttribute`](Attributes/SinkTypeAttribute.cs) | Decorates [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) implementations with a string type name (e.g. `"Redis"`, `"AzureTables"`, `"Console"`) used by [`AddEventSinks()`](Extensions/SinkServiceCollectionExtensions.cs) for discovery |
-
-### Extension Methods
-
-| Method | Description |
-| --- | --- |
-| [`IServiceCollection.AddEventSinks<T>(SinkConfig, Assembly)`](Extensions/SinkServiceCollectionExtensions.cs) | Discovers and registers all [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) implementations in the supplied assembly whose [`SinkTypeAttribute`](Attributes/SinkTypeAttribute.cs) name is enabled in [`SinkConfig`](Models/_SinkConfig.cs) |
-| `KubernetesProbeTypes.GetTags()` | Returns the string health-check tag array for a probe type (`"ready"`, `"live"`, `"startup"`) |
-
-### [`IEventSink<T>`](Abstractions/IEventSink%7BT%7D.cs) Contract
+The write-path contract is:
 
 ```csharp
 string SinkType { get; }
@@ -89,20 +79,45 @@ Task WriteEvent(T @event, CancellationToken cancellationToken = default);
 Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
 ```
 
-`SinkType` is a self-describing property that each implementation sets to its own sink identifier (e.g. `"Redis"`, `"AzureTables"`, `"Console"`). This enables targeted dispatch filtering at runtime without reflection. The value should match the string passed to [`SinkTypeAttribute`](Attributes/SinkTypeAttribute.cs) on the same class.
+`SinkType` should match the attribute's name. On .NET 8+, initialization and housekeeping have
+default no-op implementations. On .NET Standard 2.0, implement all interface methods explicitly.
 
-`InitializeAsync` and `HousekeepingAsync` have default no-op implementations so that sink authors only need to implement `SinkType` and `WriteEvent`.
+An application can define additional query interfaces in a `CasCap` namespace. `AddEventSinks`
+registers those interfaces against the enabled `QuerySinkType` when supported by that sink, otherwise
+the last registered compatible sink. The `"Primary"` keyed alias identifies the selected query sink.
+Every sink enabled in the registration remains available through the write-path enumeration;
+query-capable fallback registrations from earlier calls may be replaced.
 
-Read-path queries (retrieving stored events, snapshots) are intentionally **not** part of this interface. Each domain defines its own query interface (e.g. `IFroniusQuery`, `IKnxQuery`) with methods tailored to the domain's access patterns. This follows the Interface Segregation Principle — write-only sinks (e.g. Console, SignalR) are not forced to implement read methods they cannot support.
+## Configuration Examples
 
-## Dependencies
+The application chooses the section name and binds `SinkConfig`; registration does not bind it
+automatically or supply concrete sink implementations.
 
-The only valid dependencies for this library are other Abstractions-style libraries.
+### One Enabled Sink
 
-### NuGet Packages
+```json
+{
+  "Sinks": {
+    "AvailableSinks": {
+      "Console": { "Enabled": true }
+    }
+  }
+}
+```
 
-| Package |
-| --- |
-| [Microsoft.Extensions.Hosting.Abstractions](https://www.nuget.org/packages/microsoft.extensions.hosting.abstractions) |
+### Write to Multiple Sinks with a Preferred Query Sink
 
-This project has no project references.
+```json
+{
+  "Sinks": {
+    "QuerySinkType": "Redis",
+    "AvailableSinks": {
+      "Console": { "Enabled": true },
+      "Redis": { "Enabled": true }
+    }
+  }
+}
+```
+
+`ApiAuthConfig` binds under `CasCap:ApiAuthConfig`; its `Username` and `Password` must be non-empty.
+Supply them through a secret provider. `AnonymousPathPrefixes` defaults to `["/healthz"]`.

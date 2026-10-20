@@ -8,80 +8,140 @@ Abstract base class, extensions, and authentication handlers for building typed 
 dotnet add package CasCap.Common.Net
 ```
 
-## Purpose
-
-Provides `HttpClientBase`, an abstract class giving derived HTTP clients a consistent surface for `GET` and `POST` operations — JSON, binary and multipart — with automatic (de)serialization and centralised failure logging. Network-related extension methods for headers and query strings are also included. Additionally provides `BasicAuthenticationHandler` for HTTP Basic authentication against `ApiAuthConfig`. The `HttpClientBase` and `BasicAuthenticationHandler` implementations are gated behind `#if NET8_0_OR_GREATER`.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Services
+The HTTP client base, authentication handler, resilience and auditing APIs require .NET 8+.
+The .NET Standard target exposes the applicable network extensions.
 
-| Type | Description |
-| --- | --- |
-| `HttpClientBase` | Abstract base class — `PostJsonAsync`, `PostJson`, `PostBytesAsync`, `PostBytes`, `PostMultipartAsync`, `PostMultipart`, `GetAsync`, `Get` with error handling (net8.0+ only) |
+## Usage
 
-Every method takes a `TResult` and a `TError` type. `string` returns the raw body and `byte[]` returns
-the raw bytes, so an endpoint answering with audio or any other binary payload needs no separate
-plumbing; anything else is deserialized as JSON.
-
-The caller owns the `MultipartFormDataContent` passed to the multipart methods and should dispose it,
-which also disposes the parts added to it.
-
-### Models
-
-| Type | Description |
-| --- | --- |
-| `HttpRetrySafety` | Which requests a resilience pipeline may retry — `SafeMethodsOnly` (default), `AllMethods`, `Never`. Declared in namespace `CasCap.Common.Models` |
-
-### Authentication
-
-| Type | Description |
-| --- | --- |
-| `BasicAuthenticationHandler` | ASP.NET Core authentication handler validating HTTP Basic credentials against `ApiAuthConfig`. Skips authentication for paths matching `ApiAuthConfig.AnonymousPathPrefixes` (net8.0+ only) |
-
-### HTTP Auditing
-
-| Type | Description |
-| --- | --- |
-| `HttpAuditHandler` | `DelegatingHandler` that captures HTTP request/response pairs and persists them via `IHttpAuditStore` (net8.0+ only) |
-| `HttpAuditSource` | Defines the `HttpRequestOptionsKey` used to tag requests with a logical source name |
-| `FileHttpAuditStore` | Lightweight file-based `IHttpAuditStore` that writes each audit entry as an individual JSON file organised into daily sub-folders (`yyyy-MM-dd`) |
-
-### Extensions
-
-| Class | Key Methods |
-| --- | --- |
-| `NetExtensions` | `HttpResponseHeaders.TryGetValue()`, `ToQueryString()`, `AddOrOverwrite()` |
-| `HttpClientBuilderResilienceExtensions` | `AddStandardResilience(callerName, retrySafety)` — adds retry, circuit breaker, and timeout via `Microsoft.Extensions.Http.Resilience` with structured logging. `IsReplaySafe()` exposes the per-request decision |
-| `HttpClientBuilderAuditExtensions` | `AddHttpAuditing(sourceName)` — adds `HttpAuditHandler` to the HTTP client pipeline to capture request/response audit entries (net8.0+ only) |
-
-### Retry Safety
-
-`AddStandardResilience` defaults to `HttpRetrySafety.SafeMethodsOnly`. Idempotent methods retry
-normally; a POST or PATCH is retried only when the request provably never reached the server, because
-a timeout or a 5xx says nothing about whether it was already processed. Replaying one then applies its
-side effect twice.
-
-Pass `HttpRetrySafety.AllMethods` only where the endpoint is genuinely idempotent — for example
-because it accepts an idempotency key:
+Derive a typed client from `HttpClientBase`, pass its logger and `HttpClient` to the base constructor,
+and register it with `IHttpClientFactory`:
 
 ```csharp
+using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using CasCap.Common.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddHttpClient<ExampleClient>(client =>
+    client.BaseAddress = new Uri("https://example.com/api/"));
+
+public sealed class ExampleClient(ILogger<ExampleClient> logger, HttpClient client)
+    : HttpClientBase(logger, client)
+{
+    public Task<(string? result, string? error)> GetStatusAsync(CancellationToken cancellationToken)
+        => GetAsync<string, string>("status", cancellationToken: cancellationToken);
+}
+```
+
+The GET and POST helpers take `TResult` and `TError` types. `string` returns the raw body and `byte[]` returns
+the raw bytes, so an endpoint answering with audio or any other binary payload needs no separate
+plumbing; other result types are deserialized as JSON. The `Async`-suffixed helpers return
+`(result, error)`; their counterparts also return the status code and response headers. Both forms
+are asynchronous. Handle the error result as well as the successful result.
+
+| Request | Helpers |
+| --- | --- |
+| GET | `GetAsync`, `Get` |
+| JSON POST | `PostJsonAsync`, `PostJson` |
+| Binary POST | `PostBytesAsync`, `PostBytes` |
+| Multipart POST | `PostMultipartAsync`, `PostMultipart` |
+
+Calls support cancellation, timeouts and additional headers. The caller owns and disposes
+`MultipartFormDataContent`, including its parts.
+
+## Retry Safety
+
+`AddStandardResilience` adds retry, circuit breaker and timeout handling. Its default
+`HttpRetrySafety.SafeMethodsOnly` permits replay for idempotent methods. POST and PATCH retry only
+for failures indicating the request never reached the server, not for timeouts or server errors.
+Use `AllMethods` only when the endpoint's contract makes replay safe; use `Never` to disable retries.
+
+```csharp
+using CasCap.Common.Extensions;
 using CasCap.Common.Models;
 
-services.AddHttpClient<MyClient>()
-    .AddStandardResilience(nameof(MyClient), HttpRetrySafety.AllMethods);
+builder.Services.AddHttpClient<ExampleClient>()
+    .AddStandardResilience(nameof(ExampleClient), HttpRetrySafety.SafeMethodsOnly);
 ```
+
+Apply the extension to the same registration that configures the client's base address.
+
+## Authentication
+
+`BasicAuthenticationHandler` validates HTTP Basic credentials against `ApiAuthConfig`. Bind and
+register those options through the application's authentication setup. Supply credentials through
+a secret provider and use TLS. `AnonymousPathPrefixes` defaults to `["/healthz"]`; review bypasses
+before exposing endpoints.
+
+For outgoing requests, `NetExtensions` supplies `GetBasicAuthHeaderValue` and `SetBasicAuth`.
+Do not log the resulting header.
+
+## Configuration Examples
+
+The client and resilience helpers use registration arguments, not a fixed JSON section. The
+authentication handler consumes `CasCap:ApiAuthConfig` through options supplied by the application.
+Provide its required username and password through a secret provider.
+
+### Default Anonymous Probe Path
+
+```json
+{
+  "CasCap": {
+    "ApiAuthConfig": {
+      "AnonymousPathPrefixes": ["/healthz"]
+    }
+  }
+}
+```
+
+### Require Authentication on Every Path
+
+```json
+{
+  "CasCap": {
+    "ApiAuthConfig": {
+      "AnonymousPathPrefixes": []
+    }
+  }
+}
+```
+
+These fragments configure only path bypasses; neither is sufficient without the secret-backed
+credentials and the application's authentication scheme registration.
+
+## HTTP Auditing
+
+`AddHttpAuditing(sourceName)` adds a handler that captures the request path/query, method, status,
+elapsed time and request/response bodies. By default it registers `NullHttpAuditStore` and persists
+nothing. Supply an `IHttpAuditStore` implementation to retain records.
+
+`FileHttpAuditStore` writes JSON under daily folders, defaulting to `http-audit` relative to the
+working directory. It has no automatic retention policy. Capture is not redaction: paths, query
+parameters and bodies may contain credentials or personal data. Assess the data and configure
+appropriate access, retention and consent before enabling persistence. Body capture also buffers
+content; do not assume it is suitable for large or streaming payloads.
+
+## Network Extensions
+
+`NetExtensions` supplies query-string construction, header replacement and response-header lookup.
+These helpers do not register clients or send requests by themselves.
 
 ## Class Hierarchy
 
-Abstract base class pattern for typed HTTP clients:
+The typed client owns its API-specific methods; the base class handles common HTTP operations.
 
 ```mermaid
 classDiagram
     direction TB
 
-    HttpClientBase <|-- YourCustomClient
-    HttpClientBase <|-- AnotherApiClient
+    HttpClientBase <|-- ExampleClient
 
     class HttpClientBase {
         <<abstract>>
@@ -93,41 +153,13 @@ classDiagram
         #GetAsync~TResult,TError~(uri) Task
     }
 
-    class YourCustomClient {
-        +GetUsers() Task~User[]~
-        +CreateUser(user) Task~User~
-        +UpdateUser(id, user) Task~User~
-        +DeleteUser(id) Task
-    }
-
-    class AnotherApiClient {
-        +GetData() Task~Data~
-        +PostData(data) Task~Result~
+    class ExampleClient {
+        +GetStatusAsync(cancellationToken) Task
     }
 
     HttpClientBase ..> ILogger : uses
     HttpClientBase ..> HttpClient : uses
 ```
 
-**Usage Pattern:**
-
-1. Inherit from `HttpClientBase`
-2. Inject `HttpClient` and `ILogger` via constructor
-3. Use built-in methods (`GetAsync`, `PostJsonAsync`, etc.) for API calls
-4. Override `HandleError` for custom error handling
-
-## Dependencies
-
-### NuGet Packages
-
-| Package | Purpose |
-| --- | --- |
-| `Microsoft.Extensions.Http.Resilience` | Standard resilience handler (retry, circuit breaker, timeout) for `IHttpClientBuilder` (net8.0+ only) |
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Abstractions` | `ApiAuthConfig` and `IAppConfig` abstractions |
-| `CasCap.Common.Serialization.Json` | JSON serialization for request/response bodies |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+For the authentication and audit contracts, see
+[CasCap.Common.Abstractions](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Abstractions).
