@@ -230,3 +230,7 @@ a manual dispatch.
 - [ ] Properties separated by blank lines
 - [ ] `ServiceProvider` instances are disposed in tests
 - [ ] No shared mutable static state in test helpers
+
+## License
+
+Released under the [MIT License](LICENSE).
