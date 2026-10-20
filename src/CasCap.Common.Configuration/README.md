@@ -12,7 +12,9 @@ dotnet add package CasCap.Common.Configuration
 
 ## Usage
 
-In a .NET 8+ host, register an `IAppConfig` record to bind and validate its named section:
+In a .NET 8+ host, register an
+[`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs)
+record to bind and validate its named section:
 
 ```csharp
 using System.ComponentModel.DataAnnotations;

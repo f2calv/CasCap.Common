@@ -34,7 +34,8 @@ Console.WriteLine(await cache.Get<string>("greeting")); // Hello
 await host.StopAsync();
 ```
 
-`CasCap.Common.Abstractions.IDistributedCache` is the object-cache API, not Microsoft's byte-cache
+[`CasCap.Common.Abstractions.IDistributedCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Caching/Abstractions/IDistributedCache.cs)
+is the object-cache API, not Microsoft's byte-cache
 interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. `Set`,
 `Delete` and `DeleteAll` affect the enabled layers.
 
@@ -53,9 +54,9 @@ enabling `DiskCache` in JSON alone does not switch from memory to disk.
 | Service | Description |
 | --- | --- |
 | `DistributedCacheService` | Reads local first, then an enabled remote tier, then an optional factory; supports opt-in Redis locking |
-| `RedisCacheService` | `IRemoteCache` implementation wrapping StackExchange.Redis with optional Lua script support |
+| `RedisCacheService` | [`IRemoteCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Caching/Abstractions/IRemoteCache.cs) implementation wrapping StackExchange.Redis with optional Lua script support |
 | `NullRemoteCache` | No-op `IRemoteCache` implementation used for local-only caching. Redis infrastructure properties throw `NotSupportedException` |
-| `MemoryCacheService` | `ILocalCache` implementation backed by `IMemoryCache` |
+| `MemoryCacheService` | [`ILocalCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ILocalCache.cs) implementation backed by `IMemoryCache` |
 | `DiskCacheService` | `ILocalCache` implementation persisting cache entries to disk |
 | `CacheExpiryBgService` | Coordinates expiry subscribers when Redis is registered and `CacheExpiryServiceEnabled` is true |
 | `LocalCacheExpiryService` | Handles local cache entry expiration. Disable via `LocalCacheExpiryServiceEnabled` |

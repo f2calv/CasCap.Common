@@ -12,7 +12,9 @@ dotnet add package CasCap.Common.Services
 
 ## Usage
 
-Register implementations as `IBgFeature`, then supply the enabled names to the launcher:
+Register implementations as
+[`IBgFeature`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IBgFeature.cs),
+then supply the enabled names to the launcher:
 
 ```csharp
 using System;

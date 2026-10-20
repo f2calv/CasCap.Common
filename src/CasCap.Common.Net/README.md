@@ -120,7 +120,9 @@ credentials and the application's authentication scheme registration.
 
 `AddHttpAuditing(sourceName)` adds a handler that captures the request path/query, method, status,
 elapsed time and request/response bodies. By default it registers `NullHttpAuditStore` and persists
-nothing. Supply an `IHttpAuditStore` implementation to retain records.
+nothing. Supply an
+[`IHttpAuditStore`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IHttpAuditStore.cs)
+implementation to retain records.
 
 `FileHttpAuditStore` writes JSON under daily folders, defaulting to `http-audit` relative to the
 working directory. It has no automatic retention policy. Capture is not redaction: paths, query

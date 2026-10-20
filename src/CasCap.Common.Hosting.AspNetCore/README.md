@@ -84,7 +84,8 @@ the OpenTelemetry exporter.
 ## OpenTelemetry
 
 `InitializeOpenTelemetry` registers metrics, traces and logs with OTLP gRPC export. It takes an
-`IMetricsConfig`, `ApplicationMetadata`, and optional Redis connection, exporter authentication
+[`IMetricsConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IMetricsConfig.cs),
+`ApplicationMetadata`, and optional Redis connection, exporter authentication
 and metric/trace customization callbacks.
 
 | Extension | Description |

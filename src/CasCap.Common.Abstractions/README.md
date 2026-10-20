@@ -12,7 +12,8 @@ dotnet add package CasCap.Common.Abstractions
 
 ## Usage
 
-Implement `IAppConfig` to give a configuration type a section name. On .NET 8+, the interface
+Implement [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs)
+to give a configuration type a section name. On .NET 8+, the interface
 requires that static property:
 
 ```csharp
@@ -36,17 +37,17 @@ for feature execution.
 
 | Interface | Description |
 | --- | --- |
-| `IAppConfig` | Application options contract with a section name on .NET 8+ |
-| `IBgFeature` | Named background feature with `FeatureName` and `ExecuteAsync` |
-| `IEventSink<T>` | Event write path, initialization and housekeeping for reference or value types |
-| `ILocalCache` | Local cache get, set and deletion operations |
-| `INotifier` | Notification send/receive operations |
-| `INotificationMessage`, `INotificationAttachment`, `INotificationGroup`, `INotificationResponse`, `IReceivedNotification` | Notification payload and result contracts |
-| `ICommsEventFormatter`, `ICommsGroupRouter` | Communication-event formatting and routing; .NET 8+ only |
-| `IHttpAuditStore` | HTTP audit persistence; .NET 8+ only |
-| `IMyBlob` | Blob data and metadata |
-| `IAzBlobStorageConfig`, `IAzTableStorageConfig` | Azure storage configuration contracts |
-| `IKubeAppConfig`, `IMetricsConfig` | Host identity and telemetry configuration |
+| [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs) | Application options contract with a section name on .NET 8+ |
+| [`IBgFeature`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IBgFeature.cs) | Named background feature with `FeatureName` and `ExecuteAsync` |
+| [`IEventSink<T>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IEventSink%7BT%7D.cs) | Event write path, initialization and housekeeping for reference or value types |
+| [`ILocalCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ILocalCache.cs) | Local cache get, set and deletion operations |
+| [`INotifier`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotifier.cs) | Notification send/receive operations |
+| [`INotificationMessage`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationMessage.cs), [`INotificationAttachment`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationAttachment.cs), [`INotificationGroup`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationGroup.cs), [`INotificationResponse`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationResponse.cs), [`IReceivedNotification`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IReceivedNotification.cs) | Notification payload and result contracts |
+| [`ICommsEventFormatter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsEventFormatter.cs), [`ICommsGroupRouter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsGroupRouter.cs) | Communication-event formatting and routing; .NET 8+ only |
+| [`IHttpAuditStore`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IHttpAuditStore.cs) | HTTP audit persistence; .NET 8+ only |
+| [`IMyBlob`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IMyBlob.cs) | Blob data and metadata |
+| [`IAzBlobStorageConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAzBlobStorageConfig.cs), [`IAzTableStorageConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAzTableStorageConfig.cs) | Azure storage configuration contracts |
+| [`IKubeAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IKubeAppConfig.cs), [`IMetricsConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IMetricsConfig.cs) | Host identity and telemetry configuration |
 
 ## Shared Models
 

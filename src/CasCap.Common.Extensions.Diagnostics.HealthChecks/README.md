@@ -12,7 +12,8 @@ dotnet add package CasCap.Common.Extensions.Diagnostics.HealthChecks
 
 ## Usage
 
-Implement `IHealthCheckConfig` and supply it to a derived check. This ASP.NET Core example
+Implement [`IHealthCheckConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Extensions.Diagnostics.HealthChecks/Diagnostics/HealthChecks/Abstractions/IHealthCheckConfig.cs)
+and supply it to a derived check. This ASP.NET Core example
 registers an HTTP client and exposes the check through the standard health endpoint:
 
 ```csharp
