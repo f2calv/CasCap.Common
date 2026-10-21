@@ -8,37 +8,100 @@ Configuration bootstrapping helpers for .NET applications — standard `IConfigu
 dotnet add package CasCap.Common.Configuration
 ```
 
-## Purpose
-
-Provides a standardised way to build the configuration pipeline (`appsettings.json`, environment and local overrides, user secrets, environment variables, Azure Key Vault) and to bind configuration sections to `IAppConfig` record types with DataAnnotations validation on startup.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
-
-### Extensions
-
-| Class | Key Methods |
-| --- | --- |
-| `ConfigurationBuilderExtensions` | `AddStandardConfiguration()` — sets base path, registers base/environment/local JSON, optional user secrets, then environment variables |
-| | `AddKeyVaultConfiguration()` — conditionally adds Azure Key Vault (skips silently when URI or credential is `null`) |
-| | `AddKeyVaultConfigurationFrom()` — partial-builds configuration, extracts Key Vault credentials via delegate, then adds Key Vault |
-| `ConfigurationServiceCollectionExtensions` | `AddCasCapConfiguration<TConfig>()` — binds a configuration section to an `IAppConfig` record with `ValidateDataAnnotations` and `ValidateOnStart` |
 
 ## Usage
 
+In a .NET 8+ host, register an
+[`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs)
+record to bind and validate its named section:
+
 ```csharp
+using System.ComponentModel.DataAnnotations;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Extensions;
+using Microsoft.Extensions.Hosting;
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddCasCapConfiguration<ExampleConfig>();
+await builder.Build().RunAsync();
+
+public sealed record ExampleConfig : IAppConfig
+{
+    public static string ConfigurationSectionName => "Example";
+
+    [Required]
+    public string Greeting { get; init; } = "Hello";
+}
+```
+
+Consumers inject `IOptions<ExampleConfig>` or `IOptionsMonitor<ExampleConfig>`.
+The explicit-section overload, `AddCasCapConfiguration<ExampleConfig>("Example")`, also works on
+.NET Standard 2.0.
+
+On .NET 8+, `GetCasCapConfiguration<TConfig>()` eagerly binds and validates without registering DI
+services. `AddAndGetCasCapConfiguration<TConfig>(configuration)` combines registration with that
+eager read. A configuration delegate applies to registered options, not the separately bound
+instance returned by the eager read.
+
+## Configuration Examples
+
+### Minimal Options
+
+Add this section to the application's configuration:
+
+```json
+{
+  "Example": {
+    "Greeting": "Hello"
+  }
+}
+```
+
+### Standard Configuration Sources
+
+For applications constructing their own configuration pipeline:
+
+```csharp
+using System.Reflection;
+using CasCap.Common.Extensions;
+using Microsoft.Extensions.Configuration;
+
 var configuration = new ConfigurationBuilder()
-    .AddStandardConfiguration(environmentName, Assembly.GetExecutingAssembly())
-    .AddKeyVaultConfigurationFrom(cfg =>
-    {
-        var appConfig = cfg.GetSection(AppConfig.ConfigurationSectionName).Get<AppConfig>();
-        return (appConfig?.KeyVaultUri, appConfig?.TokenCredential);
-    })
+    .AddStandardConfiguration("Development", Assembly.GetExecutingAssembly())
     .Build();
 ```
 
+The base path is `AppDomain.CurrentDomain.BaseDirectory`. The base `appsettings.json` is required;
+make sure it is copied to the output directory. Environment, local and test-local files are optional.
+Pass no assembly to skip user secrets. Environment variables are added last by this helper;
+it does not add command-line arguments.
+
+### Optional Key Vault Provider
+
+Call `AddKeyVaultConfiguration(vaultUri, credential)` after adding the base sources. The caller
+supplies an Azure `TokenCredential`. A null URI or credential leaves the provider unregistered.
+`AddKeyVaultConfigurationFrom` obtains that tuple from a snapshot of the sources already added.
+
+Use a prefix manager when one vault serves several configuration sections:
+
+```csharp
+using CasCap.Common.Extensions;
+
+var secretManager = new PrefixKeyVaultSecretManager(
+    sourcePrefix: "Example--Worker",
+    destinationPrefix: "Example",
+    exclusiveRootPrefix: "Example");
+```
+
+Pass the manager to either Key Vault helper. `Example--Worker--Greeting` maps to `Example:Greeting`.
+Other `Example--*` prefixes are excluded, while names outside that reserved root retain the default
+Key Vault mapping. Without `exclusiveRootPrefix`, only the selected source prefix is loaded.
+
 ## Configuration Hierarchy
 
-Configuration bootstrapping flow with layered sources:
+For a pipeline built with `AddStandardConfiguration` followed by a Key Vault helper, later
+providers override earlier ones:
 
 ```mermaid
 flowchart TD
@@ -50,6 +113,7 @@ flowchart TD
         ENV_FILE["appsettings.{Environment}.json"]
         LOCAL["appsettings.Local.json"]
         LOCAL_ENV["appsettings.Local.{Environment}.json"]
+        TEST_LOCAL["appsettings.Tests.Local.json"]
         SECRETS["User Secrets<br/>(optional)"]
         ENV_VARS["Environment Variables"]
     end
@@ -70,12 +134,13 @@ flowchart TD
     APPSETTINGS --> ENV_FILE
     ENV_FILE --> LOCAL
     LOCAL --> LOCAL_ENV
-    LOCAL_ENV --> SECRETS
+    LOCAL_ENV --> TEST_LOCAL
+    TEST_LOCAL --> SECRETS
     SECRETS --> ENV_VARS
 
     ENV_VARS --> PARTIAL
     PARTIAL --> EXTRACT
-    EXTRACT -."if URI present".-> KV
+    EXTRACT -."if URI and credential present".-> KV
 
     KV --> VALIDATE
     ENV_VARS -."if no Key Vault".-> VALIDATE
@@ -88,27 +153,10 @@ flowchart TD
 2. `appsettings.{Environment}.json`
 3. `appsettings.Local.json` (optional)
 4. `appsettings.Local.{Environment}.json` (optional)
-5. User Secrets (when an assembly is supplied)
-6. Environment Variables
-7. Azure Key Vault (if configured)
+5. `appsettings.Tests.Local.json` (optional)
+6. User Secrets (when an assembly is supplied)
+7. Environment Variables
+8. Azure Key Vault (if configured)
 
-## Dependencies
-
-### NuGet Packages
-
-| Package | Purpose |
-| --- | --- |
-| `Azure.Extensions.AspNetCore.Configuration.Secrets` | Azure Key Vault configuration provider |
-| `Microsoft.Extensions.Configuration.EnvironmentVariables` | Environment variable configuration source |
-| `Microsoft.Extensions.Configuration.FileExtensions` | File-based configuration helpers (`SetBasePath`) |
-| `Microsoft.Extensions.Configuration.Json` | JSON file configuration source |
-| `Microsoft.Extensions.Configuration.UserSecrets` | User secrets configuration source |
-| `Microsoft.Extensions.Options.ConfigurationExtensions` | `IOptions<T>` binding to `IConfiguration` |
-| `Microsoft.Extensions.Options.DataAnnotations` | `ValidateDataAnnotations` / `ValidateOnStart` |
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Abstractions` | `IAppConfig` contract used as a generic constraint |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+This is the helper's ordering, not a replacement for the defaults of every .NET host builder.
+Adding providers later can change precedence. Keep local overrides and credentials outside Git.

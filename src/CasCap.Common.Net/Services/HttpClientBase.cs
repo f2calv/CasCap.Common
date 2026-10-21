@@ -46,7 +46,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         var json = req is not null ? req.ToJson() : "{}";
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
@@ -79,7 +79,7 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
             request.Content = new ByteArrayContent(bytes);
@@ -148,7 +148,7 @@ public abstract class HttpClientBase
         where TError : class
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {httpMethod}\t{url}", nameof(HttpClientBase), HttpMethod.Post, url);
+        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.AddOrOverwrite(headers);
         using var cts = CreateLinkedCts(timeout, cancellationToken);

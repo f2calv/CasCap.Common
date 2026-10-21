@@ -1,4 +1,5 @@
 using Azure.Core;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using System.Reflection;
 
 namespace CasCap.Common.Extensions;
@@ -61,13 +62,20 @@ public static class ConfigurationBuilderExtensions
     /// The token credential used to authenticate with Key Vault.
     /// Pass <see langword="null"/> to skip.
     /// </param>
+    /// <param name="secretManager">Optional selector and key mapper for Key Vault secrets.</param>
     public static IConfigurationBuilder AddKeyVaultConfiguration(
         this IConfigurationBuilder builder,
         Uri? keyVaultUri,
-        TokenCredential? credential)
+        TokenCredential? credential,
+        KeyVaultSecretManager? secretManager = null)
     {
         if (keyVaultUri is not null && credential is not null)
-            builder.AddAzureKeyVault(keyVaultUri, credential);
+        {
+            if (secretManager is null)
+                builder.AddAzureKeyVault(keyVaultUri, credential);
+            else
+                builder.AddAzureKeyVault(keyVaultUri, credential, secretManager);
+        }
 
         return builder;
     }
@@ -85,11 +93,13 @@ public static class ConfigurationBuilderExtensions
     /// sources added so far) and returns the Key Vault URI and credential tuple.
     /// Return <see langword="null"/> values to skip Key Vault.
     /// </param>
+    /// <param name="secretManager">Optional selector and key mapper for Key Vault secrets.</param>
     public static IConfigurationBuilder AddKeyVaultConfigurationFrom(
         this IConfigurationBuilder builder,
-        Func<IConfiguration, (Uri? KeyVaultUri, TokenCredential? Credential)> getCredentials)
+        Func<IConfiguration, (Uri? KeyVaultUri, TokenCredential? Credential)> getCredentials,
+        KeyVaultSecretManager? secretManager = null)
     {
         var (uri, cred) = getCredentials(builder.Build());
-        return builder.AddKeyVaultConfiguration(uri, cred);
+        return builder.AddKeyVaultConfiguration(uri, cred, secretManager);
     }
 }

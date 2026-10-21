@@ -8,29 +8,30 @@ MessagePack binary serialization helpers using the MessagePack-CSharp library.
 dotnet add package CasCap.Common.Serialization.MessagePack
 ```
 
-## Purpose
-
-Provides `ToMessagePack<T>()` and `FromMessagePack<T>()` extension methods for fast, compact binary serialization. The MessagePack analyzer is included as a development dependency to enforce correct attribute usage at build time.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Extensions
+## Usage
 
-| Class | Key Methods |
-| --- | --- |
-| `MessagePackExtensions` | `ToMessagePack<T>()` — serialize to `byte[]`; `FromMessagePack<T>()` — deserialize from `byte[]` |
+```csharp
+using System;
+using System.Collections.Generic;
+using CasCap.Common.Extensions;
 
-## Dependencies
+var original = new Dictionary<string, string> { ["theme"] = "dark" };
+byte[] bytes = original.ToMessagePack();
+var restored = bytes.FromMessagePack<Dictionary<string, string>>();
 
-### NuGet Packages
+Console.WriteLine(restored["theme"]); // dark
+```
 
-| Package |
-| --- |
-| [MessagePack](https://www.nuget.org/packages/messagepack) |
-| [MessagePackAnalyzer](https://www.nuget.org/packages/messagepackanalyzer) |
+`ToMessagePack<T>()` returns a `byte[]`. `FromMessagePack<T>()` accepts either a `byte[]` or a
+`ReadOnlyMemory<byte>` slice, avoiding a preliminary array copy when the caller already has a buffer.
+Serialization and deserialization errors are logged and rethrown.
 
-### Project References
+The helpers use the underlying serializer's default options. Custom object types must satisfy
+[MessagePack-CSharp's serialization contract](https://github.com/MessagePack-CSharp/MessagePack-CSharp#serialization-of-custom-types).
+For explicit resolver, security or serializer-option control, use `MessagePackSerializer` directly;
+these helpers do not expose per-call options.
 
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+Treat serialized data as a contract between producer and consumer; do not assume arbitrary .NET
+types can be serialized without configuration or that these helpers validate untrusted payloads.

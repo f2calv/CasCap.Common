@@ -8,40 +8,51 @@
 dotnet add package CasCap.Common.Serialization.Json
 ```
 
-## Purpose
-
-Provides convenient `ToJson()` / `FromJson()` extension methods and a library of custom converters for common serialization scenarios such as epoch timestamps, 2-D array round-tripping, and string-to-int coercion.
-
 **Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
 
-### Extensions
+## Usage
 
-| Class | Key Methods |
+```csharp
+using System;
+using System.Collections.Generic;
+using CasCap.Common.Extensions;
+
+var original = new Dictionary<string, string> { ["theme"] = "dark" };
+var json = original.ToJson();
+var restored = json.FromJson<Dictionary<string, string>>();
+
+Console.WriteLine(restored?["theme"]); // dark
+```
+
+`ToJson` and `FromJson<T>` accept optional `JsonSerializerOptions`. They log and rethrow
+serialization errors. `TryFromJson<T>` logs a warning and returns `false` on deserialization failure;
+a null input still throws. A valid JSON `null` can deserialize successfully to a null result.
+
+## Custom Converters
+
+Register converters explicitly on the options used for the call:
+
+```csharp
+using System;
+using System.Text.Json;
+using CasCap.Common.Converters;
+using CasCap.Common.Extensions;
+
+var options = new JsonSerializerOptions();
+options.Converters.Add(new ParseEnumConverter<DayOfWeek>());
+
+var day = "\"friday\"".FromJson<DayOfWeek>(options);
+Console.WriteLine(day); // Friday
+```
+
+| Converter | Purpose |
 | --- | --- |
-| `JsonExtensions` | `ToJson()`, `FromJson()`, `TryFromJson()`, `To2D()` (jagged ↔ 2-D array conversion) |
+| `Array2DConverter` | Rectangular two-dimensional arrays represented as nested JSON arrays |
+| `MicrosecondEpochConverter` | Nullable `DateTime` values represented as Unix microseconds |
+| `MillisecondEpochConverter` | Nullable `DateTime` values represented as Unix milliseconds |
+| `ParseEnumConverter<TEnum>` | Case-insensitive enum names |
+| `RawJsonStringConverter` | Embed valid JSON held in a string without double encoding; .NET 8+ only |
+| `StringToIntConverter` | Nullable integers supplied as JSON strings |
 
-### Converters
-
-| Converter | Description |
-| --- | --- |
-| `Array2DConverter` | Round-trips 2-D arrays via a jagged-array intermediary |
-| `ColumnCleanerConverter` | Strips unwanted characters from column names during deserialization |
-| `MicrosecondEpochConverter` | Converts microsecond Unix epoch timestamps to `DateTime` |
-| `MillisecondEpochConverter` | Converts millisecond Unix epoch timestamps to `DateTime` |
-| `ParseEnumConverter<TEnum>` | Case-insensitive string-to-enum converter using `Enum.Parse<TEnum>()` |
-| `RawJsonStringConverter` | Writes `string` values as raw JSON when valid, avoiding double-encoding of serialised payloads (net8.0+ only) |
-| `StringToIntConverter` | Coerces JSON string values to `int` |
-| `UtcJsonDateTimeConverter` | Ensures `DateTime` values are always treated as UTC |
-
-## Dependencies
-
-### NuGet Packages
-
-This project has no direct NuGet package references.
-
-### Project References
-
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Extensions` | General-purpose helper utilities |
-| `CasCap.Common.Logging` | `ApplicationLogging` static logger factory |
+`To2D()` also converts rectangular lists of lists into a two-dimensional array; inconsistent row
+lengths throw. Conversion does not change the default `System.Text.Json` options globally.

@@ -1,6 +1,6 @@
 # CasCap.Common.Services
 
-Feature-flag background service launcher and configuration abstractions.
+Run selected .NET background features by name, observe their lifecycle and expose assembly-backed application metadata.
 
 ## Installation
 
@@ -8,56 +8,92 @@ Feature-flag background service launcher and configuration abstractions.
 dotnet add package CasCap.Common.Services
 ```
 
-## Purpose
-
-Contains `FeatureFlagBgService`, a `BackgroundService` that inspects the configured `FeatureFlagConfig.EnabledFeatures` set at startup and launches the matching `IBgFeature` implementations registered in the DI container. The `AddFeatureFlagService()` extension wires everything up.
-
-The launcher observes every enabled child for the full host lifetime. A child may complete successfully while other children continue running. Child faults propagate to the host, and completion of every enabled child before host cancellation is treated as an unexpected lifecycle failure. Host cancellation completes the launcher cleanly.
-
-The older generic `FeatureFlagBgService<T>` (bitwise enum-based) is retained but marked `[Obsolete]`.
-
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-### Services
+## Usage
 
-| Type | Description |
-| --- | --- |
-| `FeatureFlagBgService` | `BackgroundService` that resolves, executes, and continuously observes enabled `IBgFeature` implementations until host cancellation |
-| `FeatureFlagBgService<T>` | **[Obsolete]** Generic predecessor that used a bitwise enum via `IFeature<T>.FeatureType` |
-| `GitMetadataBgService` | Background service that periodically logs git build metadata (repository, tag, branch, commit) from environment variables to aid debugging |
+Register implementations as
+[`IBgFeature`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IBgFeature.cs),
+then supply the enabled names to the launcher:
 
-### Extensions
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-| Extension | Description |
-| --- | --- |
-| `ServiceCollectionExtensions.AddFeatureFlagService()` | Registers `FeatureFlagBgService` and configures `FeatureFlagConfig` from a set of enabled feature name strings. Optionally registers `GitMetadataBgService` when `addGitMetadataService=true` |
-| `ServiceCollectionExtensions.AddFeatureFlagService<T>()` | **[Obsolete]** Bridge overload that converts a flags enum to a `HashSet<string>` and delegates to the non-generic overload |
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddSingleton<IBgFeature, WorkerFeature>();
+builder.Services.AddFeatureFlagService(
+    new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Worker" });
 
-### Models
+await builder.Build().RunAsync();
 
-| Type | Description |
-| --- | --- |
-| `GitMetadata` | Build metadata record from the CI/CD pipeline — properties bind to environment variables injected by GitHub Actions and Helm deployments (repository, branch, commit, tag, workflow name, run ID, run number) |
+public sealed class WorkerFeature(ILogger<WorkerFeature> logger) : IBgFeature
+{
+    public string FeatureName => "Worker";
 
-### Configuration
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogInformation("Worker is active");
+            await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+        }
+    }
+}
+```
 
-| Type | Description |
-| --- | --- |
-| `FeatureFlagConfig` | Configuration class carrying the `EnabledFeatures` string set — configured via `IOptions<FeatureFlagConfig>` |
-| `FeatureConfig<T>` | **[Obsolete]** Record carrying the `EnabledFeatures` flags — bound from configuration via `IOptions<FeatureConfig<T>>` |
+Feature matching is case-insensitive. A feature named `IBgFeature.AlwaysEnabled` (`"All"`) runs
+regardless of the selected set. Registration supplies `IOptions<FeatureFlagConfig>`; it does not
+automatically read an `EnabledFeatures` JSON section.
 
-## Dependencies
+## Service Architecture
 
-### NuGet Packages
+- No matching features is a startup failure.
+- A child may finish while siblings continue. Faults from enabled children propagate to the host.
+- If all children finish before cancellation, the launcher reports an unexpected lifecycle failure.
+- A finite job must request `IHostApplicationLifetime.StopApplication()` before returning.
+- Host cancellation ends the launcher cleanly.
 
-| Package |
-| --- |
-| [Microsoft.Extensions.Hosting.Abstractions](https://www.nuget.org/packages/microsoft.extensions.hosting.abstractions) |
-| [Microsoft.Extensions.Options.DataAnnotations](https://www.nuget.org/packages/microsoft.extensions.options.dataannotations) |
+```mermaid
+flowchart TD
+    HOST["Host startup"] --> MATCH["Match registered features against enabled names"]
+    MATCH --> RUN["Run matching features and All features"]
+    RUN --> WATCH["Observe child tasks"]
+    WATCH -->|Child finishes, siblings remain| WATCH
+    WATCH -->|Child faults or all finish without stopping| FAIL["Propagate failure to host"]
+    WATCH -->|Host cancellation or requested stop| STOP["Clean shutdown"]
+```
 
-### Project References
+## Configuration Examples
 
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Abstractions` | `IBgFeature`, `IAppConfig` contracts |
-| `CasCap.Common.Extensions` | General-purpose helper utilities |
+### Feature Execution Only
+
+The registration in Usage enables the selected features without periodic metadata logging.
+
+### Feature Execution with Metadata
+
+Pass `addApplicationMetadataService: true` to register `ApplicationMetadataBgService` and
+`ApplicationMetadata`. The latter reads version, source revision and build context from assembly
+attributes, not live Git state.
+
+```csharp
+builder.Services.AddFeatureFlagService(enabledFeatures, addApplicationMetadataService: true);
+```
+
+The optional metadata service binds `ApplicationMetadataConfig`. Its `LogInterval` defaults to one
+minute and must be positive:
+
+```json
+{
+  "ApplicationMetadataConfig": {
+    "LogInterval": "00:05:00"
+  }
+}
+```

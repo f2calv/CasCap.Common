@@ -1,49 +1,40 @@
 # CasCap.Common.Caching.Tests
 
-xUnit tests for `CasCap.Common.Caching`.
-
-## Purpose
-
-Verifies the multi-tier caching infrastructure — Memory, Disk, and Redis cache services, expiry synchronisation, and the `DistributedCacheService` orchestrator.
+xUnit v3 tests for memory, disk and Redis caching, registration, distributed locking and expiry behavior in `CasCap.Common.Caching`.
 
 **Target frameworks:** `net8.0`, `net9.0`, `net10.0`
 
-> **Prerequisite:** Redis-backed tests require a Redis instance (see `docker-compose.yml` at the repository root). The local-only lifecycle test has no Redis dependency.
+## Running
 
-## Dependencies
+From the repository root, with the .NET 10 SDK and Docker Compose:
 
-### NuGet Packages
+```bash
+docker compose up -d --wait redis
+dotnet test --project src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj --framework net10.0
+docker compose down
+```
 
-| Package |
-| --- |
-| [xunit.v3](https://www.nuget.org/packages/xunit.v3) |
-| [Microsoft.Testing.Extensions.CodeCoverage](https://www.nuget.org/packages/microsoft.testing.extensions.codecoverage) |
+Use only a disposable Redis instance at `localhost:6379`: tests can clear databases and need
+administrative commands. The test fixture selects databases 8, 9 and 10 for the corresponding target
+frameworks. When running the whole solution, use `--max-parallel-test-modules 1` as described in the
+[repository quick start](../../README.md#development).
 
-### Project References
+`RegistrationTests` and the local-only lifecycle checks do not require Redis. To run only the
+registration class:
 
-| Project | Purpose |
-| --- | --- |
-| `CasCap.Common.Caching` | Library under test |
-| `CasCap.Common.Testing` | xUnit logging & skip attributes |
+```bash
+dotnet test --project src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj --framework net10.0 --filter-class CasCap.Common.Caching.Tests.RegistrationTests
+```
 
 ## Tests
 
-All tests live in `CacheTests.cs`. Redis-backed tests require a running Redis instance; the local-only lifecycle test is self-contained.
+Counts are declared methods and expanded data rows per target framework, not a record of a test run.
 
-| Test method | Cases | Coverage |
-| --- | --- | --- |
-| `ServiceCollectionSetupTests` | 8 | DI registration across all `AddCasCapCaching` overloads (default, `IConfiguration`, `CachingConfig`, `Action<>`) for Memory & Disk local caches |
-| `RemoteCacheSvc_Sync` | 8 | Synchronous `IRemoteCache` set/get/delete with JSON & MessagePack |
-| `RemoteCacheSvc_Async` | 4 | Asynchronous `IRemoteCache` round-trips |
-| `RemoteCacheSvc_LuaTest` | 2 | Built-in Lua scripts for expiry retrieval & deletion |
-| `DistCacheSvc_LocalOnlyLifecycle` | 2 | Local-only `IDistributedCache` lifecycle and `NullRemoteCache` resolution for null and whitespace remote connections |
-| `DistCacheSvc_RemoteEnabledWithoutRegistration` | 1 | Clear `NullRemoteCache` activation failure when remote caching is enabled without a Redis connection |
-| `DistCacheSvc_Test` | 4 | `IDistributedCache` local+remote orchestration, factory-delegate setter |
-| `DistCacheSvc_DistributedLocking_Test` | 4 | Redlock-guarded cache-miss path, double-check after local eviction |
-| `TestBgServices_Async` | 1 | `CacheExpiryBgService` start/stop lifecycle |
-| `SlidingExpirationTest_Async` | 1 | Sliding expiration eviction timing |
-| `AbsoluteExpirationTest_Async` | 1 | Absolute expiration eviction timing |
-| **Total** | **36** | 11 methods |
+| Test class | Methods | Test cases | Scope |
+| --- | ---: | ---: | --- |
+| `CacheTests` | 11 | 36 | Memory/disk registration, local-only lifecycle, missing remote registration, Redis JSON/MessagePack round-trips, Lua, distributed locking and expiry |
+| `RegistrationTests` | 2 | 2 | All configuration properties are copied; repeated registration is idempotent |
+| **Total** | **13** | **38** | |
 
 ### Trait Categories
 
@@ -53,12 +44,13 @@ All tests live in `CacheTests.cs`. Redis-backed tests require a running Redis in
 | `IRemoteCache` | `RemoteCacheSvc_Sync`, `RemoteCacheSvc_Async`, `RemoteCacheSvc_LuaTest` |
 | `IDistributedCache` | `DistCacheSvc_LocalOnlyLifecycle`, `DistCacheSvc_RemoteEnabledWithoutRegistration`, `DistCacheSvc_Test`, `DistCacheSvc_DistributedLocking_Test` |
 | `BackgroundService` | `TestBgServices_Async` |
+| `Registration` | `RegistrationTests` |
 
 `SlidingExpirationTest_Async` and `AbsoluteExpirationTest_Async` carry no trait category.
 
 ### Skipped Tests
 
-None.
+No declared or conditional skips. Redis-backed tests fail rather than skip if the service is absent.
 
 ## File Structure
 
@@ -67,5 +59,6 @@ Tests/
 ├── CacheTests.cs
 ├── MockApiService.cs
 ├── MockDto.cs
+├── RegistrationTests.cs
 └── TestBase.cs
 ```

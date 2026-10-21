@@ -1,103 +1,79 @@
 # CasCap.Common
 
-[cascap.common.abstractions-badge]: https://img.shields.io/nuget/v/CasCap.Common.Abstractions?color=blue
-[cascap.common.abstractions-url]: https://nuget.org/packages/CasCap.Common.Abstractions
-[cascap.common.ai-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI?color=blue
-[cascap.common.ai-url]: https://nuget.org/packages/CasCap.Common.AI
-[cascap.common.ai.evaluation-badge]: https://img.shields.io/nuget/v/CasCap.Common.AI.Evaluation?color=blue
-[cascap.common.ai.evaluation-url]: https://nuget.org/packages/CasCap.Common.AI.Evaluation
-[cascap.common.hosting.aspnetcore-badge]: https://img.shields.io/nuget/v/CasCap.Common.Hosting.AspNetCore?color=blue
-[cascap.common.hosting.aspnetcore-url]: https://nuget.org/packages/CasCap.Common.Hosting.AspNetCore
-[cascap.common.caching-badge]: https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue
-[cascap.common.caching-url]: https://nuget.org/packages/CasCap.Common.Caching
-[cascap.common.configuration-badge]: https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue
-[cascap.common.configuration-url]: https://nuget.org/packages/CasCap.Common.Configuration
-[cascap.common.extensions-badge]: https://img.shields.io/nuget/v/CasCap.Common.Extensions?color=blue
-[cascap.common.extensions-url]: https://nuget.org/packages/CasCap.Common.Extensions
-[cascap.common.extensions.diagnostics.healthchecks-badge]: https://img.shields.io/nuget/v/CasCap.Common.Extensions.Diagnostics.HealthChecks?color=blue
-[cascap.common.extensions.diagnostics.healthchecks-url]: https://nuget.org/packages/CasCap.Common.Extensions.Diagnostics.HealthChecks
-[cascap.common.logging-badge]: https://img.shields.io/nuget/v/CasCap.Common.Logging?color=blue
-[cascap.common.logging-url]: https://nuget.org/packages/CasCap.Common.Logging
-[cascap.common.net-badge]: https://img.shields.io/nuget/v/CasCap.Common.Net?color=blue
-[cascap.common.net-url]: https://nuget.org/packages/CasCap.Common.Net
-[cascap.common.Serialization.json-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.Json?color=blue
-[cascap.common.Serialization.json-url]: https://nuget.org/packages/CasCap.Common.Serialization.Json
-[cascap.common.Serialization.messagepack-badge]: https://img.shields.io/nuget/v/CasCap.Common.Serialization.MessagePack?color=blue
-[cascap.common.Serialization.messagepack-url]: https://nuget.org/packages/CasCap.Common.Serialization.MessagePack
-[cascap.common.services-badge]: https://img.shields.io/nuget/v/CasCap.Common.Services?color=blue
-[cascap.common.services-url]: https://nuget.org/packages/CasCap.Common.Services
-[cascap.common.testing-badge]: https://img.shields.io/nuget/v/CasCap.Common.Testing?color=blue
-[cascap.common.testing-url]: https://nuget.org/packages/CasCap.Common.Testing
+CasCap.Common is a collection of C#/.NET NuGet libraries for application developers, covering caching, configuration, HTTP clients, JSON and MessagePack serialization, logging, ASP.NET Core hosting, and testing.
 
-![CI](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Common/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Common?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Common)
+[![CI status](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/f2calv/CasCap.Common/actions/workflows/ci.yml)
+[![SonarQube Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Common&metric=alert_status)](https://sonarcloud.io/dashboard?id=f2calv_CasCap.Common)
 
-A .NET class library repository containing 14 NuGet packages with helper functions, extensions, utilities, AI integration, and abstract classes for .NET applications.
+## Quick Start
 
-| Library                                           | Package                                                                                                |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| CasCap.Common.Abstractions                        | [![Nuget][cascap.common.abstractions-badge]][cascap.common.abstractions-url]                           |
-| CasCap.Common.AI                                  | [![Nuget][cascap.common.ai-badge]][cascap.common.ai-url]                                               |
-| CasCap.Common.AI.Evaluation                       | [![Nuget][cascap.common.ai.evaluation-badge]][cascap.common.ai.evaluation-url]                         |
-| CasCap.Common.Hosting.AspNetCore                  | [![Nuget][cascap.common.hosting.aspnetcore-badge]][cascap.common.hosting.aspnetcore-url]               |
-| CasCap.Common.Caching                             | [![Nuget][cascap.common.caching-badge]][cascap.common.caching-url]                                     |
-| CasCap.Common.Configuration                       | [![Nuget][cascap.common.configuration-badge]][cascap.common.configuration-url]                         |
-| CasCap.Common.Extensions                          | [![Nuget][cascap.common.extensions-badge]][cascap.common.extensions-url]                               |
-| CasCap.Common.Extensions.Diagnostics.HealthChecks | [![Nuget][cascap.common.extensions.diagnostics.healthchecks-badge]][cascap.common.extensions.diagnostics.healthchecks-url] |
-| CasCap.Common.Logging                             | [![Nuget][cascap.common.logging-badge]][cascap.common.logging-url]                                     |
-| CasCap.Common.Net                                 | [![Nuget][cascap.common.net-badge]][cascap.common.net-url]                                             |
-| CasCap.Common.Serialization.Json                  | [![Nuget][cascap.common.Serialization.json-badge]][cascap.common.Serialization.json-url]               |
-| CasCap.Common.Serialization.MessagePack           | [![Nuget][cascap.common.Serialization.messagepack-badge]][cascap.common.Serialization.messagepack-url] |
-| CasCap.Common.Services                            | [![Nuget][cascap.common.services-badge]][cascap.common.services-url]                                   |
-| CasCap.Common.Testing                             | [![Nuget][cascap.common.testing-badge]][cascap.common.testing-url]                                     |
+Install the package for the capability you need. For example, add the JSON serialization helpers to an existing .NET project:
 
-## Libraries
+```bash
+dotnet add package CasCap.Common.Serialization.Json
+```
 
-| Library | Description | Targets | Packable |
-| ------- | ----------- | ------- | -------- |
-| [**CasCap.Common.Abstractions**](src/CasCap.Common.Abstractions/README.md) | Core interface definitions (`IAppConfig`, `IFeature<T>`, `ILocalCache`, `IEventSink<T>`, `INotifier`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.AI**](src/CasCap.Common.AI/README.md) | AI agent framework — multi-provider agent creation, session management, MCP tool/prompt resolution, chat history compaction | net10.0 | ✅ |
-| [**CasCap.Common.AI.Evaluation**](src/CasCap.Common.AI.Evaluation/README.md) | Agent evaluation harness — fixture-backed MCP tools, instruction and tool-surface variants, per-request timing, grading and cross-model comparison reports | net10.0 | ✅ |
-| [**CasCap.Common.Hosting.AspNetCore**](src/CasCap.Common.Hosting.AspNetCore/README.md) | ASP.NET Core hosting defaults for feature-gated controllers, Serilog logging, and OpenTelemetry metrics, traces, and logs | net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Caching**](src/CasCap.Common.Caching/README.md) | Distributed caching (cache-aside pattern) with Memory/Disk local cache, Redis remote cache, and optional distributed locking | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Configuration**](src/CasCap.Common.Configuration/README.md) | Configuration bootstrapping — standard `IConfiguration` pipeline, Azure Key Vault, and validated `IOptions<T>` binding | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Extensions**](src/CasCap.Common.Extensions/README.md) | Common extension methods and helper utilities | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Extensions.Diagnostics.HealthChecks**](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | Custom health check extensions | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Logging**](src/CasCap.Common.Logging/README.md) | Static logging abstraction via `ApplicationLogging` | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Net**](src/CasCap.Common.Net/README.md) | `HttpClientBase`, `BasicAuthenticationHandler`, HTTP client wrappers (net8.0+ only via `#if`) | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Serialization.Json**](src/CasCap.Common.Serialization.Json/README.md) | System.Text.Json serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Serialization.MessagePack**](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack serialization helpers | netstandard2.0; net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Services**](src/CasCap.Common.Services/README.md) | `FeatureFlagBgService<T>` and `IFeature<T>` abstractions | net8.0; net9.0; net10.0 | ✅ |
-| [**CasCap.Common.Testing**](src/CasCap.Common.Testing/README.md) | xUnit test logging utilities | net8.0; net9.0; net10.0 | ✅ |
+Use the extension methods to serialize and deserialize with `System.Text.Json`:
 
-### Test Projects
+```csharp
+using System;
+using System.Collections.Generic;
+using CasCap.Common.Extensions;
 
-| Project | Targets |
-| ------- | -------- |
-| [CasCap.Common.Caching.Tests](src/CasCap.Common.Caching.Tests/README.md) | net8.0; net9.0; net10.0 |
-| [CasCap.Common.Extensions.Tests](src/CasCap.Common.Extensions.Tests/README.md) | net8.0; net9.0; net10.0 |
-| [CasCap.Common.Net.Tests](src/CasCap.Common.Net.Tests/README.md) | net8.0; net9.0; net10.0 |
-| [CasCap.Common.Serialization.Tests](src/CasCap.Common.Serialization.Tests/README.md) | net8.0; net9.0; net10.0 |
+var settings = new Dictionary<string, string> { ["theme"] = "dark" };
+var json = settings.ToJson();
+var restored = json.FromJson<Dictionary<string, string>>();
+
+Console.WriteLine(json);                // {"theme":"dark"}
+Console.WriteLine(restored?["theme"]);   // dark
+```
+
+See the [JSON package documentation](src/CasCap.Common.Serialization.Json/README.md) for custom converters and additional helpers.
+
+## Packages
+
+Package names below link to their usage and configuration documentation; version badges link to NuGet.
+Install the capabilities you need; NuGet resolves their dependencies.
+
+| Package | Purpose | NuGet |
+| --- | --- | --- |
+| [CasCap.Common.Abstractions](src/CasCap.Common.Abstractions/README.md) | Shared interfaces for configuration, caching, features and notifications | [![NuGet version for CasCap.Common.Abstractions](https://img.shields.io/nuget/v/CasCap.Common.Abstractions?color=blue)](https://www.nuget.org/packages/CasCap.Common.Abstractions) |
+| [CasCap.Common.Caching](src/CasCap.Common.Caching/README.md) | Memory, disk and Redis caching with optional distributed locking | [![NuGet version for CasCap.Common.Caching](https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue)](https://www.nuget.org/packages/CasCap.Common.Caching) |
+| [CasCap.Common.Configuration](src/CasCap.Common.Configuration/README.md) | Configuration layering, Azure Key Vault integration and validated options binding | [![NuGet version for CasCap.Common.Configuration](https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration) |
+| [CasCap.Common.Extensions](src/CasCap.Common.Extensions/README.md) | General-purpose extension methods and utilities | [![NuGet version for CasCap.Common.Extensions](https://img.shields.io/nuget/v/CasCap.Common.Extensions?color=blue)](https://www.nuget.org/packages/CasCap.Common.Extensions) |
+| [CasCap.Common.Extensions.Diagnostics.HealthChecks](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | HTTP endpoint health checks and Kubernetes probe tags | [![NuGet version for CasCap.Common.Extensions.Diagnostics.HealthChecks](https://img.shields.io/nuget/v/CasCap.Common.Extensions.Diagnostics.HealthChecks?color=blue)](https://www.nuget.org/packages/CasCap.Common.Extensions.Diagnostics.HealthChecks) |
+| [CasCap.Common.Hosting.AspNetCore](src/CasCap.Common.Hosting.AspNetCore/README.md) | ASP.NET Core hosting with feature-gated controllers, Serilog and OpenTelemetry | [![NuGet version for CasCap.Common.Hosting.AspNetCore](https://img.shields.io/nuget/v/CasCap.Common.Hosting.AspNetCore?color=blue)](https://www.nuget.org/packages/CasCap.Common.Hosting.AspNetCore) |
+| [CasCap.Common.Logging](src/CasCap.Common.Logging/README.md) | Shared logger factory through `ApplicationLogging` | [![NuGet version for CasCap.Common.Logging](https://img.shields.io/nuget/v/CasCap.Common.Logging?color=blue)](https://www.nuget.org/packages/CasCap.Common.Logging) |
+| [CasCap.Common.Net](src/CasCap.Common.Net/README.md) | HTTP client base classes, authentication and Web API helpers | [![NuGet version for CasCap.Common.Net](https://img.shields.io/nuget/v/CasCap.Common.Net?color=blue)](https://www.nuget.org/packages/CasCap.Common.Net) |
+| [CasCap.Common.Serialization.Json](src/CasCap.Common.Serialization.Json/README.md) | `System.Text.Json` extensions and custom converters | [![NuGet version for CasCap.Common.Serialization.Json](https://img.shields.io/nuget/v/CasCap.Common.Serialization.Json?color=blue)](https://www.nuget.org/packages/CasCap.Common.Serialization.Json) |
+| [CasCap.Common.Serialization.MessagePack](src/CasCap.Common.Serialization.MessagePack/README.md) | MessagePack binary serialization helpers | [![NuGet version for CasCap.Common.Serialization.MessagePack](https://img.shields.io/nuget/v/CasCap.Common.Serialization.MessagePack?color=blue)](https://www.nuget.org/packages/CasCap.Common.Serialization.MessagePack) |
+| [CasCap.Common.Services](src/CasCap.Common.Services/README.md) | Feature-flag-driven background service activation | [![NuGet version for CasCap.Common.Services](https://img.shields.io/nuget/v/CasCap.Common.Services?color=blue)](https://www.nuget.org/packages/CasCap.Common.Services) |
+| [CasCap.Common.Testing](src/CasCap.Common.Testing/README.md) | xUnit v3 logging, conditional skips, HTTP stubs and temporary-file helpers | [![NuGet version for CasCap.Common.Testing](https://img.shields.io/nuget/v/CasCap.Common.Testing?color=blue)](https://www.nuget.org/packages/CasCap.Common.Testing) |
+
+### Target Frameworks
+
+All libraries target .NET 8, 9 and 10. All except `Hosting.AspNetCore`, `Services` and `Testing` also target .NET Standard 2.0.
+Individual APIs can have framework-specific availability; see the relevant package documentation.
 
 ## Dependency Graph
 
-Project reference relationships between libraries (NuGet-only dependencies omitted).
+Arrows point from a library to its direct project dependencies. Node labels omit the common
+`CasCap.Common.` prefix; external NuGet dependencies are not shown.
 
 ```mermaid
 graph TD
-    Logging[CasCap.Common.Logging]
-    Abstractions[CasCap.Common.Abstractions]
-    Extensions[CasCap.Common.Extensions]
-    Configuration[CasCap.Common.Configuration]
-    SerJson[CasCap.Common.Serialization.Json]
-    SerMsgPack[CasCap.Common.Serialization.MessagePack]
-    Net[CasCap.Common.Net]
-    Caching[CasCap.Common.Caching]
-    Services[CasCap.Common.Services]
-    HealthChecks[CasCap.Common.Extensions.Diagnostics.HealthChecks]
-    Testing[CasCap.Common.Testing]
-    AI[CasCap.Common.AI]
-    AIEvaluation[CasCap.Common.AI.Evaluation]
-    HostingAspNetCore[CasCap.Common.Hosting.AspNetCore]
+    Logging[Logging]
+    Abstractions[Abstractions]
+    Extensions[Extensions]
+    Configuration[Configuration]
+    SerJson[Serialization.Json]
+    SerMsgPack[Serialization.MessagePack]
+    Net[Net]
+    Caching[Caching]
+    Services[Services]
+    HealthChecks[Extensions.Diagnostics.HealthChecks]
+    Testing[Testing]
+    HostingAspNetCore[Hosting.AspNetCore]
 
     Extensions --> Logging
     Configuration --> Abstractions
@@ -108,139 +84,46 @@ graph TD
     Net --> Abstractions
     Net --> SerJson
     Net --> Logging
+    HealthChecks --> Abstractions
     HealthChecks --> Extensions
     HealthChecks --> Logging
     Testing --> Logging
     Services --> Abstractions
     Services --> Extensions
+    Caching --> HealthChecks
     Caching --> Abstractions
     Caching --> Extensions
     Caching --> SerJson
     Caching --> SerMsgPack
     Caching --> Logging
-    AI --> Abstractions
-    AI --> Caching
-    AI --> Extensions
-    AIEvaluation --> AI
     HostingAspNetCore --> Abstractions
     HostingAspNetCore --> Logging
     HostingAspNetCore --> Net
     HostingAspNetCore --> Services
 ```
 
-Test project relationships:
+## Development
 
-```mermaid
-graph TD
-    Testing[CasCap.Common.Testing]
-    CachingTests[CasCap.Common.Caching.Tests] --> Caching[CasCap.Common.Caching]
-    CachingTests --> Testing
-    ExtTests[CasCap.Common.Extensions.Tests] --> Extensions[CasCap.Common.Extensions]
-    ExtTests --> Testing
-    NetTests[CasCap.Common.Net.Tests] --> Net[CasCap.Common.Net]
-    NetTests --> Testing
-    SerTests[CasCap.Common.Serialization.Tests] --> SerJson[CasCap.Common.Serialization.Json]
-    SerTests --> SerMsgPack[CasCap.Common.Serialization.MessagePack]
-    SerTests --> Testing
-```
-
-## Prerequisites
-
-- **.NET SDK**: 10.0.x stable (see `global.json` — `allowPrerelease: false`)
-- **Docker**: Required for Redis in caching tests
-
-## Build and Test
+Building all target frameworks requires the .NET 10 SDK. Redis-backed caching tests also require
+Docker Compose or a dedicated Redis instance. Run these commands from the repository root:
 
 ```bash
-# 1. Restore (required before build)
 dotnet restore
-
-# 2. Build
 dotnet build --no-restore
-
-# 3. Start Redis (required before caching tests)
-docker run -d -p 6379:6379 --name cascap-redis redis
-
-# 4. Run tests — ALWAYS use --maxcpucount:1
-dotnet test --no-build --maxcpucount:1
+docker compose up -d --wait redis
+dotnet test --no-build --max-parallel-test-modules 1
 ```
 
-> **CRITICAL**: Always use `--maxcpucount:1` — parallel execution causes failures due to `InlineData` and Redis `ClearOnStartup` property conflicts.
+The test runner is Microsoft.Testing.Platform. Run test modules serially because caching tests
+share Redis state. Use only a disposable test Redis instance: some tests clear cache databases.
+See the [caching test documentation](src/CasCap.Common.Caching.Tests/README.md) for service requirements.
 
-### Expected Build Behaviour
+Stop the Compose services when finished:
 
-- Build produces nullability warnings (CS8604, CS8765) — these are **accepted and must not be "fixed"**.
-- Multi-target builds take ~15–20 seconds.
+```bash
+docker compose down
+```
 
-## Project Configuration
+## License
 
-### Key Files
-
-| File | Purpose |
-| ---- | -------- |
-| `Directory.Build.props` | C# 14.0, `ImplicitUsings`, `Nullable: enable`, `IsPackable: false` by default |
-| `Directory.Packages.props` | Central package version management (`ManagePackageVersionsCentrally: true`) |
-| `.editorconfig` | Code style rules (4-space indent, LF line endings, full formatting rules) |
-| `global.json` | SDK constraint — stable releases only |
-| `docker-compose.yml` | Redis and Redis UI (p3x-redis-ui) services |
-| `GitVersion.yml` | Semantic versioning configuration |
-
-### Suppressed Warnings
-
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0042`, `CS1574`, `NETSDK1233`, `NU1901`, `NU1902`, `NU1903`, `NU5104`
-
-## CI/CD Pipeline
-
-### GitHub Actions (`.github/workflows/ci.yml`)
-
-**Triggers**: Push to `main`, PRs to `main`, manual dispatch. Concurrent runs for the same branch or
-pull request are cancelled in favour of the newest.
-
-**Jobs**:
-
-1. **lint** — Reusable workflow from `f2calv/gha-workflows`
-2. **versioning** — GitVersion-based semantic versioning
-3. **build** — Ubuntu-latest with Redis service container; uses `f2calv/gha-dotnet-nuget@v2`; test args include `--max-parallel-test-modules 1`
-4. **release** — GitHub release (main branch only, when tag doesn't already exist), gated on `lint`
-
-A pre-release package can be published from a non-default branch through the `push-preview` input on
-a manual dispatch.
-
-## Making Changes
-
-### Adding Code
-
-1. Place code in the correct project by functionality
-2. Follow `.editorconfig` style rules
-3. Add XML documentation to all public API surface
-4. Add tests in the corresponding `.Tests` project
-5. Validate: `dotnet build --no-restore` → 0 errors
-6. Validate: `dotnet test --no-build --maxcpucount:1` → all pass
-
-### Adding Dependencies
-
-1. Add version to `Directory.Packages.props`
-2. Reference in `.csproj` **without** a version attribute:
-
-   ```xml
-   <PackageReference Include="PackageName" />
-   ```
-
-3. Run `dotnet restore`
-
-### Creating New Projects
-
-- Library projects inherit `Directory.Build.props` automatically
-- Set `<IsPackable>true</IsPackable>` explicitly only for NuGet packages
-- Test projects must **not** be packable (default) and must target `net8.0;net9.0;net10.0`
-
-## Validation Checklist
-
-- [ ] `dotnet restore` succeeds
-- [ ] `dotnet build --no-restore` completes with 0 errors
-- [ ] Redis is running (if testing caching)
-- [ ] `dotnet test --no-build --maxcpucount:1` passes all tests
-- [ ] Public API has XML documentation
-- [ ] Properties separated by blank lines
-- [ ] `ServiceProvider` instances are disposed in tests
-- [ ] No shared mutable static state in test helpers
+Released under the [MIT License](LICENSE).

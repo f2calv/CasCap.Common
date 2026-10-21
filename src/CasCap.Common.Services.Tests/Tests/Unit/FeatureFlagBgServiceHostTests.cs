@@ -37,6 +37,30 @@ public sealed class FeatureFlagBgServiceHostTests
         await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact, Trait("Category", "BackgroundService")]
+    public async Task RunToCompletionFeature_StopsHostWithoutFault()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.Logging.ClearProviders();
+        builder.Services.Configure<HostOptions>(options =>
+            options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.StopHost);
+        builder.Services.AddSingleton<IBgFeature>(sp => new TestBgFeature("RunOnce", async _ =>
+        {
+            var lifetime = sp.GetRequiredService<IHostApplicationLifetime>();
+            await Task.Delay(Timeout.InfiniteTimeSpan, lifetime.ApplicationStarted)
+                .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+            lifetime.StopApplication();
+        }));
+        builder.Services.AddFeatureFlagService(new HashSet<string>(["RunOnce"], StringComparer.OrdinalIgnoreCase));
+        using var host = builder.Build();
+        var featureHost = host.Services.GetServices<IHostedService>().OfType<FeatureFlagBgService>().Single();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.WaitForShutdownAsync(TestContext.Current.CancellationToken).WaitAsync(_timeout, TestContext.Current.CancellationToken);
+
+        Assert.True(featureHost.ExecuteTask!.IsCompletedSuccessfully);
+    }
+
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature
     {
         public string FeatureName { get; } = featureName;
