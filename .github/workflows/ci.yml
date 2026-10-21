@@ -27,7 +27,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, f2calv/2026-10-refactor]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
