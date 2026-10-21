@@ -114,8 +114,8 @@ public static partial class SinkServiceCollectionExtensions
 
         if (querySinks.Count > 0)
         {
-            var preferred = querySinks.FindLast(s => s.Key == sinkOptions.QuerySinkType);
-            var primary = preferred.SinkType is null ? querySinks[^1] : preferred;
+            var preferredIndex = querySinks.FindLastIndex(s => s.Key == sinkOptions.QuerySinkType);
+            var primary = preferredIndex >= 0 ? querySinks[preferredIndex] : querySinks[^1];
             services.AddKeyedSingleton(sinkInterfaceType, PrimarySinkKey, (sp, _) =>
                 sp.GetRequiredKeyedService<IEventSink<TEvent>>(primary.Key));
 
