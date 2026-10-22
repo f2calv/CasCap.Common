@@ -9,13 +9,16 @@ public record RedlockTimingProfile
 {
     /// <summary>Lock expiry time in milliseconds.</summary>
     /// <remarks>Defaults to <c>5000</c> ms.</remarks>
+    [Range(1, int.MaxValue)]
     public int ExpiryMs { get; init; } = 5_000;
 
     /// <summary>Maximum wait time to acquire the lock in milliseconds.</summary>
     /// <remarks>Defaults to <c>5000</c> ms.</remarks>
+    [Range(1, int.MaxValue)]
     public int WaitMs { get; init; } = 5_000;
 
     /// <summary>Retry interval in milliseconds when the lock is not available.</summary>
     /// <remarks>Defaults to <c>250</c> ms.</remarks>
+    [Range(1, int.MaxValue)]
     public int RetryMs { get; init; } = 250;
 }

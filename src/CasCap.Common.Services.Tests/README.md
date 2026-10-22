@@ -22,10 +22,10 @@ Counts are declared methods and cases per target framework, not execution result
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
-| `FeatureFlagBgServiceTests` | 7 | 7 | Finite sibling completion, first and later faults, all-child completion with and without a requested stop, cancellation, and disabled features |
+| `FeatureFlagBgServiceTests` | 8 | 9 | Finite siblings, first/later faults, requested stop, cancellation, disabled features, and awaited cleanup on shutdown or sibling failure |
 | `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
 | `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
-| **Total** | **13** | **13** | |
+| **Total** | **14** | **15** | |
 
 ### Trait Categories
 

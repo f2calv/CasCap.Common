@@ -59,7 +59,9 @@ automatically read an `EnabledFeatures` JSON section.
 - A child may finish while siblings continue. Faults from enabled children propagate to the host.
 - If all children finish before cancellation, the launcher reports an unexpected lifecycle failure.
 - A finite job must request `IHostApplicationLifetime.StopApplication()` before returning.
-- Host cancellation ends the launcher cleanly.
+- Host cancellation cancels and awaits outstanding features, including their cleanup.
+- A child fault requests host shutdown immediately, then cancels and awaits its siblings before
+  propagating the failure. Align host and container termination budgets for uncooperative cleanup.
 
 ```mermaid
 flowchart TD
@@ -67,8 +69,8 @@ flowchart TD
     MATCH --> RUN["Run matching features and All features"]
     RUN --> WATCH["Observe child tasks"]
     WATCH -->|Child finishes, siblings remain| WATCH
-    WATCH -->|Child faults or all finish without stopping| FAIL["Propagate failure to host"]
-    WATCH -->|Host cancellation or requested stop| STOP["Clean shutdown"]
+    WATCH -->|Child faults or all finish without stopping| FAIL["Request host shutdown, cancel and await siblings, propagate failure"]
+    WATCH -->|Host cancellation or requested stop| STOP["Cancel and await children, then clean shutdown"]
 ```
 
 ## Configuration Examples

@@ -24,6 +24,11 @@ public record RedlockConfig
     [Range(1, int.MaxValue)]
     public int RetryMs { get; init; } = 250;
 
+    /// <summary>Interval in milliseconds between leadership lease-state observations.</summary>
+    /// <remarks>This does not renew the lease or change cache-miss lock timings.</remarks>
+    [Range(1, int.MaxValue)]
+    public int LeadershipCheckIntervalMs { get; init; } = 1_000;
+
     /// <summary>Format string for Redis distributed lock keys.</summary>
     /// <remarks>Defaults to <c>RedLock:{0}</c>. The <c>{0}</c> placeholder is replaced with the lock resource name.</remarks>
     public string RedisKeyFormat { get; init; } = "RedLock:{0}";
@@ -33,6 +38,7 @@ public record RedlockConfig
     /// Includes a built-in <see cref="RedlockProfiles.LeaderElection"/> profile by default.
     /// Custom profiles can be added via <c>appsettings.json</c>.
     /// </remarks>
+    [Required]
     public Dictionary<string, RedlockTimingProfile> Profiles { get; init; } = new()
     {
         [RedlockProfiles.LeaderElection] = new() { ExpiryMs = 30_000, WaitMs = 60_000, RetryMs = 5_000 }

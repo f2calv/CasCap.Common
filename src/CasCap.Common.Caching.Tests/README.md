@@ -26,6 +26,11 @@ registration class:
 dotnet test --project src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj --framework net10.0 --filter-class CasCap.Common.Caching.Tests.RegistrationTests
 ```
 
+`LeadershipRunnerTests` and `LeadershipRegistrationTests` also require no Redis or credentials.
+Run both with `--filter-class CasCap.Common.Caching.Tests.Leadership*`. Lease/factory fakes and
+cleanup gates exercise cancellation, contention, release ordering, reacquisition and failure
+propagation; these are not live renewal, quorum or network-partition tests.
+
 ## Tests
 
 Counts are declared methods and expanded data rows per target framework, not a record of a test run.
@@ -34,7 +39,9 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | --- | ---: | ---: | --- |
 | `CacheTests` | 11 | 36 | Memory/disk registration, local-only lifecycle, missing remote registration, Redis JSON/MessagePack round-trips, Lua, distributed locking and expiry |
 | `RegistrationTests` | 2 | 2 | All configuration properties are copied; repeated registration is idempotent |
-| **Total** | **13** | **38** | |
+| `LeadershipRunnerTests` | 10 | 12 | Ownership, contention, acquisition cancellation, loss/shutdown cleanup, fresh runs and worker/acquisition/observation/release fault propagation |
+| `LeadershipRegistrationTests` | 4 | 14 | Shared options, exact cache/election timings and fallback, nested validation, first-registration ownership and missing factory |
+| **Total** | **27** | **64** | |
 
 ### Trait Categories
 
@@ -45,6 +52,8 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | `IDistributedCache` | `DistCacheSvc_LocalOnlyLifecycle`, `DistCacheSvc_RemoteEnabledWithoutRegistration`, `DistCacheSvc_Test`, `DistCacheSvc_DistributedLocking_Test` |
 | `BackgroundService` | `TestBgServices_Async` |
 | `Registration` | `RegistrationTests` |
+| `Leadership` | Shared leadership lifecycle and configuration |
+| `Integration` | Credential-free DI/configuration checks in `LeadershipRegistrationTests` |
 
 `SlidingExpirationTest_Async` and `AbsoluteExpirationTest_Async` carry no trait category.
 
@@ -60,5 +69,9 @@ Tests/
 ├── MockApiService.cs
 ├── MockDto.cs
 ├── RegistrationTests.cs
-└── TestBase.cs
+├── TestBase.cs
+├── Integration/
+│   └── LeadershipRegistrationTests.cs
+└── Unit/
+    └── LeadershipRunnerTests.cs
 ```

@@ -22,38 +22,63 @@ public sealed partial class FeatureFlagBgService(
     {
         await Task.Yield();
         LogStarting(logger, nameof(FeatureFlagBgService));
+        using var featureCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            stoppingToken, appLifetime.ApplicationStopping);
         var runningFeatures = new List<(string Name, Task Task)>(features.Count());
-        foreach (var feature in features)
+        try
         {
-            if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
-                || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
+            foreach (var feature in features)
             {
-                LogFeatureStarting(logger, nameof(FeatureFlagBgService), feature.GetType().Name);
-                runningFeatures.Add((feature.FeatureName, feature.ExecuteAsync(stoppingToken)));
+                if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
+                    || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
+                {
+                    LogFeatureStarting(logger, nameof(FeatureFlagBgService), feature.GetType().Name);
+                    runningFeatures.Add((feature.FeatureName, feature.ExecuteAsync(featureCancellation.Token)));
+                }
+            }
+            if (runningFeatures.IsNullOrEmpty())
+                throw new GenericException("no features found to launch!");
+
+            var startedFeatureNames = runningFeatures.Select(feature => feature.Name).ToArray();
+            var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, featureCancellation.Token);
+            while (runningFeatures.Count > 0 && !featureCancellation.IsCancellationRequested)
+            {
+                var completedTask = await Task.WhenAny(
+                    runningFeatures.Select(feature => feature.Task).Append(cancellationTask)).ConfigureAwait(false);
+                if (ReferenceEquals(completedTask, cancellationTask) || featureCancellation.IsCancellationRequested)
+                    break;
+
+                var completedFeatureIndex = runningFeatures.FindIndex(feature => ReferenceEquals(feature.Task, completedTask));
+                var completedFeature = runningFeatures[completedFeatureIndex];
+                await completedFeature.Task.ConfigureAwait(false);
+                runningFeatures.RemoveAt(completedFeatureIndex);
+                LogFeatureCompleted(logger, nameof(FeatureFlagBgService), completedFeature.Name);
+            }
+
+            if (!featureCancellation.IsCancellationRequested)
+                throw new InvalidOperationException(
+                    $"All enabled background features completed before host cancellation: {string.Join(", ", startedFeatureNames)}.");
+        }
+        catch
+        {
+            appLifetime.StopApplication();
+            throw;
+        }
+        finally
+        {
+            try
+            {
+                await featureCancellation.CancelAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                try
+                {
+                    await Task.WhenAll(runningFeatures.Select(feature => feature.Task)).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (featureCancellation.IsCancellationRequested) { }
             }
         }
-        if (runningFeatures.IsNullOrEmpty())
-            throw new GenericException("no features found to launch!");
-
-        var startedFeatureNames = runningFeatures.Select(feature => feature.Name).ToArray();
-        var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
-        while (runningFeatures.Count > 0 && !stoppingToken.IsCancellationRequested)
-        {
-            var completedTask = await Task.WhenAny(
-                runningFeatures.Select(feature => feature.Task).Append(cancellationTask)).ConfigureAwait(false);
-            if (ReferenceEquals(completedTask, cancellationTask) || stoppingToken.IsCancellationRequested)
-                break;
-
-            var completedFeatureIndex = runningFeatures.FindIndex(feature => ReferenceEquals(feature.Task, completedTask));
-            var completedFeature = runningFeatures[completedFeatureIndex];
-            await completedFeature.Task.ConfigureAwait(false);
-            runningFeatures.RemoveAt(completedFeatureIndex);
-            LogFeatureCompleted(logger, nameof(FeatureFlagBgService), completedFeature.Name);
-        }
-
-        if (!stoppingToken.IsCancellationRequested && !appLifetime.ApplicationStopping.IsCancellationRequested)
-            throw new InvalidOperationException(
-                $"All enabled background features completed before host cancellation: {string.Join(", ", startedFeatureNames)}.");
 
         LogExiting(logger, nameof(FeatureFlagBgService));
     }
