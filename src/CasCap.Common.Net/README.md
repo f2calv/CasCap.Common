@@ -124,6 +124,12 @@ nothing. Supply an
 [`IHttpAuditStore`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IHttpAuditStore.cs)
 implementation to retain records.
 
+Captured bodies are JSON representations: absent, empty or whitespace-only content becomes
+`null`; valid JSON objects, arrays and scalars retain their original text; plain text, HTML and
+malformed JSON become JSON strings preserving the original content. Normalization changes only
+the audit record, never the HTTP request or response. Stores can therefore accept ordinary empty
+and non-JSON responses without attempting to parse them as raw JSON.
+
 `FileHttpAuditStore` writes JSON under daily folders, defaulting to `http-audit` relative to the
 working directory. It has no automatic retention policy. Capture is not redaction: paths, query
 parameters and bodies may contain credentials or personal data. Assess the data and configure

@@ -25,8 +25,9 @@ applicable theory, and four pre-transmission failure cases.
 | --- | --- | --- | --- |
 | `HttpClientBaseTests` | 33 | 33 | `PostJsonAsync`, `PostBytesAsync`, `PostMultipartAsync`, `GetAsync` — success/error deserialization, headers, full-URL override, status/headers capture, raw string/bytes results, multipart part names and boundary, timeout & cancellation |
 | `HttpClientBuilderResilienceExtensionTests` | 6 | 16 | `IsReplaySafe` — idempotent replay after timeout, non-idempotent refusal after timeout and 5xx, unsent-request exception, transmitted-request refusal, unknown request |
+| `HttpAuditHandlerTests` | 5 | 18 | Empty, deep JSON/scalar, text/HTML and malformed-body normalization; unchanged HTTP content/status, source metadata, persistence warnings and caller cancellation |
 | `NetExtensionTests` | 16 | 16 | `ToQueryString`, `AddOrOverwrite` (string/list/dictionary), `TryGetValue`, `GetBasicAuthHeaderValue`, `SetBasicAuth` |
-| **Total** | **55** | **65** | |
+| **Total** | **60** | **83** | |
 
 ### Trait Categories
 
@@ -35,6 +36,7 @@ applicable theory, and four pre-transmission failure cases.
 | `HttpClientBase` | `HttpClientBaseTests` |
 | `Resilience` | `HttpClientBuilderResilienceExtensionTests` |
 | `Extensions` | `NetExtensionTests` |
+| `Auditing` | `HttpAuditHandlerTests` |
 
 ### Skipped Tests
 
@@ -51,5 +53,7 @@ Tests/
 ├── NetExtensionTests.cs
 ├── TestBase.cs
 ├── TestHttpClient.cs
-└── TestPayload.cs
+├── TestPayload.cs
+└── Unit/
+    └── HttpAuditHandlerTests.cs
 ```

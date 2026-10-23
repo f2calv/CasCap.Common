@@ -25,10 +25,12 @@ public record HttpAuditEntry
     /// <summary>Round-trip elapsed time in milliseconds.</summary>
     public double ElapsedMs { get; init; }
 
-    /// <summary>Raw JSON request body, or <see langword="null"/> for bodyless requests.</summary>
+    /// <summary>JSON request-body representation, or <see langword="null"/> for absent or whitespace-only content.</summary>
+    /// <remarks>Valid JSON is retained; non-JSON text is encoded as a JSON string without changing the HTTP content.</remarks>
     public string? RequestBody { get; init; }
 
-    /// <summary>Raw JSON response body.</summary>
+    /// <summary>JSON response-body representation, or <see langword="null"/> for absent or whitespace-only content.</summary>
+    /// <remarks>Valid JSON is retained; non-JSON text is encoded as a JSON string without changing the HTTP content.</remarks>
     public string? ResponseBody { get; init; }
 }
 #endif
