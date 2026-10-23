@@ -20,7 +20,7 @@ public sealed class LeadershipRunnerTests
         var finishCleanup = Signal();
         var secondStarted = Signal();
         var tokens = new List<CancellationToken>();
-        var factory = new TestFactory((attempt, _) => Task.FromResult<IRedLock>(attempt == 1 ? first : second));
+        var factory = new TestLockFactory((attempt, _) => Task.FromResult<IRedLock>(attempt == 1 ? first : second));
         var sut = CreateRunner(factory);
         var running = sut.RunAsync("worker", async token =>
         {
@@ -74,7 +74,7 @@ public sealed class LeadershipRunnerTests
         var started = Signal();
         var cleaning = Signal();
         var finishCleanup = Signal();
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
         var running = CreateRunner(factory).RunAsync("worker", async token =>
         {
             started.SetResult();
@@ -115,7 +115,7 @@ public sealed class LeadershipRunnerTests
         standby.Lose();
         var acquired = new TestLease();
         var started = Signal();
-        var factory = new TestFactory((attempt, _) => Task.FromResult<IRedLock>(attempt == 1 ? standby : acquired));
+        var factory = new TestLockFactory((attempt, _) => Task.FromResult<IRedLock>(attempt == 1 ? standby : acquired));
         var running = CreateRunner(factory).RunAsync("worker", async token =>
         {
             Assert.True(standby.Disposed);
@@ -144,7 +144,7 @@ public sealed class LeadershipRunnerTests
     {
         using var stopping = new CancellationTokenSource();
         var acquiring = Signal();
-        var factory = new TestFactory(async (_, token) =>
+        var factory = new TestLockFactory(async (_, token) =>
         {
             acquiring.SetResult();
             await Task.Delay(Timeout.InfiniteTimeSpan, token);
@@ -170,7 +170,7 @@ public sealed class LeadershipRunnerTests
     {
         var expected = new InvalidOperationException("worker failed");
         var lease = new TestLease();
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
         var actual = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             CreateRunner(factory).RunAsync("worker", _ =>
                 synchronous ? throw expected : Task.FromException(expected), TestContext.Current.CancellationToken));
@@ -183,7 +183,7 @@ public sealed class LeadershipRunnerTests
     public async Task UnexpectedCompletion_FailsWithoutHotLoop()
     {
         var lease = new TestLease();
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             CreateRunner(factory).RunAsync("worker", _ => Task.CompletedTask, TestContext.Current.CancellationToken));
         Assert.True(lease.Disposed);
@@ -197,7 +197,7 @@ public sealed class LeadershipRunnerTests
         var expected = new InvalidOperationException("cleanup failed");
         var lease = new TestLease();
         var started = Signal();
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
         var running = CreateRunner(factory).RunAsync("worker", async token =>
         {
             started.SetResult();
@@ -225,7 +225,7 @@ public sealed class LeadershipRunnerTests
     public async Task AcquisitionFault_PropagatesWithoutStartingWork(bool synchronous)
     {
         var expected = new IOException("Synthetic acquisition failure.");
-        var factory = new TestFactory((_, _) => synchronous
+        var factory = new TestLockFactory((_, _) => synchronous
             ? throw expected : Task.FromException<IRedLock>(expected));
         var executions = 0;
 
@@ -246,7 +246,7 @@ public sealed class LeadershipRunnerTests
     {
         var expected = new IOException("Synthetic release failure.");
         var lease = new TestLease { DisposalFault = expected };
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
 
         var actual = await Assert.ThrowsAsync<IOException>(() =>
             CreateRunner(factory).RunAsync("worker",
@@ -266,7 +266,7 @@ public sealed class LeadershipRunnerTests
         var started = Signal();
         var cleaning = Signal();
         var finishCleanup = Signal();
-        var factory = new TestFactory((_, _) => Task.FromResult<IRedLock>(lease));
+        var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
         CancellationToken workerToken = default;
         var running = CreateRunner(factory).RunAsync("worker", async token =>
         {
@@ -314,67 +314,4 @@ public sealed class LeadershipRunnerTests
                 [RedlockProfiles.LeaderElection] = new() { ExpiryMs = 30_000, WaitMs = 60_000, RetryMs = 1 }
             }
         }), TimeProvider.System, factory);
-
-    private sealed class TestLease : IRedLock
-    {
-        private int _acquired = 1;
-        private Exception? _observationFault;
-
-        public Exception? DisposalFault { get; init; }
-        public bool Disposed { get; private set; }
-        public string Resource => "worker";
-        public string LockId => "test-lock";
-        public bool IsAcquired => Volatile.Read(ref _observationFault) is { } fault
-            ? throw fault : Volatile.Read(ref _acquired) == 1;
-        public RedLockStatus Status => IsAcquired ? RedLockStatus.Acquired : RedLockStatus.Expired;
-        public RedLockInstanceSummary InstanceSummary => new(1, 0, 0);
-        public int ExtendCount => 0;
-
-        public void Lose() => Interlocked.Exchange(ref _acquired, 0);
-
-        public void FailObservation(Exception fault) => Volatile.Write(ref _observationFault, fault);
-
-        public void Dispose()
-        {
-            Disposed = true;
-            Lose();
-            if (DisposalFault is { } fault)
-                throw fault;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            Dispose();
-            return ValueTask.CompletedTask;
-        }
-    }
-
-    private sealed class TestFactory(Func<int, CancellationToken, Task<IRedLock>> acquire) : IDistributedLockFactory
-    {
-        private int _attempts;
-
-        public int Attempts => Volatile.Read(ref _attempts);
-        public string? Resource { get; private set; }
-        public TimeSpan Expiry { get; private set; }
-        public TimeSpan Wait { get; private set; }
-        public TimeSpan Retry { get; private set; }
-
-        public Task<IRedLock> CreateLockAsync(string resource, TimeSpan expiryTime, TimeSpan waitTime,
-            TimeSpan retryTime, CancellationToken? cancellationToken = null)
-        {
-            Resource = resource;
-            Expiry = expiryTime;
-            Wait = waitTime;
-            Retry = retryTime;
-            return acquire(Interlocked.Increment(ref _attempts), cancellationToken ?? CancellationToken.None);
-        }
-
-        public Task<IRedLock> CreateLockAsync(string resource, TimeSpan expiryTime)
-            => CreateLockAsync(resource, expiryTime, TimeSpan.Zero, TimeSpan.Zero);
-
-        public IRedLock CreateLock(string resource, TimeSpan expiryTime) => throw new NotSupportedException();
-
-        public IRedLock CreateLock(string resource, TimeSpan expiryTime, TimeSpan waitTime,
-            TimeSpan retryTime, CancellationToken? cancellationToken = null) => throw new NotSupportedException();
-    }
 }

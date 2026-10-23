@@ -31,6 +31,11 @@ Run both with `--filter-class CasCap.Common.Caching.Tests.Leadership*`. Lease/fa
 cleanup gates exercise cancellation, contention, release ordering, reacquisition and failure
 propagation; these are not live renewal, quorum or network-partition tests.
 
+`DistributedCacheServiceTests` needs no Redis either. It reuses the same lease and factory fakes to
+check that concurrent cache misses run the factory once and that a distributed-lock timeout still
+returns the created entry. It also checks that the local copy honours an absolute expiration. Run it with
+`--filter-class CasCap.Common.Caching.Tests.DistributedCacheServiceTests`.
+
 ## Tests
 
 Counts are declared methods and expanded data rows per target framework, not a record of a test run.
@@ -38,10 +43,11 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | Test class | Methods | Test cases | Scope |
 | --- | ---: | ---: | --- |
 | `CacheTests` | 11 | 36 | Memory/disk registration, local-only lifecycle, missing remote registration, Redis JSON/MessagePack round-trips, Lua, distributed locking and expiry |
+| `DistributedCacheServiceTests` | 3 | 4 | Cache-miss population once per key with and without distributed locking, creation after a distributed-lock timeout, and absolute expiry of the local copy |
 | `RegistrationTests` | 2 | 2 | All configuration properties are copied; repeated registration is idempotent |
 | `LeadershipRunnerTests` | 10 | 12 | Ownership, contention, acquisition cancellation, loss/shutdown cleanup, fresh runs and worker/acquisition/observation/release fault propagation |
 | `LeadershipRegistrationTests` | 4 | 14 | Shared options, exact cache/election timings and fallback, nested validation, first-registration ownership and missing factory |
-| **Total** | **27** | **64** | |
+| **Total** | **30** | **68** | |
 
 ### Trait Categories
 
@@ -49,7 +55,7 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | --- | --- |
 | `ServiceCollection` | `ServiceCollectionSetupTests` |
 | `IRemoteCache` | `RemoteCacheSvc_Sync`, `RemoteCacheSvc_Async`, `RemoteCacheSvc_LuaTest` |
-| `IDistributedCache` | `DistCacheSvc_LocalOnlyLifecycle`, `DistCacheSvc_RemoteEnabledWithoutRegistration`, `DistCacheSvc_Test`, `DistCacheSvc_DistributedLocking_Test` |
+| `IDistributedCache` | `DistCacheSvc_LocalOnlyLifecycle`, `DistCacheSvc_RemoteEnabledWithoutRegistration`, `DistCacheSvc_Test`, `DistCacheSvc_DistributedLocking_Test`, `DistributedCacheServiceTests` |
 | `BackgroundService` | `TestBgServices_Async` |
 | `Registration` | `RegistrationTests` |
 | `Leadership` | Shared leadership lifecycle and configuration |
@@ -70,8 +76,11 @@ Tests/
 ├── MockDto.cs
 ├── RegistrationTests.cs
 ├── TestBase.cs
+├── TestLease.cs
+├── TestLockFactory.cs
 ├── Integration/
 │   └── LeadershipRegistrationTests.cs
 └── Unit/
+    ├── DistributedCacheServiceTests.cs
     └── LeadershipRunnerTests.cs
 ```

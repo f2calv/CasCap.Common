@@ -36,7 +36,10 @@ await host.StopAsync();
 
 [`CasCap.Common.Abstractions.IDistributedCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Caching/Abstractions/IDistributedCache.cs)
 is the object-cache API, not Microsoft's byte-cache
-interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. `Set`,
+interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. Concurrent
+misses for the same key run the factory once per application instance, and once across instances when
+`DistributedLockingEnabled` is set. Waiting callers re-read the populated entry. If the distributed lock
+times out, the factory still runs so the caller never receives a spurious miss. `Set`,
 `Delete` and `DeleteAll` affect the enabled layers.
 
 To use application configuration, replace the registration with
