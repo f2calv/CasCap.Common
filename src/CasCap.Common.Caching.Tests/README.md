@@ -30,10 +30,13 @@ dotnet test --project src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Test
 Run both with `--filter-class CasCap.Common.Caching.Tests.Leadership*`. Lease/factory fakes and
 cleanup gates exercise cancellation, contention, release ordering, reacquisition and failure
 propagation; these are not live renewal, quorum or network-partition tests.
+Registration coverage also builds a validated service provider: local-only caching must start
+without a runner or lock factory, while a supplied factory enables runner resolution.
 
 `DistributedCacheServiceTests` needs no Redis either. It reuses the same lease and factory fakes to
 check that concurrent cache misses run the factory once and that a distributed-lock timeout still
-returns the created entry. It also checks that the local copy honours an absolute expiration. Run it with
+returns the created entry. It also verifies the exact absolute expiration forwarded to the local cache,
+without a wall-clock delay. Run it with
 `--filter-class CasCap.Common.Caching.Tests.DistributedCacheServiceTests`.
 
 ## Tests
@@ -43,11 +46,11 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | Test class | Methods | Test cases | Scope |
 | --- | ---: | ---: | --- |
 | `CacheTests` | 11 | 36 | Memory/disk registration, local-only lifecycle, missing remote registration, Redis JSON/MessagePack round-trips, Lua, distributed locking and expiry |
-| `DistributedCacheServiceTests` | 3 | 4 | Cache-miss population once per key with and without distributed locking, creation after a distributed-lock timeout, and absolute expiry of the local copy |
+| `DistributedCacheServiceTests` | 3 | 4 | Cache-miss population once per key with and without distributed locking, creation after a distributed-lock timeout, and exact local absolute-expiration forwarding |
 | `RegistrationTests` | 2 | 2 | All configuration properties are copied; repeated registration is idempotent |
 | `LeadershipRunnerTests` | 10 | 12 | Ownership, contention, acquisition cancellation, loss/shutdown cleanup, fresh runs and worker/acquisition/observation/release fault propagation |
-| `LeadershipRegistrationTests` | 4 | 14 | Shared options, exact cache/election timings and fallback, nested validation, first-registration ownership and missing factory |
-| **Total** | **30** | **68** | |
+| `LeadershipRegistrationTests` | 5 | 16 | Shared options, exact cache/election timings and fallback, nested validation, first-registration ownership and validated optional leadership |
+| **Total** | **31** | **70** | |
 
 ### Trait Categories
 

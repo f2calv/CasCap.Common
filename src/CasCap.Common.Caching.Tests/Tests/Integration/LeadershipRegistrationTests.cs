@@ -99,6 +99,7 @@ public sealed class LeadershipRegistrationTests(ITestOutputHelper output) : Test
     public void RepeatedRegistration_PreservesTheFirstOptions()
     {
         var services = new ServiceCollection();
+        services.AddSingleton<IDistributedLockFactory>(new TestLockFactory((_, _) => Task.FromResult<IRedLock>(new TestLease())));
         var first = new RedlockConfig { RedisKeyFormat = "First:{0}", LeadershipCheckIntervalMs = 123 };
         services.AddCasCapCaching(options => options.Redlock = first);
         services.AddCasCapCaching(new CachingConfig { Redlock = new() { RedisKeyFormat = "Second:{0}" } });
@@ -107,16 +108,46 @@ public sealed class LeadershipRegistrationTests(ITestOutputHelper output) : Test
         Assert.Single(services, descriptor => descriptor.ServiceType == typeof(ILeadershipRunner));
     }
 
-    [Fact]
-    public void LocalOnlyCaching_DoesNotSilentlyEnableLeadership()
+    //Regression: an unused runner made local-only hosts fail ValidateOnBuild.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void LocalOnlyCaching_DoesNotSilentlyEnableLeadership(bool distributedLockingEnabled)
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddCasCapCaching();
-        using var provider = services.BuildServiceProvider();
+        services.AddCasCapCaching(options =>
+        {
+            options.RemoteCache = new CacheParameters { IsEnabled = false };
+            options.DistributedLockingEnabled = distributedLockingEnabled;
+        });
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true,
+        });
         var config = provider.GetRequiredService<IOptions<RedlockConfig>>().Value;
         Assert.Equal(new RedlockConfig().GetTimings(), config.GetTimings());
+        Assert.NotNull(provider.GetRequiredService<IDistributedCache>());
+        Assert.Null(provider.GetService<ILeadershipRunner>());
         var error = Assert.Throws<InvalidOperationException>(provider.GetRequiredService<ILeadershipRunner>);
-        Assert.Contains(nameof(IDistributedLockFactory), error.Message);
+        Assert.Contains(nameof(ILeadershipRunner), error.Message);
+    }
+
+    [Fact]
+    public void RegisteredFactory_EnablesValidatedLeadership()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IDistributedLockFactory>(new TestLockFactory((_, _) => Task.FromResult<IRedLock>(new TestLease())));
+        services.AddCasCapCaching(options => options.RemoteCache = new CacheParameters { IsEnabled = false });
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true,
+        });
+
+        Assert.IsType<LeadershipRunner>(provider.GetRequiredService<ILeadershipRunner>());
+        Assert.Single(services, descriptor => descriptor.ServiceType == typeof(ILeadershipRunner));
     }
 }

@@ -65,16 +65,17 @@ public sealed class DistributedCacheServiceTests
     [Fact]
     public async Task Set_AppliesAbsoluteExpirationToLocalCache()
     {
-        var sut = CreateService(lockFactory: null);
+        var localCache = new RecordingLocalCache();
+        var sut = CreateService(lockFactory: null, localCache);
         var key = $"{Guid.NewGuid()}:{nameof(Set_AppliesAbsoluteExpirationToLocalCache)}";
+        var expiration = DateTimeOffset.UtcNow.AddMinutes(5);
 
-        await sut.Set(key, new MockDto(DateTime.UtcNow), absoluteExpiration: DateTimeOffset.UtcNow.AddMilliseconds(100));
-        await Task.Delay(TimeSpan.FromMilliseconds(300), TestContext.Current.CancellationToken);
+        await sut.Set(key, new MockDto(DateTime.UtcNow), absoluteExpiration: expiration);
 
-        Assert.Null(await sut.Get<MockDto>(key));
+        Assert.Equal(expiration, localCache.AbsoluteExpiration);
     }
 
-    private static DistributedCacheService CreateService(IDistributedLockFactory? lockFactory)
+    private static DistributedCacheService CreateService(IDistributedLockFactory? lockFactory, ILocalCache? localCache = null)
     {
         var cachingConfig = Options.Create(new CachingConfig
         {
@@ -82,7 +83,21 @@ public sealed class DistributedCacheServiceTests
             RemoteCache = new CacheParameters { IsEnabled = false }
         });
         return new(NullLogger<DistributedCacheService>.Instance, cachingConfig, Options.Create(new RedlockConfig()),
-            new NullRemoteCache(cachingConfig), new MemoryCacheService(NullLogger<MemoryCacheService>.Instance, cachingConfig),
+            new NullRemoteCache(cachingConfig), localCache ?? new MemoryCacheService(NullLogger<MemoryCacheService>.Instance, cachingConfig),
             lockFactory);
+    }
+
+    private sealed class RecordingLocalCache : ILocalCache
+    {
+        public DateTimeOffset? AbsoluteExpiration { get; private set; }
+
+        public void Set<T>(string key, T cacheEntry, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null) =>
+            AbsoluteExpiration = absoluteExpiration;
+
+        public T? Get<T>(string key) => throw new NotSupportedException();
+
+        public bool Delete(string key) => throw new NotSupportedException();
+
+        public long DeleteAll() => throw new NotSupportedException();
     }
 }

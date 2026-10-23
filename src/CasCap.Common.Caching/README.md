@@ -78,8 +78,10 @@ must use the same logical resource. `RunProtectedWorkAsync(CancellationToken)` m
 cancelled, pass its token to all I/O and child work, and await cleanup before returning.
 
 - Registration uses the existing Redis connection, database, key format and distributed-lock factory.
-  Configure Redis and `DistributedLockingEnabled: true`; resolving an elected worker without a
-  factory fails rather than running unprotected. Local-only caching itself still needs no Redis.
+  Configure Redis and `DistributedLockingEnabled: true`. The runner is registered only when a lock
+  factory is available; an elected consumer without those prerequisites fails dependency resolution
+  rather than running unprotected. Local-only caching and disabled locking remain usable with
+  startup dependency validation enabled, without registering an elected consumer.
 - Leadership uses `Redlock.GetTimings(RedlockProfiles.LeaderElection)`; short cache-miss locks still
   use root timings and never enter the election loop.
 - `Redlock.LeadershipCheckIntervalMs` defaults to `1000`, and controls lease-state observation only.

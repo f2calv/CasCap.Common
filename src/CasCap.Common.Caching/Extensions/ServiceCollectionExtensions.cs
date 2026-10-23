@@ -137,7 +137,6 @@ public static class ServiceCollectionExtensions
             provider.GetRequiredService<IOptions<CachingConfig>>().Value.Redlock));
 #if NET8_0_OR_GREATER
         services.TryAddSingleton(TimeProvider.System);
-        services.TryAddSingleton<ILeadershipRunner, LeadershipRunner>();
 #endif
 
         if (LocalCacheType == CacheType.Memory)
@@ -152,6 +151,7 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IDistributedCache, DistributedCacheService>();
 
+        ConnectionMultiplexer? multiplexer = null;
         if (
 #if NET8_0_OR_GREATER
             !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
@@ -169,7 +169,7 @@ public static class ServiceCollectionExtensions
             if (cacheExpiryServiceEnabled)
                 services.AddHostedService<CacheExpiryBgService>();
 
-            var multiplexer = GetMultiplexer(remoteCacheConnectionString);
+            multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
 #if NET8_0_OR_GREATER
@@ -187,12 +187,14 @@ public static class ServiceCollectionExtensions
                 services.AddSingleton<IDistributedLockFactory>(redLockFactory);
             }
 
-            //We return the ConnectionMultiplexer so it can be reused by other services requiring a Redis connection.
-            return multiplexer;
         }
-
-        services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
-        return null;
+        else
+            services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
+#if NET8_0_OR_GREATER
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedLockFactory)))
+            services.TryAddSingleton<ILeadershipRunner, LeadershipRunner>();
+#endif
+        return multiplexer;
     }
 
     private static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
