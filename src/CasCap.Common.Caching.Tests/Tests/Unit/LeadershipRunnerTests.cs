@@ -201,14 +201,9 @@ public sealed class LeadershipRunnerTests
         var running = CreateRunner(factory).RunAsync("worker", async token =>
         {
             started.SetResult();
-            try
-            {
-                await Task.Delay(Timeout.InfiniteTimeSpan, token);
-            }
-            finally
-            {
-                throw expected;
-            }
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                Task.Delay(Timeout.InfiniteTimeSpan, token));
+            throw expected;
         }, stopping.Token);
         await started.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
         lease.Lose();
@@ -245,7 +240,7 @@ public sealed class LeadershipRunnerTests
     public async Task ReleaseFault_PreservesInfrastructureFailureIdentity()
     {
         var expected = new IOException("Synthetic release failure.");
-        var lease = new TestLease { DisposalFault = expected };
+        var lease = new TestLease { OnDispose = () => throw expected };
         var factory = new TestLockFactory((_, _) => Task.FromResult<IRedLock>(lease));
 
         var actual = await Assert.ThrowsAsync<IOException>(() =>

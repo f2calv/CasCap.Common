@@ -6,8 +6,8 @@ internal sealed class TestLease : IRedLock
     private int _acquired = 1;
     private Exception? _observationFault;
 
-    /// <summary>Gets the exception thrown when the lease is disposed.</summary>
-    public Exception? DisposalFault { get; init; }
+    /// <summary>Gets the callback invoked after the lease is marked disposed and released.</summary>
+    public Action? OnDispose { get; init; }
 
     /// <summary>Gets whether the lease has been disposed.</summary>
     public bool Disposed { get; private set; }
@@ -42,8 +42,7 @@ internal sealed class TestLease : IRedLock
     {
         Disposed = true;
         Lose();
-        if (DisposalFault is { } fault)
-            throw fault;
+        OnDispose?.Invoke();
     }
 
     /// <inheritdoc/>
