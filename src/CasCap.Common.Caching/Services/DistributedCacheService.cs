@@ -30,71 +30,79 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
             return createItem is not null ? await createItem().ConfigureAwait(false) : default;
 
         var cacheEntry = localCache.Get<T>(key);
-        if (cacheEntry is null)
-        {
-            CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "unable to retrieve", key, typeof(T), nameof(ILocalCache));
-            if (cachingConfig.Value.RemoteCache.IsEnabled)
-            {
-                var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags).ConfigureAwait(false);
-                if (tpl != default && tpl.cacheEntry is not null)
-                {
-                    CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "retrieved", key, typeof(T), nameof(IRemoteCache));
-                    cacheEntry = tpl.cacheEntry;
-                    localCache.Set(key, cacheEntry, tpl.expiry);
-                }
-                else
-                    CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "unable to retrieve", key, typeof(T), nameof(IRemoteCache));
-            }
-            //if cacheEntry is still null so now create it
-            if (cacheEntry is null && createItem is not null)
-            {
-                if (cachingConfig.Value.DistributedLockingEnabled && distributedLockFactory is not null)
-                {
-                    //acquire a distributed lock to prevent multiple instances populating the same key
-                    var (expiry, wait, retry) = redlockConfig.Value.GetTimings();
-                    using var redLock = await distributedLockFactory.CreateLockAsync(key, expiry, wait, retry).ConfigureAwait(false);
-                    if (redLock.IsAcquired)
-                    {
-                        //double-check: another instance may have populated the cache while we waited for the lock
-                        cacheEntry = localCache.Get<T>(key);
-                        if (cacheEntry is null && cachingConfig.Value.RemoteCache.IsEnabled)
-                        {
-                            var tpl = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags).ConfigureAwait(false);
-                            if (tpl != default && tpl.cacheEntry is not null)
-                            {
-                                cacheEntry = tpl.cacheEntry;
-                                localCache.Set(key, cacheEntry, tpl.expiry);
-                            }
-                        }
-                        if (cacheEntry is null)
-                        {
-                            cacheEntry = await createItem().ConfigureAwait(false);
-                            if (cacheEntry is not null)
-                                await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
-                        }
-                    }
-                    else
-                        CacheLog.DistributedLockFailure(logger, nameof(DistributedCacheService), key);
-                }
-                else
-                {
-                    //fall back to in-process lock to prevent thundering herd within the current application
-                    using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
-                    {
-                        cacheEntry = await createItem().ConfigureAwait(false);
-                        if (cacheEntry is not null)
-                            await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
-                    }
-                }
-            }
-        }
-        else if (cacheEntry is not null)
+        if (cacheEntry is not null)
         {
             CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "retrieved", key, typeof(T), nameof(ILocalCache));
             if (cachingConfig.Value.RemoteCache.IsEnabled &&
                 cachingConfig.Value.ExpirationSyncMode == ExpirationSyncType.ExtendRemoteExpiry)
                 await remoteCache.ExtendSlidingExpirationAsync(key).ConfigureAwait(false);
+            return cacheEntry;
         }
+        CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "unable to retrieve", key, typeof(T), nameof(ILocalCache));
+
+        cacheEntry = await GetRemoteEntry<T>(key, flags).ConfigureAwait(false);
+        return cacheEntry is not null || createItem is null
+            ? cacheEntry
+            : await CreateEntry(key, createItem, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Populates a missing entry once per key: the in-process lock serialises concurrent callers in this
+    /// application and the optional distributed lock serialises other instances.
+    /// </summary>
+    /// <remarks>
+    /// The cache is re-read after each lock because a previous holder has usually populated it. The distributed
+    /// lock only suppresses duplicate work, so when it cannot be acquired within the wait time the entry is still
+    /// created rather than reporting a miss to the caller.
+    /// </remarks>
+    private async Task<T?> CreateEntry<T>(string key, Func<Task<T>> createItem, TimeSpan? slidingExpiration,
+        DateTimeOffset? absoluteExpiration, CommandFlags flags) where T : class
+    {
+        using (await AsyncDuplicateLock.LockAsync(key).ConfigureAwait(false))
+        {
+            var cacheEntry = await GetPopulatedEntry<T>(key, flags).ConfigureAwait(false);
+            if (cacheEntry is not null)
+                return cacheEntry;
+
+            if (!cachingConfig.Value.DistributedLockingEnabled || distributedLockFactory is null)
+                return await CreateAndSetEntry(key, createItem, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
+
+            var (expiry, wait, retry) = redlockConfig.Value.GetTimings();
+            using var redLock = await distributedLockFactory.CreateLockAsync(key, expiry, wait, retry).ConfigureAwait(false);
+            if (!redLock.IsAcquired)
+                CacheLog.DistributedLockFailure(logger, nameof(DistributedCacheService), key);
+
+            cacheEntry = await GetPopulatedEntry<T>(key, flags).ConfigureAwait(false);
+            return cacheEntry ?? await CreateAndSetEntry(key, createItem, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<T?> CreateAndSetEntry<T>(string key, Func<Task<T>> createItem, TimeSpan? slidingExpiration,
+        DateTimeOffset? absoluteExpiration, CommandFlags flags) where T : class
+    {
+        var cacheEntry = await createItem().ConfigureAwait(false);
+        if (cacheEntry is not null)
+            await Set(key, cacheEntry, slidingExpiration, absoluteExpiration, flags).ConfigureAwait(false);
+        return cacheEntry;
+    }
+
+    private async Task<T?> GetPopulatedEntry<T>(string key, CommandFlags flags) where T : class
+        => localCache.Get<T>(key) ?? await GetRemoteEntry<T>(key, flags).ConfigureAwait(false);
+
+    private async Task<T?> GetRemoteEntry<T>(string key, CommandFlags flags) where T : class
+    {
+        if (!cachingConfig.Value.RemoteCache.IsEnabled)
+            return null;
+
+        var (expiry, cacheEntry) = await remoteCache.GetCacheEntryWithExpiryAsync<T>(key, flags).ConfigureAwait(false);
+        if (cacheEntry is null)
+        {
+            CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "unable to retrieve", key, typeof(T), nameof(IRemoteCache));
+            return null;
+        }
+
+        CacheLog.CacheLookup(logger, nameof(DistributedCacheService), "retrieved", key, typeof(T), nameof(IRemoteCache));
+        localCache.Set(key, cacheEntry, expiry);
         return cacheEntry;
     }
 
@@ -128,7 +136,7 @@ public class DistributedCacheService(ILogger<DistributedCacheService> logger, IO
                 throw new NotSupportedException($"{nameof(cachingConfig.Value.RemoteCache.SerializationType)} {cachingConfig.Value.RemoteCache.SerializationType} is not supported!");
         }
 
-        localCache.Set(key, cacheEntry, slidingExpiration);
+        localCache.Set(key, cacheEntry, slidingExpiration, absoluteExpiration);
     }
 
     /// <inheritdoc/>

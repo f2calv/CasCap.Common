@@ -1,4 +1,6 @@
 #if NET8_0_OR_GREATER
+using System.Text.Json;
+
 namespace CasCap.Common.Auditing;
 
 /// <summary>
@@ -36,8 +38,8 @@ public sealed class HttpAuditHandler(
             RequestUri = request.RequestUri?.PathAndQuery ?? string.Empty,
             StatusCode = (int)response.StatusCode,
             ElapsedMs = elapsed.TotalMilliseconds,
-            RequestBody = requestBody,
-            ResponseBody = responseBody,
+            RequestBody = NormalizeBody(requestBody),
+            ResponseBody = NormalizeBody(responseBody),
         };
 
         try
@@ -51,6 +53,21 @@ public sealed class HttpAuditHandler(
         }
 
         return response;
+    }
+
+    private static string? NormalizeBody(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return null;
+        try
+        {
+            using var document = JsonDocument.Parse(body, new JsonDocumentOptions { MaxDepth = int.MaxValue });
+            return body;
+        }
+        catch (JsonException)
+        {
+            return JsonSerializer.Serialize(body);
+        }
     }
 }
 #endif

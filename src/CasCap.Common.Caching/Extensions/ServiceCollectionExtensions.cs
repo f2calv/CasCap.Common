@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using HealthChecks.Redis;
 #endif
+using CasCap.Common.Validators;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -36,13 +37,14 @@ public static class ServiceCollectionExtensions
         if (configuration is null) throw new ArgumentNullException(nameof(configuration));
 #endif
 
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedCache)))
+            return GetRegisteredMultiplexer(services);
+
         sectionName ??= CachingConfig.ConfigurationSectionName;
         var section = configuration.GetSection(sectionName);
         services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Bind(section)
             .ValidateDataAnnotations();
-        services.AddOptions<RedlockConfig>()
-            .Bind(section.GetSection(nameof(CachingConfig.Redlock)));
         var cachingConfig = section.Get<CachingConfig>() ?? new CachingConfig();
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
@@ -62,6 +64,9 @@ public static class ServiceCollectionExtensions
 #else
         if (cachingConfig is null) throw new ArgumentNullException(nameof(cachingConfig));
 #endif
+
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedCache)))
+            return GetRegisteredMultiplexer(services);
 
         services.AddOptionsWithValidateOnStart<CachingConfig>()
             .Configure(options =>
@@ -87,7 +92,6 @@ public static class ServiceCollectionExtensions
                 options.HealthCheckRedis = cachingConfig.HealthCheckRedis;
             })
             .ValidateDataAnnotations();
-        services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cachingConfig.Redlock));
         var connStr = remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString;
         return services.AddServices(connStr, LocalCacheType,
             distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
@@ -107,18 +111,9 @@ public static class ServiceCollectionExtensions
         if (configureConfig is null) throw new ArgumentNullException(nameof(configureConfig));
 #endif
 
-        services.AddOptionsWithValidateOnStart<CachingConfig>()
-            .Configure(configureConfig)
-            .ValidateDataAnnotations();
-        //materialise the configuration so registration-time toggles can be honoured
         var cachingConfig = new CachingConfig();
         configureConfig(cachingConfig);
-        return services.AddServices(remoteCacheConnectionString ?? cachingConfig.RemoteCacheConnectionString, LocalCacheType,
-            distributedLockingEnabled: cachingConfig.DistributedLockingEnabled,
-            redisKeyFormat: cachingConfig.Redlock.RedisKeyFormat,
-            redisDatabaseId: cachingConfig.RemoteCache.DatabaseId,
-            healthCheckRedis: cachingConfig.HealthCheckRedis,
-            cacheExpiryServiceEnabled: cachingConfig.CacheExpiryServiceEnabled);
+        return services.AddCasCapCaching(cachingConfig, remoteCacheConnectionString, LocalCacheType);
     }
 
     private static ConnectionMultiplexer? AddServices(this IServiceCollection services,
@@ -134,11 +129,12 @@ public static class ServiceCollectionExtensions
         //Registering twice would open a second Redis connection and run a second expiry background service,
         //so the first registration wins and the existing multiplexer is handed back.
         if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedCache)))
-            return services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IConnectionMultiplexer))
-                ?.ImplementationInstance as ConnectionMultiplexer;
+            return GetRegisteredMultiplexer(services);
 
         //ensure RedlockConfig is always available (idempotent; won't override bound config from overload #2)
-        services.AddOptions<RedlockConfig>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<CachingConfig>, CachingConfigValidator>());
+        services.TryAddSingleton(provider => Microsoft.Extensions.Options.Options.Create(
+            provider.GetRequiredService<IOptions<CachingConfig>>().Value.Redlock));
 #if NET8_0_OR_GREATER
         services.TryAddSingleton(TimeProvider.System);
 #endif
@@ -155,6 +151,7 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IDistributedCache, DistributedCacheService>();
 
+        ConnectionMultiplexer? multiplexer = null;
         if (
 #if NET8_0_OR_GREATER
             !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
@@ -172,7 +169,7 @@ public static class ServiceCollectionExtensions
             if (cacheExpiryServiceEnabled)
                 services.AddHostedService<CacheExpiryBgService>();
 
-            var multiplexer = GetMultiplexer(remoteCacheConnectionString);
+            multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
 #if NET8_0_OR_GREATER
@@ -190,12 +187,14 @@ public static class ServiceCollectionExtensions
                 services.AddSingleton<IDistributedLockFactory>(redLockFactory);
             }
 
-            //We return the ConnectionMultiplexer so it can be reused by other services requiring a Redis connection.
-            return multiplexer;
         }
-
-        services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
-        return null;
+        else
+            services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
+#if NET8_0_OR_GREATER
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedLockFactory)))
+            services.TryAddSingleton<ILeadershipRunner, LeadershipRunner>();
+#endif
+        return multiplexer;
     }
 
     private static ConnectionMultiplexer GetMultiplexer(string remoteCacheConnectionString)
@@ -205,4 +204,8 @@ public static class ServiceCollectionExtensions
         var multiplexer = ConnectionMultiplexer.Connect(configurationOptions);
         return multiplexer;
     }
+
+    private static ConnectionMultiplexer? GetRegisteredMultiplexer(IServiceCollection services)
+        => services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IConnectionMultiplexer))
+            ?.ImplementationInstance as ConnectionMultiplexer;
 }

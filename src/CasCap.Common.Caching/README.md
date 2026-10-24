@@ -36,7 +36,10 @@ await host.StopAsync();
 
 [`CasCap.Common.Abstractions.IDistributedCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Caching/Abstractions/IDistributedCache.cs)
 is the object-cache API, not Microsoft's byte-cache
-interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. `Set`,
+interface with the same name. `Get<T>` can take an asynchronous factory for a cache miss. Concurrent
+misses for the same key run the factory once per application instance, and once across instances when
+`DistributedLockingEnabled` is set. Waiting callers re-read the populated entry. If the distributed lock
+times out, the factory still runs so the caller never receives a spurious miss. `Set`,
 `Delete` and `DeleteAll` affect the enabled layers.
 
 To use application configuration, replace the registration with
@@ -61,6 +64,39 @@ enabling `DiskCache` in JSON alone does not switch from memory to disk.
 | `CacheExpiryBgService` | Coordinates expiry subscribers when Redis is registered and `CacheExpiryServiceEnabled` is true |
 | `LocalCacheExpiryService` | Handles local cache entry expiration. Disable via `LocalCacheExpiryServiceEnabled` |
 | `RemoteCacheExpiryService` | Handles remote cache entry expiration. Disable via `RemoteCacheExpiryServiceEnabled` |
+
+## Leadership Election
+
+The current checkout also provides
+[`ILeadershipRunner`](Abstractions/ILeadershipRunner.cs) on .NET 8 and later. This API is provisional
+and not yet available in the published package; use local Debug project references while validating
+consumers, without publishing a package for each contract refinement.
+
+Inject the runner into a background feature and await
+`RunAsync("example-worker", RunProtectedWorkAsync, stoppingToken)`. All replicas of the same worker
+must use the same logical resource. `RunProtectedWorkAsync(CancellationToken)` must stay active until
+cancelled, pass its token to all I/O and child work, and await cleanup before returning.
+
+- Registration uses the existing Redis connection, database, key format and distributed-lock factory.
+  Configure Redis and `DistributedLockingEnabled: true`. The runner is registered only when a lock
+  factory is available; an elected consumer without those prerequisites fails dependency resolution
+  rather than running unprotected. Local-only caching and disabled locking remain usable with
+  startup dependency validation enabled, without registering an elected consumer.
+- Leadership uses `Redlock.GetTimings(RedlockProfiles.LeaderElection)`; short cache-miss locks still
+  use root timings and never enter the election loop.
+- `Redlock.LeadershipCheckIntervalMs` defaults to `1000`, and controls lease-state observation only.
+  RedLock.net renews the lease. A failed acquisition waits the profile retry interval before
+  contending again.
+- Observed loss cancels the worker, awaits its cleanup, disposes the lease, then reacquires.
+  Graceful shutdown awaits cleanup before releasing a still-held lease.
+- Worker failures and unexpected normal completion propagate instead of restarting silently.
+  Cleanup has no runner timeout: configure the host and container termination budgets explicitly.
+  An uncooperative worker is not abandoned and no replacement run starts while it is still active.
+- Lease polling has a detection delay; it is not downstream fencing or an exactly-once guarantee.
+
+All caching registration overloads expose the same `CachingConfig.Redlock` instance through
+`IOptions<RedlockConfig>`. Repeated registration preserves the first configuration. Root timings,
+named profile timings and the leadership check interval are validated through the caching options.
 
 ## Configuration
 
@@ -92,6 +128,7 @@ Important defaults:
 | `HealthCheckRedis` | `Liveness`; Redis health-check registration is .NET 8+ only |
 | `MemoryCacheSizeLimit` | null; no configured limit |
 | `CacheKeyFormat` | `{0}` |
+| `Redlock.LeadershipCheckIntervalMs` | `1000`; .NET 8+ leadership observation only |
 
 `PubSubPrefix` distinguishes this instance's own invalidation messages; choose a distinct value per
 instance when overriding it. `HealthCheckRedis: None` suppresses Redis check registration.
@@ -135,6 +172,7 @@ flowchart TD
     REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
     LOCK["AsyncDuplicateLock<br/>(In-process coordination)"]
     REDLOCK["IDistributedLockFactory<br/>(RedLock.net — optional)"]
+    LEADER["LeadershipRunner<br/>(.NET 8+)"]
 
     CLIENT --> DIST
     DIST -->|Choose one local implementation| MEM
@@ -143,6 +181,8 @@ flowchart TD
     DIST -.local-only.-> NULL_REMOTE
     DIST -.uses.-> LOCK
     DIST -."opt-in distributed lock".-> REDLOCK
+    CLIENT --> LEADER
+    LEADER --> REDLOCK
 
     REDIS <--> REDIS_SERVER
     REDLOCK -."Redlock algorithm".-> REDIS_SERVER

@@ -20,6 +20,12 @@ public interface IDistributedCache
     public Task<T?> Get<T>(string key) where T : class;
 
     /// <inheritdoc cref="IDistributedCache.Get{T}(string)"/>
+    /// <remarks>
+    /// On a miss, <paramref name="createItem"/> runs once per key within this application while concurrent callers
+    /// wait and then re-read the populated entry. When distributed locking is enabled the same applies across
+    /// instances; if that lock cannot be acquired in time, <paramref name="createItem"/> still runs rather than
+    /// returning a miss.
+    /// </remarks>
     public Task<T?> Get<T>(string key, Func<Task<T>>? createItem = null, TimeSpan? slidingExpiration = null, DateTimeOffset? absoluteExpiration = null,
         CommandFlags flags = CommandFlags.None) where T : class;
 

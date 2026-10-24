@@ -145,6 +145,60 @@ public sealed class FeatureFlagBgServiceTests
     private static FeatureFlagBgService CreateService(IEnumerable<IBgFeature> features, params string[] enabledFeatures)
         => CreateService(features, new TestHostApplicationLifetime(), enabledFeatures);
 
+    [Theory, Trait("Category", "BackgroundService")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Stop_AwaitsChildCleanup(bool childFault)
+    {
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cleaning = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var finishCleanup = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var fault = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var expected = new InvalidOperationException("sibling failure");
+        var active = new TestBgFeature("Active", async token =>
+        {
+            started.SetResult();
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, token);
+            }
+            finally
+            {
+                cleaning.SetResult();
+                await finishCleanup.Task;
+            }
+        });
+        var failing = new TestBgFeature("Faulting", _ => fault.Task);
+        using var lifetime = new TestHostApplicationLifetime();
+        using var sut = CreateService(childFault ? [active, failing] : [active], lifetime, "Active", "Faulting");
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+        Task? stopping = null;
+        try
+        {
+            if (childFault)
+                fault.SetException(expected);
+            else
+                stopping = sut.StopAsync(TestContext.Current.CancellationToken);
+            await cleaning.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+            Assert.False(sut.ExecuteTask!.IsCompleted);
+            if (childFault)
+                Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
+        }
+        finally
+        {
+            finishCleanup.TrySetResult();
+        }
+        if (childFault)
+            Assert.Same(expected, await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                sut.ExecuteTask!.WaitAsync(_timeout, TestContext.Current.CancellationToken)));
+        else
+        {
+            await stopping!.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+            Assert.True(sut.ExecuteTask!.IsCompletedSuccessfully);
+        }
+    }
+
     private static FeatureFlagBgService CreateService(
         IEnumerable<IBgFeature> features,
         IHostApplicationLifetime lifetime,
