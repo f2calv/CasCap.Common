@@ -98,36 +98,44 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
     }
 
     [Fact]
-    public async Task InvalidPublicationRetainsAcceptedSnapshot()
+    public async Task InvalidPublicationRetainsAcceptedSnapshotUntilExpiry()
     {
+        var timeProvider = new ManualTimeProvider();
         await PublishAsync(new RuntimeControls { Verbosity = 3 }, 0);
-        await using var host = CreateHost();
+        await using var host = CreateHost(timeProvider);
         using var client = host.CreateClient();
+        await PublishAsync(new RuntimeControls { Verbosity = 4 }, 1, expiresAtUtc: timeProvider.GetUtcNow().AddMinutes(10));
+        await WaitForAsync(client, value => value.Controls.Verbosity == 4);
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await using var command = new NpgsqlCommand("""
             BEGIN;
             INSERT INTO runtime_configuration.revisions
                 (application, environment, contract_id, revision, contract_version, payload, recorded_at_utc, actor, reason)
-            VALUES ('test-application', @environment, 'controls', 2, 1, '{"Verbosity":99}', now(), 'test-operator', 'Invalid candidate');
-            UPDATE runtime_configuration.heads SET revision = 2 WHERE environment = @environment;
+            VALUES ('test-application', @environment, 'controls', 3, 1, '{"Verbosity":99}', now(), 'test-operator', 'Invalid candidate');
+            UPDATE runtime_configuration.heads SET revision = 3 WHERE environment = @environment;
             COMMIT;
             """, connection);
         command.Parameters.AddWithValue("environment", _environment);
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         await Task.Delay(500, TestContext.Current.CancellationToken);
-        Assert.Equal(3, (await client.GetFromJsonAsync<HostObservation>("/observe", TestContext.Current.CancellationToken))!.Controls.Verbosity);
+        Assert.Equal(4, (await client.GetFromJsonAsync<HostObservation>("/observe", TestContext.Current.CancellationToken))!.Controls.Verbosity);
         await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => _store.ReadAsync(TestContext.Current.CancellationToken));
+        timeProvider.Advance(TimeSpan.FromMinutes(20));
+        Assert.Equal(2, (await WaitForAsync(client, value => value.Controls.Verbosity == 2)).Controls.Verbosity);
     }
 
     [Fact]
     public async Task ExpiryRestoresBaseline()
     {
+        var timeProvider = new ManualTimeProvider();
         await PublishAsync(new RuntimeControls { Verbosity = 5 }, 0);
-        await using var host = CreateHost();
+        await using var host = CreateHost(timeProvider);
         using var client = host.CreateClient();
         Assert.Equal(5, (await client.GetFromJsonAsync<HostObservation>("/observe", TestContext.Current.CancellationToken))!.Controls.Verbosity);
-        await PublishAsync(new RuntimeControls { Verbosity = 5 }, 1, expiresAtUtc: DateTimeOffset.UtcNow.AddSeconds(2));
+        await PublishAsync(new RuntimeControls { Verbosity = 5 }, 1, expiresAtUtc: timeProvider.GetUtcNow().AddMinutes(10));
+        await WaitForAsync(client, value => value.Controls.Verbosity == 5);
+        timeProvider.Advance(TimeSpan.FromMinutes(20));
         var expired = await WaitForAsync(client, value => value.Controls.Verbosity == 2);
         Assert.Equal(2, expired.Controls.Verbosity);
     }
@@ -151,4 +159,13 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         string reason = "Test publication",
         DateTimeOffset? expiresAtUtc = null
     ) => _store.PublishAsync(value, expectedRevision, "test-operator", reason, expiresAtUtc, TestContext.Current.CancellationToken);
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private long _utcTicks = DateTimeOffset.UtcNow.UtcTicks;
+
+        public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _utcTicks), TimeSpan.Zero);
+
+        public void Advance(TimeSpan duration) => Interlocked.Add(ref _utcTicks, duration.Ticks);
+    }
 }

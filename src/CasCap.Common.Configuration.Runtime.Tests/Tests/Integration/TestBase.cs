@@ -56,7 +56,8 @@ public abstract class TestBase(ITestOutputHelper output) : IAsyncLifetime
         return services.BuildServiceProvider();
     }
 
-    protected RuntimeConfigurationHostFactory CreateHost() => new(_connectionString, _environment);
+    protected RuntimeConfigurationHostFactory CreateHost(TimeProvider? timeProvider = null) =>
+        new(_connectionString, _environment, timeProvider);
 
     public async ValueTask DisposeAsync()
     {

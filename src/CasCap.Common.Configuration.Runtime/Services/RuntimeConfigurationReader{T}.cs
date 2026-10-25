@@ -17,6 +17,7 @@ internal sealed partial class RuntimeConfigurationReader<T>(
 ) : BackgroundService where T : class
 {
     private long _revision;
+    private DateTimeOffset? _expiresAtUtc;
 
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -45,12 +46,14 @@ internal sealed partial class RuntimeConfigurationReader<T>(
             {
                 // Store and validation errors can contain values; never export the exception payload.
                 LogRefreshFailed(logger, nameof(RuntimeConfigurationReader<>), exception.GetType().Name);
+                ApplyAcceptedExpiry();
             }
         }
     }
 
     private async Task RefreshAsync(CancellationToken cancellationToken)
     {
+        ApplyAcceptedExpiry();
         var revision = await store.ReadAsync(cancellationToken)
             ?? throw new InvalidOperationException("A required runtime configuration revision has not been published.");
         if (revision.Revision < _revision)
@@ -59,6 +62,13 @@ internal sealed partial class RuntimeConfigurationReader<T>(
             ? baseline.Json : codec.Serialize(revision.Value);
         provider.Publish(json);
         _revision = revision.Revision;
+        _expiresAtUtc = revision.ExpiresAtUtc;
+    }
+
+    private void ApplyAcceptedExpiry()
+    {
+        if (_expiresAtUtc <= timeProvider.GetUtcNow())
+            provider.Publish(baseline.Json);
     }
 
     [LoggerMessage(LogLevel.Error, "{ClassName} refresh failed ({FailureType}); inspect store validation and reload subscribers")]
