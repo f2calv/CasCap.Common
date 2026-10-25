@@ -27,8 +27,11 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   PostgreSQL started through the root Compose `tests` profile.
 - [x] [Default CI wiring](../.github/workflows/ci.yml) includes the test projects, required PostgreSQL
   service and automatic-event test execution. Remote execution has not yet been observed.
-- [ ] Integrate opt-in logging control into the first consuming application and verify the actual
-  logging pipeline, not just the options value.
+- [x] Integrate opt-in logging control into the first consuming application and verify the actual
+  logging pipeline, not just the options value. The local-only Debug integration passed a real
+  PostgreSQL-to-Serilog test, including Microsoft logging-provider forwarding, retained category
+  overrides and an unchanged process-cache sentinel. Nine existing endpoint smoke cases also passed
+  with the feature disabled; both Debug and normal Release builds succeeded.
 - [ ] Complete the explicitly authorized live soak and record its convergence/failure evidence.
 
 This does not approve production database changes, package publication or deployment. SQLite,
@@ -900,6 +903,8 @@ Acceptance evidence:
   five-second reconciliation interval and require convergence within fifteen seconds under
   healthy dependencies; this is a proposed test target, not a production guarantee.
 - [ ] Expiring a logging override works even when a replica misses the revert notification.
+  The runtime provider's local expiry path is tested, including a newer invalid durable head;
+  real logging/replica expiry remains a live-soak acceptance step.
 - [ ] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 
