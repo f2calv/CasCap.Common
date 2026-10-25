@@ -12,6 +12,8 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/CasCap.Common/">
+    <Project Path="src/CasCap.Common.Configuration.Runtime/CasCap.Common.Configuration.Runtime.csproj" />
+    <Project Path="src/CasCap.Common.Configuration.PostgreSql/CasCap.Common.Configuration.PostgreSql.csproj" />
     <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" />
     <Project Path="src/CasCap.Common.Hosting.AspNetCore/CasCap.Common.Hosting.AspNetCore.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />

@@ -1,6 +1,6 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
-**Status:** Proposed; investigation and implementation are not yet approved.
+**Status:** Proposed overall; the bounded first implementation slice below is approved.
 **Date:** 2026-10-24.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
@@ -9,6 +9,26 @@ Blazor management surface and optional Azure Table/Blob storage extensions.
 This document proposes a small runtime-configuration subsystem alongside the existing configuration
 helpers. It does not describe shipped providers or promise that arbitrary application settings can
 be changed safely without a restart. Package and API names below are illustrative.
+
+## First Implementation Slice (2026-10-25)
+
+The approved first slice targets .NET 10, EF Core/PostgreSQL and the standard
+`IOptionsMonitor<T>`, followed by an opt-in application logging soak. It ports the unpublished
+prototype's complete dictionary replacement and standard provider integration, not its overlapping
+timers, Dapper access, failure defaults or Redis-as-authority behavior.
+
+- [Runtime contracts and reader](../src/CasCap.Common.Configuration.Runtime/README.md) isolate one
+  typed contract per host, validate complete snapshots and require an initial durable publication.
+- [PostgreSQL authority](../src/CasCap.Common.Configuration.PostgreSql/README.md) owns the
+  `runtime_configuration` schema, scoped heads and audited snapshot revisions, with optimistic
+  publication and historical reads.
+- The follow-on acceptance gate is unit tests, real PostgreSQL tests, a permanent
+  `WebApplicationFactory` stub host, Compose test infrastructure and default CI execution.
+  Build success alone is not runtime acceptance.
+
+This does not approve production database changes, package publication or deployment. SQLite,
+Redis acceleration, UI, typed restoration, paginated history and Azure authorities remain outside
+this first slice. The remainder records the broader proposed direction, not completed features.
 
 ## Summary of the Proposed Decision
 
