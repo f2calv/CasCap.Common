@@ -29,8 +29,12 @@ public static class SerilogWebApplicationBuilderExtensions
     /// </remarks>
     /// <param name="builder">The web application builder.</param>
     /// <param name="categoryName">Logger category name (typically <c>nameof(Program)</c>).</param>
+    /// <param name="configureLogger">Optional final configuration, such as an explicitly owned pipeline level switch.</param>
     /// <returns>An <see cref="Microsoft.Extensions.Logging.ILogger"/> for early startup logging.</returns>
-    public static Microsoft.Extensions.Logging.ILogger InitializeSerilog(this WebApplicationBuilder builder, string categoryName = "Program")
+    public static Microsoft.Extensions.Logging.ILogger InitializeSerilog(
+        this WebApplicationBuilder builder,
+        string categoryName = "Program",
+        Action<LoggerConfiguration>? configureLogger = null)
     {
         // Serilog owns the pipeline and forwards to the MEL providers (writeToProviders: true) so
         // the native OpenTelemetry log exporter (registered later by InitializeOpenTelemetry)
@@ -39,7 +43,11 @@ public static class SerilogWebApplicationBuilderExtensions
         // InitializeOpenTelemetry MUST run after this because ClearProviders removes providers registered earlier.
         builder.Logging.ClearProviders();
 
-        builder.Host.UseSerilog((hostContext, loggerConfiguration) => loggerConfiguration.AddCasCapDefaults(hostContext.Configuration), writeToProviders: true);
+        builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
+        {
+            loggerConfiguration.AddCasCapDefaults(hostContext.Configuration);
+            configureLogger?.Invoke(loggerConfiguration);
+        }, writeToProviders: true);
 
         return ApplicationLogging.CreateLogger(categoryName);
     }
