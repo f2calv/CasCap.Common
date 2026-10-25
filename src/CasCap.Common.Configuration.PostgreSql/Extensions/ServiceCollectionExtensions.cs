@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddRuntimeConfiguration(settings, baseline);
         services.AddDbContextFactory<RuntimeConfigurationDbContext>(options => options.UseNpgsql(
             connectionString,
-            provider => provider.MigrationsHistoryTable("__ef_migrations_history", "runtime_configuration")));
+            provider => provider.MigrationsHistoryTable("__ef_migrations_history", RuntimeConfigurationStorage.Schema)));
         services.AddSingleton<PostgresRuntimeConfigurationStore<T>>();
         services.AddSingleton<IRuntimeConfigurationStore<T>>(sp => sp.GetRequiredService<PostgresRuntimeConfigurationStore<T>>());
         return services;

@@ -11,7 +11,7 @@ stable DTO contract identifier and version for the host lifetime. Inject the sta
 `IOptionsMonitor<T>` to observe validated reloads. The initial scope must already have a revision.
 Only non-secret operational controls belong here.
 
-The context owns the fixed `runtime_configuration` schema in either a dedicated or existing database.
+The context owns the fixed `cascap_config` schema in either a dedicated or existing database.
 It never migrates at startup; apply reviewed EF migrations externally. Reader-only deployments
 need SELECT on this schema. Keep migration permissions separate from operator publication rights.
 

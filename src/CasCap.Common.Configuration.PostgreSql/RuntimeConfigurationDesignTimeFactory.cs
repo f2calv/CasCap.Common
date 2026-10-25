@@ -9,6 +9,6 @@ public sealed class RuntimeConfigurationDesignTimeFactory : IDesignTimeDbContext
     public RuntimeConfigurationDbContext CreateDbContext(string[] args) =>
         new(new DbContextOptionsBuilder<RuntimeConfigurationDbContext>()
             .UseNpgsql("Host=example.invalid;Database=configuration;Username=placeholder",
-                provider => provider.MigrationsHistoryTable("__ef_migrations_history", "runtime_configuration"))
+                provider => provider.MigrationsHistoryTable("__ef_migrations_history", RuntimeConfigurationStorage.Schema))
             .Options);
 }

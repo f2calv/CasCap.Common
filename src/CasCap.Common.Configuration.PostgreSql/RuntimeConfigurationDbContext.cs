@@ -2,7 +2,7 @@ using CasCap.Common.Configuration.PostgreSql.Entities;
 
 namespace CasCap.Common.Configuration.PostgreSql;
 
-/// <summary>Owns only the add-on's fixed runtime_configuration schema and migration history.</summary>
+/// <summary>Owns only the add-on's fixed cascap_config schema and migration history.</summary>
 public sealed class RuntimeConfigurationDbContext(
     DbContextOptions<RuntimeConfigurationDbContext> options
 ) : DbContext(options)
@@ -10,7 +10,7 @@ public sealed class RuntimeConfigurationDbContext(
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("runtime_configuration");
+        modelBuilder.HasDefaultSchema(RuntimeConfigurationStorage.Schema);
         var revisions = modelBuilder.Entity<RuntimeRevisionEntity>();
         revisions.ToTable("revisions", table => table.HasCheckConstraint("ck_revisions_positive", "revision > 0 AND contract_version > 0"));
         revisions.HasKey(row => new { row.Application, row.Environment, row.ContractId, row.Revision }).HasName("pk_revisions");

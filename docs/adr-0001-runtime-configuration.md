@@ -20,7 +20,7 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
 - [x] [Runtime contracts and reader](../src/CasCap.Common.Configuration.Runtime/README.md) isolate one
   typed contract per host, validate complete snapshots and require an initial durable publication.
 - [x] [PostgreSQL authority](../src/CasCap.Common.Configuration.PostgreSql/README.md) owns the
-  `runtime_configuration` schema, scoped heads and audited snapshot revisions, with optimistic
+  `cascap_config` schema, scoped heads and audited snapshot revisions, with optimistic
   publication and historical reads.
 - [x] [Acceptance tests](../src/CasCap.Common.Configuration.Runtime.Tests/README.md) and the permanent
   modern-hosting stub passed locally in Release: 14 cases, zero failures or skips, using real
@@ -267,14 +267,14 @@ without changing the typed API, scope semantics or optional Redis behavior.
 | Standalone configuration database | Dedicated database with an owned configuration schema | Dedicated configuration file with owned prefixed tables |
 | Existing application database | Same database, separate owned configuration schema | Same file, separate owned prefixed tables |
 
-Recommend `runtime_configuration` as the default PostgreSQL schema, configurable through immutable
+Recommend `cascap_config` as the default PostgreSQL schema, configurable through immutable
 deployment options. Qualify all provider-owned tables, indexes, migration history and outbox objects
 explicitly; do not rely on a mutable `search_path` or create them in the application's default
 schema. Validate/quote configured SQL identifiers through provider-safe mechanisms; they are not
 administrative UI inputs.
 
 SQLite has no equivalent independently permissioned schema within one database file. Use a
-consistent configurable prefix such as `runtime_configuration_` for tables, indexes and migration
+consistent configurable prefix such as `cascap_config_` for tables, indexes and migration
 history instead of pretending PostgreSQL schema isolation is portable or requiring `ATTACH`.
 Sharing a SQLite file shares file-level permissions and writer contention.
 

@@ -64,6 +64,11 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         await using var db = await _services.GetRequiredService<IDbContextFactory<RuntimeConfigurationDbContext>>()
             .CreateDbContextAsync(TestContext.Current.CancellationToken);
         Assert.False(db.Database.HasPendingModelChanges());
+        Assert.Equal("cascap_config", db.Model.GetDefaultSchema());
+        var tables = await db.Database.SqlQuery<string>(
+            $"SELECT table_name AS \"Value\" FROM information_schema.tables WHERE table_schema = 'cascap_config'")
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(["__ef_migrations_history", "heads", "revisions"], tables.Order(StringComparer.Ordinal).ToArray());
         Assert.Single(await db.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken));
         Assert.Empty(await db.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken));
     }
@@ -110,10 +115,10 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await using var command = new NpgsqlCommand("""
             BEGIN;
-            INSERT INTO runtime_configuration.revisions
+            INSERT INTO cascap_config.revisions
                 (application, environment, contract_id, revision, contract_version, payload, recorded_at_utc, actor, reason)
             VALUES ('test-application', @environment, 'controls', 3, 1, '{"Verbosity":99}', now(), 'test-operator', 'Invalid candidate');
-            UPDATE runtime_configuration.heads SET revision = 3 WHERE environment = @environment;
+            UPDATE cascap_config.heads SET revision = 3 WHERE environment = @environment;
             COMMIT;
             """, connection);
         command.Parameters.AddWithValue("environment", _environment);

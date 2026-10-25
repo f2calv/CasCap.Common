@@ -12,11 +12,11 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "runtime_configuration");
+                name: "cascap_config");
 
             migrationBuilder.CreateTable(
                 name: "revisions",
-                schema: "runtime_configuration",
+                schema: "cascap_config",
                 columns: table => new
                 {
                     application = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -39,7 +39,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
 
             migrationBuilder.CreateTable(
                 name: "heads",
-                schema: "runtime_configuration",
+                schema: "cascap_config",
                 columns: table => new
                 {
                     application = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -53,7 +53,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
                     table.ForeignKey(
                         name: "fk_heads_revisions",
                         columns: x => new { x.application, x.environment, x.contract_id, x.revision },
-                        principalSchema: "runtime_configuration",
+                        principalSchema: "cascap_config",
                         principalTable: "revisions",
                         principalColumns: ["application", "environment", "contract_id", "revision"],
                         onDelete: ReferentialAction.Restrict);
@@ -61,7 +61,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "ix_heads_revision",
-                schema: "runtime_configuration",
+                schema: "cascap_config",
                 table: "heads",
                 columns: ["application", "environment", "contract_id", "revision"]);
         }
@@ -71,11 +71,11 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
         {
             migrationBuilder.DropTable(
                 name: "heads",
-                schema: "runtime_configuration");
+                schema: "cascap_config");
 
             migrationBuilder.DropTable(
                 name: "revisions",
-                schema: "runtime_configuration");
+                schema: "cascap_config");
         }
     }
 }

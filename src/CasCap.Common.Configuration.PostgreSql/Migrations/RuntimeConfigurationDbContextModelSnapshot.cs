@@ -17,7 +17,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("runtime_configuration")
+                .HasDefaultSchema("cascap_config")
                 .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -51,7 +51,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
                     b.HasIndex("Application", "Environment", "ContractId", "Revision")
                         .HasDatabaseName("ix_heads_revision");
 
-                    b.ToTable("heads", "runtime_configuration");
+                    b.ToTable("heads", "cascap_config");
                 });
 
             modelBuilder.Entity("CasCap.Common.Configuration.PostgreSql.Entities.RuntimeRevisionEntity", b =>
@@ -111,7 +111,7 @@ namespace CasCap.Common.Configuration.PostgreSql.Migrations
                     b.HasKey("Application", "Environment", "ContractId", "Revision")
                         .HasName("pk_revisions");
 
-                    b.ToTable("revisions", "runtime_configuration", t =>
+                    b.ToTable("revisions", "cascap_config", t =>
                         {
                             t.HasCheckConstraint("ck_revisions_positive", "revision > 0 AND contract_version > 0");
                         });
