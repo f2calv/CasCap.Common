@@ -17,14 +17,19 @@ The approved first slice targets .NET 10, EF Core/PostgreSQL and the standard
 prototype's complete dictionary replacement and standard provider integration, not its overlapping
 timers, Dapper access, failure defaults or Redis-as-authority behavior.
 
-- [Runtime contracts and reader](../src/CasCap.Common.Configuration.Runtime/README.md) isolate one
+- [x] [Runtime contracts and reader](../src/CasCap.Common.Configuration.Runtime/README.md) isolate one
   typed contract per host, validate complete snapshots and require an initial durable publication.
-- [PostgreSQL authority](../src/CasCap.Common.Configuration.PostgreSql/README.md) owns the
+- [x] [PostgreSQL authority](../src/CasCap.Common.Configuration.PostgreSql/README.md) owns the
   `runtime_configuration` schema, scoped heads and audited snapshot revisions, with optimistic
   publication and historical reads.
-- The follow-on acceptance gate is unit tests, real PostgreSQL tests, a permanent
-  `WebApplicationFactory` stub host, Compose test infrastructure and default CI execution.
-  Build success alone is not runtime acceptance.
+- [x] [Acceptance tests](../src/CasCap.Common.Configuration.Runtime.Tests/README.md) and the permanent
+  modern-hosting stub passed locally in Release: 14 cases, zero failures or skips, using real
+  PostgreSQL started through the root Compose `tests` profile.
+- [x] [Default CI wiring](../.github/workflows/ci.yml) includes the test projects, required PostgreSQL
+  service and automatic-event test execution. Remote execution has not yet been observed.
+- [ ] Integrate opt-in logging control into the first consuming application and verify the actual
+  logging pipeline, not just the options value.
+- [ ] Complete the explicitly authorized live soak and record its convergence/failure evidence.
 
 This does not approve production database changes, package publication or deployment. SQLite,
 Redis acceleration, UI, typed restoration, paginated history and Azure authorities remain outside
@@ -786,8 +791,9 @@ checks rather than claiming `WebApplicationFactory` covers them.
 
 ### Root Docker Compose Test Infrastructure
 
-Expand [docker-compose.yml](../docker-compose.yml) as part of provider implementation. It currently
-provides Redis and an inspection UI; it does not yet supply PostgreSQL or SQLite test support.
+Expand [docker-compose.yml](../docker-compose.yml) as part of provider implementation. It now
+provides Redis, an inspection UI and an isolated PostgreSQL `tests` service. SQLite test-runner
+support remains unimplemented.
 
 - Add a pinned supported PostgreSQL service with a readiness health check and disposable test
   storage. Supply test credentials through test-only environment configuration, never production
@@ -837,8 +843,9 @@ they do not authorize running local tests during this documentation task.
 
 ## Delivery Phases and Acceptance Criteria
 
-No phase is implemented by this document. Later phases are conditional, not a commitment to create
-every proposed package.
+The dated first-slice checklist above records verified progress. A completed subset does not complete
+an entire phase; unchecked criteria below remain outstanding. Later phases are conditional, not a
+commitment to create every proposed package. Update the checklists at each implementation boundary.
 
 ### Phase 1: Establish the Contract and Direct Durable Providers
 
@@ -849,28 +856,33 @@ partitioning and opt-in standard configuration integration.
 
 Acceptance evidence:
 
-- Reads after initial loading perform zero network/database I/O.
-- Concurrent edits yield one winner and an explicit conflict; rollback advances the revision.
-- Invalid revisions never replace the accepted snapshot. A no-op poll emits zero reload signals.
-- Repeated reads of one captured aggregate never mix revision contents.
-- Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
+- [ ] Reads after initial loading perform zero network/database I/O.
+- [x] Concurrent PostgreSQL edits yield one winner and an explicit conflict, verified by the real-store
+  concurrent-publication test.
+- [ ] Rollback advances the revision.
+- [x] Invalid PostgreSQL revisions never replace the accepted snapshot. Unchanged snapshots emit zero
+  reload signals, verified through the standard monitor and stub HTTP host.
+- [ ] Repeated reads of one captured aggregate never mix revision contents.
+- [ ] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
   members, undefined enum values and nested/cross-property validation failures reject the candidate
   before persistence or activation; no raw string setter bypasses those checks.
-- Both providers work in dedicated and existing databases; migrations touch only owned objects.
+- [ ] Both providers work in dedicated and existing databases; migrations touch only owned objects.
   PostgreSQL schema qualification and SQLite prefixing avoid application-table collisions.
-- Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
+- [ ] Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
   migrations. Real-engine tests prove concurrency/transaction behavior and fresh/upgrade paths;
   neither EF InMemory nor `EnsureCreated` stands in for migration coverage.
-- Identical application/contract names in arbitrary environments remain independent through writes,
+- [ ] Identical application/contract names in arbitrary environments remain independent through writes,
   rollback, idempotent retries, refresh and audit history; no missing-scope fallback crosses environments.
   Include a single-environment case and a generated twenty-environment case with nonstandard names;
   those are test examples, not library-imposed environment counts.
-- Historical revision/as-of reads return the recorded typed state; current projection rebuild is
+- [x] PostgreSQL historical revision reads return the recorded typed state after later publication,
+  verified by the real-store history test.
+- [ ] Historical as-of reads return the recorded typed state; current projection rebuild is
   deterministic and side-effect-free. Restore appends a new event with source provenance, retains
   the original history and rejects stale or incompatible requests.
-- Refresh failures preserve the accepted state and expose sanitized, actionable diagnostics.
-- Deployment options and existing consumers retain their current behavior.
-- Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
+- [ ] Refresh failures preserve the accepted state and expose sanitized, actionable diagnostics.
+- [ ] Deployment options and existing consumers retain their current behavior.
+- [ ] Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
   against both SQL backends. Root Compose supplies PostgreSQL and a working SQLite test-runner
   path; shared-database/environment-isolation cases execute rather than being skipped.
 
@@ -882,13 +894,13 @@ Do not extend the worker launcher as an incidental change.
 
 Acceptance evidence:
 
-- A change takes effect without restarting the process or flushing its unrelated local cache.
-- Invalid merged options, listener failures and application apply failures have distinct outcomes.
-- Every healthy replica converges within a declared budget. As an initial test profile, use a
+- [ ] A logging/feature change takes effect without restarting the process or flushing its unrelated local cache.
+- [ ] Invalid merged options, listener failures and application apply failures have distinct outcomes.
+- [ ] Every healthy replica converges within a declared budget. As an initial test profile, use a
   five-second reconciliation interval and require convergence within fifteen seconds under
   healthy dependencies; this is a proposed test target, not a production guarantee.
-- Expiring a logging override works even when a replica misses the revert notification.
-- The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
+- [ ] Expiring a logging override works even when a replica misses the revert notification.
+- [ ] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 
 ### Phase 3: Optional Redis, Only with Measured Benefit
@@ -899,14 +911,14 @@ Wire SQL outbox projection, version-aware publication and independent durable re
 
 Acceptance evidence:
 
-- Delayed stale refill/projector work cannot move active state or cached pointers backward.
-- Redis outage, eviction, restart, lost notification and failover recover without data loss.
-- A writer crash after SQL commit is recovered through the outbox.
-- A lost projection is repaired within the reconciliation budget, not merely when Redis expires.
-- Large replica cold starts have bounded source load; all published snapshots remain complete.
-- Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
+- [ ] Delayed stale refill/projector work cannot move active state or cached pointers backward.
+- [ ] Redis outage, eviction, restart, lost notification and failover recover without data loss.
+- [ ] A writer crash after SQL commit is recovered through the outbox.
+- [ ] A lost projection is repaired within the reconciliation budget, not merely when Redis expires.
+- [ ] Large replica cold starts have bounded source load; all published snapshots remain complete.
+- [ ] Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
   notification or snapshot cannot activate in another scope.
-- Both SQLite-plus-Redis and PostgreSQL-plus-Redis integration/host suites join default CI in the
+- [ ] Both SQLite-plus-Redis and PostgreSQL-plus-Redis integration/host suites join default CI in the
   same change that introduces the Redis adapter.
 
 ### Phase 4: Management API and Blazor RCL
@@ -916,15 +928,15 @@ and prove that provider-only consumers acquire no ASP.NET Core or Blazor depende
 
 Acceptance evidence:
 
-- Unauthorized, cross-application and cross-environment reads/writes fail server-side; cookie
+- [ ] Unauthorized, cross-application and cross-environment reads/writes fail server-side; cookie
   mutations enforce antiforgery. Promotion requires destination-environment authorization.
-- A stale editor gets a conflict; a publish distinguishes committed, accepted and applied states.
-- Client assemblies, API responses, assets and logs contain no secrets or provider settings.
-- Keyboard operation, constrained input validation and error recovery work.
-- Typed editors preserve boolean/enum/numeric/duration values, preview the fully validated DTO and
+- [ ] A stale editor gets a conflict; a publish distinguishes committed, accepted and applied states.
+- [ ] Client assemblies, API responses, assets and logs contain no secrets or provider settings.
+- [ ] Keyboard operation, constrained input validation and error recovery work.
+- [ ] Typed editors preserve boolean/enum/numeric/duration values, preview the fully validated DTO and
   clearly identify the destination environment; forged or malformed payloads fail server validation.
-- A two-replica sample survives pod replacement and a mixed-version rollout without session affinity.
-- Management API `WebApplicationFactory` tests run by default in CI, including authorization,
+- [ ] A two-replica sample survives pod replacement and a mixed-version rollout without session affinity.
+- [ ] Management API `WebApplicationFactory` tests run by default in CI, including authorization,
   malformed typed payloads, stale revisions and cookie mutation protection.
 
 These are future test requirements, not tests executed for this documentation change.
