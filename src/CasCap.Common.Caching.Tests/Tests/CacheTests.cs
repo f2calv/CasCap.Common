@@ -534,11 +534,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             services.AddCasCapCaching(LocalCacheType: LocalCacheType);
         else if (extensionType == 2)
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
-                .Build();
-            services.AddSingleton<IConfiguration>(configuration);
-            services.AddCasCapCaching(configuration, LocalCacheType: LocalCacheType);
+            services.AddSingleton(Configuration);
+            services.AddCasCapCaching(Configuration, LocalCacheType: LocalCacheType);
         }
         else if (extensionType == 3)
         {

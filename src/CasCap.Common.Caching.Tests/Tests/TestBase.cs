@@ -1,15 +1,32 @@
 namespace CasCap.Common.Caching.Tests;
 
-/// <summary>Base class for caching integration tests, providing a Redis connection string constant.</summary>
-public abstract class TestBase(ITestOutputHelper testOutputHelper)
+/// <summary>Provides shared Test-environment configuration and output for caching tests.</summary>
+public abstract class TestBase : IDisposable
 {
+    private readonly ConfigurationManager _configuration = new();
+
+    protected TestBase(ITestOutputHelper testOutputHelper)
+    {
+        TestOutputHelper = testOutputHelper;
+        _configuration.AddStandardConfiguration("Test", typeof(TestBase).Assembly);
+    }
+
     /// <summary>Provides xUnit test output.</summary>
-    protected ITestOutputHelper TestOutputHelper { get; } = testOutputHelper;
-    //protected IDistributedCacheService _distCacheSvc;
-    //protected ILocalCacheService _localCache;
+    protected ITestOutputHelper TestOutputHelper { get; }
+
+    /// <summary>Provides configuration with environment variables taking final precedence.</summary>
+    protected IConfiguration Configuration => _configuration;
 
     /// <summary>Redis connection string used by integration tests.</summary>
-    protected const string remoteCacheConnectionString = "localhost:6379,allowAdmin=true";
+    protected string remoteCacheConnectionString => Configuration.GetConnectionString("Redis")
+        ?? throw new InvalidOperationException("The Redis test connection is required.");
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _configuration.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>Redis database id used by integration tests, isolated per target framework.</summary>
     /// <remarks>
