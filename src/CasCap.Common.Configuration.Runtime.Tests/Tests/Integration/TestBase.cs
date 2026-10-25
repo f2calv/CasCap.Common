@@ -1,6 +1,7 @@
 using CasCap.Common.Configuration.PostgreSql;
 using CasCap.Common.Configuration.PostgreSql.Extensions;
 using CasCap.Common.Configuration.PostgreSql.Services;
+using CasCap.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +23,11 @@ public abstract class TestBase(ITestOutputHelper output) : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var configuration = new ConfigurationBuilder().AddEnvironmentVariables("RuntimeConfigurationTests__").Build();
+        using var configuration = new ConfigurationManager();
+        configuration.AddStandardConfiguration("Test")
+            .AddEnvironmentVariables("RuntimeConfigurationTests__");
         _adminConnection = configuration.GetConnectionString("Postgres")
-            ?? "Host=localhost;Port=15443;Database=postgres;Username=configuration_tests;Password=local_test_password;Include Error Detail=false";
+            ?? throw new InvalidOperationException("Configure ConnectionStrings:Postgres in appsettings.Test.json or RuntimeConfigurationTests__ConnectionStrings__Postgres for a disposable test server.");
         var builder = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _database, Pooling = false };
         _connectionString = builder.ConnectionString;
         await using var admin = new NpgsqlConnection(_adminConnection);

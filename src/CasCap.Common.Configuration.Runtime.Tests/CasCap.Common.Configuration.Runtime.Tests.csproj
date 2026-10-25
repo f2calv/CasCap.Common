@@ -7,9 +7,13 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Configuration\CasCap.Common.Configuration.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.TestHost\CasCap.Common.Configuration.TestHost.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

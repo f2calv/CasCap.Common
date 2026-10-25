@@ -104,13 +104,14 @@ graph TD
 
 ## Development
 
-Building all target frameworks requires the .NET 10 SDK. Redis-backed caching tests also require
-Docker Compose or a dedicated Redis instance. Run these commands from the repository root:
+Building all target frameworks requires the .NET 10 SDK. Start the
+[local dependencies](docker-compose.yml) before running integration tests. Run these commands from
+the repository root:
 
 ```bash
 dotnet restore
 dotnet build --no-restore
-docker compose up -d --wait redis
+docker compose --profile tests up -d --wait redis postgres-tests
 dotnet test --no-build --max-parallel-test-modules 1
 ```
 

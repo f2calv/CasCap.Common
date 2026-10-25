@@ -61,20 +61,23 @@ jobs:
       packages: write #push to nuget.pkg.github.com
     services:
       postgres-tests:
-        image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: configuration_tests
           POSTGRES_PASSWORD: local_test_password
           POSTGRES_DB: postgres
         ports:
-          - 15443:5432
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U configuration_tests -d postgres"
           --health-interval 2s --health-timeout 3s --health-retries 30
       redis:
-        image: redis
+        image: redis:8
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: f2calv/gha-dotnet-nuget@v2
         with:

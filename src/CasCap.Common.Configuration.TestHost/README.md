@@ -23,7 +23,7 @@ A standalone run requires an already migrated, populated **test** database:
 ```json
 {
   "ConnectionStrings": {
-    "RuntimeConfiguration": "Host=localhost;Port=15443;Database=example_test;Username=configuration_tests;Password=local_test_password"
+    "RuntimeConfiguration": "Host=localhost;Port=5432;Database=example_test;Username=configuration_tests;Password=local_test_password"
   },
   "RuntimeConfiguration": {
     "Environment": "example-environment"

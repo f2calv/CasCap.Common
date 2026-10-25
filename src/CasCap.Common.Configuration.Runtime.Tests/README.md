@@ -13,13 +13,17 @@ dotnet test --project src\CasCap.Common.Configuration.Runtime.Tests\CasCap.Commo
 docker compose --profile tests stop postgres-tests
 ```
 
-The test service uses loopback port `15443` and disposable in-memory container storage. Each test
-creates, migrates and drops its own uniquely named database; no development database is reset.
-A missing test service fails setup rather than silently skipping required coverage.
+Use the repository's [Compose stack](../../docker-compose.yml). Tests create and drop databases;
+use only a disposable test server, never a shared application server.
+
+Defaults come from [appsettings.Test.json](appsettings.Test.json), loaded optionally by the shared
+configuration extension in the `Test` environment. The optional local override files load after it;
+environment variables load last. Missing test settings are allowed when another provider supplies
+the required connection string.
 
 To select another **dedicated test server**, set
 `RuntimeConfigurationTests__ConnectionStrings__Postgres`. The identity needs database creation
-and deletion privileges. Do not point this at a shared application database.
+and deletion privileges.
 
 ## Tests
 
