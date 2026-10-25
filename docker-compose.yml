@@ -6,12 +6,34 @@
 # browser UI for inspecting it.
 #
 #   docker compose up
+#   docker compose --profile tests up -d --wait postgres-tests
+#   docker compose --profile tests stop postgres-tests
 #
 # Service endpoints:
 #   Redis        : localhost:6379
 #   P3x Redis UI : http://localhost:7843
+#   PostgreSQL tests: localhost:15443 (disposable; per-test databases)
+# SQLite tests use isolated files, not a database server.
 # =============================================================================
 services:
+
+  postgres-tests:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    profiles: [ tests ]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: configuration_tests
+      POSTGRES_PASSWORD: local_test_password
+      POSTGRES_DB: postgres
+    ports:
+      - 127.0.0.1:15443:5432
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U configuration_tests -d postgres" ]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   redis:
     image: redis:8.10

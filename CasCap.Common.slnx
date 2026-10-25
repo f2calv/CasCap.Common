@@ -12,12 +12,14 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/CasCap.Common/">
+    <Project Path="src/CasCap.Common.Configuration.Runtime.Tests/CasCap.Common.Configuration.Runtime.Tests.csproj" />
     <Project Path="src/CasCap.Common.Configuration.Runtime/CasCap.Common.Configuration.Runtime.csproj" />
     <Project Path="src/CasCap.Common.Configuration.PostgreSql/CasCap.Common.Configuration.PostgreSql.csproj" />
     <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" />
     <Project Path="src/CasCap.Common.Hosting.AspNetCore/CasCap.Common.Hosting.AspNetCore.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
+    <Project Path="src/CasCap.Common.Configuration.TestHost/CasCap.Common.Configuration.TestHost.csproj" />
     <Project Path="src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj" />
     <Project Path="src/CasCap.Common.Configuration/CasCap.Common.Configuration.csproj" />
     <Project Path="src/CasCap.Common.Extensions.Diagnostics.HealthChecks/CasCap.Common.Extensions.Diagnostics.HealthChecks.csproj" />
