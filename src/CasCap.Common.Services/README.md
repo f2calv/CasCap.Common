@@ -53,6 +53,28 @@ Feature matching is case-insensitive. A feature named `IBgFeature.AlwaysEnabled`
 regardless of the selected set. Registration supplies `IOptions<FeatureFlagConfig>`; it does not
 automatically read an `EnabledFeatures` JSON section.
 
+### UTC Cron Scheduling
+
+The current checkout also exposes `CoalescingScheduleRunner` in `CasCap.Common.Services`
+(source-reference development until the next package publication). It accepts a parsed Cronos
+expression, an injected `TimeProvider`, an awaited callback and a cancellation token.
+Five-field expressions use minute precision; seconds require explicit `CronFormat.IncludeSeconds`.
+
+```csharp
+await CoalescingScheduleRunner.RunAsync(
+    Cronos.CronExpression.Parse("0 * * * *"),
+    TimeProvider.System,
+    async (scheduledForUtc, token) => await RunJobAsync(scheduledForUtc, token),
+    stoppingToken);
+```
+
+Occurrences are strictly after the cursor and use UTC. Each schedule runs sequentially; after
+completion, missed occurrences are coalesced rather than replayed. Startup/manual execution,
+distributed ownership, durable requests, retries and idempotency belong to the consumer.
+Cancellation stops pending delays and is passed into callbacks; callback failures propagate.
+`RunWithTimeoutAsync` cancels a cooperative operation and awaits its cleanup before reporting a
+timeout. It does not forcibly abandon work that ignores cancellation.
+
 ## Service Architecture
 
 - No matching features is a startup failure.

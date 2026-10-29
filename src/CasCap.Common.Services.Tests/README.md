@@ -22,10 +22,11 @@ Counts are declared methods and cases per target framework, not execution result
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
+| `CoalescingScheduleRunnerTests` | 6 | 7 | UTC exclusive cursors, slow-run coalescing, cancellation, callback faults and awaited timeout cleanup |
 | `FeatureFlagBgServiceTests` | 8 | 9 | Finite siblings, first/later faults, requested stop, cancellation, disabled features, and awaited cleanup on shutdown or sibling failure |
 | `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
 | `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
-| **Total** | **14** | **15** | |
+| **Total** | **20** | **22** | |
 
 ### Trait Categories
 
@@ -33,6 +34,7 @@ Counts are declared methods and cases per target framework, not execution result
 | --- | --- |
 | `BackgroundService` | Feature-flag background-service tests |
 | `Metadata` | Application metadata tests |
+| `Scheduling` | UTC cron runner tests |
 | `Sinks` | Event-sink registration tests |
 
 ### Skipped Tests
@@ -45,6 +47,7 @@ No declared or conditional skips.
 Tests/
 └── Unit/
     ├── ApplicationMetadataTests.cs
+    ├── CoalescingScheduleRunnerTests.cs
     ├── FeatureFlagBgServiceHostTests.cs
     ├── FeatureFlagBgServiceTests.cs
     └── SinkServiceCollectionExtensionsTests.cs
