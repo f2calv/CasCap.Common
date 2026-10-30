@@ -238,5 +238,11 @@ operator connection to inspect records; do not export payloads, connections or p
 details into logs. If a valid publication appears delayed, check polling, cache maximum age and
 independent reconciliation settings. Never flush a shared Redis database to diagnose one key.
 
-Feature controls still require application-owned authorization, health and audit policies. A
-management API and reusable Blazor UI are future work, not endpoints exposed by these libraries.
+Feature controls still require application-owned authorization, health and audit policies.
+The optional [management API](../src/CasCap.Common.Configuration.Management/README.md) and
+[typed Blazor editor](../src/CasCap.Common.Configuration.Blazor/README.md) provide read, validation
+and expected-revision publication for the host's one registered browser-safe DTO/scope.
+See the [management wire contract](runtime-configuration-management.md) for policies, cookies,
+antiforgery, safe errors and committed-versus-applied semantics. Provider-only consumers acquire
+neither dependency. History browsing, dedicated restore, promotion and live activation dashboards
+remain deferred; no consumer UI rollout or package release is implied by these source projects.

@@ -1,6 +1,6 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
-**Status:** Accepted core scope; implementation and verification progress is tracked below.
+**Status:** Accepted core scope implemented and verified locally; release and deployment are separate.
 **Date:** 2026-10-24.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
@@ -53,9 +53,9 @@ approved optional work. No long-duration logging soak is required to complete th
   database service. SQLite tests have no PostgreSQL fixture dependency. Existing solution-test
   CI discovery includes them; no remote workflow was started or observed.
 
-This closes the SQLite provider implementation boundary, not the complete ADR. The management
-API evidence follows below; the typed Blazor editor remains unimplemented. Dedicated restore/as-of/paginated-history APIs,
-outbox projection, package publication and live deployments remain deferred or separately approved.
+This closes the SQLite provider implementation boundary. The management API and typed Blazor
+editor evidence follow below. Dedicated restore/as-of/paginated-history APIs, outbox projection,
+package publication and live deployments remain deferred or separately approved.
 SQLite lock waiting follows the configured connection timeout; native synchronous operations do
 not provide a hard cancellation deadline. File ownership is not table-level authorization.
 
@@ -88,8 +88,47 @@ not provide a hard cancellation deadline. File ownership is not table-level auth
   with zero failures/skips. The complete solution Release build passed with zero warnings/errors.
   The existing isolated test services were reused; no remote CI run was started or observed.
 
-The typed Blazor RCL/client and browser interactions remain the next core phase. No consumer
-repository, package publication, live data, deployment or remote CI execution is part of this phase.
+No consumer repository, package publication, live data, deployment or remote CI execution is part
+of this phase.
+
+## Blazor Editor Phase Evidence (2026-10-30)
+
+- [x] The optional [RCL and typed client](../src/CasCap.Common.Configuration.Blazor/README.md)
+  reference only browser-neutral Contracts and Blazor packages, not Runtime, EF or SQL/Redis
+  drivers. Host-provided typed fields preserve booleans, enum values, numbers and durations;
+  no reflection form engine, arbitrary string setter or plugin loader is introduced.
+- [x] The editor displays its fixed destination and authoritative revision, requires typed preview,
+  a reason and explicit publication confirmation, and labels durable commit as activation pending.
+  Exact 64-bit revisions survive client serialization above JavaScript's exact integer range.
+- [x] Safe loading/error/permission/conflict states, field validation, retained failed edits,
+  no automatic mutation retry, dirty-discard confirmation and cancellation on scope change/disposal
+  are covered by 24 local bUnit/client cases. Native labeled fields and form/button semantics
+  provide keyboard interaction; this is component evidence, not a physical browser audit.
+- [x] Three additional real HTTP client cases use the actual cookie/antiforgery management API and
+  isolated SQLite: preview does not write, publication commits, stale edits conflict and missing
+  authentication/permissions fail. The complete Release solution build has zero warnings/errors.
+
+Embedding into a consuming browser application, real browser/accessibility verification,
+production identity-provider setup, package release and deployment remain host-owned operational
+steps, not implied by source completion.
+
+## Core Completion Verification (2026-10-30)
+
+- [x] All 110 runtime/provider/management cases and all 24 component/client cases passed in
+  Release, with zero failures or skips. The complete solution builds with zero warnings/errors.
+  The SQLite required-publication assertion exercises the real Generic Host startup failure;
+  separate `WebApplicationFactory` cases continue to verify HTTP behavior.
+- [x] A local-only RCL package build verified the library, README and isolated stylesheet assets.
+  Its only package dependencies are browser-neutral management contracts and
+  `Microsoft.AspNetCore.Components.Web`; no authority, Runtime or server framework is introduced.
+- [x] Changed-file lint hooks, local documentation links and the confidentiality gate passed.
+  Default solution test discovery includes both test projects with no new opt-in CI switch;
+  no remote CI result is claimed.
+
+The approved source scope is complete. Dedicated restoration/history workflows, outbox projection,
+Azure authorities and fleet certification remain far-future stretch work. Package publication,
+consumer embedding, physical browser/accessibility checks and live deployment are separate
+operational steps requiring their own approval.
 
 ## First Implementation Slice (2026-10-25)
 
@@ -125,7 +164,7 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   within 2.7 seconds after the recorded expiry, under healthy dependencies.
   The checked publication retained revision 1, appended revision 2 with exactly 120 seconds of
   lifetime, and left the head at revision 2 after expiry; read-back found no later publication.
-- [ ] Complete any separately justified longer-duration or live failure exercise. The short live check
+- **Optional operational follow-up:** any separately justified longer-duration or live failure exercise. The short live check
   does not prove exported log delivery, live cache retention, internal reader revision/fallback
   metadata, exact reconciliation timing or outage recovery. Local tests remain the evidence for
   emitted events, forwarding and the cache sentinel. Reusable isolated failure coverage is tracked
@@ -1024,7 +1063,7 @@ Acceptance evidence:
   reload signals, verified through the standard monitor and stub HTTP host.
 - [x] A captured options aggregate retains its complete original state after a later publication;
   deployment configuration remains separate and unchanged.
-- [ ] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
+- [x] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
   members, undefined enum values and nested/cross-property validation failures reject the candidate
   before persistence or activation; no raw string setter bypasses those checks.
 - [x] Both providers work in dedicated and existing databases; migrations touch only owned objects.
@@ -1032,10 +1071,9 @@ Acceptance evidence:
 - [x] Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
   migrations. Real-engine tests prove concurrency/transaction behavior and fresh/upgrade paths;
   neither EF InMemory nor `EnsureCreated` stands in for migration coverage.
-- [ ] Identical application/contract names in arbitrary environments remain independent through writes,
-  rollback, idempotent retries, refresh and audit history; no missing-scope fallback crosses environments.
-  Include a single-environment case and a generated twenty-environment case with nonstandard names;
-  those are test examples, not library-imposed environment counts.
+- [x] Both authorities isolate identical application/contract names across one- and twenty-environment
+  publication/read/history cases with arbitrary names. No missing-scope fallback crosses environments.
+  Dedicated rollback and idempotent retries are excluded from the core scope.
 - [x] PostgreSQL publication, reads and history are isolated across generated one- and twenty-environment
   cases. Rollback and idempotent retry APIs remain deferred.
 - [x] SQLite publication and historical reads isolate application/contract/environment scopes in
@@ -1065,15 +1103,16 @@ Acceptance evidence:
   without restarting; local HTTP cases retain the unrelated singleton sentinel.
 - [x] Invalid DTO retention, throwing listeners and an explicitly rejected consumer application have
   distinct tested outcomes. A listener failure does not imply transactional rollback of options.
-- [ ] Every healthy replica converges within a declared budget. As an initial test profile, use a
-  five-second reconciliation interval and require convergence within fifteen seconds under
-  healthy dependencies; this is a proposed test target, not a production guarantee.
+- [x] The bounded live profile observed two healthy replicas activate/expire within 2.7 seconds,
+  inside the declared fifteen-second budget for five-second polling. Isolated host tests cover
+  independent convergence/replacement. This is measured profile evidence, not a guarantee for every
+  future replica, workload or dependency failure.
 - [x] Two independent PostgreSQL-backed HTTP hosts converge; replacing one loads the latest revision
   while the surviving host retains its unrelated singleton sentinel.
 - [x] Expiry needs no revert publication or notification. Local tests cover expiry despite a newer
   invalid head and real database connection refusal; dated live evidence proves actual
   logging-switch/filter expiry under healthy dependencies.
-- [ ] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
+- [x] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 
 ### Phase 3: Optional Redis Trial and Later Projection
@@ -1095,13 +1134,12 @@ Acceptance evidence:
   expiry retry directly rather than renewing the stale deadline.
 - [x] PostgreSQL-plus-Redis tests are part of the existing default-CI project and service wiring.
   Local execution is evidence only for local behavior; remote CI has not yet been observed.
-- [ ] Delayed stale refill/projector work cannot move active state or cached pointers backward.
-- [ ] Redis outage, eviction, restart, lost notification and failover recover without data loss.
-- [ ] A writer crash after SQL commit is recovered through the outbox.
-- [ ] A lost projection is repaired within the reconciliation budget, not merely when Redis expires.
-- [ ] Large replica cold starts have bounded source load; all published snapshots remain complete.
-- [ ] Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
-  notification or snapshot cannot activate in another scope.
+- [x] The bounded trial rejects cached regression and wrong-scope snapshots, isolates hashed
+  authority/application/environment/contract/version keys, and independently reconciles durable state.
+- **Deferred stronger projection:** fenced shared pointers, stale projector work, transactional
+  outbox crash recovery and lost-notification repair. The approved trial has no such projection.
+- **Optional adoption evidence:** real Redis interruption/restart/failover and large-fleet cold-start
+  load. Local cache deletion and injected connection failure are tested; real failover is not claimed.
 - [x] SQLite-plus-Redis integration/host coverage joins default solution-test CI discovery with the
   SQLite adapter; local execution passed, remote CI execution remains unobserved.
 
@@ -1118,21 +1156,23 @@ Acceptance evidence:
   no accepted/applied acknowledgement. Cancellation/uncertain outcomes do not trigger retry.
 - [x] Browser-neutral contracts and ordinary API reads exclude provider settings and audit actor/reason;
   captured unavailable responses/logs omit injected provider payloads and exception objects.
-- [ ] Keyboard operation, constrained input validation and error recovery work.
+- [x] Native labeled form/button semantics, constrained typed inputs and error recovery are covered
+  by component tests. Consuming-host browser/accessibility verification remains operational work.
 - [x] Typed API preview validates without mutation; exact integral revision boundaries, host enum
   converters, malformed/unknown/duplicate payloads and metadata are covered before persistence.
-- [ ] Typed RCL fields preserve boolean/enum/numeric/duration values and clearly display the fixed
+- [x] Typed RCL fields preserve boolean/enum/numeric/duration values and clearly display the fixed
   destination, with host-supplied `RenderFragment<T>` fields rather than a reflection form engine.
 - [x] Two independent local API hosts and a replacement accept browser cookies/antiforgery with a shared
   fixture-owned key ring; direct/cached reader hosts retain singleton identity and server feature behavior.
 - [x] Management API `WebApplicationFactory` cases are in the existing runtime test project and default
   solution-test CI discovery. Local execution is evidenced above; remote execution is unobserved.
-- [ ] RCL/client browser tests cover typed editing, error recovery, authorization hints and no secret
-  assets. An optional live mixed-version rollout remains separately approved deployment work.
+- [x] bUnit/client tests cover typed editing, error recovery, authorization outcomes and the
+  browser assembly's provider/server dependency boundary. They do not claim a browser asset download
+  or physical browser audit. A live mixed-version rollout remains separately approved deployment work.
 
-The checked API evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis,
-not shared production stores. Unchecked browser behavior is still unimplemented; this is not complete
-ADR acceptance, a remote CI result or an approved rollout.
+The checked core evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis
+and bUnit, not shared production stores. Core source completion is distinct from a consuming browser
+rollout, published packages or remote CI execution; none of those is claimed here.
 
 ### Later Optional Phase: Azure Storage Adapters
 

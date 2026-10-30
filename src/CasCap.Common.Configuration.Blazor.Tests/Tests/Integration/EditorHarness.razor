@@ -1,0 +1,24 @@
+@namespace CasCap.Common.Configuration.Blazor.Tests.Tests.Integration
+
+<RuntimeConfigurationEditor T="EditorControls" Destination="Destination">
+    <Fields Context="value">
+        <label for="verbosity">Verbosity</label>
+        <InputNumber id="verbosity" @bind-Value="value.Verbosity" min="0" max="5" />
+        <label for="feature">Feature enabled</label>
+        <InputCheckbox id="feature" @bind-Value="value.FeatureEnabled" />
+        <label for="day">Day</label>
+        <InputSelect id="day" @bind-Value="value.Day">
+            @foreach (var day in Enum.GetValues<DayOfWeek>())
+            {
+                <option @key="day" value="@day">@day</option>
+            }
+        </InputSelect>
+        <label for="duration">Duration</label>
+        <InputDuration id="duration" @bind-Value="value.Duration" />
+    </Fields>
+</RuntimeConfigurationEditor>
+
+@code {
+    [Parameter]
+    public RuntimeConfigurationDestination Destination { get; set; } = new("sample-app", "staging", "controls");
+}

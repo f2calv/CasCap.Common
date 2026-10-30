@@ -55,9 +55,11 @@ corresponding dedicated Redis test service.
 | `SqliteRuntimeConfigurationTests` | 12 | 18 | Integration | Dedicated/shared file migrations/no drift, unrelated table preservation, reopen/history, first/existing-head races, busy/locked conflicts, atomic rollback, 1/20 environment/application/contract isolation, invalid writes/reads, direct/cached HTTP startup/reload/expiry, warm-cache authority |
 | `ManagementApiTests` | 14 | 45 | Integration | SQLite/Redis stateless hosts and replacement, typed preview/no write, audit identity, fixed-scope/operation policy matrix, named browser auth schemes, JSON CSRF, shape/enum/integral/metadata bounds, races, unavailable/no-retry, closed ApiExplorer metadata |
 | `ManagementPostgresTests` | 2 | 2 | Integration | Real PostgreSQL HTTP writer race/audit and sanitized database outage while reader state/sentinel/feature remain accepted |
-| Total | 62 | 107 | | |
+| `ManagementClientTests` | 2 | 3 | Integration | Actual typed browser client against cookies/antiforgery, preview/no write, publish, conflict and permission failures |
+| Total | 64 | 110 | | |
 
-Observed local Release result: 107 passed, 0 failed, 0 skipped, including all 47 focused management cases.
+Observed local Release result: 110 passed, 0 failed, 0 skipped, including all 47 management API cases
+and three typed-client cases. The separate component/client suite passes all 24 cases.
 The complete solution also builds with zero warnings and errors. Both provider model-drift
 checks and offline migration SQL generation pass; PostgreSQL migrations/schema are unchanged.
 
@@ -94,6 +96,7 @@ Tests/
     |-- ManagementTestSupport.cs
     |-- ManagementApiTests.cs
     |-- ManagementPostgresTests.cs
+    |-- ManagementClientTests.cs
     `-- PostgresRuntimeConfigurationTests.cs
 ```
 
@@ -106,5 +109,6 @@ Protection keys, cleaned with the isolated SQLite files. Focused API execution u
 
 The unavailable/missing-publication contract also uses an injected publisher to inspect sanitized
 logs and single-attempt behavior; actual PostgreSQL outage coverage complements this fault injection.
-The browser DTO is intentionally tiny and host-owned. These cases do not test a Blazor editor,
-browser assets, production authentication providers, live replica rollout or remote CI execution.
+The browser DTO is intentionally tiny and host-owned. The [RCL component suite](../CasCap.Common.Configuration.Blazor.Tests/README.md)
+tests interactive typed editing and error recovery separately. Neither suite claims a real browser
+asset download, production identity-provider integration, live rollout or remote CI execution.

@@ -58,5 +58,6 @@ EF out of this module's references; other failures return sanitized 503 and log 
 
 See the [wire contract](../../docs/runtime-configuration-management.md) and
 [acceptance tests](../CasCap.Common.Configuration.Runtime.Tests/README.md).
-History, restore, promotion, idempotent retry, schema provisioning and a Blazor editor are not
-implemented by this module.
+The separate optional [Blazor RCL](../CasCap.Common.Configuration.Blazor/README.md) consumes this
+API without pulling server/provider dependencies into the browser. History, restore, promotion,
+idempotent retry and schema provisioning are not implemented by this module.

@@ -7,6 +7,7 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Configuration.Blazor\CasCap.Common.Configuration.Blazor.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration\CasCap.Common.Configuration.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.TestHost\CasCap.Common.Configuration.TestHost.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.Redis\CasCap.Common.Configuration.Redis.csproj" />

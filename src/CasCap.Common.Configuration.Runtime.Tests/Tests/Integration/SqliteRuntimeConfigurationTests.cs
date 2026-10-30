@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
@@ -217,12 +218,19 @@ public sealed class SqliteRuntimeConfigurationTests(ITestOutputHelper output) : 
     [InlineData(true)]
     public async Task Host_RequiresInitialPublication(bool cached)
     {
-        await using var host = CreateHost(cached);
-        var exception = Assert.Throws<InvalidOperationException>(() => host.CreateClient());
+        var builder = new HostBuilder().ConfigureServices(services =>
+        {
+            foreach (var descriptor in CreateServiceCollection())
+                services.Add(descriptor);
+            if (cached)
+                AddCache(services);
+        });
+        using var host = builder.Build();
+        // WebApplicationFactory can mask fast startup failures with its disposed deferred host.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => host.StartAsync(TestContext.Current.CancellationToken));
         Assert.Equal("A required runtime configuration revision has not been published.", exception.Message);
         if (cached)
         {
-            // Failed startup still builds the provider; no cache entry is written for a missing head.
             Assert.Null(await _store.ReadAsync(TestContext.Current.CancellationToken));
         }
     }

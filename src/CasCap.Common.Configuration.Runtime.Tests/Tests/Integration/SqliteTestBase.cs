@@ -56,6 +56,13 @@ public abstract class SqliteTestBase(ITestOutputHelper output) : IAsyncLifetime
         string application = "test-application",
         string contract = "controls",
         string? connectionString = null
+    ) => CreateServiceCollection(environment, application, contract, connectionString).BuildServiceProvider();
+
+    protected ServiceCollection CreateServiceCollection(
+        string? environment = null,
+        string application = "test-application",
+        string contract = "controls",
+        string? connectionString = null
     )
     {
         var services = new ServiceCollection();
@@ -66,7 +73,7 @@ public abstract class SqliteTestBase(ITestOutputHelper output) : IAsyncLifetime
             ContractId = contract,
             RefreshInterval = TimeSpan.FromMilliseconds(100),
         }, connectionString ?? _connectionString, new RuntimeControls());
-        return services.BuildServiceProvider();
+        return services;
     }
 
     protected RuntimeConfigurationHostFactory CreateHost(bool cached = false, TimeProvider? clock = null) =>
