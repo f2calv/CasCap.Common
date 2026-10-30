@@ -32,6 +32,9 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   PostgreSQL-to-Serilog test, including Microsoft logging-provider forwarding, retained category
   overrides and an unchanged process-cache sentinel. Nine existing endpoint smoke cases also passed
   with the feature disabled; both Debug and normal Release builds succeeded.
+- [x] Provision the independently owned PostgreSQL migration and initial `Information` logging
+  snapshot in the operator-approved existing database (2026-10-30). Read-back verified the migration
+  history, revision 1 and matching head. This does not establish runtime activation or convergence.
 - [ ] Complete the explicitly authorized live soak and record its convergence/failure evidence.
 
 This does not approve production database changes, package publication or deployment. SQLite,
