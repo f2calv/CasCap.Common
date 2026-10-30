@@ -1,5 +1,6 @@
 using CasCap.Common.Configuration.PostgreSql.Extensions;
 using CasCap.Common.Configuration.TestHost.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 
 namespace CasCap.Common.Configuration.TestHost;
@@ -30,6 +31,9 @@ public static class AppHost
                 Sentinel = sentinel.Id,
                 Controls = monitor.CurrentValue,
             });
+        app.MapGet("/feature", Results<Ok, NotFound>
+            (IOptionsMonitor<RuntimeControls> monitor) => monitor.CurrentValue.FeatureEnabled
+                ? TypedResults.Ok() : TypedResults.NotFound());
         await app.RunAsync();
     }
 }

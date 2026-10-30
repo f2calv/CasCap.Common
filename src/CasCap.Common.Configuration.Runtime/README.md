@@ -12,6 +12,10 @@ missing data or unavailable storage fails startup. Expired revisions return to t
 baseline. Invalid refreshes log a sanitized error and retain the previous accepted snapshot.
 Consumers must not mutate returned options; capture one aggregate per operation.
 
+Durable adapters also expose [`IRuntimeConfigurationPublisher<T>`](Abstractions/IRuntimeConfigurationPublisher{T}.cs)
+for typed expected-revision publication and authoritative reads. Optional caching decorates only
+the reader contract, never this publisher.
+
 Expiry of an already accepted override is checked locally before polling and after failed refreshes;
 a newer invalid durable revision cannot extend that override indefinitely. Scheduling and in-flight
 store operations can delay reconciliation, so expiry is not a hard real-time safety deadline.

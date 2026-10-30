@@ -11,7 +11,7 @@ public sealed class PostgresRuntimeConfigurationStore<T>(
     RuntimeConfigurationOptions settings,
     IDbContextFactory<RuntimeConfigurationDbContext> dbContextFactory,
     RuntimeConfigurationCodec<T> codec
-) : IRuntimeConfigurationStore<T> where T : class
+) : IRuntimeConfigurationPublisher<T> where T : class
 {
     /// <inheritdoc/>
     public async Task<RuntimeConfigurationRevision<T>?> ReadAsync(CancellationToken cancellationToken)

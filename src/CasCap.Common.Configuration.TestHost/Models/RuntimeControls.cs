@@ -9,6 +9,9 @@ public sealed class RuntimeControls
     [Range(0, 5)]
     public int Verbosity { get; set; } = 2;
 
+    /// <summary>Gets or sets the server-enforced sample feature.</summary>
+    public bool FeatureEnabled { get; set; }
+
     /// <summary>Gets or sets the complete category selection.</summary>
     public string[] Categories { get; set; } = [];
 }

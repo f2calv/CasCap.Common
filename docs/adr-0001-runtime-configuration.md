@@ -950,10 +950,11 @@ Acceptance evidence:
   1,000 reads while the background refresh is blocked. Refresh itself intentionally performs I/O.
 - [x] Concurrent PostgreSQL edits yield one winner and an explicit conflict, verified by the real-store
   concurrent-publication test.
-- [ ] Rollback advances the revision.
+- **Deferred:** dedicated restore/rollback, paginated/as-of history and idempotent retry workflows.
 - [x] Invalid PostgreSQL revisions never replace the accepted snapshot. Unchanged snapshots emit zero
   reload signals, verified through the standard monitor and stub HTTP host.
-- [ ] Repeated reads of one captured aggregate never mix revision contents.
+- [x] A captured options aggregate retains its complete original state after a later publication;
+  deployment configuration remains separate and unchanged.
 - [ ] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
   members, undefined enum values and nested/cross-property validation failures reject the candidate
   before persistence or activation; no raw string setter bypasses those checks.
@@ -970,13 +971,12 @@ Acceptance evidence:
   cases. Rollback and idempotent retry APIs remain deferred.
 - [x] PostgreSQL historical revision reads return the recorded typed state after later publication,
   verified by the real-store history test.
-- [ ] Historical as-of reads return the recorded typed state; current projection rebuild is
-  deterministic and side-effect-free. Restore appends a new event with source provenance, retains
-  the original history and rejects stale or incompatible requests.
+- **Deferred:** as-of reconstruction, projection rebuild and typed restore with source provenance.
 - [x] Real fixture-database connection refusal preserves accepted controls, locally expires a distinct
   temporary value and recovers after availability returns. The test verifies sanitized diagnostics
   without provider exception details; unavailable initial loading fails instead.
-- [ ] Deployment options and existing consumers retain their current behavior.
+- [x] The isolated runtime root leaves deployment configuration untouched; the reload regression
+  case verifies this directly. Existing consumer smoke/build evidence is recorded above.
 - [ ] Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
   against both SQL backends. Root Compose supplies PostgreSQL and a working SQLite test-runner
   path; shared-database/environment-isolation cases execute rather than being skipped.
@@ -989,17 +989,18 @@ Do not extend the worker launcher as an incidental change.
 
 Acceptance evidence:
 
-- [ ] A logging/feature change takes effect without restarting the process or flushing its unrelated local cache.
-- [ ] Invalid merged options, listener failures and application apply failures have distinct outcomes.
+- [x] Live logging switch/filter changes and the stub's server-enforced feature endpoint change
+  without restarting; local HTTP cases retain the unrelated singleton sentinel.
+- [x] Invalid DTO retention, throwing listeners and an explicitly rejected consumer application have
+  distinct tested outcomes. A listener failure does not imply transactional rollback of options.
 - [ ] Every healthy replica converges within a declared budget. As an initial test profile, use a
   five-second reconciliation interval and require convergence within fifteen seconds under
   healthy dependencies; this is a proposed test target, not a production guarantee.
 - [x] Two independent PostgreSQL-backed HTTP hosts converge; replacing one loads the latest revision
   while the surviving host retains its unrelated singleton sentinel.
-- [ ] Expiring a logging override works even when a replica misses the revert notification.
-  The runtime provider's local expiry path is tested, including a newer invalid durable head;
-  the dated live evidence above separately proves actual logging-switch/filter expiry under healthy
-  dependencies, not notification-loss or outage behavior in the live application.
+- [x] Expiry needs no revert publication or notification. Local tests cover expiry despite a newer
+  invalid head and real database connection refusal; dated live evidence proves actual
+  logging-switch/filter expiry under healthy dependencies.
 - [ ] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 

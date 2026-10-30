@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
             connectionString,
             provider => provider.MigrationsHistoryTable("__ef_migrations_history", RuntimeConfigurationStorage.Schema)));
         services.AddSingleton<PostgresRuntimeConfigurationStore<T>>();
+        services.AddSingleton<IRuntimeConfigurationPublisher<T>>(sp => sp.GetRequiredService<PostgresRuntimeConfigurationStore<T>>());
         services.AddSingleton<IRuntimeConfigurationStore<T>>(sp => sp.GetRequiredService<PostgresRuntimeConfigurationStore<T>>());
         return services;
     }

@@ -34,11 +34,14 @@ corresponding dedicated Redis test service.
 | `RuntimeConfigurationCodecTests` | 8 | 11 | Serialization | Bounds, shape, undefined enum, nested/cross-property validation, cycles, round-trip, validators, payload limit |
 | `PostgresRuntimeConfigurationTests` | 9 | 11 | Integration | Migrations, history, first/existing-head races, 1/20 environment isolation, rejected writes, startup, reload, expiry |
 | `RuntimeConfigurationResilienceTests` | 5 | 5 | Integration | Real database refusal/recovery, startup failure, replicas/replacement, durable regression, I/O-free monitor reads, cancellation/nonoverlap |
+| `RuntimeConfigurationReloadTests` | 4 | 4 | Integration | Captured aggregate consistency, immutable bootstrap, listener/apply failures and server-enforced feature control |
 | `RuntimeConfigurationCacheTests` | 8 | 11 | Integration | Shared Redis hits, source counts, SQL reconciliation, invalid/stale entries, expiry/eviction, startup authority, cached HTTP host, slow fill |
-| Total | 30 | 38 | | |
+| Total | 34 | 42 | | |
 
 Observed local Release result: 38 passed, 0 failed, 0 skipped. The complete solution also builds
 with zero warnings and errors.
+The subsequent reload/resilience phase passed all nine selected cases (four reload and five
+resilience cases); full-suite counts are recorded again at the final implementation boundary.
 
 The reload case asserts the standard
 `OptionsMonitor<T>`, complete collection replacement, suppressed unchanged reloads and an unchanged
@@ -66,6 +69,8 @@ Tests/
     |-- RuntimeConfigurationHostFactory.cs
     |-- RuntimeConfigurationCacheTests.cs
     |-- RuntimeConfigurationResilienceTests.cs
+    |-- RuntimeConfigurationReloadTests.cs
+    |-- RuntimeConfigurationFailureLog.cs
     `-- PostgresRuntimeConfigurationTests.cs
 ```
 
