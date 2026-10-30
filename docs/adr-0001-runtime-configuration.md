@@ -1,14 +1,27 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
-**Status:** Proposed overall; the bounded first implementation slice below is approved.
+**Status:** Accepted core scope; implementation and verification progress is tracked below.
 **Date:** 2026-10-24.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
 Blazor management surface and optional Azure Table/Blob storage extensions.
 
-This document proposes a small runtime-configuration subsystem alongside the existing configuration
-helpers. It does not describe shipped providers or promise that arbitrary application settings can
-be changed safely without a restart. Package and API names below are illustrative.
+This document records a small runtime-configuration subsystem alongside the existing configuration
+helpers. Source implementation is not package publication or production rollout, and does not
+make arbitrary application settings safe to change without restarting.
+
+## Approved Completion Scope (2026-10-30)
+
+Complete direct PostgreSQL/SQLite providers, the bounded optional Redis cache-aside mode,
+reload-failure coverage and a small authorized management API with an embeddable typed Blazor
+editor. Keep one registered DTO contract/scope per reader host; hosts own authentication,
+authorization, environment selection and browser-safe DTO design.
+
+Retain the existing append-only publication audit and read-by-revision capability. Dedicated
+restoration, paginated/as-of history, comparisons, promotion and idempotent retry workflows are
+far-future stretch goals, not core completion gates. Outbox projection, large-fleet performance
+certification, Azure authorities, package publication and consumer deployment remain separately
+approved optional work. No long-duration logging soak is required to complete this core scope.
 
 ## First Implementation Slice (2026-10-25)
 
@@ -116,9 +129,9 @@ cache and stub-host tests live in CasCap.Common and join its existing default te
   string key/value APIs are not the public programming model.
 - Keep accepted snapshots in each process. Ordinary configuration and options reads perform no
   database or Redis I/O.
-- Retain an append-only typed publication journal for audit and historical reads. Restore old
-  content by publishing a new revision, not rewriting history. Use a small in-house implementation;
-  do not add external event-sourcing libraries.
+- Retain the existing append-only publication audit and typed read-by-revision. Dedicated restore,
+  history browsing/as-of queries and replay workflows are far-future stretch goals. Any future
+  restore must publish a new revision, never rewrite history; no event-sourcing framework is needed.
 - Use the standard `IOptionsMonitor<T>` only for deliberately reloadable options. Validate a
   complete candidate before exposing it; do not assume the monitor supplies last-known-good,
   transactional resource replacement or cluster-wide consistency.
@@ -442,6 +455,10 @@ from one consistent database snapshot so a reader never assembles parts of diffe
 
 ### Audit History and Lightweight Event Sourcing
 
+The append-only audit and typed read-by-revision are current behavior. The richer history,
+restoration, idempotency, projection-rebuild and archival design in this section is **deferred
+far-future work**, not a prerequisite for the approved core or its editor.
+
 The initial design is **snapshot-carrying publication events**, not property-by-property event
 patches or a generic event-sourcing framework. Each successful publish appends one immutable
 versioned record containing the complete typed stored configuration/override state and audit
@@ -756,11 +773,11 @@ connection strings, arbitrary queries, entity serialization or the full configur
   Components retain member types through editing and submit typed DTO candidates; metadata-driven
   forms must not erase this contract into a dictionary of strings.
   Server-side descriptors and validators are authoritative; UI validation is only usability.
-- Expose distinct read, validate/preview, publish, history and rollback operations. The preview shows
-  effective changes, pinned overrides and unsupported/restart-required edits.
-- Provide paginated version history, typed comparisons and as-of/revision views, with an explicit
-  restore preview and confirmation. List configured authorized environments dynamically, whether
-  there is one or many; do not hard-code environment tabs or a three-stage promotion workflow.
+- Core operations are read, typed validation/preview and expected-revision publish. The host chooses
+  which DTO is browser-safe and supplies typed editor fields; no arbitrary key/string setter exists.
+  History browsing, comparisons, as-of views, restore and promotion are far-future enhancements.
+  Display the registered destination scope explicitly; a reader host manages its one registered
+  scope, not arbitrary environments supplied by the browser.
 - Publish uses an expected revision (`If-Match`/ETag or equivalent); stale edits return a conflict
   with a safe rebase workflow. Rollback is a new publish, not a history rewrite.
 - Report validation failures, authorization failures, conflicts, store outages and committed-but-
@@ -1046,22 +1063,18 @@ CI with disposable Azurite test infrastructure where supported. Explicitly ident
 behavior the emulator cannot prove; never report emulator success as evidence for those guarantees.
 No cloud credentials should be required for the default CI test path.
 
-## Unresolved Decisions Before Implementation
+## Remaining Operational and Stretch Decisions
 
-- Which concrete application/control justifies the first live-reload use case, and what are its
-  tolerated staleness, rollback and apply-failure behaviors?
-- Is SQLite needed beyond single-host/development scenarios, and who owns its durable file?
-- Which deployments need standalone databases versus shared schemas/files, what schema/prefix
-  names fit them, and who owns migration execution and database-level environment permissions?
-- Which application-owned DTO contracts and browser-safe projections are needed first, and which
-  override/collection shapes can the initial adapter support without losing typed semantics?
-- Which .NET targets and exact package split are justified by real consumers?
-- Can shared Redis/caching infrastructure support bootstrap and conditional revision publication
-  without pulling application cache lifecycle into configuration initialization?
+- The first live control is logging; PostgreSQL owns `cascap_config`, .NET 10 is the implemented
+  target, and Redis is a bounded cache-aside option rather than conditional outbox publication.
+- Each SQLite consumer must own a durable local file and external migration execution; SQLite is
+  not a multi-node shared-file substitute for PostgreSQL.
+- Each UI host must select its browser-safe DTO, authenticated operator policies and destination
+  scope. No generic editor can decide which application values are safe to expose.
 - Is eventual convergence sufficient for every proposed control, or must some remain restart-only
   or use stronger domain-specific enforcement?
 - Who owns administrative policies, optional approvals, schema registration and audit retention?
-- What history/archive duration and DTO-version conversion policy do consumers require, and do
+- For the deferred history features, what archive duration and DTO-version conversion policy do consumers require, and do
   publication snapshots remain small enough to avoid granular event replay?
 - Does a concrete workload justify Table or Blob storage, and can the selected adapter meet the
   same atomic publication, durable history and recovery guarantees within its storage limits?
