@@ -37,9 +37,16 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   history, revision 1 and matching head. This does not establish runtime activation or convergence.
 - [ ] Complete the explicitly authorized live soak and record its convergence/failure evidence.
 
-This does not approve production database changes, package publication or deployment. SQLite,
-Redis acceleration, UI, typed restoration, paginated history and Azure authorities remain outside
-this first slice. The remainder records the broader proposed direction, not completed features.
+For the initial live soak only, the operator approved reusing the host's existing application
+database identity rather than provisioning a separate SELECT-only identity (2026-10-30).
+This reduces credential-management work but does not reduce that account's existing privileges.
+The reader performs reads; this is not database-enforced protection against journal mutation.
+Revisit restricted reader permissions before broader rollout or the management-API phase.
+
+Database changes, package publication and deployment still require explicit operational approval;
+the first-slice scope is not blanket authorization. SQLite, Redis acceleration, UI, typed restoration,
+paginated history and Azure authorities remain outside this first slice. The remainder records
+the broader proposed direction, not completed features.
 
 ## Summary of the Proposed Decision
 
