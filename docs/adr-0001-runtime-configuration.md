@@ -35,7 +35,18 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
 - [x] Provision the independently owned PostgreSQL migration and initial `Information` logging
   snapshot in the operator-approved existing database (2026-10-30). Read-back verified the migration
   history, revision 1 and matching head. This does not establish runtime activation or convergence.
-- [ ] Complete the explicitly authorized live soak and record its convergence/failure evidence.
+- [x] Complete the approved two-minute live activation/expiry check (2026-10-30): both replicas
+  changed from the verified `Information` startup baseline to temporary `Debug`, then returned to
+  `Information` after expiry. Actual pipeline switches and probe-category Debug acceptance changed
+  together, with unchanged pod/process identities, image and zero restarts; both health checks
+  remained successful. Activation applied within 2.7 seconds of publication, and baseline return
+  within 2.7 seconds after the recorded expiry, under healthy dependencies.
+  The checked publication retained revision 1, appended revision 2 with exactly 120 seconds of
+  lifetime, and left the head at revision 2 after expiry; read-back found no later publication.
+- [ ] Complete a longer-duration soak and approved isolated failure scenarios. The short live check
+  does not prove exported log delivery, live cache retention, internal reader revision/fallback
+  metadata, exact reconciliation timing or outage recovery. Local tests remain the evidence for
+  emitted events, forwarding and the cache sentinel.
 
 For the initial live soak only, the operator approved reusing the host's existing application
 database identity rather than provisioning a separate SELECT-only identity (2026-10-30).
