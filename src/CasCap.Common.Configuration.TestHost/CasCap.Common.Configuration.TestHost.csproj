@@ -4,5 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Configuration.PostgreSql\CasCap.Common.Configuration.PostgreSql.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Sqlite\CasCap.Common.Configuration.Sqlite.csproj" />
   </ItemGroup>
 </Project>

@@ -81,7 +81,7 @@ public abstract class TestBase(ITestOutputHelper output) : IAsyncLifetime
         }
     }
 
-    protected static async Task<HostObservation> WaitForAsync(HttpClient client, Func<HostObservation, bool> predicate)
+    internal static async Task<HostObservation> WaitForAsync(HttpClient client, Func<HostObservation, bool> predicate)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));

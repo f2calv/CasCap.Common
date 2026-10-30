@@ -32,7 +32,10 @@ in the existing secret-store chain, never in the runtime DTO.
 
 The [consumer guide](../../docs/runtime-configuration.md) supplies the direct-provider setup,
 typed publisher, migration and subscriber lifecycle. This package changes only the reader:
-publication still uses the concrete PostgreSQL store and commits to PostgreSQL first.
+publication still uses the uncached `IRuntimeConfigurationPublisher<T>` and commits to the selected
+authority first. For [SQLite](../CasCap.Common.Configuration.Sqlite/README.md), use
+`AddSqliteRuntimeConfiguration` and `SqliteRuntimeConfigurationStore<Controls>` instead; the
+same cache registration and authority-identity rules apply.
 
 ## Configuration Examples
 
@@ -69,7 +72,7 @@ Redis is **evictable cache only**. Deletion or eviction causes refill; it never 
 Malformed, wrong-scope, expired or previously superseded cache entries trigger a sanitized warning
 and a durable read. Redis connection failures also fall back to the authority. If that read fails,
 normal runtime-reader retention, expiry and sanitized failure behavior apply; Redis is not an
-availability substitute for required initial PostgreSQL loading.
+availability substitute for required initial PostgreSQL or SQLite loading.
 
 The host still owns shared Redis connection registration and its timeout/abort-connect policy.
 `AddCasCapCaching` connects during registration; a connection-registration failure occurs before

@@ -8,6 +8,7 @@
 #   docker compose up
 #   docker compose --profile tests up -d --wait postgres-tests
 #   docker compose --profile tests stop postgres-tests
+#   docker compose --profile sqlite-tests run --rm sqlite-tests
 #
 # Redis and PostgreSQL track their supported major versions without digest pins.
 # Test PostgreSQL storage is disposable and lost when its container stops.
@@ -38,6 +39,32 @@ services:
       timeout: 3s
       retries: 30
 
+  sqlite-tests:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: [ sqlite-tests ]
+    restart: "no"
+    working_dir: /workspace
+    environment:
+      SQLITETEST_DIRECTORY: /sqlite-tests
+      RuntimeConfigurationTests__ConnectionStrings__Redis: redis:6379
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    volumes:
+      - .:/source:ro
+      - sqlite_tests_workspace:/workspace
+      - sqlite_tests_files:/sqlite-tests
+      - sqlite_tests_nuget:/root/.nuget/packages
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        run="$$(date +%s%N)"
+        mkdir "/workspace/$$run"
+        tar --exclude=.git --exclude=bin --exclude=obj --exclude=.copilot-tracking --exclude=TestResults -C /source -cf - . | tar -C "/workspace/$$run" -xf -
+        cd "/workspace/$$run"
+        dotnet test --project src/CasCap.Common.Configuration.Runtime.Tests/CasCap.Common.Configuration.Runtime.Tests.csproj --configuration Release --filter-class '*Sqlite*' --verbosity quiet
+    depends_on:
+      redis:
+        condition: service_healthy
+
   redis:
     image: redis:8
     restart: unless-stopped
@@ -63,3 +90,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+volumes:
+  sqlite_tests_workspace:
+  sqlite_tests_files:
+  sqlite_tests_nuget:

@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Runtime.Tests
 
-.NET 10 acceptance tests for typed runtime configuration, the real EF Core PostgreSQL adapter,
+.NET 10 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
 optional shared Redis cache-aside and an ASP.NET Core stub exercised through `WebApplicationFactory`.
 
 ## Running
@@ -16,6 +16,21 @@ docker compose --profile tests stop postgres-tests
 Use the repository's [Compose stack](../../docker-compose.yml). Tests create and drop databases;
 use only disposable PostgreSQL and Redis test services, never application services.
 Each fixture owns a GUID-named database. Cache tests delete only their own hashed keys; they never flush Redis.
+
+SQLite tests have an independent file fixture with no PostgreSQL connection or fixture dependency.
+Each owns a GUID-named directory under `.copilot-tracking/sqlite-tests` in its working directory
+(override with `SQLITETEST_DIRECTORY`), applies real migrations and deletes only its owned files.
+The same file initially contains an unrelated application table. To run just SQLite with Redis:
+
+```powershell
+dotnet test --project src\CasCap.Common.Configuration.Runtime.Tests\CasCap.Common.Configuration.Runtime.Tests.csproj --configuration Release --filter-class '*Sqlite*'
+docker compose --profile sqlite-tests run --rm sqlite-tests
+```
+
+The Compose runner copies read-only source into its own writable build volume; embedded SQLite
+uses a separate named volume, not a fictional database service. Test fixtures clean their files;
+build/NuGet volumes persist for inspection and reuse. Default solution test discovery includes
+these classes; no remote CI result is asserted.
 
 Defaults come from [appsettings.Test.json](appsettings.Test.json), loaded optionally by the shared
 configuration extension in the `Test` environment. The optional local override files load after it;
@@ -36,12 +51,12 @@ corresponding dedicated Redis test service.
 | `RuntimeConfigurationResilienceTests` | 5 | 5 | Integration | Real database refusal/recovery, startup failure, replicas/replacement, durable regression, I/O-free monitor reads, cancellation/nonoverlap |
 | `RuntimeConfigurationReloadTests` | 4 | 4 | Integration | Captured aggregate consistency, immutable bootstrap, listener/apply failures and server-enforced feature control |
 | `RuntimeConfigurationCacheTests` | 8 | 11 | Integration | Shared Redis hits, source counts, SQL reconciliation, invalid/stale entries, expiry/eviction, startup authority, cached HTTP host, slow fill |
-| Total | 34 | 42 | | |
+| `SqliteRuntimeConfigurationTests` | 12 | 18 | Integration | Dedicated/shared file migrations/no drift, unrelated table preservation, reopen/history, first/existing-head races, busy/locked conflicts, atomic rollback, 1/20 environment/application/contract isolation, invalid writes/reads, direct/cached HTTP startup/reload/expiry, warm-cache authority |
+| Total | 46 | 60 | | |
 
-Observed local Release result: 38 passed, 0 failed, 0 skipped. The complete solution also builds
-with zero warnings and errors.
-The subsequent reload/resilience phase passed all nine selected cases (four reload and five
-resilience cases); full-suite counts are recorded again at the final implementation boundary.
+Observed local Release result: 60 passed, 0 failed, 0 skipped, including all 18 focused SQLite cases.
+The complete solution also builds with zero warnings and errors. Both provider model-drift
+checks and offline migration SQL generation pass; PostgreSQL migrations/schema are unchanged.
 
 The reload case asserts the standard
 `OptionsMonitor<T>`, complete collection replacement, suppressed unchanged reloads and an unchanged
@@ -71,6 +86,8 @@ Tests/
     |-- RuntimeConfigurationResilienceTests.cs
     |-- RuntimeConfigurationReloadTests.cs
     |-- RuntimeConfigurationFailureLog.cs
+    |-- SqliteTestBase.cs
+    |-- SqliteRuntimeConfigurationTests.cs
     `-- PostgresRuntimeConfigurationTests.cs
 ```
 

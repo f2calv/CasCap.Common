@@ -1,4 +1,5 @@
 using CasCap.Common.Configuration.PostgreSql.Extensions;
+using CasCap.Common.Configuration.Sqlite.Extensions;
 using CasCap.Common.Configuration.TestHost.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
@@ -13,17 +14,26 @@ public static class AppHost
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddSingleton<CacheSentinel>();
-        builder.Services.AddPostgresRuntimeConfiguration(
-            new RuntimeConfigurationOptions
-            {
-                Scope = new RuntimeConfigurationScope("test-application",
-                    builder.Configuration["RuntimeConfiguration:Environment"] ?? throw new InvalidOperationException("Test environment is required.")),
-                ContractId = "controls",
-                RefreshInterval = TimeSpan.FromMilliseconds(100),
-            },
-            builder.Configuration.GetConnectionString("RuntimeConfiguration")
-                ?? throw new InvalidOperationException("Test database connection is required."),
-            new RuntimeControls());
+        var settings = new RuntimeConfigurationOptions
+        {
+            Scope = new RuntimeConfigurationScope("test-application",
+                builder.Configuration["RuntimeConfiguration:Environment"] ?? throw new InvalidOperationException("Test environment is required.")),
+            ContractId = "controls",
+            RefreshInterval = TimeSpan.FromMilliseconds(100),
+        };
+        var connectionString = builder.Configuration.GetConnectionString("RuntimeConfiguration")
+            ?? throw new InvalidOperationException("Test database connection is required.");
+        switch (builder.Configuration["RuntimeConfiguration:Backend"] ?? "PostgreSql")
+        {
+            case "PostgreSql":
+                builder.Services.AddPostgresRuntimeConfiguration(settings, connectionString, new RuntimeControls());
+                break;
+            case "Sqlite":
+                builder.Services.AddSqliteRuntimeConfiguration(settings, connectionString, new RuntimeControls());
+                break;
+            default:
+                throw new InvalidOperationException("Unsupported runtime configuration backend.");
+        }
         var app = builder.Build();
         app.MapGet("/observe", (IOptionsMonitor<RuntimeControls> monitor, CacheSentinel sentinel) =>
             new HostObservation

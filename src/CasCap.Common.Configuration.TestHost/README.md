@@ -8,7 +8,7 @@ for `WebApplicationFactory`.
 ## Usage
 
 Run it through the [acceptance tests](../CasCap.Common.Configuration.Runtime.Tests/README.md),
-which inject an isolated PostgreSQL connection and arbitrary environment before host composition.
+which inject an isolated PostgreSQL connection or SQLite file and arbitrary environment before host composition.
 The test fixture applies migrations and publishes the required initial revision before startup;
 the application never creates its own schema or initial publication.
 
@@ -33,3 +33,8 @@ A standalone run requires an already migrated, populated **test** database:
 
 The application scope is `test-application`, the contract is `controls`, and the baseline is
 `RuntimeControls`. Missing settings or an absent initial durable revision fail startup.
+
+`RuntimeConfiguration:Backend` defaults to `PostgreSql`; set it to `Sqlite` with a migrated file
+connection such as `Data Source=configuration.db;Pooling=False`. Unsupported backend names fail
+composition. Both paths use the same host and standard monitor. Tests can decorate reads with
+the shared Redis cache registration; the authoritative publisher remains uncached.

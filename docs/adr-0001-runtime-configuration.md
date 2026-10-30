@@ -23,6 +23,42 @@ far-future stretch goals, not core completion gates. Outbox projection, large-fl
 certification, Azure authorities, package publication and consumer deployment remain separately
 approved optional work. No long-duration logging soak is required to complete this core scope.
 
+## SQLite Provider Phase Evidence (2026-10-30)
+
+- [x] The source-only .NET 10 [SQLite adapter](../src/CasCap.Common.Configuration.Sqlite/README.md)
+  implements the shared typed publisher/store contract without adding Redis to direct consumers.
+  The existing runtime codec, options reader and baseline-expiry behavior are reused.
+- [x] Real externally applied EF Core 10.0.13 migrations own `cascap_config_revisions`,
+  `cascap_config_heads` and `cascap_config_migrations_history`; SQLite's framework migrator
+  additionally owns `__EFMigrationsLock`. Dedicated-file and shared-file tests preserve an
+  unrelated application table, migrate repeatedly without drift and reopen published state.
+- [x] Transactional journal/head publication has exactly one winner for first and existing heads.
+  Tests exercise actual SQLite busy and shared-cache locked failures, explicit concurrency
+  conflicts, no phantom append, and rollback when the head update fails. Other provider errors
+  are not relabeled as concurrency conflicts. No automatic application retry is introduced.
+- [x] Typed validation rejects invalid publications before append and invalid/version-incompatible
+  stored candidates before activation. Historical read-by-revision and one/twenty arbitrary
+  environments remain isolated across application and contract identifiers.
+- [x] The permanent [host](../src/CasCap.Common.Configuration.TestHost/README.md) defaults to
+  PostgreSQL and selects SQLite explicitly. Standard `WebApplicationFactory` tests cover direct
+  and shared-Redis cache-aside paths, required initial publication, complete replacement, expiry
+  to the distinct startup baseline and retained singleton identity. A warm cache cannot replace
+  the required authoritative startup read; publishing remains uncached.
+- [x] Local Release validation: all 18 focused SQLite cases and all 60 runtime cases passed,
+  with zero failures/skips. The complete solution Release build passed with zero warnings/errors.
+  Both SQLite and PostgreSQL model-drift checks and offline migration SQL generation passed;
+  existing PostgreSQL migrations and schema mappings are unchanged.
+- [x] The root [Compose profile](../docker-compose.yml) runs the actual embedded SQLite tests in
+  an SDK runner with isolated writable file/build volumes and shared Redis, not a fictional
+  database service. SQLite tests have no PostgreSQL fixture dependency. Existing solution-test
+  CI discovery includes them; no remote workflow was started or observed.
+
+This closes the SQLite provider implementation boundary, not the complete ADR. The authorized
+management API and typed Blazor editor are next. Dedicated restore/as-of/paginated-history APIs,
+outbox projection, package publication and live deployments remain deferred or separately approved.
+SQLite lock waiting follows the configured connection timeout; native synchronous operations do
+not provide a hard cancellation deadline. File ownership is not table-level authorization.
+
 ## First Implementation Slice (2026-10-25)
 
 The approved first slice targets .NET 10, EF Core/PostgreSQL and the standard
@@ -958,9 +994,9 @@ Acceptance evidence:
 - [ ] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
   members, undefined enum values and nested/cross-property validation failures reject the candidate
   before persistence or activation; no raw string setter bypasses those checks.
-- [ ] Both providers work in dedicated and existing databases; migrations touch only owned objects.
+- [x] Both providers work in dedicated and existing databases; migrations touch only owned objects.
   PostgreSQL schema qualification and SQLite prefixing avoid application-table collisions.
-- [ ] Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
+- [x] Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
   migrations. Real-engine tests prove concurrency/transaction behavior and fresh/upgrade paths;
   neither EF InMemory nor `EnsureCreated` stands in for migration coverage.
 - [ ] Identical application/contract names in arbitrary environments remain independent through writes,
@@ -969,6 +1005,8 @@ Acceptance evidence:
   those are test examples, not library-imposed environment counts.
 - [x] PostgreSQL publication, reads and history are isolated across generated one- and twenty-environment
   cases. Rollback and idempotent retry APIs remain deferred.
+- [x] SQLite publication and historical reads isolate application/contract/environment scopes in
+  one- and twenty-environment cases; restore and idempotent retry remain deferred.
 - [x] PostgreSQL historical revision reads return the recorded typed state after later publication,
   verified by the real-store history test.
 - **Deferred:** as-of reconstruction, projection rebuild and typed restore with source provenance.
@@ -977,9 +1015,10 @@ Acceptance evidence:
   without provider exception details; unavailable initial loading fails instead.
 - [x] The isolated runtime root leaves deployment configuration untouched; the reload regression
   case verifies this directly. Existing consumer smoke/build evidence is recorded above.
-- [ ] Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
-  against both SQL backends. Root Compose supplies PostgreSQL and a working SQLite test-runner
-  path; shared-database/environment-isolation cases execute rather than being skipped.
+- [x] Provider unit/integration suites and the `WebApplicationFactory` stub host are included in
+  default solution-test CI discovery against both SQL backends. Root Compose supplies PostgreSQL
+  and a locally executed SQLite test-runner path; shared-database/environment-isolation cases
+  execute rather than being skipped. Remote CI execution is not claimed.
 
 ### Phase 2: Controlled Reload and Feature Evaluation
 
@@ -1030,7 +1069,8 @@ Acceptance evidence:
 - [ ] Large replica cold starts have bounded source load; all published snapshots remain complete.
 - [ ] Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
   notification or snapshot cannot activate in another scope.
-- [ ] SQLite-plus-Redis integration/host coverage joins default CI when the SQLite adapter is introduced.
+- [x] SQLite-plus-Redis integration/host coverage joins default solution-test CI discovery with the
+  SQLite adapter; local execution passed, remote CI execution remains unobserved.
 
 ### Phase 4: Management API and Blazor RCL
 

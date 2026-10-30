@@ -12,7 +12,8 @@ public sealed class RuntimeConfigurationHostFactory(
     string connectionString,
     string environment,
     TimeProvider? timeProvider = null,
-    Action<IServiceCollection>? configureServices = null
+    Action<IServiceCollection>? configureServices = null,
+    string backend = "PostgreSql"
 ) : WebApplicationFactory<TestProgram>
 {
     protected override IHost CreateHost(IHostBuilder builder)
@@ -22,6 +23,7 @@ public sealed class RuntimeConfigurationHostFactory(
             {
                 ["ConnectionStrings:RuntimeConfiguration"] = connectionString,
                 ["RuntimeConfiguration:Environment"] = environment,
+                ["RuntimeConfiguration:Backend"] = backend,
             }));
         return base.CreateHost(builder);
     }

@@ -1,11 +1,11 @@
 # Typed Runtime Configuration
 
-Use the source-only .NET 10 runtime/PostgreSQL libraries for narrow, non-secret operational
+Use the source-only .NET 10 runtime/PostgreSQL/SQLite libraries for narrow, non-secret operational
 controls that must change without restarting a host. Immutable deployment configuration remains
 the default. Connections, authentication, DI topology and database/schema selection are not live controls.
 
 The [ADR](adr-0001-runtime-configuration.md) separates the implemented slice from the broader
-proposal. SQLite, management APIs/UI, typed restore commands, Redis outbox projection and Azure
+proposal. Management APIs/UI, typed restore commands, Redis outbox projection and Azure
 authorities are not implemented. The optional Redis adapter is a bounded cache-aside trial only.
 
 ## Choose a Read Mode
@@ -13,6 +13,7 @@ authorities are not implemented. The optional Redis adapter is a bounded cache-a
 | Mode | Dependencies | Freshness |
 | --- | --- | --- |
 | Direct PostgreSQL | Runtime and PostgreSQL source projects, PostgreSQL | Next successful poll, plus source/apply duration |
+| Direct SQLite | Runtime and SQLite source projects, durable local file | Next successful poll, plus source/apply duration |
 | Optional cache-aside | Direct provider plus Redis project and shared CasCap caching | Cache age or independent durable reconciliation, then polling/source duration |
 
 Reference the source projects from the host while these packages are unpublished. The Redis
@@ -114,6 +115,33 @@ Schema separation is not permission enforcement. Reusing an application identity
 explicitly accepted trial tradeoff, but it does not remove that account's existing privileges.
 All records are non-secret; never use configuration history as a credential store.
 
+## Provision SQLite Externally
+
+Use the [SQLite source adapter](../src/CasCap.Common.Configuration.Sqlite/README.md) instead of
+PostgreSQL by importing `CasCap.Common.Configuration.Sqlite.Extensions` and calling
+`AddSqliteRuntimeConfiguration` with the same settings/baseline and a file connection string
+such as `Data Source=configuration.db;Pooling=False;Default Timeout=5`.
+
+Its independently owned context has real provider-specific migrations for
+`cascap_config_revisions`, `cascap_config_heads` and `cascap_config_migrations_history`.
+It preserves unrelated application tables in a shared file. EF's SQLite migrator additionally owns
+`__EFMigrationsLock`. Apply migrations externally and serialize migration execution, including
+other contexts using the same file; runtime startup never modifies schema.
+
+```powershell
+dotnet ef migrations script --project src\CasCap.Common.Configuration.Sqlite --configuration Release
+dotnet ef migrations has-pending-model-changes --project src\CasCap.Common.Configuration.Sqlite --configuration Release
+```
+
+The design-time factory is offline; choose the actual file separately when applying reviewed
+migrations. SQLite does not support EF idempotent scripts. One writer holds a non-deferred
+transaction across head validation, journal append and head advancement. Stale heads,
+primary-key races and SQLite busy/locked errors are explicit `DbUpdateConcurrencyException`;
+reload the durable head before retrying. Other database errors are not mislabeled as conflicts.
+File permissions apply to the entire database; a table prefix is ownership, not authorization.
+Keep durable files local and back them up operationally; do not share writable WAL files across
+nodes or expect Redis to reconcile independent files.
+
 ## Publish and Read History
 
 Use the concrete typed writer, with an audit actor derived from an authorized operator/principal:
@@ -199,7 +227,7 @@ switch/filter transitions, not exported-event delivery, all future failures or a
 ## Validate and Troubleshoot
 
 The [acceptance suite](../src/CasCap.Common.Configuration.Runtime.Tests/README.md) runs against
-disposable PostgreSQL/Redis and the permanent `WebApplicationFactory` stub. Tests exercise validation,
+disposable PostgreSQL/Redis, isolated SQLite files and the permanent `WebApplicationFactory` stub. Tests exercise validation,
 concurrency, migration shape, isolation, real database connection refusal/recovery, replicas,
 replacement, local expiry, cancellation and the optional cache trial.
 
