@@ -663,6 +663,13 @@ or third-party content as a side effect of changing verbosity.
 
 ### Integration Model
 
+The selected first management-UI candidate is agentizr, which already has a
+[Blazor WebAssembly client](https://github.com/f2calv/agentizr/blob/main/src/CasCap.App.Client/CasCap.App.Client.csproj).
+This host choice was confirmed on 2026-10-30; it does not expand the current logging-only backend
+soak into UI implementation. After that soak, evaluate embedding the optional management module
+in the existing frontend rather than creating a separate portal. Keep the reusable components and
+typed API client host-independent, with provider access and authorization enforced on the server.
+
 An RCL provides components such as a settings grid, constrained editors, revision history and
 convergence indicators. The host explicitly references it, registers its typed HTTP client, mounts
 the page and supplies authorization policies. No runtime assembly discovery or downloaded arbitrary
