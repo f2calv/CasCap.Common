@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Configuration\CasCap.Common.Configuration.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.TestHost\CasCap.Common.Configuration.TestHost.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Redis\CasCap.Common.Configuration.Redis.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />

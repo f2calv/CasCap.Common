@@ -11,7 +11,8 @@ namespace CasCap.Common.Configuration.Runtime.Tests.Tests.Integration;
 public sealed class RuntimeConfigurationHostFactory(
     string connectionString,
     string environment,
-    TimeProvider? timeProvider = null
+    TimeProvider? timeProvider = null,
+    Action<IServiceCollection>? configureServices = null
 ) : WebApplicationFactory<TestProgram>
 {
     protected override IHost CreateHost(IHostBuilder builder)
@@ -30,5 +31,7 @@ public sealed class RuntimeConfigurationHostFactory(
         builder.ConfigureLogging(logging => logging.ClearProviders());
         if (timeProvider is not null)
             builder.ConfigureServices(services => services.AddSingleton(timeProvider));
+        if (configureServices is not null)
+            builder.ConfigureServices(configureServices);
     }
 }

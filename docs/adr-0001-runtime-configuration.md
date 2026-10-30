@@ -23,8 +23,9 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   `cascap_config` schema, scoped heads and audited snapshot revisions, with optimistic
   publication and historical reads.
 - [x] [Acceptance tests](../src/CasCap.Common.Configuration.Runtime.Tests/README.md) and the permanent
-  modern-hosting stub passed locally in Release: 14 cases, zero failures or skips, using real
-  PostgreSQL started through the root Compose `tests` profile.
+  modern-hosting stub passed locally in Release: 38 cases, zero failures or skips, including the
+  approved failure/cache trial below, using real PostgreSQL and Redis from root Compose.
+  The complete Release solution build also passed with zero warnings or errors.
 - [x] [Default CI wiring](../.github/workflows/ci.yml) includes the test projects, required PostgreSQL
   service and automatic-event test execution. Remote execution has not yet been observed.
 - [x] Integrate opt-in logging control into the first consuming application and verify the actual
@@ -43,10 +44,11 @@ timers, Dapper access, failure defaults or Redis-as-authority behavior.
   within 2.7 seconds after the recorded expiry, under healthy dependencies.
   The checked publication retained revision 1, appended revision 2 with exactly 120 seconds of
   lifetime, and left the head at revision 2 after expiry; read-back found no later publication.
-- [ ] Complete a longer-duration soak and approved isolated failure scenarios. The short live check
+- [ ] Complete any separately justified longer-duration or live failure exercise. The short live check
   does not prove exported log delivery, live cache retention, internal reader revision/fallback
   metadata, exact reconciliation timing or outage recovery. Local tests remain the evidence for
-  emitted events, forwarding and the cache sentinel.
+  emitted events, forwarding and the cache sentinel. Reusable isolated failure coverage is tracked
+  separately below; a long soak is not a prerequisite for the small logging-level check.
 
 For the initial live soak only, the operator approved reusing the host's existing application
 database identity rather than provisioning a separate SELECT-only identity (2026-10-30).
@@ -58,6 +60,39 @@ Database changes, package publication and deployment still require explicit oper
 the first-slice scope is not blanket authorization. SQLite, Redis acceleration, UI, typed restoration,
 paginated history and Azure authorities remain outside this first slice. The remainder records
 the broader proposed direction, not completed features.
+
+## Approved Cache-Aside Trial (2026-10-30)
+
+After the live logging check, the operator approved an opt-in bounded Redis cache-aside trial and
+additional direct-provider failure tests, not the outbox-backed projection proposed below.
+The [consumer guide](runtime-configuration.md) is the implemented-feature entry point; the
+[optional Redis project](../src/CasCap.Common.Configuration.Redis/README.md) composes the existing
+shared caching library without adding Redis to direct PostgreSQL consumers.
+
+The trigger is evaluating the optional architecture, not a demonstrated database bottleneck:
+two hosts polling every five seconds issue approximately 0.4 aggregate reads per second.
+No measured production benefit or Redis rollout is claimed.
+PostgreSQL remains the only durable authority, and typed publication remains unchanged.
+Startup always reads PostgreSQL; subsequent cache hits are validated and bounded by absolute age.
+Each reader independently reconciles directly with PostgreSQL even if Redis remains available.
+
+Default maximum cache age is 30 seconds with up to ten percent shorter jitter; default independent
+reconciliation is one minute. Application/environment/contract/version plus a non-secret authority
+identifier scope each hashed key and envelope. Deployments sharing Redis must supply distinct
+authority identifiers for different durable databases/schemas.
+Direct SQL and typed writes need not invalidate this trial's entries: accepted additional
+staleness is cache age or independent reconciliation, followed by poll/source duration under healthy
+dependencies. This is intentionally weaker than immediate invalidation or outbox delivery.
+Stale refills cannot regress an already observed revision; malformed/mismatched cache entries or
+Redis connection failures produce sanitized diagnostics and a direct durable read.
+Shared cache connection registration still follows the host's timeout/abort-connect policy;
+registration failures occur before the decorator can fall back.
+
+This trial adds no outbox, fenced shared pointer, notification delivery guarantee or write
+acknowledgment through Redis. Cache loss causes refill, never loss of accepted SQL history.
+Full projection semantics remain a separate later choice, requiring measured benefit and their own
+acceptance evidence. Application-specific logging tests stay in their consumer; reusable provider,
+cache and stub-host tests live in CasCap.Common and join its existing default test path.
 
 ## Summary of the Proposed Decision
 
@@ -525,7 +560,14 @@ PostgreSQL `LISTEN/NOTIFY` may reduce reaction time, but is a hint followed by a
 Subscribe and reconcile on startup and reconnect to close the initial subscription race.
 Polling is still the recovery mechanism after missed notifications.
 
-### Optional Redis Mode
+### Bounded Cache-Aside Trial
+
+The approved trial above reuses shared cache-aside fill/stampede protection. It permits bounded
+stale cache contents and does not rely on writer invalidation. Every reader bypasses the cache
+independently, and required startup remains authoritative. It does not claim the stronger publication
+protocol below. See the [trial contract](../src/CasCap.Common.Configuration.Redis/README.md).
+
+### Later Outbox-Backed Redis Mode
 
 The SQL transaction is the only write acknowledgment boundary. Never write Redis first or report a
 SQL failure as success because the cache changed.
@@ -887,7 +929,8 @@ partitioning and opt-in standard configuration integration.
 
 Acceptance evidence:
 
-- [ ] Reads after initial loading perform zero network/database I/O.
+- [x] Reading the accepted `IOptionsMonitor<T>` aggregate performs zero store I/O, verified across
+  1,000 reads while the background refresh is blocked. Refresh itself intentionally performs I/O.
 - [x] Concurrent PostgreSQL edits yield one winner and an explicit conflict, verified by the real-store
   concurrent-publication test.
 - [ ] Rollback advances the revision.
@@ -906,12 +949,16 @@ Acceptance evidence:
   rollback, idempotent retries, refresh and audit history; no missing-scope fallback crosses environments.
   Include a single-environment case and a generated twenty-environment case with nonstandard names;
   those are test examples, not library-imposed environment counts.
+- [x] PostgreSQL publication, reads and history are isolated across generated one- and twenty-environment
+  cases. Rollback and idempotent retry APIs remain deferred.
 - [x] PostgreSQL historical revision reads return the recorded typed state after later publication,
   verified by the real-store history test.
 - [ ] Historical as-of reads return the recorded typed state; current projection rebuild is
   deterministic and side-effect-free. Restore appends a new event with source provenance, retains
   the original history and rejects stale or incompatible requests.
-- [ ] Refresh failures preserve the accepted state and expose sanitized, actionable diagnostics.
+- [x] Real fixture-database connection refusal preserves accepted controls, locally expires a distinct
+  temporary value and recovers after availability returns. The test verifies sanitized diagnostics
+  without provider exception details; unavailable initial loading fails instead.
 - [ ] Deployment options and existing consumers retain their current behavior.
 - [ ] Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
   against both SQL backends. Root Compose supplies PostgreSQL and a working SQLite test-runner
@@ -930,20 +977,34 @@ Acceptance evidence:
 - [ ] Every healthy replica converges within a declared budget. As an initial test profile, use a
   five-second reconciliation interval and require convergence within fifteen seconds under
   healthy dependencies; this is a proposed test target, not a production guarantee.
+- [x] Two independent PostgreSQL-backed HTTP hosts converge; replacing one loads the latest revision
+  while the surviving host retains its unrelated singleton sentinel.
 - [ ] Expiring a logging override works even when a replica misses the revert notification.
   The runtime provider's local expiry path is tested, including a newer invalid durable head;
-  real logging/replica expiry remains a live-soak acceptance step.
+  the dated live evidence above separately proves actual logging-switch/filter expiry under healthy
+  dependencies, not notification-loss or outage behavior in the live application.
 - [ ] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 
-### Phase 3: Optional Redis, Only with Measured Benefit
+### Phase 3: Optional Redis Trial and Later Projection
 
-Measure direct SQL revision-check load, rollout startup latency, snapshot size and convergence
-before choosing Redis. Record the improvement target and added operational cost before proceeding.
-Wire SQL outbox projection, version-aware publication and independent durable reconciliation.
+The bounded cache-aside trial is explicitly approved for evaluation, without claiming that the current
+small workload needs it. Compare source reads and stale-change behavior in isolated acceptance tests.
+Before adopting it operationally, measure direct SQL load, rollout startup latency, snapshot size,
+convergence and the added operational cost. The stronger SQL-outbox projection, version-aware
+publication and independent reconciliation design is deferred, not silently supplied by cache-aside.
 
 Acceptance evidence:
 
+- [x] The PostgreSQL cache-aside trial exercises real shared Redis hits and reduced durable read counts,
+  direct SQL publication without invalidation, independent reconciliation and a cached HTTP host
+  with retained singleton state. Cache corruption, scope mismatch, typed validation failure and
+  regression fall back to PostgreSQL; Redis connection failure is injected, not a server failover.
+- [x] The trial requires authoritative startup despite a warm cache, enforces logical absolute age,
+  refills after deletion and tests hashed scope/authority identity. Slow fills exceeding physical
+  expiry retry directly rather than renewing the stale deadline.
+- [x] PostgreSQL-plus-Redis tests are part of the existing default-CI project and service wiring.
+  Local execution is evidence only for local behavior; remote CI has not yet been observed.
 - [ ] Delayed stale refill/projector work cannot move active state or cached pointers backward.
 - [ ] Redis outage, eviction, restart, lost notification and failover recover without data loss.
 - [ ] A writer crash after SQL commit is recovered through the outbox.
@@ -951,8 +1012,7 @@ Acceptance evidence:
 - [ ] Large replica cold starts have bounded source load; all published snapshots remain complete.
 - [ ] Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
   notification or snapshot cannot activate in another scope.
-- [ ] Both SQLite-plus-Redis and PostgreSQL-plus-Redis integration/host suites join default CI in the
-  same change that introduces the Redis adapter.
+- [ ] SQLite-plus-Redis integration/host coverage joins default CI when the SQLite adapter is introduced.
 
 ### Phase 4: Management API and Blazor RCL
 

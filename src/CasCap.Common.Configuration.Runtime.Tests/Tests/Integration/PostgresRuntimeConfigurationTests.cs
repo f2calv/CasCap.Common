@@ -24,14 +24,19 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         Assert.Null(await _store.ReadRevisionAsync(3, TestContext.Current.CancellationToken));
     }
 
-    [Fact]
-    public async Task ConcurrentPublication()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConcurrentPublication(bool existingHead)
     {
+        if (existingHead)
+            await PublishAsync(new RuntimeControls(), 0);
+        var expectedRevision = existingHead ? 1 : 0;
         var publications = Enumerable.Range(0, 8).Select(async index =>
         {
             try
             {
-                await PublishAsync(new RuntimeControls(), 0, $"Concurrent publication {index}");
+                await PublishAsync(new RuntimeControls(), expectedRevision, $"Concurrent publication {index}");
                 return true;
             }
             catch (DbUpdateConcurrencyException)
@@ -41,21 +46,41 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         });
         var results = await Task.WhenAll(publications);
         Assert.Single(results, value => value);
-        Assert.Equal(1, (await _store.ReadAsync(TestContext.Current.CancellationToken))!.Revision);
-        Assert.Null(await _store.ReadRevisionAsync(2, TestContext.Current.CancellationToken));
+        Assert.Equal(expectedRevision + 1, (await _store.ReadAsync(TestContext.Current.CancellationToken))!.Revision);
+        Assert.Null(await _store.ReadRevisionAsync(expectedRevision + 2, TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(20)]
+    public async Task EnvironmentIsolation(int environmentCount)
+    {
+        await PublishAsync(new RuntimeControls { Verbosity = 5 }, 0);
+        for (var index = 0; index < environmentCount; index++)
+        {
+            await using var other = CreateServices($"arbitrary-environment-{index}");
+            var otherStore = other.GetRequiredService<PostgresRuntimeConfigurationStore<RuntimeControls>>();
+            Assert.Null(await otherStore.ReadAsync(TestContext.Current.CancellationToken));
+            await otherStore.PublishAsync(new RuntimeControls { Verbosity = index % 6 }, 0, "test-operator", "Isolated environment",
+                cancellationToken: TestContext.Current.CancellationToken);
+        }
+        for (var index = 0; index < environmentCount; index++)
+        {
+            await using var other = CreateServices($"arbitrary-environment-{index}");
+            var otherStore = other.GetRequiredService<PostgresRuntimeConfigurationStore<RuntimeControls>>();
+            Assert.Equal(index % 6, (await otherStore.ReadAsync(TestContext.Current.CancellationToken))!.Value.Verbosity);
+        }
+        Assert.Equal(5, (await _store.ReadAsync(TestContext.Current.CancellationToken))!.Value.Verbosity);
     }
 
     [Fact]
-    public async Task EnvironmentIsolation()
+    public async Task InvalidTypedPublication_DoesNotAppendHistory()
     {
-        await PublishAsync(new RuntimeControls { Verbosity = 5 }, 0);
-        await using var other = CreateServices("another-arbitrary-environment");
-        var otherStore = other.GetRequiredService<PostgresRuntimeConfigurationStore<RuntimeControls>>();
-        Assert.Null(await otherStore.ReadAsync(TestContext.Current.CancellationToken));
-        await otherStore.PublishAsync(new RuntimeControls { Verbosity = 1 }, 0, "test-operator", "Second environment",
-            cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Equal(5, (await _store.ReadAsync(TestContext.Current.CancellationToken))!.Value.Verbosity);
-        Assert.Equal(1, (await otherStore.ReadAsync(TestContext.Current.CancellationToken))!.Value.Verbosity);
+        await PublishAsync(new RuntimeControls { Verbosity = 3 }, 0);
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() =>
+            PublishAsync(new RuntimeControls { Verbosity = 99 }, 1));
+        Assert.Equal(1, (await _store.ReadAsync(TestContext.Current.CancellationToken))!.Revision);
+        Assert.Null(await _store.ReadRevisionAsync(2, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -134,10 +159,10 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
     public async Task ExpiryRestoresBaseline()
     {
         var timeProvider = new ManualTimeProvider();
-        await PublishAsync(new RuntimeControls { Verbosity = 5 }, 0);
+        await PublishAsync(new RuntimeControls { Verbosity = 3 }, 0);
         await using var host = CreateHost(timeProvider);
         using var client = host.CreateClient();
-        Assert.Equal(5, (await client.GetFromJsonAsync<HostObservation>("/observe", TestContext.Current.CancellationToken))!.Controls.Verbosity);
+        Assert.Equal(3, (await client.GetFromJsonAsync<HostObservation>("/observe", TestContext.Current.CancellationToken))!.Controls.Verbosity);
         await PublishAsync(new RuntimeControls { Verbosity = 5 }, 1, expiresAtUtc: timeProvider.GetUtcNow().AddMinutes(10));
         await WaitForAsync(client, value => value.Controls.Verbosity == 5);
         timeProvider.Advance(TimeSpan.FromMinutes(20));
@@ -145,32 +170,4 @@ public sealed class PostgresRuntimeConfigurationTests(ITestOutputHelper output) 
         Assert.Equal(2, expired.Controls.Verbosity);
     }
 
-    private static async Task<HostObservation> WaitForAsync(HttpClient client, Func<HostObservation, bool> predicate)
-    {
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(10));
-        while (true)
-        {
-            var value = (await client.GetFromJsonAsync<HostObservation>("/observe", timeout.Token))!;
-            if (predicate(value))
-                return value;
-            await Task.Delay(50, timeout.Token);
-        }
-    }
-
-    private Task<RuntimeConfigurationRevision<RuntimeControls>> PublishAsync(
-        RuntimeControls value,
-        long expectedRevision,
-        string reason = "Test publication",
-        DateTimeOffset? expiresAtUtc = null
-    ) => _store.PublishAsync(value, expectedRevision, "test-operator", reason, expiresAtUtc, TestContext.Current.CancellationToken);
-
-    private sealed class ManualTimeProvider : TimeProvider
-    {
-        private long _utcTicks = DateTimeOffset.UtcNow.UtcTicks;
-
-        public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _utcTicks), TimeSpan.Zero);
-
-        public void Advance(TimeSpan duration) => Interlocked.Add(ref _utcTicks, duration.Ticks);
-    }
 }

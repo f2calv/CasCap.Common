@@ -23,4 +23,7 @@ Register runtime configuration before consumers' hosted services.
 
 No network access occurs during ordinary options reads. Polling currently reads one complete
 bounded snapshot per interval; revision-only optimization is deferred until measured load warrants it.
-See [the design](../../docs/adr-0001-runtime-configuration.md) and the PostgreSQL adapter.
+See the [consumer and operations guide](../../docs/runtime-configuration.md),
+[PostgreSQL adapter](../CasCap.Common.Configuration.PostgreSql/README.md),
+[optional cache-aside trial](../CasCap.Common.Configuration.Redis/README.md) and
+[design](../../docs/adr-0001-runtime-configuration.md).

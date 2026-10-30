@@ -25,8 +25,11 @@ or DELETE of journal rows; EF mappings alone do not enforce append-only permissi
 
 One typed contract per host, full snapshots, bounded payloads and direct polling are supported.
 Schema customization, idempotent command retries, paginated/as-of history, typed restore commands,
-store-generation recovery, outbox/Redis projection and SQLite remain follow-up ADR phases.
+store-generation recovery, outbox-backed Redis projection and SQLite remain follow-up ADR phases.
 Do not use this provisional slice for safety-critical controls or restore a database under running
 readers. First-publication and existing-scope races produce explicit concurrency failures.
 
-See [the ADR](../../docs/adr-0001-runtime-configuration.md) for the full intended scope.
+See the [consumer and operations guide](../../docs/runtime-configuration.md) for setup, typed
+publication, permissions and failure behavior; the [optional Redis cache-aside trial](../CasCap.Common.Configuration.Redis/README.md)
+for bounded read acceleration; and [the ADR](../../docs/adr-0001-runtime-configuration.md) for
+the full intended scope.
