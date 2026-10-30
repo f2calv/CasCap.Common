@@ -38,3 +38,10 @@ The application scope is `test-application`, the contract is `controls`, and the
 connection such as `Data Source=configuration.db;Pooling=False`. Unsupported backend names fail
 composition. Both paths use the same host and standard monitor. Tests can decorate reads with
 the shared Redis cache registration; the authoritative publisher remains uncached.
+
+`RuntimeConfiguration:ManagementEnabled` defaults to false. The acceptance fixture can explicitly
+enable the typed management controller, install real test-only cookie authentication/policies and
+exercise the [management wire contract](../../docs/runtime-configuration-management.md).
+The module itself supplies no login endpoint or anonymous bypass; test sign-in middleware lives
+only in the test assembly. Shared test Data Protection keys are fixture-owned files deleted at
+cleanup. The unauthenticated observation/feature probes remain unchanged.

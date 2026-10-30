@@ -1,6 +1,7 @@
 using CasCap.Common.Configuration.PostgreSql.Extensions;
 using CasCap.Common.Configuration.Sqlite.Extensions;
 using CasCap.Common.Configuration.TestHost.Services;
+using CasCap.Common.Configuration.Management.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 
@@ -34,7 +35,16 @@ public static class AppHost
             default:
                 throw new InvalidOperationException("Unsupported runtime configuration backend.");
         }
+        var managementEnabled = builder.Configuration.GetValue<bool>("RuntimeConfiguration:ManagementEnabled");
+        if (managementEnabled)
+            builder.Services.AddRuntimeConfigurationManagement<RuntimeControls>();
         var app = builder.Build();
+        if (managementEnabled)
+        {
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapControllers();
+        }
         app.MapGet("/observe", (IOptionsMonitor<RuntimeControls> monitor, CacheSentinel sentinel) =>
             new HostObservation
             {

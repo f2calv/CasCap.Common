@@ -2,6 +2,7 @@
 
 .NET 10 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
 optional shared Redis cache-aside and an ASP.NET Core stub exercised through `WebApplicationFactory`.
+The optional typed management API is exercised with real test-only cookie authentication.
 
 ## Running
 
@@ -52,9 +53,11 @@ corresponding dedicated Redis test service.
 | `RuntimeConfigurationReloadTests` | 4 | 4 | Integration | Captured aggregate consistency, immutable bootstrap, listener/apply failures and server-enforced feature control |
 | `RuntimeConfigurationCacheTests` | 8 | 11 | Integration | Shared Redis hits, source counts, SQL reconciliation, invalid/stale entries, expiry/eviction, startup authority, cached HTTP host, slow fill |
 | `SqliteRuntimeConfigurationTests` | 12 | 18 | Integration | Dedicated/shared file migrations/no drift, unrelated table preservation, reopen/history, first/existing-head races, busy/locked conflicts, atomic rollback, 1/20 environment/application/contract isolation, invalid writes/reads, direct/cached HTTP startup/reload/expiry, warm-cache authority |
-| Total | 46 | 60 | | |
+| `ManagementApiTests` | 14 | 45 | Integration | SQLite/Redis stateless hosts and replacement, typed preview/no write, audit identity, fixed-scope/operation policy matrix, named browser auth schemes, JSON CSRF, shape/enum/integral/metadata bounds, races, unavailable/no-retry, closed ApiExplorer metadata |
+| `ManagementPostgresTests` | 2 | 2 | Integration | Real PostgreSQL HTTP writer race/audit and sanitized database outage while reader state/sentinel/feature remain accepted |
+| Total | 62 | 107 | | |
 
-Observed local Release result: 60 passed, 0 failed, 0 skipped, including all 18 focused SQLite cases.
+Observed local Release result: 107 passed, 0 failed, 0 skipped, including all 47 focused management cases.
 The complete solution also builds with zero warnings and errors. Both provider model-drift
 checks and offline migration SQL generation pass; PostgreSQL migrations/schema are unchanged.
 
@@ -88,8 +91,20 @@ Tests/
     |-- RuntimeConfigurationFailureLog.cs
     |-- SqliteTestBase.cs
     |-- SqliteRuntimeConfigurationTests.cs
+    |-- ManagementTestSupport.cs
+    |-- ManagementApiTests.cs
+    |-- ManagementPostgresTests.cs
     `-- PostgresRuntimeConfigurationTests.cs
 ```
 
-The [stub host](../CasCap.Common.Configuration.TestHost/README.md) uses the actual provider and monitor,
-not a fake store. Its observation endpoint is test-only, not a management API.
+The [stub host](../CasCap.Common.Configuration.TestHost/README.md) uses the actual provider and monitor.
+Its observation endpoint is test-only, not a management API. The fixture explicitly opts into
+[management controllers](../CasCap.Common.Configuration.Management/README.md) and installs cookie
+sign-in middleware only from this test assembly. Replacement-host tests share fixture-owned Data
+Protection keys, cleaned with the isolated SQLite files. Focused API execution uses
+`--filter-class '*Management*'` with the same native .NET 10 MTP command.
+
+The unavailable/missing-publication contract also uses an injected publisher to inspect sanitized
+logs and single-attempt behavior; actual PostgreSQL outage coverage complements this fault injection.
+The browser DTO is intentionally tiny and host-owned. These cases do not test a Blazor editor,
+browser assets, production authentication providers, live replica rollout or remote CI execution.

@@ -5,8 +5,9 @@ controls that must change without restarting a host. Immutable deployment config
 the default. Connections, authentication, DI topology and database/schema selection are not live controls.
 
 The [ADR](adr-0001-runtime-configuration.md) separates the implemented slice from the broader
-proposal. Management APIs/UI, typed restore commands, Redis outbox projection and Azure
-authorities are not implemented. The optional Redis adapter is a bounded cache-aside trial only.
+proposal. The optional [typed management API](runtime-configuration-management.md) is implemented
+as separate source projects; the Blazor UI/client, typed restore commands, Redis outbox projection
+and Azure authorities are not implemented. The optional Redis adapter is a bounded cache-aside trial only.
 
 ## Choose a Read Mode
 

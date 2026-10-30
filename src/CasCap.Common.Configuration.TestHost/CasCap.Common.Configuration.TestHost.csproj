@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Configuration.Management\CasCap.Common.Configuration.Management.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.PostgreSql\CasCap.Common.Configuration.PostgreSql.csproj" />
     <ProjectReference Include="..\CasCap.Common.Configuration.Sqlite\CasCap.Common.Configuration.Sqlite.csproj" />
   </ItemGroup>

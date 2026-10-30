@@ -36,6 +36,8 @@
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/CasCap.Common.Configuration.Management.Contracts/CasCap.Common.Configuration.Management.Contracts.csproj" />
+    <Project Path="src/CasCap.Common.Configuration.Management/CasCap.Common.Configuration.Management.csproj" />
     <Project Path="src/CasCap.Common.Configuration.Redis/CasCap.Common.Configuration.Redis.csproj" />
     <Project Path="src/CasCap.Common.Configuration.Sqlite/CasCap.Common.Configuration.Sqlite.csproj" />
   </Folder>

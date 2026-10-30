@@ -53,11 +53,43 @@ approved optional work. No long-duration logging soak is required to complete th
   database service. SQLite tests have no PostgreSQL fixture dependency. Existing solution-test
   CI discovery includes them; no remote workflow was started or observed.
 
-This closes the SQLite provider implementation boundary, not the complete ADR. The authorized
-management API and typed Blazor editor are next. Dedicated restore/as-of/paginated-history APIs,
+This closes the SQLite provider implementation boundary, not the complete ADR. The management
+API evidence follows below; the typed Blazor editor remains unimplemented. Dedicated restore/as-of/paginated-history APIs,
 outbox projection, package publication and live deployments remain deferred or separately approved.
 SQLite lock waiting follows the configured connection timeout; native synchronous operations do
 not provide a hard cancellation deadline. File ownership is not table-level authorization.
+
+## Management API Phase Evidence (2026-10-30)
+
+- [x] Source-only .NET 10 [browser-neutral contracts](../src/CasCap.Common.Configuration.Management.Contracts/README.md)
+  have no Runtime/EF/ASP.NET dependency. The optional
+  [management server](../src/CasCap.Common.Configuration.Management/README.md) references Runtime
+  and Contracts plus the ASP.NET framework, not either database adapter or Redis.
+- [x] A directly registered closed generic controller exposes current document, antiforgery token,
+  typed preview and expected-revision publish for exactly one configured destination. The
+  [wire contract](runtime-configuration-management.md) defines exact DTOs, routes and errors.
+  Authoritative publisher reads bypass the optional cache; the existing codec validates and copies
+  complete candidates. Reads omit actor/reason, provider settings and accepted-reader internals.
+- [x] Host-owned view/edit/publish policies are enforced against the fixed destination resource,
+  including policy-specific authentication schemes alongside unchanged machine-auth defaults.
+  Missing policies fail closed. JSON mutations require principal-bound antiforgery; actor is
+  derived exclusively from authenticated claims. API failures are problem responses, not redirects.
+- [x] Strict bounded module-only JSON rejects malformed/unknown/duplicate members, missing or
+  inexact revisions, invalid enum/DTO values and invalid metadata before publication. Concurrency
+  conflicts return 409; authority failures return sanitized 503 and log only exception type.
+  No mutation retry is introduced. Replies explicitly confirm committed with activation pending,
+  not reader/replica acknowledgement.
+- [x] Local acceptance coverage exercises real SQLite and PostgreSQL, actual shared Redis with a
+  stale cached head, two independent stateless hosts and replacement with shared test Data
+  Protection keys, principal/operation/scope authorization, JSON CSRF, preview/no-write,
+  optimistic races, sanitized outage handling, retained singleton and existing server feature
+  behavior. ApiExplorer exposes closed typed request/success metadata without a new OpenAPI package.
+- [x] Local Release validation passed all 47 focused management cases and all 107 runtime cases,
+  with zero failures/skips. The complete solution Release build passed with zero warnings/errors.
+  The existing isolated test services were reused; no remote CI run was started or observed.
+
+The typed Blazor RCL/client and browser interactions remain the next core phase. No consumer
+repository, package publication, live data, deployment or remote CI execution is part of this phase.
 
 ## First Implementation Slice (2026-10-25)
 
@@ -240,7 +272,7 @@ All names in this table are proposals, not packages currently available on NuGet
 | `CasCap.Common.Configuration.PostgreSql` | EF Core PostgreSQL store, transactional writes, optional `LISTEN/NOTIFY` hints | Runtime plus `Npgsql.EntityFrameworkCore.PostgreSQL`; Npgsql for notification transport |
 | `CasCap.Common.Configuration.Redis` | Optional version-aware cache decorator and notification hints for a durable store | Runtime plus shared Redis infrastructure where suitable; no Redis-only authority mode |
 | `CasCap.Common.Configuration.Management` | Authorized ASP.NET Core management endpoints and write workflow | Runtime plus ASP.NET Core; no mandatory Blazor or opinionated host |
-| `CasCap.Common.Configuration.Management.Contracts` | Browser-safe generic request/response envelopes, typed scope/revision identifiers and DTO-derived editor descriptors | Plain contracts only; no provider settings or storage dependencies |
+| `CasCap.Common.Configuration.Management.Contracts` | Browser-safe generic request/response envelopes and fixed-destination identifiers; host-supplied typed fields remain an RCL concern | Plain contracts only; no provider settings or storage dependencies |
 | `CasCap.Common.Configuration.Blazor` | RCL components and typed management API client | Management contracts and Blazor; no database drivers, Redis or Key Vault SDK |
 
 Introduce packages only with the phase that needs them. Keep provider-specific contracts in the
@@ -786,8 +818,9 @@ soak into UI implementation. After that soak, evaluate embedding the optional ma
 in the existing frontend rather than creating a separate portal. Keep the reusable components and
 typed API client host-independent, with provider access and authorization enforced on the server.
 
-An RCL provides components such as a settings grid, constrained editors, revision history and
-convergence indicators. The host explicitly references it, registers its typed HTTP client, mounts
+The core RCL will provide a typed editor with explicit host-supplied fields, preview and publication
+outcomes; history and convergence acknowledgements are not implemented core features.
+The host explicitly references it, registers its typed HTTP client, mounts
 the page and supplies authorization policies. No runtime assembly discovery or downloaded arbitrary
 plugins are needed. Static assets ship through normal RCL packaging.
 
@@ -797,18 +830,17 @@ Keep components render-mode-neutral where practical; the host owns routing, navi
 mode. A standalone WASM frontend needs a separately hosted authorized API and an explicit origin/
 authentication design, not access to provider connections.
 
-The browser receives only registered browser-safe configuration DTOs, DTO-derived editor descriptors,
+The browser receives only registered browser-safe configuration DTOs,
 typed scope/revision envelopes and sanitized outcomes. It never receives SQL/Redis/Key Vault credentials,
 connection strings, arbitrary queries, entity serialization or the full configuration root.
 
 ### Server and UI Contract
 
-- Hosts register editable DTOs and derive controls from their typed members and validation metadata,
-  adding descriptions, risk, scope and restart requirements where necessary. Start with booleans,
-  enums and bounded scalars. Do not maintain a separate arbitrary key/string-value catalogue.
-  Components retain member types through editing and submit typed DTO candidates; metadata-driven
-  forms must not erase this contract into a dictionary of strings.
-  Server-side descriptors and validators are authoritative; UI validation is only usability.
+- Hosts register editable browser-safe DTOs and provide explicit `RenderFragment<T>` editor fields
+  for booleans, enums and bounded scalars. Preserve `T` through the document, candidate, preview and
+  publish contract; do not introduce a reflection form engine, arbitrary key/string catalogue or
+  dictionary-of-strings editor. Host validators and authorized-field design remain authoritative;
+  UI validation is only usability.
 - Core operations are read, typed validation/preview and expected-revision publish. The host chooses
   which DTO is browser-safe and supplies typed editor fields; no arbitrary key/string setter exists.
   History browsing, comparisons, as-of views, restore and promotion are far-future enhancements.
@@ -826,8 +858,9 @@ connection strings, arbitrary queries, entity serialization or the full configur
 - For same-origin cookie-authenticated apps, require antiforgery on mutations, secure host-owned
   authentication and API 401/403 responses. Do not change existing machine API authentication.
   Bearer-token hosts need their own explicit browser credential/origin policy.
-- Keep the API stateless across replicas. Shared cookie/Data Protection keys, idempotent publishes
-  and mixed-version static-asset behavior remain host deployment responsibilities.
+- Keep the API stateless across replicas. Shared cookie/Data Protection keys and mixed-version
+  static-asset behavior remain host deployment responsibilities. Idempotent publication is a
+  far-future protocol, not an implemented retry guarantee.
 
 Adopt [Microsoft.FeatureManagement](https://learn.microsoft.com/en-us/azure/azure-app-configuration/feature-management-dotnet-reference)
 for evaluation semantics where it fits instead of inventing another flag engine.
@@ -873,7 +906,7 @@ application under `src/` to the solution built by CI, with documentation for loc
 | PostgreSQL integration tests | Real EF Core Npgsql provider and disposable PostgreSQL instance | Migrations, dedicated/shared databases, schema qualification, reader/writer permissions, concurrency conflicts, scope isolation and notification/reconciliation |
 | Redis decorator integration tests | Disposable Redis plus each real SQL backend | Direct versus cached equivalence, outbox recovery, stale refill ordering, missed hints, eviction, outage fallback and scope isolation |
 | ASP.NET Core host integration tests | Stub application via `WebApplicationFactory` plus real stores | Actual bootstrap, DI/options wiring, typed reads, live activation, preserved process cache, readiness and cleanup |
-| Management API integration tests, when introduced | Same host harness with explicit test authentication | DTO validation, environment authorization, concurrency, antiforgery and committed-versus-applied outcomes |
+| Management API integration tests | Same host harness with real test-only cookie authentication | Typed shape/metadata, fixed-destination authorization, named auth schemes, concurrency, antiforgery, authority/cache separation and committed/activation-pending outcomes |
 
 Share a provider contract suite across SQLite and PostgreSQL rather than duplicating assertions.
 Run applicable cases against both standalone and existing-database layouts, using unrelated
@@ -1079,20 +1112,27 @@ and prove that provider-only consumers acquire no ASP.NET Core or Blazor depende
 
 Acceptance evidence:
 
-- [ ] Unauthorized, cross-application and cross-environment reads/writes fail server-side; cookie
-  mutations enforce antiforgery. Promotion requires destination-environment authorization.
-- [ ] A stale editor gets a conflict; a publish distinguishes committed, accepted and applied states.
-- [ ] Client assemblies, API responses, assets and logs contain no secrets or provider settings.
+- [x] API unauthorized, cross-application/environment/contract reads/writes fail server-side;
+  JSON cookie mutations enforce antiforgery. Missing policies fail closed.
+- [x] A stale API caller gets 409; publication confirms committed with activation pending and makes
+  no accepted/applied acknowledgement. Cancellation/uncertain outcomes do not trigger retry.
+- [x] Browser-neutral contracts and ordinary API reads exclude provider settings and audit actor/reason;
+  captured unavailable responses/logs omit injected provider payloads and exception objects.
 - [ ] Keyboard operation, constrained input validation and error recovery work.
-- [ ] Typed editors preserve boolean/enum/numeric/duration values, preview the fully validated DTO and
-  clearly identify the destination environment; forged or malformed payloads fail server validation.
-- [ ] A two-replica sample survives pod replacement and a mixed-version rollout without session affinity.
-- [ ] Management API `WebApplicationFactory` tests run by default in CI, including authorization,
-  malformed typed payloads, stale revisions and cookie mutation protection.
+- [x] Typed API preview validates without mutation; exact integral revision boundaries, host enum
+  converters, malformed/unknown/duplicate payloads and metadata are covered before persistence.
+- [ ] Typed RCL fields preserve boolean/enum/numeric/duration values and clearly display the fixed
+  destination, with host-supplied `RenderFragment<T>` fields rather than a reflection form engine.
+- [x] Two independent local API hosts and a replacement accept browser cookies/antiforgery with a shared
+  fixture-owned key ring; direct/cached reader hosts retain singleton identity and server feature behavior.
+- [x] Management API `WebApplicationFactory` cases are in the existing runtime test project and default
+  solution-test CI discovery. Local execution is evidenced above; remote execution is unobserved.
+- [ ] RCL/client browser tests cover typed editing, error recovery, authorization hints and no secret
+  assets. An optional live mixed-version rollout remains separately approved deployment work.
 
-These are future test requirements, not tests executed for this documentation change.
-Use deterministic fakes and isolated ephemeral SQL/Redis instances, never shared production stores.
-Ask for approval before executing any tests.
+The checked API evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis,
+not shared production stores. Unchecked browser behavior is still unimplemented; this is not complete
+ADR acceptance, a remote CI result or an approved rollout.
 
 ### Later Optional Phase: Azure Storage Adapters
 

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Optional authorized typed runtime configuration management controllers.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Management.Contracts\CasCap.Common.Configuration.Management.Contracts.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Runtime\CasCap.Common.Configuration.Runtime.csproj" />
+  </ItemGroup>
+</Project>
