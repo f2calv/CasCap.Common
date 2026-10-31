@@ -26,8 +26,9 @@ Counts are declared methods and cases per target framework, not execution result
 | `CoalescingScheduleRunnerTests` | 6 | 7 | UTC exclusive cursors, slow-run coalescing, cancellation, callback faults and awaited timeout cleanup |
 | `FeatureFlagBgServiceTests` | 8 | 9 | Finite siblings, first/later faults, requested stop, cancellation, disabled features, and awaited cleanup on shutdown or sibling failure |
 | `FeatureFlagBgServiceHostTests` | 2 | 2 | Fatal child failure records a nonzero result before `StopHost`; run-to-completion remains successful |
+| `ProcessOutcomeTests` | 1 | 4 | Child-process daemon failure, requested shutdown and finite migration success/failure exit codes |
 | `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
-| **Total** | **22** | **24** | |
+| **Total** | **23** | **28** | |
 
 ### Trait Categories
 
@@ -53,5 +54,6 @@ Tests/
     ├── CoalescingScheduleRunnerTests.cs
     ├── FeatureFlagBgServiceHostTests.cs
     ├── FeatureFlagBgServiceTests.cs
+    ├── ProcessOutcomeTests.cs
     └── SinkServiceCollectionExtensionsTests.cs
 ```

@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Services.ProcessFixture\CasCap.Common.Services.ProcessFixture.csproj"
+                      ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\CasCap.Common.Services\CasCap.Common.Services.csproj" />
   </ItemGroup>
 
