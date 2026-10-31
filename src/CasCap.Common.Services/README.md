@@ -29,7 +29,7 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<IBgFeature, WorkerFeature>();
-builder.Services.AddApplicationExitState();
+builder.Services.AddApplicationHostLifecycle(builder.Configuration);
 builder.Services.AddFeatureFlagService(
     new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Worker" });
 
@@ -55,6 +55,22 @@ public sealed class WorkerFeature(ILogger<WorkerFeature> logger) : IBgFeature
 Feature matching is case-insensitive. A feature named `IBgFeature.AlwaysEnabled` (`"All"`) runs
 regardless of the selected set. Registration supplies `IOptions<FeatureFlagConfig>`; it does not
 automatically read an `EnabledFeatures` JSON section.
+
+`AddApplicationHostLifecycle` binds `CasCap:HostLifecycleConfig`, configures
+`HostOptions.ShutdownTimeout`, and registers `ApplicationExitState`:
+
+```json
+{
+  "CasCap": {
+    "HostLifecycleConfig": {
+      "ShutdownTimeoutMs": 30000
+    }
+  }
+}
+```
+
+Set the Kubernetes `terminationGracePeriodSeconds` longer than this timeout, including any
+`PreStop` duration and a safety margin.
 
 ### UTC Cron Scheduling
 

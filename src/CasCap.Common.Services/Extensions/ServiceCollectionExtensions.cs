@@ -4,6 +4,24 @@ namespace CasCap.Common.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
+    /// Registers the shared process outcome and configures the Generic Host shutdown timeout.
+    /// </summary>
+    public static IServiceCollection AddApplicationHostLifecycle(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddApplicationExitState();
+        services.AddOptionsWithValidateOnStart<HostLifecycleConfig>()
+            .BindConfiguration(HostLifecycleConfig.ConfigurationSectionName)
+            .ValidateDataAnnotations();
+        var config = configuration.GetSection(HostLifecycleConfig.ConfigurationSectionName)
+            .Get<HostLifecycleConfig>() ?? new HostLifecycleConfig();
+        services.Configure<HostOptions>(options =>
+            options.ShutdownTimeout = TimeSpan.FromMilliseconds(config.ShutdownTimeoutMs));
+        return services;
+    }
+
+    /// <summary>
     /// Registers the process outcome shared by background supervision and the application entry
     /// point.
     /// </summary>
