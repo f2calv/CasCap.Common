@@ -15,6 +15,10 @@ dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Te
 Tests create local hosts and in-memory sink implementations. No credentials or external service
 are required. Host tests deliberately exercise child failures and shutdown paths.
 
+`ProcessOutcomeTests` launches the
+[services test host](../CasCap.Common.Services.TestHost/README.md) as a separate process to verify
+exit codes. The test project builds that executable without referencing its assembly.
+
 ## Tests
 
 Counts are declared methods and cases per target framework, not execution results.

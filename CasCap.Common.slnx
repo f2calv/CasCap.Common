@@ -32,7 +32,7 @@
     <Project Path="src/CasCap.Common.Serialization.MessagePack/CasCap.Common.Serialization.MessagePack.csproj" />
     <Project Path="src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj" />
     <Project Path="src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj" />
-    <Project Path="src/CasCap.Common.Services.ProcessFixture/CasCap.Common.Services.ProcessFixture.csproj" />
+    <Project Path="src/CasCap.Common.Services.TestHost/CasCap.Common.Services.TestHost.csproj" />
     <Project Path="src/CasCap.Common.Services/CasCap.Common.Services.csproj" />
     <Project Path="src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
   </Folder>

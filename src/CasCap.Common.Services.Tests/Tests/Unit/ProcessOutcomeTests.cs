@@ -68,10 +68,10 @@ public sealed class ProcessOutcomeTests
         return Path.Combine(
             root.FullName,
             "src",
-            "CasCap.Common.Services.ProcessFixture",
+            "CasCap.Common.Services.TestHost",
             "bin",
             configuration,
             framework,
-            "CasCap.Common.Services.ProcessFixture.dll");
+            "CasCap.Common.Services.TestHost.dll");
     }
 }

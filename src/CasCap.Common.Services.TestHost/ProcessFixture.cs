@@ -1,4 +1,4 @@
-namespace CasCap.Common.Services.ProcessFixture;
+namespace CasCap.Common.Services.TestHost;
 
 internal static class ProcessFixture
 {
