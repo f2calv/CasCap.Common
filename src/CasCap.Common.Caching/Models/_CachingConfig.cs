@@ -47,9 +47,9 @@ public record CachingConfig : IAppConfig
     /// <summary>Enables pub/sub-based invalidation of local cache entries across distributed clients.</summary>
     public bool LocalCacheInvalidationEnabled { get; set; } = true;
 
-    /// <summary>Enables registration of the <see cref="CacheExpiryBgService"/> hosted service.</summary>
+    /// <summary>Enables registration of the <see cref="CacheExpiryBgService"/> background feature.</summary>
     /// <remarks>
-    /// Defaults to <see langword="true"/>. When <see langword="false"/> the hosted service is never registered,
+    /// Defaults to <see langword="true"/>. When <see langword="false"/> the feature is never registered,
     /// so neither <see cref="LocalCacheExpiryService"/> nor <see cref="RemoteCacheExpiryService"/> run.
     /// </remarks>
     public bool CacheExpiryServiceEnabled { get; set; } = true;

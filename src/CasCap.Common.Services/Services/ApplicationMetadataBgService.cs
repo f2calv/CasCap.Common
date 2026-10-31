@@ -2,21 +2,24 @@ namespace CasCap.Common.Services;
 
 /// <summary>Periodically logs application metadata to aid operational debugging.</summary>
 /// <remarks>
-/// Registered as a hosted service by <see cref="ServiceCollectionExtensions.AddFeatureFlagService(IReadOnlySet{string}, bool)"/>
+/// Registered as an always-enabled background feature by <see cref="ServiceCollectionExtensions.AddFeatureFlagService(IReadOnlySet{string}, bool)"/>
 /// when <c>addApplicationMetadataService</c> is <see langword="true"/>.
 /// </remarks>
 public sealed partial class ApplicationMetadataBgService(
     ILogger<ApplicationMetadataBgService> logger,
     IOptions<ApplicationMetadataConfig> config,
     TimeProvider timeProvider,
-    ApplicationMetadata applicationMetadata) : BackgroundService
+    ApplicationMetadata applicationMetadata) : IBgFeature
 {
     /// <inheritdoc/>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public string FeatureName => BgFeatureNames.AlwaysEnabled;
+
+    /// <inheritdoc/>
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await Task.Yield();
         LogStarting(logger, nameof(ApplicationMetadataBgService));
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             LogMetadata(
                 logger,
@@ -25,7 +28,7 @@ public sealed partial class ApplicationMetadataBgService(
                 applicationMetadata.Version,
                 applicationMetadata.Branch,
                 applicationMetadata.Commit);
-            await Task.Delay(config.Value.LogInterval, timeProvider, stoppingToken).ConfigureAwait(false);
+            await Task.Delay(config.Value.LogInterval, timeProvider, cancellationToken).ConfigureAwait(false);
         }
         LogExiting(logger, nameof(ApplicationMetadataBgService));
     }

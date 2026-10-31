@@ -37,7 +37,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">Case-insensitive set of feature names to enable at runtime.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService(this IServiceCollection services,
@@ -61,7 +61,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">The bitwise combination of enabled feature flags.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService<T>(this IServiceCollection services, T enabledFeatures,
@@ -84,7 +84,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">The application configuration.</param>
     /// <param name="sectionName">Configuration section name for <see cref="FeatureConfig{T}"/>.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     [Obsolete("Use the non-generic AddFeatureFlagService overload with string-based feature names instead.")]
@@ -98,7 +98,13 @@ public static class ServiceCollectionExtensions
 #pragma warning restore CS0618
 
         if (addApplicationMetadataService)
+        {
+            services.Configure<FeatureFlagConfig>(options =>
+                options.EnabledFeatures = new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+            services.AddApplicationExitState();
+            services.AddHostedService<FeatureFlagBgService>();
             AddApplicationMetadataService(services);
+        }
 
         return services;
     }
@@ -110,6 +116,7 @@ public static class ServiceCollectionExtensions
         services.AddOptionsWithValidateOnStart<ApplicationMetadataConfig>()
             .BindConfiguration(ApplicationMetadataConfig.ConfigurationSectionName)
             .Validate(config => config.LogInterval > TimeSpan.Zero, "LogInterval must be greater than zero.");
-        services.AddHostedService<ApplicationMetadataBgService>();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IBgFeature, ApplicationMetadataBgService>());
     }
 }

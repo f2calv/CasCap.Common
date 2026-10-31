@@ -65,6 +65,22 @@ public sealed class FeatureFlagBgServiceHostTests
         Assert.Equal(0, exitState.ExitCode);
     }
 
+    [Fact, Trait("Category", "BackgroundService")]
+    public void MetadataService_IsAlwaysEnabledFeature()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.Services.AddFeatureFlagService(
+            new HashSet<string>(["Example"], StringComparer.OrdinalIgnoreCase),
+            addApplicationMetadataService: true);
+        using var host = builder.Build();
+
+        var metadata = Assert.Single(
+            host.Services.GetServices<IBgFeature>(),
+            feature => feature is ApplicationMetadataBgService);
+
+        Assert.Equal(BgFeatureNames.AlwaysEnabled, metadata.FeatureName);
+    }
+
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature
     {
         public string FeatureName { get; } = featureName;

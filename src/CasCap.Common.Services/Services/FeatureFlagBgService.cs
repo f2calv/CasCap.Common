@@ -6,7 +6,7 @@ namespace CasCap.Common.Services;
 /// in the configured <see cref="FeatureFlagConfig.EnabledFeatures"/> set.
 /// </summary>
 /// <remarks>
-/// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="IBgFeature.AlwaysEnabled"/>
+/// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="BgFeatureNames.AlwaysEnabled"/>
 /// are launched regardless of the enabled set. A run-to-completion feature ends the process by calling
 /// <see cref="IHostApplicationLifetime.StopApplication"/> before returning; any other completion of every
 /// enabled feature is treated as a fault.
@@ -30,7 +30,7 @@ public sealed partial class FeatureFlagBgService(
         {
             foreach (var feature in features)
             {
-                if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
+                if (string.Equals(feature.FeatureName, BgFeatureNames.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
                     || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
                 {
                     LogFeatureStarting(logger, nameof(FeatureFlagBgService), feature.GetType().Name);
