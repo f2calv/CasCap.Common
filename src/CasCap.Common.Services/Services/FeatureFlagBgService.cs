@@ -15,7 +15,8 @@ public sealed partial class FeatureFlagBgService(
     ILogger<FeatureFlagBgService> logger,
     IOptions<FeatureFlagConfig> featureConfig,
     IEnumerable<IBgFeature> features,
-    IHostApplicationLifetime appLifetime) : BackgroundService
+    IHostApplicationLifetime appLifetime,
+    ApplicationExitState exitState) : BackgroundService
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -61,6 +62,7 @@ public sealed partial class FeatureFlagBgService(
         }
         catch
         {
+            exitState.MarkFailure();
             appLifetime.StopApplication();
             throw;
         }

@@ -4,6 +4,16 @@ namespace CasCap.Common.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
+    /// Registers the process outcome shared by background supervision and the application entry
+    /// point.
+    /// </summary>
+    public static IServiceCollection AddApplicationExitState(this IServiceCollection services)
+    {
+        services.TryAddSingleton<ApplicationExitState>();
+        return services;
+    }
+
+    /// <summary>
     /// Registers <see cref="FeatureFlagBgService"/> with the specified set of enabled feature names.
     /// </summary>
     /// <param name="services">The service collection.</param>
@@ -17,6 +27,7 @@ public static class ServiceCollectionExtensions
         bool addApplicationMetadataService = false)
     {
         services.Configure<FeatureFlagConfig>(o => o.EnabledFeatures = new HashSet<string>(enabledFeatures, StringComparer.OrdinalIgnoreCase));
+        services.AddApplicationExitState();
         services.AddHostedService<FeatureFlagBgService>();
 
         if (addApplicationMetadataService)

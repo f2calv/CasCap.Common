@@ -29,10 +29,13 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<IBgFeature, WorkerFeature>();
+builder.Services.AddApplicationExitState();
 builder.Services.AddFeatureFlagService(
     new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Worker" });
 
-await builder.Build().RunAsync();
+using var host = builder.Build();
+await host.RunAsync();
+return host.Services.GetApplicationExitCode();
 
 public sealed class WorkerFeature(ILogger<WorkerFeature> logger) : IBgFeature
 {
@@ -83,7 +86,16 @@ timeout. It does not forcibly abandon work that ignores cancellation.
 - A finite job must request `IHostApplicationLifetime.StopApplication()` before returning.
 - Host cancellation cancels and awaits outstanding features, including their cleanup.
 - A child fault requests host shutdown immediately, then cancels and awaits its siblings before
-  propagating the failure. Align host and container termination budgets for uncooperative cleanup.
+  propagating the failure.
+- A child fault marks `ApplicationExitState` as failed before requesting shutdown. The process entry
+  point returns `GetApplicationExitCode()` after `RunAsync`, so graceful cleanup still completes but
+  Kubernetes observes a nonzero result.
+- `AddFeatureFlagService` registers the exit state automatically. Call
+  `AddApplicationExitState()` directly in hosts that also need to report startup or non-feature
+  outcomes through the same process boundary.
+- A directly registered `BackgroundService` outside `FeatureFlagBgService` must mark the same state
+  before requesting fatal shutdown, or use another supervisor that does.
+- Align host and container termination budgets for uncooperative cleanup.
 
 ```mermaid
 flowchart TD

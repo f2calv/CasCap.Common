@@ -23,6 +23,7 @@ public sealed class FeatureFlagBgServiceHostTests
         builder.Services.AddFeatureFlagService(new HashSet<string>(["Finite", "Faulting"], StringComparer.OrdinalIgnoreCase));
         using var host = builder.Build();
         var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+        var exitState = host.Services.GetRequiredService<ApplicationExitState>();
         var stopping = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var registration = lifetime.ApplicationStopping.Register(() => stopping.TrySetResult(true));
 
@@ -34,6 +35,7 @@ public sealed class FeatureFlagBgServiceHostTests
         await stopping.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
+        Assert.Equal(1, exitState.ExitCode);
         await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
@@ -54,11 +56,13 @@ public sealed class FeatureFlagBgServiceHostTests
         builder.Services.AddFeatureFlagService(new HashSet<string>(["RunOnce"], StringComparer.OrdinalIgnoreCase));
         using var host = builder.Build();
         var featureHost = host.Services.GetServices<IHostedService>().OfType<FeatureFlagBgService>().Single();
+        var exitState = host.Services.GetRequiredService<ApplicationExitState>();
 
         await host.StartAsync(TestContext.Current.CancellationToken);
         await host.WaitForShutdownAsync(TestContext.Current.CancellationToken).WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.True(featureHost.ExecuteTask!.IsCompletedSuccessfully);
+        Assert.Equal(0, exitState.ExitCode);
     }
 
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature

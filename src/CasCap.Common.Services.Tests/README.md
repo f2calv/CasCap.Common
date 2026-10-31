@@ -21,18 +21,20 @@ Counts are declared methods and cases per target framework, not execution result
 
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
+| `ApplicationExitStateTests` | 2 | 2 | Successful default state, DI registration and idempotent failure marking |
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
 | `CoalescingScheduleRunnerTests` | 6 | 7 | UTC exclusive cursors, slow-run coalescing, cancellation, callback faults and awaited timeout cleanup |
 | `FeatureFlagBgServiceTests` | 8 | 9 | Finite siblings, first/later faults, requested stop, cancellation, disabled features, and awaited cleanup on shutdown or sibling failure |
-| `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
+| `FeatureFlagBgServiceHostTests` | 2 | 2 | Fatal child failure records a nonzero result before `StopHost`; run-to-completion remains successful |
 | `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
-| **Total** | **20** | **22** | |
+| **Total** | **22** | **24** | |
 
 ### Trait Categories
 
 | Category | Used by |
 | --- | --- |
 | `BackgroundService` | Feature-flag background-service tests |
+| `Hosting` | Shared application process-outcome tests |
 | `Metadata` | Application metadata tests |
 | `Scheduling` | UTC cron runner tests |
 | `Sinks` | Event-sink registration tests |
@@ -46,6 +48,7 @@ No declared or conditional skips.
 ```text
 Tests/
 └── Unit/
+    ├── ApplicationExitStateTests.cs
     ├── ApplicationMetadataTests.cs
     ├── CoalescingScheduleRunnerTests.cs
     ├── FeatureFlagBgServiceHostTests.cs
