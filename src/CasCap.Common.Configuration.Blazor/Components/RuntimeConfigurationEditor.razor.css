@@ -1,0 +1,25 @@
+.runtime-editor {
+    max-width: 52rem;
+}
+
+.runtime-editor fieldset {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.runtime-editor textarea {
+    min-height: 4rem;
+    max-width: 100%;
+}
+
+.runtime-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block: 0.75rem;
+}
+
+.runtime-editor [role="alert"] {
+    font-weight: bold;
+}

@@ -1,14 +1,276 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
-**Status:** Proposed; investigation and implementation are not yet approved.
-**Date:** 2026-10-24.
+**Status:** Accepted core scope implemented and verified locally; release and deployment are separate.
+**Date:** 2026-11-01.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
 Blazor management surface and optional Azure Table/Blob storage extensions.
 
-This document proposes a small runtime-configuration subsystem alongside the existing configuration
-helpers. It does not describe shipped providers or promise that arbitrary application settings can
-be changed safely without a restart. Package and API names below are illustrative.
+This document records a small runtime-configuration subsystem alongside the existing configuration
+helpers. Source implementation is not package publication or production rollout, and does not
+make arbitrary application settings safe to change without restarting.
+
+## Approved Completion Scope (2026-10-30)
+
+Complete direct PostgreSQL/SQLite providers, the bounded optional Redis cache-aside mode,
+reload-failure coverage and a small authorized management API with an embeddable typed Blazor
+editor. Keep one registered DTO contract/scope per reader host; hosts own authentication,
+authorization, environment selection and browser-safe DTO design.
+
+Retain the existing append-only publication audit and read-by-revision capability. Dedicated
+restoration, paginated/as-of history, comparisons, promotion and idempotent retry workflows are
+far-future stretch goals, not core completion gates. Outbox projection, large-fleet performance
+certification, Azure authorities, package publication and consumer deployment remain separately
+approved optional work. No long-duration logging soak is required to complete this core scope.
+
+## SQLite Provider Phase Evidence (2026-10-30)
+
+- [x] The source-only .NET 10 [SQLite adapter](../src/CasCap.Common.Configuration.Sqlite/README.md)
+  implements the shared typed publisher/store contract without adding Redis to direct consumers.
+  The existing runtime codec, options reader and baseline-expiry behavior are reused.
+- [x] Real externally applied EF Core 10.0.13 migrations own `cascap_config_revisions`,
+  `cascap_config_heads` and `cascap_config_migrations_history`; SQLite's framework migrator
+  additionally owns `__EFMigrationsLock`. Dedicated-file and shared-file tests preserve an
+  unrelated application table, migrate repeatedly without drift and reopen published state.
+- [x] Transactional journal/head publication has exactly one winner for first and existing heads.
+  Tests exercise actual SQLite busy and shared-cache locked failures, explicit concurrency
+  conflicts, no phantom append, and rollback when the head update fails. Other provider errors
+  are not relabeled as concurrency conflicts. No automatic application retry is introduced.
+- [x] Typed validation rejects invalid publications before append and invalid/version-incompatible
+  stored candidates before activation. Historical read-by-revision and one/twenty arbitrary
+  environments remain isolated across application and contract identifiers.
+- [x] The permanent [host](../src/CasCap.Common.Configuration.TestHost/README.md) defaults to
+  PostgreSQL and selects SQLite explicitly. Standard `WebApplicationFactory` tests cover direct
+  and shared-Redis cache-aside paths, required initial publication, complete replacement, expiry
+  to the distinct startup baseline and retained singleton identity. A warm cache cannot replace
+  the required authoritative startup read; publishing remains uncached.
+- [x] Local Release validation: all 18 focused SQLite cases and all 60 runtime cases passed,
+  with zero failures/skips. The complete solution Release build passed with zero warnings/errors.
+  Both SQLite and PostgreSQL model-drift checks and offline migration SQL generation passed;
+  existing PostgreSQL migrations and schema mappings are unchanged.
+- [x] The root [Compose profile](../docker-compose.yml) runs the actual embedded SQLite tests in
+  an SDK runner with isolated writable file/build volumes and shared Redis, not a fictional
+  database service. SQLite tests have no PostgreSQL fixture dependency. Existing solution-test
+  CI discovery includes them; no remote workflow was started or observed.
+
+This closes the SQLite provider implementation boundary. The management API and typed Blazor
+editor evidence follow below. Dedicated restore/as-of/paginated-history APIs, outbox projection,
+package publication and live deployments remain deferred or separately approved.
+SQLite lock waiting follows the configured connection timeout; native synchronous operations do
+not provide a hard cancellation deadline. File ownership is not table-level authorization.
+
+## Management API Phase Evidence (2026-10-30)
+
+- [x] Source-only .NET 10 [browser-neutral contracts](../src/CasCap.Common.Configuration.Management.Contracts/README.md)
+  have no Runtime/EF/ASP.NET dependency. The optional
+  [management server](../src/CasCap.Common.Configuration.Management/README.md) references Runtime
+  and Contracts plus the ASP.NET framework, not either database adapter or Redis.
+- [x] A directly registered closed generic controller exposes current document, antiforgery token,
+  typed preview and expected-revision publish for exactly one configured destination. The
+  [wire contract](runtime-configuration-management.md) defines exact DTOs, routes and errors.
+  Authoritative publisher reads bypass the optional cache; the existing codec validates and copies
+  complete candidates. Reads omit actor/reason, provider settings and accepted-reader internals.
+- [x] Host-owned view/edit/publish policies are enforced against the fixed destination resource,
+  including policy-specific authentication schemes alongside unchanged machine-auth defaults.
+  Missing policies fail closed. JSON mutations require principal-bound antiforgery; actor is
+  derived exclusively from authenticated claims. API failures are problem responses, not redirects.
+- [x] Strict bounded module-only JSON rejects malformed/unknown/duplicate members, missing or
+  inexact revisions, invalid enum/DTO values and invalid metadata before publication. Concurrency
+  conflicts return 409; authority failures return sanitized 503 and log only exception type.
+  No mutation retry is introduced. Replies explicitly confirm committed with activation pending,
+  not reader/replica acknowledgement.
+- [x] Local acceptance coverage exercises real SQLite and PostgreSQL, actual shared Redis with a
+  stale cached head, two independent stateless hosts and replacement with shared test Data
+  Protection keys, principal/operation/scope authorization, JSON CSRF, preview/no-write,
+  optimistic races, sanitized outage handling, retained singleton and existing server feature
+  behavior. ApiExplorer exposes closed typed request/success metadata without a new OpenAPI package.
+- [x] Local Release validation passed all 47 focused management cases and all 107 runtime cases,
+  with zero failures/skips. The complete solution Release build passed with zero warnings/errors.
+  The existing isolated test services were reused; no remote CI run was started or observed.
+
+No consumer repository, package publication, live data, deployment or remote CI execution is part
+of this phase.
+
+## Blazor Editor Phase Evidence (2026-10-30)
+
+- [x] The optional [RCL and typed client](../src/CasCap.Common.Configuration.Blazor/README.md)
+  reference only browser-neutral Contracts and Blazor packages, not Runtime, EF or SQL/Redis
+  drivers. Host-provided typed fields preserve booleans, enum values, numbers and durations;
+  no reflection form engine, arbitrary string setter or plugin loader is introduced.
+- [x] The editor displays its fixed destination and authoritative revision, requires typed preview,
+  a reason and explicit publication confirmation, and labels durable commit as activation pending.
+  Exact 64-bit revisions survive client serialization above JavaScript's exact integer range.
+- [x] Safe loading/error/permission/conflict states, field validation, retained failed edits,
+  no automatic mutation retry, dirty-discard confirmation and cancellation on scope change/disposal
+  are covered by 24 local bUnit/client cases. Native labeled fields and form/button semantics
+  provide keyboard interaction; this is component evidence, not a physical browser audit.
+- [x] Three additional real HTTP client cases use the actual cookie/antiforgery management API and
+  isolated SQLite: preview does not write, publication commits, stale edits conflict and missing
+  authentication/permissions fail. The complete Release solution build has zero warnings/errors.
+
+Embedding into a consuming browser application, real browser/accessibility verification,
+production identity-provider setup, package release and deployment remain host-owned operational
+steps, not implied by source completion.
+
+## Core Completion Verification (2026-10-30)
+
+- [x] All 110 runtime/provider/management cases and all 24 component/client cases passed in
+  Release, with zero failures or skips. The complete solution builds with zero warnings/errors.
+  The SQLite required-publication assertion exercises the real Generic Host startup failure;
+  separate `WebApplicationFactory` cases continue to verify HTTP behavior.
+- [x] A local-only RCL package build verified the library, README and isolated stylesheet assets.
+  Its only package dependencies are browser-neutral management contracts and
+  `Microsoft.AspNetCore.Components.Web`; no authority, Runtime or server framework is introduced.
+- [x] Changed-file lint hooks, local documentation links and the confidentiality gate passed.
+  Default solution test discovery includes both test projects with no new opt-in CI switch;
+  no remote CI result is claimed.
+
+The approved source scope is complete. Dedicated restoration/history workflows, outbox projection,
+Azure authorities and fleet certification remain far-future stretch work. Package publication,
+consumer rollout, physical browser/accessibility checks and live deployment are separate
+operational steps requiring their own approval.
+
+## Handover and Next Kick-off (2026-11-01)
+
+The reusable core is implemented. The next practical step is verification of the first consuming
+browser application, not another provider, history/restoration workflow or long logging soak.
+Keep the dated acceptance results above distinct from validation of later source changes.
+
+### Verified Progress
+
+- [x] Core provider/API/RCL completion was committed as `bf52301`, with the 110 runtime and
+  24 component/client results recorded above. Subsequent runtime hardening and dependency updates
+  exist in this checkout; those earlier counts are not a fresh regression result for the current tree.
+- [x] Agentizr's first Debug integration was committed locally as `aead178`. It embeds the actual
+  typed RCL into the existing Blazor WebAssembly frontend using sibling project references,
+  a browser-neutral logging DTO and the host's fixed-destination management API.
+  This is committed consumer source, not a verified deployed page or published package.
+- [x] The integration snapshot passed 28 focused host authorization, API, component/wire and
+  logging cases against isolated PostgreSQL. The Debug solution and Release WASM client built
+  with zero warnings/errors; the Release browser dependency boundary was checked.
+  Tests include read-only initial page loading, preview without append and actual reader behavior.
+- [x] Management remains opt-in. The normal grant is an explicit host-wide operator allowlist;
+  the separately approved Debug trial may grant existing app-administrator identities that access.
+  Tenant administration alone does not implicitly authorize host-wide logging changes.
+- [x] The attempted consumer deployment stopped at its dirty-worktree preflight, before image
+  build/publication or deployment mutation. The user then explicitly paused rollout.
+  No ConfigMap synchronization, push, new rollout or logging publication was performed by that attempt.
+
+The earlier bounded logging trial proved actual Information-to-Debug-to-Information switch/filter
+behavior without replacing the observed processes. It did not exercise the editor in a real browser.
+An expired durable head is intentionally retained: its displayed value is not the effective replica
+level, and expiry does not require a reset publication.
+
+### Ordered Resume Checklist
+
+1. [ ] Review the current Common and consumer branches/worktrees and subsequent refactoring before
+   reusing the integration snapshot's evidence. Reconfirm Debug project references, typed contracts,
+   operator policy and fixed destination. At the integration snapshot the full Release host was
+   blocked by separate unpublished shared lifecycle APIs; recheck that dependency limitation rather
+   than treating it as a management-package failure or assuming it is still unchanged.
+2. [ ] Obtain renewed approval to resume the paused Debug rollout and its exact private GitOps
+   commit/push scope. Reconfirm the reviewed non-secret bootstrap, clean deployment inputs and no
+   competing rollout. Do not infer resume permission from this ADR update.
+3. [ ] With approval, run the existing Debug `deploy.ps1` path and normal migration preflight.
+   Reconcile the reviewed immutable management bootstrap before the workload update, then verify
+   the intended image, successful migration gate, healthy replicas and preserved ingress protection.
+4. [ ] Verify the real authenticated browser page and downloaded RCL/stylesheet assets.
+   Check the typed selector, fixed scope, durable revision/expiry, error/permission handling and
+   durable-versus-effective warning. Initial verification is read-only: do not publish another
+   logging revision merely to prove that the page loads.
+5. [ ] Record sanitized rollout/browser evidence here and in the consumer runbook, distinguishing
+   actual browser behavior from component tests. Package publication, deliberate Release adoption
+   and observed remote CI results remain separate gates; none is established by a Debug deployment.
+
+No 24–48-hour soak, stress test, Redis live adoption or history/restoration work is required to
+finish this consumer embedding trial. Revisit those only for a concrete requirement and separately
+approved acceptance scope. The [consumer guide](runtime-configuration.md),
+[management wire guide](runtime-configuration-management.md) and
+[RCL embedding guide](../src/CasCap.Common.Configuration.Blazor/README.md) remain the reusable entry points.
+
+## First Implementation Slice (2026-10-25)
+
+The approved first slice targets .NET 10, EF Core/PostgreSQL and the standard
+`IOptionsMonitor<T>`, followed by an opt-in application logging soak. It ports the unpublished
+prototype's complete dictionary replacement and standard provider integration, not its overlapping
+timers, Dapper access, failure defaults or Redis-as-authority behavior.
+
+- [x] [Runtime contracts and reader](../src/CasCap.Common.Configuration.Runtime/README.md) isolate one
+  typed contract per host, validate complete snapshots and require an initial durable publication.
+- [x] [PostgreSQL authority](../src/CasCap.Common.Configuration.PostgreSql/README.md) owns the
+  `cascap_config` schema, scoped heads and audited snapshot revisions, with optimistic
+  publication and historical reads.
+- [x] [Acceptance tests](../src/CasCap.Common.Configuration.Runtime.Tests/README.md) and the permanent
+  modern-hosting stub passed locally in Release: 38 cases, zero failures or skips, including the
+  approved failure/cache trial below, using real PostgreSQL and Redis from root Compose.
+  The complete Release solution build also passed with zero warnings or errors.
+- [x] [Default CI wiring](../.github/workflows/ci.yml) includes the test projects, required PostgreSQL
+  service and automatic-event test execution. Remote execution has not yet been observed.
+- [x] Integrate opt-in logging control into the first consuming application and verify the actual
+  logging pipeline, not just the options value. The local-only Debug integration passed a real
+  PostgreSQL-to-Serilog test, including Microsoft logging-provider forwarding, retained category
+  overrides and an unchanged process-cache sentinel. Nine existing endpoint smoke cases also passed
+  with the feature disabled; both Debug and normal Release builds succeeded.
+- [x] Provision the independently owned PostgreSQL migration and initial `Information` logging
+  snapshot in the operator-approved existing database (2026-10-30). Read-back verified the migration
+  history, revision 1 and matching head. This does not establish runtime activation or convergence.
+- [x] Complete the approved two-minute live activation/expiry check (2026-10-30): both replicas
+  changed from the verified `Information` startup baseline to temporary `Debug`, then returned to
+  `Information` after expiry. Actual pipeline switches and probe-category Debug acceptance changed
+  together, with unchanged pod/process identities, image and zero restarts; both health checks
+  remained successful. Activation applied within 2.7 seconds of publication, and baseline return
+  within 2.7 seconds after the recorded expiry, under healthy dependencies.
+  The checked publication retained revision 1, appended revision 2 with exactly 120 seconds of
+  lifetime, and left the head at revision 2 after expiry; read-back found no later publication.
+- **Optional operational follow-up:** any separately justified longer-duration or live failure exercise. The short live check
+  does not prove exported log delivery, live cache retention, internal reader revision/fallback
+  metadata, exact reconciliation timing or outage recovery. Local tests remain the evidence for
+  emitted events, forwarding and the cache sentinel. Reusable isolated failure coverage is tracked
+  separately below; a long soak is not a prerequisite for the small logging-level check.
+
+For the initial live soak only, the operator approved reusing the host's existing application
+database identity rather than provisioning a separate SELECT-only identity (2026-10-30).
+This reduces credential-management work but does not reduce that account's existing privileges.
+The reader performs reads; this is not database-enforced protection against journal mutation.
+Revisit restricted reader permissions before broader rollout or the management-API phase.
+
+Database changes, package publication and deployment still require explicit operational approval;
+the first-slice scope is not blanket authorization. SQLite, Redis acceleration, UI, typed restoration,
+paginated history and Azure authorities remain outside this first slice. The remainder records
+the broader proposed direction, not completed features.
+
+## Approved Cache-Aside Trial (2026-10-30)
+
+After the live logging check, the operator approved an opt-in bounded Redis cache-aside trial and
+additional direct-provider failure tests, not the outbox-backed projection proposed below.
+The [consumer guide](runtime-configuration.md) is the implemented-feature entry point; the
+[optional Redis project](../src/CasCap.Common.Configuration.Redis/README.md) composes the existing
+shared caching library without adding Redis to direct PostgreSQL consumers.
+
+The trigger is evaluating the optional architecture, not a demonstrated database bottleneck:
+two hosts polling every five seconds issue approximately 0.4 aggregate reads per second.
+No measured production benefit or Redis rollout is claimed.
+PostgreSQL remains the only durable authority, and typed publication remains unchanged.
+Startup always reads PostgreSQL; subsequent cache hits are validated and bounded by absolute age.
+Each reader independently reconciles directly with PostgreSQL even if Redis remains available.
+
+Default maximum cache age is 30 seconds with up to ten percent shorter jitter; default independent
+reconciliation is one minute. Application/environment/contract/version plus a non-secret authority
+identifier scope each hashed key and envelope. Deployments sharing Redis must supply distinct
+authority identifiers for different durable databases/schemas.
+Direct SQL and typed writes need not invalidate this trial's entries: accepted additional
+staleness is cache age or independent reconciliation, followed by poll/source duration under healthy
+dependencies. This is intentionally weaker than immediate invalidation or outbox delivery.
+Stale refills cannot regress an already observed revision; malformed/mismatched cache entries or
+Redis connection failures produce sanitized diagnostics and a direct durable read.
+Shared cache connection registration still follows the host's timeout/abort-connect policy;
+registration failures occur before the decorator can fall back.
+
+This trial adds no outbox, fenced shared pointer, notification delivery guarantee or write
+acknowledgment through Redis. Cache loss causes refill, never loss of accepted SQL history.
+Full projection semantics remain a separate later choice, requiring measured benefit and their own
+acceptance evidence. Application-specific logging tests stay in their consumer; reusable provider,
+cache and stub-host tests live in CasCap.Common and join its existing default test path.
 
 ## Summary of the Proposed Decision
 
@@ -32,9 +294,9 @@ be changed safely without a restart. Package and API names below are illustrativ
   string key/value APIs are not the public programming model.
 - Keep accepted snapshots in each process. Ordinary configuration and options reads perform no
   database or Redis I/O.
-- Retain an append-only typed publication journal for audit and historical reads. Restore old
-  content by publishing a new revision, not rewriting history. Use a small in-house implementation;
-  do not add external event-sourcing libraries.
+- Retain the existing append-only publication audit and typed read-by-revision. Dedicated restore,
+  history browsing/as-of queries and replay workflows are far-future stretch goals. Any future
+  restore must publish a new revision, never rewrite history; no event-sourcing framework is needed.
 - Use the standard `IOptionsMonitor<T>` only for deliberately reloadable options. Validate a
   complete candidate before exposing it; do not assume the monitor supplies last-known-good,
   transactional resource replacement or cluster-wide consistency.
@@ -107,7 +369,7 @@ All names in this table are proposals, not packages currently available on NuGet
 | `CasCap.Common.Configuration.PostgreSql` | EF Core PostgreSQL store, transactional writes, optional `LISTEN/NOTIFY` hints | Runtime plus `Npgsql.EntityFrameworkCore.PostgreSQL`; Npgsql for notification transport |
 | `CasCap.Common.Configuration.Redis` | Optional version-aware cache decorator and notification hints for a durable store | Runtime plus shared Redis infrastructure where suitable; no Redis-only authority mode |
 | `CasCap.Common.Configuration.Management` | Authorized ASP.NET Core management endpoints and write workflow | Runtime plus ASP.NET Core; no mandatory Blazor or opinionated host |
-| `CasCap.Common.Configuration.Management.Contracts` | Browser-safe generic request/response envelopes, typed scope/revision identifiers and DTO-derived editor descriptors | Plain contracts only; no provider settings or storage dependencies |
+| `CasCap.Common.Configuration.Management.Contracts` | Browser-safe generic request/response envelopes and fixed-destination identifiers; host-supplied typed fields remain an RCL concern | Plain contracts only; no provider settings or storage dependencies |
 | `CasCap.Common.Configuration.Blazor` | RCL components and typed management API client | Management contracts and Blazor; no database drivers, Redis or Key Vault SDK |
 
 Introduce packages only with the phase that needs them. Keep provider-specific contracts in the
@@ -239,14 +501,14 @@ without changing the typed API, scope semantics or optional Redis behavior.
 | Standalone configuration database | Dedicated database with an owned configuration schema | Dedicated configuration file with owned prefixed tables |
 | Existing application database | Same database, separate owned configuration schema | Same file, separate owned prefixed tables |
 
-Recommend `runtime_configuration` as the default PostgreSQL schema, configurable through immutable
+Recommend `cascap_config` as the default PostgreSQL schema, configurable through immutable
 deployment options. Qualify all provider-owned tables, indexes, migration history and outbox objects
 explicitly; do not rely on a mutable `search_path` or create them in the application's default
 schema. Validate/quote configured SQL identifiers through provider-safe mechanisms; they are not
 administrative UI inputs.
 
 SQLite has no equivalent independently permissioned schema within one database file. Use a
-consistent configurable prefix such as `runtime_configuration_` for tables, indexes and migration
+consistent configurable prefix such as `cascap_config_` for tables, indexes and migration
 history instead of pretending PostgreSQL schema isolation is portable or requiring `ATTACH`.
 Sharing a SQLite file shares file-level permissions and writer contention.
 
@@ -357,6 +619,10 @@ Treat revision order as monotonic within a scope and store generation. Validate 
 from one consistent database snapshot so a reader never assembles parts of different revisions.
 
 ### Audit History and Lightweight Event Sourcing
+
+The append-only audit and typed read-by-revision are current behavior. The richer history,
+restoration, idempotency, projection-rebuild and archival design in this section is **deferred
+far-future work**, not a prerequisite for the approved core or its editor.
 
 The initial design is **snapshot-carrying publication events**, not property-by-property event
 patches or a generic event-sourcing framework. Each successful publish appends one immutable
@@ -476,7 +742,14 @@ PostgreSQL `LISTEN/NOTIFY` may reduce reaction time, but is a hint followed by a
 Subscribe and reconcile on startup and reconnect to close the initial subscription race.
 Polling is still the recovery mechanism after missed notifications.
 
-### Optional Redis Mode
+### Bounded Cache-Aside Trial
+
+The approved trial above reuses shared cache-aside fill/stampede protection. It permits bounded
+stale cache contents and does not rely on writer invalidation. Every reader bypasses the cache
+independently, and required startup remains authoritative. It does not claim the stronger publication
+protocol below. See the [trial contract](../src/CasCap.Common.Configuration.Redis/README.md).
+
+### Later Outbox-Backed Redis Mode
 
 The SQL transaction is the only write acknowledgment boundary. Never write Redis first or report a
 SQL failure as success because the cache changed.
@@ -626,17 +899,27 @@ database spikes. Readiness depends on whether the current applied state remains 
 whether Redis answers. Export refresh failures, rejected revisions, snapshot age and propagation
 lag; keep unbounded revision/actor identifiers out of metric labels.
 
-Logging overrides should expire durably and produce a new reverting revision so reconnecting pods
-recover the intended level. Set a local expiry safety bound as well, because a disconnected pod
-cannot rely on receiving that reverting revision. Do not log configuration payloads, credentials
-or third-party content as a side effect of changing verbosity.
+Logging overrides carry durable expiry metadata. Each reader locally returns to its immutable
+startup baseline at expiry, including after a failed refresh; no reverting revision or notification
+is required. An expired durable head may remain visible to the editor without being active.
+Do not log configuration payloads, credentials or third-party content as a side effect of changing
+verbosity.
 
 ## Optional Blazor Management Module
 
 ### Integration Model
 
-An RCL provides components such as a settings grid, constrained editors, revision history and
-convergence indicators. The host explicitly references it, registers its typed HTTP client, mounts
+The selected first management-UI candidate is agentizr, which already has a
+[Blazor WebAssembly client](https://github.com/f2calv/agentizr/blob/main/src/CasCap.App.Client/CasCap.App.Client.csproj).
+This host choice was confirmed on 2026-10-30. The first Debug embedding is now committed and
+locally tested; its rollout and physical browser verification are paused at the
+[handover checklist](#handover-and-next-kick-off-2026-11-01). No separate portal is needed.
+Keep the reusable components and typed API client host-independent, with provider access and
+authorization enforced on the server.
+
+The core RCL provides a typed editor with explicit host-supplied fields, preview and publication
+outcomes; history and convergence acknowledgements are not implemented core features.
+The host explicitly references it, registers its typed HTTP client, mounts
 the page and supplies authorization policies. No runtime assembly discovery or downloaded arbitrary
 plugins are needed. Static assets ship through normal RCL packaging.
 
@@ -646,23 +929,22 @@ Keep components render-mode-neutral where practical; the host owns routing, navi
 mode. A standalone WASM frontend needs a separately hosted authorized API and an explicit origin/
 authentication design, not access to provider connections.
 
-The browser receives only registered browser-safe configuration DTOs, DTO-derived editor descriptors,
+The browser receives only registered browser-safe configuration DTOs,
 typed scope/revision envelopes and sanitized outcomes. It never receives SQL/Redis/Key Vault credentials,
 connection strings, arbitrary queries, entity serialization or the full configuration root.
 
 ### Server and UI Contract
 
-- Hosts register editable DTOs and derive controls from their typed members and validation metadata,
-  adding descriptions, risk, scope and restart requirements where necessary. Start with booleans,
-  enums and bounded scalars. Do not maintain a separate arbitrary key/string-value catalogue.
-  Components retain member types through editing and submit typed DTO candidates; metadata-driven
-  forms must not erase this contract into a dictionary of strings.
-  Server-side descriptors and validators are authoritative; UI validation is only usability.
-- Expose distinct read, validate/preview, publish, history and rollback operations. The preview shows
-  effective changes, pinned overrides and unsupported/restart-required edits.
-- Provide paginated version history, typed comparisons and as-of/revision views, with an explicit
-  restore preview and confirmation. List configured authorized environments dynamically, whether
-  there is one or many; do not hard-code environment tabs or a three-stage promotion workflow.
+- Hosts register editable browser-safe DTOs and provide explicit `RenderFragment<T>` editor fields
+  for booleans, enums and bounded scalars. Preserve `T` through the document, candidate, preview and
+  publish contract; do not introduce a reflection form engine, arbitrary key/string catalogue or
+  dictionary-of-strings editor. Host validators and authorized-field design remain authoritative;
+  UI validation is only usability.
+- Core operations are read, typed validation/preview and expected-revision publish. The host chooses
+  which DTO is browser-safe and supplies typed editor fields; no arbitrary key/string setter exists.
+  History browsing, comparisons, as-of views, restore and promotion are far-future enhancements.
+  Display the registered destination scope explicitly; a reader host manages its one registered
+  scope, not arbitrary environments supplied by the browser.
 - Publish uses an expected revision (`If-Match`/ETag or equivalent); stale edits return a conflict
   with a safe rebase workflow. Rollback is a new publish, not a history rewrite.
 - Report validation failures, authorization failures, conflicts, store outages and committed-but-
@@ -675,8 +957,9 @@ connection strings, arbitrary queries, entity serialization or the full configur
 - For same-origin cookie-authenticated apps, require antiforgery on mutations, secure host-owned
   authentication and API 401/403 responses. Do not change existing machine API authentication.
   Bearer-token hosts need their own explicit browser credential/origin policy.
-- Keep the API stateless across replicas. Shared cookie/Data Protection keys, idempotent publishes
-  and mixed-version static-asset behavior remain host deployment responsibilities.
+- Keep the API stateless across replicas. Shared cookie/Data Protection keys and mixed-version
+  static-asset behavior remain host deployment responsibilities. Idempotent publication is a
+  far-future protocol, not an implemented retry guarantee.
 
 Adopt [Microsoft.FeatureManagement](https://learn.microsoft.com/en-us/azure/azure-app-configuration/feature-management-dotnet-reference)
 for evaluation semantics where it fits instead of inventing another flag engine.
@@ -722,7 +1005,7 @@ application under `src/` to the solution built by CI, with documentation for loc
 | PostgreSQL integration tests | Real EF Core Npgsql provider and disposable PostgreSQL instance | Migrations, dedicated/shared databases, schema qualification, reader/writer permissions, concurrency conflicts, scope isolation and notification/reconciliation |
 | Redis decorator integration tests | Disposable Redis plus each real SQL backend | Direct versus cached equivalence, outbox recovery, stale refill ordering, missed hints, eviction, outage fallback and scope isolation |
 | ASP.NET Core host integration tests | Stub application via `WebApplicationFactory` plus real stores | Actual bootstrap, DI/options wiring, typed reads, live activation, preserved process cache, readiness and cleanup |
-| Management API integration tests, when introduced | Same host harness with explicit test authentication | DTO validation, environment authorization, concurrency, antiforgery and committed-versus-applied outcomes |
+| Management API integration tests | Same host harness with real test-only cookie authentication | Typed shape/metadata, fixed-destination authorization, named auth schemes, concurrency, antiforgery, authority/cache separation and committed/activation-pending outcomes |
 
 Share a provider contract suite across SQLite and PostgreSQL rather than duplicating assertions.
 Run applicable cases against both standalone and existing-database layouts, using unrelated
@@ -766,8 +1049,9 @@ checks rather than claiming `WebApplicationFactory` covers them.
 
 ### Root Docker Compose Test Infrastructure
 
-Expand [docker-compose.yml](../docker-compose.yml) as part of provider implementation. It currently
-provides Redis and an inspection UI; it does not yet supply PostgreSQL or SQLite test support.
+Expand [docker-compose.yml](../docker-compose.yml) as part of provider implementation. It now
+provides Redis, an inspection UI and an isolated PostgreSQL `tests` service. SQLite test-runner
+support remains unimplemented.
 
 - Add a pinned supported PostgreSQL service with a readiness health check and disposable test
   storage. Supply test credentials through test-only environment configuration, never production
@@ -817,8 +1101,9 @@ they do not authorize running local tests during this documentation task.
 
 ## Delivery Phases and Acceptance Criteria
 
-No phase is implemented by this document. Later phases are conditional, not a commitment to create
-every proposed package.
+The dated first-slice checklist above records verified progress. A completed subset does not complete
+an entire phase; unchecked criteria below remain outstanding. Later phases are conditional, not a
+commitment to create every proposed package. Update the checklists at each implementation boundary.
 
 ### Phase 1: Establish the Contract and Direct Durable Providers
 
@@ -829,30 +1114,42 @@ partitioning and opt-in standard configuration integration.
 
 Acceptance evidence:
 
-- Reads after initial loading perform zero network/database I/O.
-- Concurrent edits yield one winner and an explicit conflict; rollback advances the revision.
-- Invalid revisions never replace the accepted snapshot. A no-op poll emits zero reload signals.
-- Repeated reads of one captured aggregate never mix revision contents.
-- Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
+- [x] Reading the accepted `IOptionsMonitor<T>` aggregate performs zero store I/O, verified across
+  1,000 reads while the background refresh is blocked. Refresh itself intentionally performs I/O.
+- [x] Concurrent PostgreSQL edits yield one winner and an explicit conflict, verified by the real-store
+  concurrent-publication test.
+- **Deferred:** dedicated restore/rollback, paginated/as-of history and idempotent retry workflows.
+- [x] Invalid PostgreSQL revisions never replace the accepted snapshot. Unchanged snapshots emit zero
+  reload signals, verified through the standard monitor and stub HTTP host.
+- [x] A captured options aggregate retains its complete original state after a later publication;
+  deployment configuration remains separate and unchanged.
+- [x] Every public configuration read/write binds to a registered DTO. Invalid member types, unknown
   members, undefined enum values and nested/cross-property validation failures reject the candidate
   before persistence or activation; no raw string setter bypasses those checks.
-- Both providers work in dedicated and existing databases; migrations touch only owned objects.
+- [x] Both providers work in dedicated and existing databases; migrations touch only owned objects.
   PostgreSQL schema qualification and SQLite prefixing avoid application-table collisions.
-- Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
+- [x] Both durable stores use EF Core end to end, with independently owned contexts and provider-specific
   migrations. Real-engine tests prove concurrency/transaction behavior and fresh/upgrade paths;
   neither EF InMemory nor `EnsureCreated` stands in for migration coverage.
-- Identical application/contract names in arbitrary environments remain independent through writes,
-  rollback, idempotent retries, refresh and audit history; no missing-scope fallback crosses environments.
-  Include a single-environment case and a generated twenty-environment case with nonstandard names;
-  those are test examples, not library-imposed environment counts.
-- Historical revision/as-of reads return the recorded typed state; current projection rebuild is
-  deterministic and side-effect-free. Restore appends a new event with source provenance, retains
-  the original history and rejects stale or incompatible requests.
-- Refresh failures preserve the accepted state and expose sanitized, actionable diagnostics.
-- Deployment options and existing consumers retain their current behavior.
-- Provider unit/integration suites and the `WebApplicationFactory` stub host run by default in CI
-  against both SQL backends. Root Compose supplies PostgreSQL and a working SQLite test-runner
-  path; shared-database/environment-isolation cases execute rather than being skipped.
+- [x] Both authorities isolate identical application/contract names across one- and twenty-environment
+  publication/read/history cases with arbitrary names. No missing-scope fallback crosses environments.
+  Dedicated rollback and idempotent retries are excluded from the core scope.
+- [x] PostgreSQL publication, reads and history are isolated across generated one- and twenty-environment
+  cases. Rollback and idempotent retry APIs remain deferred.
+- [x] SQLite publication and historical reads isolate application/contract/environment scopes in
+  one- and twenty-environment cases; restore and idempotent retry remain deferred.
+- [x] PostgreSQL historical revision reads return the recorded typed state after later publication,
+  verified by the real-store history test.
+- **Deferred:** as-of reconstruction, projection rebuild and typed restore with source provenance.
+- [x] Real fixture-database connection refusal preserves accepted controls, locally expires a distinct
+  temporary value and recovers after availability returns. The test verifies sanitized diagnostics
+  without provider exception details; unavailable initial loading fails instead.
+- [x] The isolated runtime root leaves deployment configuration untouched; the reload regression
+  case verifies this directly. Existing consumer smoke/build evidence is recorded above.
+- [x] Provider unit/integration suites and the `WebApplicationFactory` stub host are included in
+  default solution-test CI discovery against both SQL backends. Root Compose supplies PostgreSQL
+  and a locally executed SQLite test-runner path; shared-database/environment-isolation cases
+  execute rather than being skipped. Remote CI execution is not claimed.
 
 ### Phase 2: Controlled Reload and Feature Evaluation
 
@@ -862,32 +1159,49 @@ Do not extend the worker launcher as an incidental change.
 
 Acceptance evidence:
 
-- A change takes effect without restarting the process or flushing its unrelated local cache.
-- Invalid merged options, listener failures and application apply failures have distinct outcomes.
-- Every healthy replica converges within a declared budget. As an initial test profile, use a
-  five-second reconciliation interval and require convergence within fifteen seconds under
-  healthy dependencies; this is a proposed test target, not a production guarantee.
-- Expiring a logging override works even when a replica misses the revert notification.
-- The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
+- [x] Live logging switch/filter changes and the stub's server-enforced feature endpoint change
+  without restarting; local HTTP cases retain the unrelated singleton sentinel.
+- [x] Invalid DTO retention, throwing listeners and an explicitly rejected consumer application have
+  distinct tested outcomes. A listener failure does not imply transactional rollback of options.
+- [x] The bounded live profile observed two healthy replicas activate/expire within 2.7 seconds,
+  inside the declared fifteen-second budget for five-second polling. Isolated host tests cover
+  independent convergence/replacement. This is measured profile evidence, not a guarantee for every
+  future replica, workload or dependency failure.
+- [x] Two independent PostgreSQL-backed HTTP hosts converge; replacing one loads the latest revision
+  while the surviving host retains its unrelated singleton sentinel.
+- [x] Expiry needs no revert publication or notification. Local tests cover expiry despite a newer
+  invalid head and real database connection refusal; dated live evidence proves actual
+  logging-switch/filter expiry under healthy dependencies.
+- [x] The stub host demonstrates these behaviors through HTTP and its real DI/options path, including
   two independent hosts converging without losing their unrelated local cache sentinels.
 
-### Phase 3: Optional Redis, Only with Measured Benefit
+### Phase 3: Optional Redis Trial and Later Projection
 
-Measure direct SQL revision-check load, rollout startup latency, snapshot size and convergence
-before choosing Redis. Record the improvement target and added operational cost before proceeding.
-Wire SQL outbox projection, version-aware publication and independent durable reconciliation.
+The bounded cache-aside trial is explicitly approved for evaluation, without claiming that the current
+small workload needs it. Compare source reads and stale-change behavior in isolated acceptance tests.
+Before adopting it operationally, measure direct SQL load, rollout startup latency, snapshot size,
+convergence and the added operational cost. The stronger SQL-outbox projection, version-aware
+publication and independent reconciliation design is deferred, not silently supplied by cache-aside.
 
 Acceptance evidence:
 
-- Delayed stale refill/projector work cannot move active state or cached pointers backward.
-- Redis outage, eviction, restart, lost notification and failover recover without data loss.
-- A writer crash after SQL commit is recovered through the outbox.
-- A lost projection is repaired within the reconciliation budget, not merely when Redis expires.
-- Large replica cold starts have bounded source load; all published snapshots remain complete.
-- Scopes in different databases/schemas or environments cannot collide in Redis, and a mis-scoped
-  notification or snapshot cannot activate in another scope.
-- Both SQLite-plus-Redis and PostgreSQL-plus-Redis integration/host suites join default CI in the
-  same change that introduces the Redis adapter.
+- [x] The PostgreSQL cache-aside trial exercises real shared Redis hits and reduced durable read counts,
+  direct SQL publication without invalidation, independent reconciliation and a cached HTTP host
+  with retained singleton state. Cache corruption, scope mismatch, typed validation failure and
+  regression fall back to PostgreSQL; Redis connection failure is injected, not a server failover.
+- [x] The trial requires authoritative startup despite a warm cache, enforces logical absolute age,
+  refills after deletion and tests hashed scope/authority identity. Slow fills exceeding physical
+  expiry retry directly rather than renewing the stale deadline.
+- [x] PostgreSQL-plus-Redis tests are part of the existing default-CI project and service wiring.
+  Local execution is evidence only for local behavior; remote CI has not yet been observed.
+- [x] The bounded trial rejects cached regression and wrong-scope snapshots, isolates hashed
+  authority/application/environment/contract/version keys, and independently reconciles durable state.
+- **Deferred stronger projection:** fenced shared pointers, stale projector work, transactional
+  outbox crash recovery and lost-notification repair. The approved trial has no such projection.
+- **Optional adoption evidence:** real Redis interruption/restart/failover and large-fleet cold-start
+  load. Local cache deletion and injected connection failure are tested; real failover is not claimed.
+- [x] SQLite-plus-Redis integration/host coverage joins default solution-test CI discovery with the
+  SQLite adapter; local execution passed, remote CI execution remains unobserved.
 
 ### Phase 4: Management API and Blazor RCL
 
@@ -896,20 +1210,34 @@ and prove that provider-only consumers acquire no ASP.NET Core or Blazor depende
 
 Acceptance evidence:
 
-- Unauthorized, cross-application and cross-environment reads/writes fail server-side; cookie
-  mutations enforce antiforgery. Promotion requires destination-environment authorization.
-- A stale editor gets a conflict; a publish distinguishes committed, accepted and applied states.
-- Client assemblies, API responses, assets and logs contain no secrets or provider settings.
-- Keyboard operation, constrained input validation and error recovery work.
-- Typed editors preserve boolean/enum/numeric/duration values, preview the fully validated DTO and
-  clearly identify the destination environment; forged or malformed payloads fail server validation.
-- A two-replica sample survives pod replacement and a mixed-version rollout without session affinity.
-- Management API `WebApplicationFactory` tests run by default in CI, including authorization,
-  malformed typed payloads, stale revisions and cookie mutation protection.
+- [x] API unauthorized, cross-application/environment/contract reads/writes fail server-side;
+  JSON cookie mutations enforce antiforgery. Missing policies fail closed.
+- [x] A stale API caller gets 409; publication confirms committed with activation pending and makes
+  no accepted/applied acknowledgement. Cancellation/uncertain outcomes do not trigger retry.
+- [x] Browser-neutral contracts and ordinary API reads exclude provider settings and audit actor/reason;
+  captured unavailable responses/logs omit injected provider payloads and exception objects.
+- [x] Native labeled form/button semantics, constrained typed inputs and error recovery are covered
+  by component tests. Consuming-host browser/accessibility verification remains operational work.
+- [x] Typed API preview validates without mutation; exact integral revision boundaries, host enum
+  converters, malformed/unknown/duplicate payloads and metadata are covered before persistence.
+- [x] Typed RCL fields preserve boolean/enum/numeric/duration values and clearly display the fixed
+  destination, with host-supplied `RenderFragment<T>` fields rather than a reflection form engine.
+- [x] Two independent local API hosts and a replacement accept browser cookies/antiforgery with a shared
+  fixture-owned key ring; direct/cached reader hosts retain singleton identity and server feature behavior.
+- [x] Management API `WebApplicationFactory` cases are in the existing runtime test project and default
+  solution-test CI discovery. Local execution is evidenced above; remote execution is unobserved.
+- [x] bUnit/client tests cover typed editing, error recovery, authorization outcomes and the
+  browser assembly's provider/server dependency boundary. They do not claim a browser asset download
+  or physical browser audit. A live mixed-version rollout remains separately approved deployment work.
+- [x] The first consuming Debug WASM page embeds the actual RCL and typed client, with fixed-scope
+  cookie authorization and host-wide operator grants. Its 28-case local integration evidence is
+  recorded in the handover; subsequent source changes require their own validation.
+- [ ] Complete the paused consumer rollout and authenticated browser/assets verification using
+  the ordered handover checklist. This is an operational gate, not unfinished reusable core code.
 
-These are future test requirements, not tests executed for this documentation change.
-Use deterministic fakes and isolated ephemeral SQL/Redis instances, never shared production stores.
-Ask for approval before executing any tests.
+The checked core evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis
+and bUnit, not shared production stores. Core source completion is distinct from a consuming browser
+rollout, published packages or remote CI execution; none of those is claimed here.
 
 ### Later Optional Phase: Azure Storage Adapters
 
@@ -921,22 +1249,18 @@ CI with disposable Azurite test infrastructure where supported. Explicitly ident
 behavior the emulator cannot prove; never report emulator success as evidence for those guarantees.
 No cloud credentials should be required for the default CI test path.
 
-## Unresolved Decisions Before Implementation
+## Remaining Operational and Stretch Decisions
 
-- Which concrete application/control justifies the first live-reload use case, and what are its
-  tolerated staleness, rollback and apply-failure behaviors?
-- Is SQLite needed beyond single-host/development scenarios, and who owns its durable file?
-- Which deployments need standalone databases versus shared schemas/files, what schema/prefix
-  names fit them, and who owns migration execution and database-level environment permissions?
-- Which application-owned DTO contracts and browser-safe projections are needed first, and which
-  override/collection shapes can the initial adapter support without losing typed semantics?
-- Which .NET targets and exact package split are justified by real consumers?
-- Can shared Redis/caching infrastructure support bootstrap and conditional revision publication
-  without pulling application cache lifecycle into configuration initialization?
+- The first live control is logging; PostgreSQL owns `cascap_config`, .NET 10 is the implemented
+  target, and Redis is a bounded cache-aside option rather than conditional outbox publication.
+- Each SQLite consumer must own a durable local file and external migration execution; SQLite is
+  not a multi-node shared-file substitute for PostgreSQL.
+- Each UI host must select its browser-safe DTO, authenticated operator policies and destination
+  scope. No generic editor can decide which application values are safe to expose.
 - Is eventual convergence sufficient for every proposed control, or must some remain restart-only
   or use stronger domain-specific enforcement?
 - Who owns administrative policies, optional approvals, schema registration and audit retention?
-- What history/archive duration and DTO-version conversion policy do consumers require, and do
+- For the deferred history features, what archive duration and DTO-version conversion policy do consumers require, and do
   publication snapshots remain small enough to avoid granular event replay?
 - Does a concrete workload justify Table or Blob storage, and can the selected adapter meet the
   same atomic publication, durable history and recovery guarantees within its storage limits?

@@ -6,18 +6,71 @@
 # browser UI for inspecting it.
 #
 #   docker compose up
+#   docker compose --profile tests up -d --wait postgres-tests
+#   docker compose --profile tests stop postgres-tests
+#   docker compose --profile sqlite-tests run --rm sqlite-tests
+#
+# Redis and PostgreSQL track their supported major versions without digest pins.
+# Test PostgreSQL storage is disposable and lost when its container stops.
 #
 # Service endpoints:
 #   Redis        : localhost:6379
 #   P3x Redis UI : http://localhost:7843
+#   PostgreSQL tests: localhost:5432 (disposable; per-test databases)
+# SQLite tests use isolated files, not a database server.
 # =============================================================================
 services:
 
+  postgres-tests:
+    image: postgres:18-alpine
+    profiles: [ tests ]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: configuration_tests
+      POSTGRES_PASSWORD: local_test_password
+      POSTGRES_DB: postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U configuration_tests -d postgres" ]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  sqlite-tests:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: [ sqlite-tests ]
+    restart: "no"
+    working_dir: /workspace
+    environment:
+      SQLITETEST_DIRECTORY: /sqlite-tests
+      RuntimeConfigurationTests__ConnectionStrings__Redis: redis:6379
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    volumes:
+      - .:/source:ro
+      - sqlite_tests_workspace:/workspace
+      - sqlite_tests_files:/sqlite-tests
+      - sqlite_tests_nuget:/root/.nuget/packages
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        run="$$(date +%s%N)"
+        mkdir "/workspace/$$run"
+        tar --exclude=.git --exclude=bin --exclude=obj --exclude=.copilot-tracking --exclude=TestResults -C /source -cf - . | tar -C "/workspace/$$run" -xf -
+        cd "/workspace/$$run"
+        dotnet test --project src/CasCap.Common.Configuration.Runtime.Tests/CasCap.Common.Configuration.Runtime.Tests.csproj --configuration Release --filter-class '*Sqlite*' --verbosity quiet
+    depends_on:
+      redis:
+        condition: service_healthy
+
   redis:
-    image: redis:8.10
+    image: redis:8
+    restart: unless-stopped
     command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     ports:
-      - 6379:6379
+      - 127.0.0.1:6379:6379
     volumes:
       - ./.docker/redis.conf:/usr/local/etc/redis/redis.conf:ro
     healthcheck:
@@ -27,12 +80,18 @@ services:
       retries: 10
 
   p3x:
-    # Upstream recommends the latest tag; pinned anyway so a local run is reproducible.
+    # No 2026 major/year tag is published; retain a verified release rather than use latest.
     image: patrikx3/p3x-redis-ui:2026.10.100
+    restart: unless-stopped
     ports:
-      - 7843:7843
+      - 127.0.0.1:7843:7843
     volumes:
       - ./.docker/p3x.json:/settings/.p3xrs-conns.json:ro
     depends_on:
       redis:
         condition: service_healthy
+
+volumes:
+  sqlite_tests_workspace:
+  sqlite_tests_files:
+  sqlite_tests_nuget:

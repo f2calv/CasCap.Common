@@ -4,12 +4,40 @@ namespace CasCap.Common.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
+    /// Registers the shared process outcome and configures the Generic Host shutdown timeout.
+    /// </summary>
+    public static IServiceCollection AddApplicationHostLifecycle(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddApplicationExitState();
+        services.AddOptionsWithValidateOnStart<HostLifecycleConfig>()
+            .BindConfiguration(HostLifecycleConfig.ConfigurationSectionName)
+            .ValidateDataAnnotations();
+        var config = configuration.GetSection(HostLifecycleConfig.ConfigurationSectionName)
+            .Get<HostLifecycleConfig>() ?? new HostLifecycleConfig();
+        services.Configure<HostOptions>(options =>
+            options.ShutdownTimeout = TimeSpan.FromMilliseconds(config.ShutdownTimeoutMs));
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the process outcome shared by background supervision and the application entry
+    /// point.
+    /// </summary>
+    public static IServiceCollection AddApplicationExitState(this IServiceCollection services)
+    {
+        services.TryAddSingleton<ApplicationExitState>();
+        return services;
+    }
+
+    /// <summary>
     /// Registers <see cref="FeatureFlagBgService"/> with the specified set of enabled feature names.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">Case-insensitive set of feature names to enable at runtime.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService(this IServiceCollection services,
@@ -17,6 +45,7 @@ public static class ServiceCollectionExtensions
         bool addApplicationMetadataService = false)
     {
         services.Configure<FeatureFlagConfig>(o => o.EnabledFeatures = new HashSet<string>(enabledFeatures, StringComparer.OrdinalIgnoreCase));
+        services.AddApplicationExitState();
         services.AddHostedService<FeatureFlagBgService>();
 
         if (addApplicationMetadataService)
@@ -32,7 +61,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="enabledFeatures">The bitwise combination of enabled feature flags.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     public static IServiceCollection AddFeatureFlagService<T>(this IServiceCollection services, T enabledFeatures,
@@ -55,7 +84,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">The application configuration.</param>
     /// <param name="sectionName">Configuration section name for <see cref="FeatureConfig{T}"/>.</param>
     /// <param name="addApplicationMetadataService">
-    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as a hosted service
+    /// When <see langword="true"/>, registers <see cref="ApplicationMetadataBgService"/> as an always-enabled feature
     /// that periodically logs application build metadata.
     /// </param>
     [Obsolete("Use the non-generic AddFeatureFlagService overload with string-based feature names instead.")]
@@ -69,7 +98,13 @@ public static class ServiceCollectionExtensions
 #pragma warning restore CS0618
 
         if (addApplicationMetadataService)
+        {
+            services.Configure<FeatureFlagConfig>(options =>
+                options.EnabledFeatures = new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+            services.AddApplicationExitState();
+            services.AddHostedService<FeatureFlagBgService>();
             AddApplicationMetadataService(services);
+        }
 
         return services;
     }
@@ -81,6 +116,7 @@ public static class ServiceCollectionExtensions
         services.AddOptionsWithValidateOnStart<ApplicationMetadataConfig>()
             .BindConfiguration(ApplicationMetadataConfig.ConfigurationSectionName)
             .Validate(config => config.LogInterval > TimeSpan.Zero, "LogInterval must be greater than zero.");
-        services.AddHostedService<ApplicationMetadataBgService>();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IBgFeature, ApplicationMetadataBgService>());
     }
 }

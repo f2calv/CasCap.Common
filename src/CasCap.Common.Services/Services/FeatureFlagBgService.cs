@@ -6,16 +6,17 @@ namespace CasCap.Common.Services;
 /// in the configured <see cref="FeatureFlagConfig.EnabledFeatures"/> set.
 /// </summary>
 /// <remarks>
-/// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="IBgFeature.AlwaysEnabled"/>
+/// Features with <see cref="IBgFeature.FeatureName"/> equal to <see cref="BgFeatureNames.AlwaysEnabled"/>
 /// are launched regardless of the enabled set. A run-to-completion feature ends the process by calling
 /// <see cref="IHostApplicationLifetime.StopApplication"/> before returning; any other completion of every
-/// enabled feature is treated as a fault.
+/// explicitly enabled feature is treated as a fault, even while always-enabled features keep running.
 /// </remarks>
 public sealed partial class FeatureFlagBgService(
     ILogger<FeatureFlagBgService> logger,
     IOptions<FeatureFlagConfig> featureConfig,
     IEnumerable<IBgFeature> features,
-    IHostApplicationLifetime appLifetime) : BackgroundService
+    IHostApplicationLifetime appLifetime,
+    ApplicationExitState exitState) : BackgroundService, IBgFeatureHost
 {
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,24 +25,28 @@ public sealed partial class FeatureFlagBgService(
         LogStarting(logger, nameof(FeatureFlagBgService));
         using var featureCancellation = CancellationTokenSource.CreateLinkedTokenSource(
             stoppingToken, appLifetime.ApplicationStopping);
-        var runningFeatures = new List<(string Name, Task Task)>(features.Count());
+        var runningFeatures = new List<(string Name, bool AlwaysEnabled, Task Task)>(features.Count());
         try
         {
             foreach (var feature in features)
             {
-                if (string.Equals(feature.FeatureName, IBgFeature.AlwaysEnabled, StringComparison.OrdinalIgnoreCase)
-                    || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
+                var alwaysEnabled = string.Equals(feature.FeatureName, BgFeatureNames.AlwaysEnabled, StringComparison.OrdinalIgnoreCase);
+                if (alwaysEnabled || featureConfig.Value.EnabledFeatures.Contains(feature.FeatureName))
                 {
                     LogFeatureStarting(logger, nameof(FeatureFlagBgService), feature.GetType().Name);
-                    runningFeatures.Add((feature.FeatureName, feature.ExecuteAsync(featureCancellation.Token)));
+                    runningFeatures.Add((feature.FeatureName, alwaysEnabled, feature.ExecuteAsync(featureCancellation.Token)));
                 }
             }
             if (runningFeatures.IsNullOrEmpty())
                 throw new GenericException("no features found to launch!");
 
             var startedFeatureNames = runningFeatures.Select(feature => feature.Name).ToArray();
+            // Always-enabled companions (metadata, cache expiry) must not keep a host alive once its explicitly
+            // enabled features have all completed; they only define the lifetime when nothing else was enabled.
+            var explicitFeaturesStarted = runningFeatures.Any(feature => !feature.AlwaysEnabled);
             var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, featureCancellation.Token);
-            while (runningFeatures.Count > 0 && !featureCancellation.IsCancellationRequested)
+            while (runningFeatures.Any(feature => !explicitFeaturesStarted || !feature.AlwaysEnabled)
+                && !featureCancellation.IsCancellationRequested)
             {
                 var completedTask = await Task.WhenAny(
                     runningFeatures.Select(feature => feature.Task).Append(cancellationTask)).ConfigureAwait(false);
@@ -61,6 +66,7 @@ public sealed partial class FeatureFlagBgService(
         }
         catch
         {
+            exitState.MarkFailure();
             appLifetime.StopApplication();
             throw;
         }

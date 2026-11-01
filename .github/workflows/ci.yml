@@ -60,10 +60,24 @@ jobs:
       contents: read #checkout
       packages: write #push to nuget.pkg.github.com
     services:
+      postgres-tests:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: configuration_tests
+          POSTGRES_PASSWORD: local_test_password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U configuration_tests -d postgres"
+          --health-interval 2s --health-timeout 3s --health-retries 30
       redis:
-        image: redis
+        image: redis:8
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: f2calv/gha-dotnet-nuget@v2
         with:
@@ -72,7 +86,7 @@ jobs:
           #become a literal, or the token exchange fails with an opaque 401.
           nuget-user: ${{ github.repository_owner }}
           configuration: ${{ inputs.configuration }}
-          execute-tests: ${{ inputs.execute-tests }}
+          execute-tests: ${{ github.event_name != 'workflow_dispatch' || inputs.execute-tests }}
           push-preview: ${{ inputs.push-preview }}
           package-filter: ${{ inputs.package-filter }}
           version: ${{ needs.versioning.outputs.version }}
@@ -89,6 +103,6 @@ jobs:
     permissions:
       contents: write
     with:
-      semVer: ${{ needs.versioning.outputs.version }}
+      semVer: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
       tag-prefix: ''
       move-major-tag: false

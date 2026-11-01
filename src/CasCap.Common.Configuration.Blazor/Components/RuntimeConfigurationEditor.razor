@@ -1,0 +1,61 @@
+@namespace CasCap.Common.Configuration.Blazor.Components
+@typeparam T where T : class
+@implements IDisposable
+
+<section class="runtime-editor" aria-label="Runtime configuration">
+    <h2>@Title</h2>
+    <p>Destination: <strong>@Destination.Application / @Destination.Environment / @Destination.Contract</strong></p>
+    <p>Editing the durable document, not a replica's effective options. Publishing does not confirm activation.</p>
+    @if (_busy)
+    {
+        <p role="status">Working...</p>
+    }
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <p role="@(_error ? "alert" : "status")">@_message</p>
+    }
+    @if (_document is not null && _editContext is not null && _value is not null)
+    {
+        <p>Durable revision: <output>@_document.Revision</output></p>
+        @if (_document.ExpiresAtUtc is { } expiry)
+        {
+            <p>Document expiry (UTC): @expiry.UtcDateTime.ToString("u")</p>
+        }
+        <EditForm @key="_editContext" EditContext="_editContext" OnSubmit="PreviewAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <fieldset disabled="@_busy">
+                <legend>Typed controls</legend>
+                @Fields(_value)
+                <label for="@(_id + "-reason")">Publication reason</label>
+                <InputTextArea id="@(_id + "-reason")" @bind-Value="_reason" maxlength="500" />
+                <label for="@(_id + "-lifetime")">Temporary lifetime in minutes (optional, 1-1440)</label>
+                <InputNumber id="@(_id + "-lifetime")" TValue="int?" @bind-Value="_lifetimeMinutes" min="1" max="1440" />
+                <label for="@(_id + "-confirm")">
+                    <InputCheckbox id="@(_id + "-confirm")" @bind-Value="_confirmed" />
+                    I confirm publication to the destination above.
+                </label>
+                <div class="runtime-actions">
+                    <button type="submit">Validate / preview</button>
+                    <button type="button" disabled="@(!_previewed || !_confirmed)" @onclick="PublishAsync">Publish</button>
+                </div>
+            </fieldset>
+        </EditForm>
+        <NavigationLock ConfirmExternalNavigation="@_editContext.IsModified()" OnBeforeInternalNavigation="BeforeNavigationAsync" />
+    }
+    <div class="runtime-actions">
+        <button type="button" disabled="@_busy" @onclick="RequestReloadAsync">Reload current</button>
+    </div>
+    @if (_reloadRequested)
+    {
+        <p role="alert">Reloading discards your unsaved edits.</p>
+        <button type="button" @onclick="ReloadConfirmedAsync">Discard edits and reload</button>
+        <button type="button" @onclick="KeepEditing">Keep editing</button>
+    }
+    @if (_blockedNavigation is not null)
+    {
+        <p role="alert">Leave and discard your unsaved edits?</p>
+        <button type="button" @onclick="LeavePage">Discard edits and leave</button>
+        <button type="button" @onclick="KeepEditing">Keep editing</button>
+    }
+</section>

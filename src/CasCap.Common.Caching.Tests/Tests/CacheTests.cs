@@ -3,7 +3,7 @@ namespace CasCap.Common.Caching.Tests;
 /// <summary>Caching service registration and integration tests.</summary>
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    /// <summary>Verifies that <see cref="CacheExpiryBgService"/> starts and stops correctly with configured caching options.</summary>
+    /// <summary>Verifies that <see cref="CacheExpiryBgService"/> executes and stops correctly with configured caching options.</summary>
     [Theory, Trait("Category", nameof(BackgroundService))]
     [InlineData(SerializationType.Json, false, CacheType.Memory)]
     public async Task TestBgServices_Async(SerializationType SerializationType, bool ClearOnStartup, CacheType LocalCacheType)
@@ -21,22 +21,17 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
         var source = new CancellationTokenSource();
         var cancellationToken = source.Token;
 
-        //Health checks also contribute a hosted service, so select the one under test explicitly.
-        var cacheExpiryBgSvc = serviceProvider.GetServices<IHostedService>().OfType<CacheExpiryBgService>().Single();
+        var cacheExpiryBgSvc = serviceProvider.GetServices<IBgFeature>().OfType<CacheExpiryBgService>().Single();
 
         //Act
-        //start bg service
-        await cacheExpiryBgSvc.StartAsync(cancellationToken);
+        var execution = cacheExpiryBgSvc.ExecuteAsync(cancellationToken);
         await Task.Delay(5_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
 
-
-        //stop bg service
         await source.CancelAsync();
         source.Dispose();
-        await Task.Delay(1_000, TestContext.Current.CancellationToken);//short pause for the cancellation token to take effect
+        await execution.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         //Assert
-        //the hosted service resolves to the expected concrete type and starts/stops without throwing
         Assert.NotNull(cacheExpiryBgSvc);
     }
 
@@ -534,11 +529,8 @@ public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutpu
             services.AddCasCapCaching(LocalCacheType: LocalCacheType);
         else if (extensionType == 2)
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: false)
-                .Build();
-            services.AddSingleton<IConfiguration>(configuration);
-            services.AddCasCapCaching(configuration, LocalCacheType: LocalCacheType);
+            services.AddSingleton(Configuration);
+            services.AddCasCapCaching(Configuration, LocalCacheType: LocalCacheType);
         }
         else if (extensionType == 3)
         {

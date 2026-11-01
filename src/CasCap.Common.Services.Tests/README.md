@@ -15,24 +15,34 @@ dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Te
 Tests create local hosts and in-memory sink implementations. No credentials or external service
 are required. Host tests deliberately exercise child failures and shutdown paths.
 
+`ProcessOutcomeTests` launches the
+[services test host](../CasCap.Common.Services.TestHost/README.md) as a separate process to verify
+exit codes. The test project builds that executable without referencing its assembly.
+
 ## Tests
 
 Counts are declared methods and cases per target framework, not execution results.
 
 | Test class | Methods | Test cases | Coverage |
 | --- | ---: | ---: | --- |
+| `ApplicationExitStateTests` | 2 | 2 | Successful default state, DI registration and idempotent failure marking |
 | `ApplicationMetadataTests` | 1 | 1 | Application version, source revision, repository, branch, workflow, and run metadata extraction |
+| `CoalescingScheduleRunnerTests` | 6 | 7 | UTC exclusive cursors, slow-run coalescing, cancellation, callback faults and awaited timeout cleanup |
 | `FeatureFlagBgServiceTests` | 8 | 9 | Finite siblings, first/later faults, requested stop, cancellation, disabled features, and awaited cleanup on shutdown or sibling failure |
-| `FeatureFlagBgServiceHostTests` | 2 | 2 | `BackgroundServiceExceptionBehavior.StopHost` after a later child fault, and a clean stop by a run-to-completion child |
+| `FeatureFlagBgServiceHostTests` | 2 | 2 | Fatal child failure records a nonzero result before `StopHost`; run-to-completion remains successful |
+| `HostLifecycleConfigTests` | 2 | 2 | Shutdown timeout binding, exit-state registration and invalid timeout rejection |
+| `ProcessOutcomeTests` | 1 | 4 | Child-process daemon failure, requested shutdown and finite migration success/failure exit codes |
 | `SinkServiceCollectionExtensionsTests` | 3 | 3 | Every enabled sink keeps writing, the `QuerySinkType` sink answers queries with a last-registered fallback, and an earlier fallback query sink is replaced |
-| **Total** | **14** | **15** | |
+| **Total** | **25** | **30** | |
 
 ### Trait Categories
 
 | Category | Used by |
 | --- | --- |
 | `BackgroundService` | Feature-flag background-service tests |
+| `Hosting` | Shared application process-outcome tests |
 | `Metadata` | Application metadata tests |
+| `Scheduling` | UTC cron runner tests |
 | `Sinks` | Event-sink registration tests |
 
 ### Skipped Tests
@@ -44,8 +54,12 @@ No declared or conditional skips.
 ```text
 Tests/
 └── Unit/
+    ├── ApplicationExitStateTests.cs
     ├── ApplicationMetadataTests.cs
+    ├── CoalescingScheduleRunnerTests.cs
     ├── FeatureFlagBgServiceHostTests.cs
     ├── FeatureFlagBgServiceTests.cs
+    ├── HostLifecycleConfigTests.cs
+    ├── ProcessOutcomeTests.cs
     └── SinkServiceCollectionExtensionsTests.cs
 ```

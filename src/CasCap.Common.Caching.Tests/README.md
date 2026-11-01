@@ -14,10 +14,15 @@ dotnet test --project src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Test
 docker compose down
 ```
 
-Use only a disposable Redis instance at `localhost:6379`: tests can clear databases and need
+Use only a disposable Redis instance from the [Compose stack](../../docker-compose.yml): tests can clear databases and need
 administrative commands. The test fixture selects databases 8, 9 and 10 for the corresponding target
 frameworks. When running the whole solution, use `--max-parallel-test-modules 1` as described in the
 [repository quick start](../../README.md#development).
+
+The fixture uses the shared `Test`-environment configuration loader: required `appsettings.json`,
+optional `appsettings.Test.json` and local overlays, then user secrets and environment variables.
+Local Redis defaults live in the Test overlay, not C#. Override `ConnectionStrings__Redis` for an
+explicit disposable target; if the Test file is absent, another provider must supply that value.
 
 `RegistrationTests` and the local-only lifecycle checks do not require Redis. To run only the
 registration class:

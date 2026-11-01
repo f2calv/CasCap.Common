@@ -29,10 +29,13 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<IBgFeature, WorkerFeature>();
+builder.Services.AddApplicationHostLifecycle(builder.Configuration);
 builder.Services.AddFeatureFlagService(
     new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Worker" });
 
-await builder.Build().RunAsync();
+using var host = builder.Build();
+await host.RunAsync();
+return host.Services.GetApplicationExitCode();
 
 public sealed class WorkerFeature(ILogger<WorkerFeature> logger) : IBgFeature
 {
@@ -53,7 +56,45 @@ Feature matching is case-insensitive. A feature named `IBgFeature.AlwaysEnabled`
 regardless of the selected set. Registration supplies `IOptions<FeatureFlagConfig>`; it does not
 automatically read an `EnabledFeatures` JSON section.
 
-## Service Architecture
+`AddApplicationHostLifecycle` binds `CasCap:HostLifecycleConfig`, configures
+`HostOptions.ShutdownTimeout`, and registers `ApplicationExitState`:
+
+```json
+{
+  "CasCap": {
+    "HostLifecycleConfig": {
+      "ShutdownTimeoutMs": 30000
+    }
+  }
+}
+```
+
+Set the Kubernetes `terminationGracePeriodSeconds` longer than this timeout, including any
+`PreStop` duration and a safety margin.
+
+### UTC Cron Scheduling
+
+The current checkout also exposes `CoalescingScheduleRunner` in `CasCap.Common.Services`
+(source-reference development until the next package publication). It accepts a parsed Cronos
+expression, an injected `TimeProvider`, an awaited callback and a cancellation token.
+Five-field expressions use minute precision; seconds require explicit `CronFormat.IncludeSeconds`.
+
+```csharp
+await CoalescingScheduleRunner.RunAsync(
+    Cronos.CronExpression.Parse("0 * * * *"),
+    TimeProvider.System,
+    async (scheduledForUtc, token) => await RunJobAsync(scheduledForUtc, token),
+    stoppingToken);
+```
+
+Occurrences are strictly after the cursor and use UTC. Each schedule runs sequentially; after
+completion, missed occurrences are coalesced rather than replayed. Startup/manual execution,
+distributed ownership, durable requests, retries and idempotency belong to the consumer.
+Cancellation stops pending delays and is passed into callbacks; callback failures propagate.
+`RunWithTimeoutAsync` cancels a cooperative operation and awaits its cleanup before reporting a
+timeout. It does not forcibly abandon work that ignores cancellation.
+
+## Feature Supervision Activity
 
 - No matching features is a startup failure.
 - A child may finish while siblings continue. Faults from enabled children propagate to the host.
@@ -61,7 +102,16 @@ automatically read an `EnabledFeatures` JSON section.
 - A finite job must request `IHostApplicationLifetime.StopApplication()` before returning.
 - Host cancellation cancels and awaits outstanding features, including their cleanup.
 - A child fault requests host shutdown immediately, then cancels and awaits its siblings before
-  propagating the failure. Align host and container termination budgets for uncooperative cleanup.
+  propagating the failure.
+- A child fault marks `ApplicationExitState` as failed before requesting shutdown. The process entry
+  point returns `GetApplicationExitCode()` after `RunAsync`, so graceful cleanup still completes but
+  Kubernetes observes a nonzero result.
+- `AddFeatureFlagService` registers the exit state automatically. Call
+  `AddApplicationExitState()` directly in hosts that also need to report startup or non-feature
+  outcomes through the same process boundary.
+- A directly registered `BackgroundService` outside `FeatureFlagBgService` must mark the same state
+  before requesting fatal shutdown, or use another supervisor that does.
+- Align host and container termination budgets for uncooperative cleanup.
 
 ```mermaid
 flowchart TD

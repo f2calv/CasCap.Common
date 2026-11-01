@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Description>Typed host-integrated Blazor editor for authorized runtime configuration.</Description>
+    <RootNamespace>CasCap.Common.Configuration.Blazor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Management.Contracts\CasCap.Common.Configuration.Management.Contracts.csproj" />
+  </ItemGroup>
+</Project>

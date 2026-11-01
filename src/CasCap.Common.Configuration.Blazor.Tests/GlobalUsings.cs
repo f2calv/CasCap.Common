@@ -1,0 +1,11 @@
+global using Bunit;
+global using CasCap.Common.Configuration.Blazor.Components;
+global using CasCap.Common.Configuration.Blazor.Constants;
+global using CasCap.Common.Configuration.Blazor.Services;
+global using CasCap.Common.Configuration.Blazor.Tests.Models;
+global using CasCap.Common.Configuration.Management.Contracts.Models;
+global using Microsoft.Extensions.DependencyInjection;
+global using System.Net;
+global using System.Net.Http.Json;
+global using Xunit;
+global using TestContext = Xunit.TestContext;

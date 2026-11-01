@@ -53,7 +53,7 @@ Use the same set with
 when background features share those names. If controllers live in separate assemblies, application
 part selection can gate entire assemblies instead.
 
-## Service Architecture
+## Controller Discovery Activity
 
 ```mermaid
 flowchart TD
@@ -72,6 +72,12 @@ flowchart TD
 needed. This ordering matters: Serilog initialization clears existing logging providers.
 Serilog reads the `Serilog` section and forwards events to Microsoft logging providers, including
 the OpenTelemetry exporter.
+
+The local source API also accepts an optional `configureLogger` callback, applied after the standard
+defaults and configuration binding. A deliberately reloadable application can use it to attach a
+per-host `LoggingLevelSwitch` to `MinimumLevel.ControlledBy`. This controls the actual pipeline,
+including forwarding, rather than only console output. The application owns validation, monitor
+subscription/disposal and its immutable startup baseline; existing calls retain their behavior.
 
 | Extension | Description |
 | --- | --- |

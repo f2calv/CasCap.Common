@@ -210,7 +210,8 @@ public sealed class FeatureFlagBgServiceTests
                 EnabledFeatures = new HashSet<string>(enabledFeatures, StringComparer.OrdinalIgnoreCase),
             }),
             features,
-            lifetime);
+            lifetime,
+            new ApplicationExitState());
 
     private sealed class TestHostApplicationLifetime : IHostApplicationLifetime, IDisposable
     {

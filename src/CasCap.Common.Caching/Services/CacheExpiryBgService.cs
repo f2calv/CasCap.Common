@@ -4,10 +4,13 @@ namespace CasCap.Common.Services;
 /// Background service that runs <see cref="LocalCacheExpiryService"/> and <see cref="RemoteCacheExpiryService"/> concurrently.
 /// </summary>
 public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger, IOptions<CachingConfig> cachingConfig,
-    LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : BackgroundService
+    LocalCacheExpiryService localCacheExpirySvc, RemoteCacheExpiryService remoteCacheExpirySvc) : IBgFeature
 {
     /// <inheritdoc/>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public string FeatureName => BgFeatureNames.AlwaysEnabled;
+
+    /// <inheritdoc/>
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await Task.Yield();
         var config = cachingConfig.Value;
@@ -15,9 +18,9 @@ public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger, I
         //immediately and the WhenAny below would tear this service down while the other still runs.
         var tasks = new List<Task>(2);
         if (config.LocalCacheExpiryServiceEnabled)
-            tasks.Add(localCacheExpirySvc.ExecuteAsync(stoppingToken));
+            tasks.Add(localCacheExpirySvc.ExecuteAsync(cancellationToken));
         if (config.RemoteCacheExpiryServiceEnabled)
-            tasks.Add(remoteCacheExpirySvc.ExecuteAsync(stoppingToken));
+            tasks.Add(remoteCacheExpirySvc.ExecuteAsync(cancellationToken));
         if (tasks.Count == 0)
         {
             CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "exiting immediately, all expiry sub-services are disabled");

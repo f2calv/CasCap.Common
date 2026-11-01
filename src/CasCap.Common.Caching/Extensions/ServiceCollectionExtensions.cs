@@ -167,7 +167,11 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<RemoteCacheExpiryService>();
             services.TryAddSingleton<LocalCacheExpiryService>();
             if (cacheExpiryServiceEnabled)
-                services.AddHostedService<CacheExpiryBgService>();
+            {
+                services.TryAddSingleton<CacheExpiryBgService>();
+                services.AddSingleton<IBgFeature>(sp => sp.GetRequiredService<CacheExpiryBgService>());
+                services.AddHostedService<CacheExpiryFallbackBgService>();
+            }
 
             multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
