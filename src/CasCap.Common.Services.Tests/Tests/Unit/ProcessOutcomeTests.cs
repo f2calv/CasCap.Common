@@ -14,7 +14,7 @@ public sealed class ProcessOutcomeTests
     public async Task ProcessExitCode(string mode, int expected)
     {
         var fixture = FixtureAssemblyPath();
-        var startInfo = new ProcessStartInfo("dotnet")
+        var startInfo = new ProcessStartInfo(DotnetHostPath())
         {
             RedirectStandardError = true,
             RedirectStandardOutput = true,
@@ -48,6 +48,22 @@ public sealed class ProcessOutcomeTests
             $"Mode '{mode}' returned {process.ExitCode}, expected {expected}.{Environment.NewLine}"
             + $"stdout:{Environment.NewLine}{output}{Environment.NewLine}"
             + $"stderr:{Environment.NewLine}{error}");
+    }
+
+    /// <summary>Resolves the absolute dotnet host path so the fixture never runs whatever <c>PATH</c> resolves first.</summary>
+    private static string DotnetHostPath()
+    {
+        if (Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") is { Length: > 0 } host && File.Exists(host))
+            return host;
+        var executable = OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet";
+        foreach (var directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = Path.Combine(directory, executable);
+            if (Path.IsPathFullyQualified(candidate) && File.Exists(candidate))
+                return candidate;
+        }
+        throw new FileNotFoundException("Could not locate the dotnet host.");
     }
 
     private static string FixtureAssemblyPath()
