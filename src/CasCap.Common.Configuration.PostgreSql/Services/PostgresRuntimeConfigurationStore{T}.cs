@@ -6,6 +6,10 @@ using Npgsql;
 namespace CasCap.Common.Configuration.PostgreSql.Services;
 
 /// <summary>Reads a scoped head and journal atomically and publishes complete typed revisions.</summary>
+// TODO: Extract the head/journal read, publication bounds and revision mapping shared with
+// SqliteRuntimeConfigurationStore<T> into a provider-neutral base once a third provider or a further
+// behaviour change would otherwise touch both copies. Deferred for the 5.0.0 cut because the providers
+// differ in transaction and conflict handling and both are covered by their own integration tests.
 public sealed class PostgresRuntimeConfigurationStore<T>(
     TimeProvider timeProvider,
     RuntimeConfigurationOptions settings,
