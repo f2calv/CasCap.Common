@@ -81,6 +81,40 @@ public sealed class FeatureFlagBgServiceHostTests
         Assert.Equal(BgFeatureNames.AlwaysEnabled, metadata.FeatureName);
     }
 
+    [Fact, Trait("Category", "BackgroundService")]
+    public async Task AlwaysEnabledCompanion_DoesNotKeepHostAliveAfterExplicitFeaturesComplete()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.Logging.ClearProviders();
+        builder.Services.Configure<HostOptions>(options =>
+            options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
+        builder.Services.AddSingleton<IBgFeature>(new TestBgFeature("Finite", _ => Task.CompletedTask));
+        builder.Services.AddSingleton<IBgFeature>(new TestBgFeature(BgFeatureNames.AlwaysEnabled,
+            cancellationToken => Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken)));
+        builder.Services.AddFeatureFlagService(new HashSet<string>(["Finite"], StringComparer.OrdinalIgnoreCase));
+        using var host = builder.Build();
+        var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+        var exitState = host.Services.GetRequiredService<ApplicationExitState>();
+        var stopping = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var registration = lifetime.ApplicationStopping.Register(() => stopping.TrySetResult(true));
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+        await stopping.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, exitState.ExitCode);
+        await host.StopAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact, Trait("Category", "BackgroundService")]
+    public void FeatureHost_IsDiscoverableByMarker()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.Services.AddFeatureFlagService(new HashSet<string>(["Example"], StringComparer.OrdinalIgnoreCase));
+        using var host = builder.Build();
+
+        Assert.Single(host.Services.GetServices<IHostedService>().OfType<IBgFeatureHost>());
+    }
+
     private sealed class TestBgFeature(string featureName, Func<CancellationToken, Task> executeAsync) : IBgFeature
     {
         public string FeatureName { get; } = featureName;

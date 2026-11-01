@@ -8,6 +8,10 @@ internal sealed class RuntimeSnapshotProvider : ConfigurationProvider
 {
     private string? _acceptedJson;
 
+    /// <summary>Gets the most recently accepted complete JSON snapshot.</summary>
+    internal string AcceptedJson => _acceptedJson
+        ?? throw new InvalidOperationException("No runtime configuration snapshot has been accepted.");
+
     /// <summary>Publishes a complete effective change; unchanged polls do not raise reload tokens.</summary>
     internal void Publish(string json)
     {

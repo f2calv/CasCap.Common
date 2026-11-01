@@ -33,8 +33,7 @@ public static class ServiceCollectionExtensions
         });
         services.AddSingleton<RuntimeConfigurationRoot<T>>();
         services.AddOptions<T>().ValidateDataAnnotations();
-        services.AddSingleton<IConfigureOptions<T>>(sp => new ConfigureFromConfigurationOptions<T>(
-            sp.GetRequiredService<RuntimeConfigurationRoot<T>>().Root));
+        services.AddSingleton<IOptionsFactory<T>, RuntimeOptionsFactory<T>>();
         services.AddSingleton<IOptionsChangeTokenSource<T>>(sp => new ConfigurationChangeTokenSource<T>(
             sp.GetRequiredService<RuntimeConfigurationRoot<T>>().Root));
         services.AddSingleton<IHostedService, RuntimeConfigurationReader<T>>();

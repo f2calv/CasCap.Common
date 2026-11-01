@@ -44,6 +44,7 @@ public sealed class SqliteRuntimeConfigurationStore<T>(
         if (actor.Length > 200 || reason.Length > 500 || expectedRevision < 0
             || expiresAtUtc <= timeProvider.GetUtcNow())
             throw new ArgumentException("Publication metadata is outside supported bounds.");
+        expiresAtUtc = expiresAtUtc?.ToUniversalTime();
         var json = codec.Serialize(value);
         try
         {

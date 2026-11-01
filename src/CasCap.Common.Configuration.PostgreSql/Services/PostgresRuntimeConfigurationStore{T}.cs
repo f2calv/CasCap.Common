@@ -43,6 +43,8 @@ public sealed class PostgresRuntimeConfigurationStore<T>(
         if (actor.Length > 200 || reason.Length > 500 || expectedRevision < 0
             || expiresAtUtc <= timeProvider.GetUtcNow())
             throw new ArgumentException("Publication metadata is outside supported bounds.");
+        // Npgsql rejects non-zero offsets for timestamp with time zone columns.
+        expiresAtUtc = expiresAtUtc?.ToUniversalTime();
         var json = codec.Serialize(value);
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
