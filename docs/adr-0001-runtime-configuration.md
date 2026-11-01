@@ -1,7 +1,7 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
 **Status:** Accepted core scope implemented and verified locally; release and deployment are separate.
-**Date:** 2026-10-24.
+**Date:** 2026-11-01.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
 Blazor management surface and optional Azure Table/Blob storage extensions.
@@ -127,8 +127,66 @@ steps, not implied by source completion.
 
 The approved source scope is complete. Dedicated restoration/history workflows, outbox projection,
 Azure authorities and fleet certification remain far-future stretch work. Package publication,
-consumer embedding, physical browser/accessibility checks and live deployment are separate
+consumer rollout, physical browser/accessibility checks and live deployment are separate
 operational steps requiring their own approval.
+
+## Handover and Next Kick-off (2026-11-01)
+
+The reusable core is implemented. The next practical step is verification of the first consuming
+browser application, not another provider, history/restoration workflow or long logging soak.
+Keep the dated acceptance results above distinct from validation of later source changes.
+
+### Verified Progress
+
+- [x] Core provider/API/RCL completion was committed as `bf52301`, with the 110 runtime and
+  24 component/client results recorded above. Subsequent runtime hardening and dependency updates
+  exist in this checkout; those earlier counts are not a fresh regression result for the current tree.
+- [x] Agentizr's first Debug integration was committed locally as `aead178`. It embeds the actual
+  typed RCL into the existing Blazor WebAssembly frontend using sibling project references,
+  a browser-neutral logging DTO and the host's fixed-destination management API.
+  This is committed consumer source, not a verified deployed page or published package.
+- [x] The integration snapshot passed 28 focused host authorization, API, component/wire and
+  logging cases against isolated PostgreSQL. The Debug solution and Release WASM client built
+  with zero warnings/errors; the Release browser dependency boundary was checked.
+  Tests include read-only initial page loading, preview without append and actual reader behavior.
+- [x] Management remains opt-in. The normal grant is an explicit host-wide operator allowlist;
+  the separately approved Debug trial may grant existing app-administrator identities that access.
+  Tenant administration alone does not implicitly authorize host-wide logging changes.
+- [x] The attempted consumer deployment stopped at its dirty-worktree preflight, before image
+  build/publication or deployment mutation. The user then explicitly paused rollout.
+  No ConfigMap synchronization, push, new rollout or logging publication was performed by that attempt.
+
+The earlier bounded logging trial proved actual Information-to-Debug-to-Information switch/filter
+behavior without replacing the observed processes. It did not exercise the editor in a real browser.
+An expired durable head is intentionally retained: its displayed value is not the effective replica
+level, and expiry does not require a reset publication.
+
+### Ordered Resume Checklist
+
+1. [ ] Review the current Common and consumer branches/worktrees and subsequent refactoring before
+   reusing the integration snapshot's evidence. Reconfirm Debug project references, typed contracts,
+   operator policy and fixed destination. At the integration snapshot the full Release host was
+   blocked by separate unpublished shared lifecycle APIs; recheck that dependency limitation rather
+   than treating it as a management-package failure or assuming it is still unchanged.
+2. [ ] Obtain renewed approval to resume the paused Debug rollout and its exact private GitOps
+   commit/push scope. Reconfirm the reviewed non-secret bootstrap, clean deployment inputs and no
+   competing rollout. Do not infer resume permission from this ADR update.
+3. [ ] With approval, run the existing Debug `deploy.ps1` path and normal migration preflight.
+   Reconcile the reviewed immutable management bootstrap before the workload update, then verify
+   the intended image, successful migration gate, healthy replicas and preserved ingress protection.
+4. [ ] Verify the real authenticated browser page and downloaded RCL/stylesheet assets.
+   Check the typed selector, fixed scope, durable revision/expiry, error/permission handling and
+   durable-versus-effective warning. Initial verification is read-only: do not publish another
+   logging revision merely to prove that the page loads.
+5. [ ] Record sanitized rollout/browser evidence here and in the consumer runbook, distinguishing
+   actual browser behavior from component tests. Package publication, deliberate Release adoption
+   and observed remote CI results remain separate gates; none is established by a Debug deployment.
+
+No 24–48-hour soak, stress test, Redis live adoption or history/restoration work is required to
+finish this consumer embedding trial. Revisit those only for a concrete requirement and separately
+approved acceptance scope. The [consumer guide](runtime-configuration.md),
+[management wire guide](runtime-configuration-management.md) and
+[RCL embedding guide](../src/CasCap.Common.Configuration.Blazor/README.md) remain the reusable entry points.
 
 ## First Implementation Slice (2026-10-25)
 
@@ -841,10 +899,11 @@ database spikes. Readiness depends on whether the current applied state remains 
 whether Redis answers. Export refresh failures, rejected revisions, snapshot age and propagation
 lag; keep unbounded revision/actor identifiers out of metric labels.
 
-Logging overrides should expire durably and produce a new reverting revision so reconnecting pods
-recover the intended level. Set a local expiry safety bound as well, because a disconnected pod
-cannot rely on receiving that reverting revision. Do not log configuration payloads, credentials
-or third-party content as a side effect of changing verbosity.
+Logging overrides carry durable expiry metadata. Each reader locally returns to its immutable
+startup baseline at expiry, including after a failed refresh; no reverting revision or notification
+is required. An expired durable head may remain visible to the editor without being active.
+Do not log configuration payloads, credentials or third-party content as a side effect of changing
+verbosity.
 
 ## Optional Blazor Management Module
 
@@ -852,12 +911,13 @@ or third-party content as a side effect of changing verbosity.
 
 The selected first management-UI candidate is agentizr, which already has a
 [Blazor WebAssembly client](https://github.com/f2calv/agentizr/blob/main/src/CasCap.App.Client/CasCap.App.Client.csproj).
-This host choice was confirmed on 2026-10-30; it does not expand the current logging-only backend
-soak into UI implementation. After that soak, evaluate embedding the optional management module
-in the existing frontend rather than creating a separate portal. Keep the reusable components and
-typed API client host-independent, with provider access and authorization enforced on the server.
+This host choice was confirmed on 2026-10-30. The first Debug embedding is now committed and
+locally tested; its rollout and physical browser verification are paused at the
+[handover checklist](#handover-and-next-kick-off-2026-11-01). No separate portal is needed.
+Keep the reusable components and typed API client host-independent, with provider access and
+authorization enforced on the server.
 
-The core RCL will provide a typed editor with explicit host-supplied fields, preview and publication
+The core RCL provides a typed editor with explicit host-supplied fields, preview and publication
 outcomes; history and convergence acknowledgements are not implemented core features.
 The host explicitly references it, registers its typed HTTP client, mounts
 the page and supplies authorization policies. No runtime assembly discovery or downloaded arbitrary
@@ -1169,6 +1229,11 @@ Acceptance evidence:
 - [x] bUnit/client tests cover typed editing, error recovery, authorization outcomes and the
   browser assembly's provider/server dependency boundary. They do not claim a browser asset download
   or physical browser audit. A live mixed-version rollout remains separately approved deployment work.
+- [x] The first consuming Debug WASM page embeds the actual RCL and typed client, with fixed-scope
+  cookie authorization and host-wide operator grants. Its 28-case local integration evidence is
+  recorded in the handover; subsequent source changes require their own validation.
+- [ ] Complete the paused consumer rollout and authenticated browser/assets verification using
+  the ordered handover checklist. This is an operational gate, not unfinished reusable core code.
 
 The checked core evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis
 and bUnit, not shared production stores. Core source completion is distinct from a consuming browser
