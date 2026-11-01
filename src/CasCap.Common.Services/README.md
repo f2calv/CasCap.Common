@@ -94,7 +94,7 @@ Cancellation stops pending delays and is passed into callbacks; callback failure
 `RunWithTimeoutAsync` cancels a cooperative operation and awaits its cleanup before reporting a
 timeout. It does not forcibly abandon work that ignores cancellation.
 
-## Service Architecture
+## Feature Supervision Activity
 
 - No matching features is a startup failure.
 - A child may finish while siblings continue. Faults from enabled children propagate to the host.

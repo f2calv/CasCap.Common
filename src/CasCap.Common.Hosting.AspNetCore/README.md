@@ -53,7 +53,7 @@ Use the same set with
 when background features share those names. If controllers live in separate assemblies, application
 part selection can gate entire assemblies instead.
 
-## Service Architecture
+## Controller Discovery Activity
 
 ```mermaid
 flowchart TD

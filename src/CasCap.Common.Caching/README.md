@@ -141,7 +141,7 @@ instance when overriding it. `HealthCheckRedis: None` suppresses Redis check reg
 | `SerializationType` | `None`, `Json`, `MessagePack` |
 | `ExpirationSyncType` | `None`, `ExpireViaPubSub`, `ExtendRemoteExpiry` |
 
-## Service Architecture
+## Components
 
 Multi-tier caching infrastructure with cache-aside pattern:
 
