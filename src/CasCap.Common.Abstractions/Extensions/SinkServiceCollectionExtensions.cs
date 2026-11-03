@@ -137,7 +137,7 @@ public static partial class SinkServiceCollectionExtensions
     [LoggerMessage(LogLevel.Debug, "{ClassName} {EventType} sink {SinkType} ({SinkClass}) skipped (disabled)")]
     private static partial void LogSinkSkipped(ILogger logger, string className, string eventType, string sinkType, string sinkClass);
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {EventType} sink {SinkType} replaces {ReplacedSink} (shared {Interface})")]
     private static partial void LogSinkReplaced(
         ILogger logger,
         string className,
@@ -146,7 +146,7 @@ public static partial class SinkServiceCollectionExtensions
         string replacedSink,
         string @interface);
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} registered as {Interface}")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {EventType} sink {SinkType} registered as {Interface}")]
     private static partial void LogSinkInterfaceRegistered(
         ILogger logger,
         string className,
@@ -154,7 +154,7 @@ public static partial class SinkServiceCollectionExtensions
         string sinkType,
         string @interface);
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sink {SinkType} ({SinkClass}) registered")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {EventType} sink {SinkType} ({SinkClass}) registered")]
     private static partial void LogSinkRegistered(ILogger logger, string className, string eventType, string sinkType, string sinkClass);
 
     [LoggerMessage(LogLevel.Information, "{ClassName} {EventType} sinks registered: {Count} of {Total} available")]
