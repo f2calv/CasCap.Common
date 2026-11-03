@@ -45,7 +45,8 @@ public sealed class WorkerFeature(ILogger<WorkerFeature> logger) : IBgFeature
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation("Worker is active");
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("{ClassName} poll completed", nameof(WorkerFeature));
             await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
         }
     }
@@ -139,13 +140,14 @@ attributes, not live Git state.
 builder.Services.AddFeatureFlagService(enabledFeatures, addApplicationMetadataService: true);
 ```
 
-The optional metadata service binds `ApplicationMetadataConfig`. Its `LogInterval` defaults to one
-minute and must be positive:
+The optional metadata service binds `ApplicationMetadataConfig`. It writes one `Information` line
+with the repository, version, branch and commit at startup and then every `LogInterval`, which
+defaults to fifteen minutes and must be positive:
 
 ```json
 {
   "ApplicationMetadataConfig": {
-    "LogInterval": "00:05:00"
+    "LogInterval": "01:00:00"
   }
 }
 ```
