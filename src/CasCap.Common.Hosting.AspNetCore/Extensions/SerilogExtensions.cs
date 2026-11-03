@@ -9,6 +9,7 @@ public static class SerilogExtensions
     private static readonly object _lock = new();
 #endif
     private static bool _bootstrapLoggerInitialized;
+    private const string HealthCheckCategoryPrefix = "Microsoft.Extensions.Diagnostics.HealthChecks";
 
     /// <summary>
     /// Controls the verbosity of the console sink at runtime. Defaults to <see cref="LogEventLevel.Verbose"/> so the
@@ -49,7 +50,7 @@ public static class SerilogExtensions
 
     /// <summary>
     /// Applies the standard CasCap Serilog configuration: platform-aware console sink,
-    /// common enrichers, health-check noise filter, and <c>appsettings</c> binding via
+    /// common enrichers, the <see cref="IsHealthCheckNoise"/> filter, and <c>appsettings</c> binding via
     /// <see cref="Configuration.LoggerSettingsConfiguration"/>.
     /// </summary>
     /// <param name="loggerConfiguration">The <see cref="LoggerConfiguration"/> to configure.</param>
@@ -80,8 +81,26 @@ public static class SerilogExtensions
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.Extensions.Http", LogEventLevel.Information)
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-            .Filter.ByExcluding(c =>
-                c.Properties.Any(p => p.Value.ToString().Contains("HealthCheck", StringComparison.OrdinalIgnoreCase))
-                && new[] { LogEventLevel.Verbose, LogEventLevel.Debug, LogEventLevel.Information }.Contains(c.Level))
+            .Filter.ByExcluding(IsHealthCheckNoise)
             .ReadFrom.Configuration(configuration);
+
+    /// <summary>
+    /// Whether an event is routine output from the framework health-check service, which is dropped below
+    /// <see cref="LogEventLevel.Warning"/> so failed checks stay visible.
+    /// </summary>
+    /// <remarks>
+    /// Matches on <c>SourceContext</c> only, so application events whose property values mention health checks
+    /// are kept and no other property is rendered. Health probe request summaries are demoted separately by
+    /// <c>UseCasCapRequestLogging</c>.
+    /// </remarks>
+    /// <param name="logEvent">The event to evaluate.</param>
+    /// <returns><see langword="true"/> when the event should be excluded.</returns>
+    public static bool IsHealthCheckNoise(LogEvent logEvent)
+    {
+        ArgumentNullException.ThrowIfNull(logEvent);
+        return logEvent.Level < LogEventLevel.Warning
+            && logEvent.Properties.TryGetValue(Core.Constants.SourceContextPropertyName, out var sourceContext)
+            && sourceContext is ScalarValue { Value: string category }
+            && category.StartsWith(HealthCheckCategoryPrefix, StringComparison.Ordinal);
+    }
 }

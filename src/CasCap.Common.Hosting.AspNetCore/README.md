@@ -100,6 +100,12 @@ Three independent settings decide whether an event is written:
    minimum to `Debug` does not reveal framework categories.
 3. Sink thresholds, such as `ConsoleLevelSwitch`, which can only drop events further.
 
+The defaults also exclude events below `Warning` whose `SourceContext` starts with
+`Microsoft.Extensions.Diagnostics.HealthChecks`, so the framework's routine health-check
+processing stays out of a `Debug` log while failed checks remain visible. The filter reads only
+`SourceContext`; application events that merely mention health checks are kept.
+`SerilogExtensions.IsHealthCheckNoise` exposes the predicate for custom pipelines.
+
 ASP.NET Core's hosting scope attaches the raw request path to every event logged during a
 request. Raw paths can carry record or user identifiers, so the defaults remove `RequestPath`;
 `RequestId`, `TraceId` and `SpanId` still correlate events with their request summary.
