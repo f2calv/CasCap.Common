@@ -183,7 +183,7 @@ public sealed class DiskCacheService : ILocalCache
             }
             catch (Exception ex)
             {
-                CacheLog.DeserializationError(_logger, ex, nameof(DiskCacheService), key);
+                CacheLog.DeserializationError(_logger, ex, nameof(DiskCacheService), typeof(T));
             }
             CacheLog.CacheEntryOperation(_logger, nameof(DiskCacheService), "retrieved", key);
         }

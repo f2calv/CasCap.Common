@@ -18,6 +18,7 @@ public sealed partial class LeadershipRunner(
         ArgumentNullException.ThrowIfNull(runAsync);
         var (expiry, wait, retry) = config.Value.GetTimings(RedlockProfiles.LeaderElection);
 
+        var standby = false;
         try
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -27,22 +28,27 @@ public sealed partial class LeadershipRunner(
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!lease.IsAcquired)
                 {
-                    LogContending(logger, nameof(LeadershipRunner));
+                    if (standby)
+                        LogContending(logger, nameof(LeadershipRunner), resource);
+                    else
+                        LogStandby(logger, nameof(LeadershipRunner), resource);
+                    standby = true;
                     await Task.Delay(retry, timeProvider, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
-                LogAcquired(logger, nameof(LeadershipRunner));
-                await RunOwnedAsync(lease, runAsync, cancellationToken).ConfigureAwait(false);
+                standby = false;
+                LogAcquired(logger, nameof(LeadershipRunner), resource);
+                await RunOwnedAsync(lease, resource, runAsync, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            LogStopped(logger, nameof(LeadershipRunner));
+            LogStopped(logger, nameof(LeadershipRunner), resource);
         }
     }
 
-    private async Task RunOwnedAsync(IRedLock lease, Func<CancellationToken, Task> runAsync, CancellationToken cancellationToken)
+    private async Task RunOwnedAsync(IRedLock lease, string resource, Func<CancellationToken, Task> runAsync, CancellationToken cancellationToken)
     {
         using var runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var worker = runAsync(runCancellation.Token);
@@ -58,7 +64,7 @@ public sealed partial class LeadershipRunner(
             }
 
             await observation.ConfigureAwait(false);
-            LogLost(logger, nameof(LeadershipRunner));
+            LogLost(logger, nameof(LeadershipRunner), resource);
         }
         finally
         {
@@ -92,16 +98,19 @@ public sealed partial class LeadershipRunner(
                 timeProvider, cancellationToken).ConfigureAwait(false);
     }
 
-    [LoggerMessage(LogLevel.Debug, "{ClassName} leadership lease unavailable; remaining on standby")]
-    private static partial void LogContending(ILogger logger, string className);
+    [LoggerMessage(LogLevel.Information, "{ClassName} leadership lease for {Resource} held elsewhere; entering standby")]
+    private static partial void LogStandby(ILogger logger, string className, string resource);
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} leadership lease acquired; starting protected work")]
-    private static partial void LogAcquired(ILogger logger, string className);
+    [LoggerMessage(LogLevel.Debug, "{ClassName} leadership lease for {Resource} unavailable; remaining on standby")]
+    private static partial void LogContending(ILogger logger, string className, string resource);
 
-    [LoggerMessage(LogLevel.Warning, "{ClassName} leadership lease lost; cancelling and awaiting protected work before reacquisition")]
-    private static partial void LogLost(ILogger logger, string className);
+    [LoggerMessage(LogLevel.Information, "{ClassName} leadership lease for {Resource} acquired; starting protected work")]
+    private static partial void LogAcquired(ILogger logger, string className, string resource);
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} leadership runner stopped after protected work cleanup")]
-    private static partial void LogStopped(ILogger logger, string className);
+    [LoggerMessage(LogLevel.Warning, "{ClassName} leadership lease for {Resource} lost; cancelling and awaiting protected work before reacquisition")]
+    private static partial void LogLost(ILogger logger, string className, string resource);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} leadership runner for {Resource} stopped after protected work cleanup")]
+    private static partial void LogStopped(ILogger logger, string className, string resource);
 }
 #endif

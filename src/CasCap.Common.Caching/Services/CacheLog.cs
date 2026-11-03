@@ -7,6 +7,10 @@ internal static partial class CacheLog
     [LoggerMessage(LogLevel.Information, "{ClassName} {State}")]
     internal static partial void Lifecycle(ILogger logger, string className, string state);
 
+    /// <summary>Logs a cache service that does not start because its configuration disables it.</summary>
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {State}")]
+    internal static partial void LifecycleSkipped(ILogger logger, string className, string state);
+
     /// <summary>Logs a cache lookup result.</summary>
     [LoggerMessage(LogLevel.Trace, "{ClassName} {Result} {Key} object type {ObjectType} from {ObjectName}")]
     internal static partial void CacheLookup(
@@ -29,9 +33,10 @@ internal static partial class CacheLog
     [LoggerMessage(LogLevel.Trace, "{ClassName} retrieved object with {Key} but deleted it due to expiration")]
     internal static partial void DiskEntryExpired(ILogger logger, string className, string key);
 
-    /// <summary>Logs a disk-cache deserialization failure.</summary>
-    [LoggerMessage(LogLevel.Error, "{ClassName} deserialization error for {Key}")]
-    internal static partial void DeserializationError(ILogger logger, Exception exception, string className, string key);
+    /// <summary>Logs a disk-cache deserialization failure, which is returned to the caller as a miss.</summary>
+    /// <remarks>The key is omitted because it is a local file path and may embed caller identifiers.</remarks>
+    [LoggerMessage(LogLevel.Warning, "{ClassName} could not deserialize a cached {ObjectType}; treating it as a miss")]
+    internal static partial void DeserializationError(ILogger logger, Exception exception, string className, Type objectType);
 
     /// <summary>Logs deletion of a file-system cache item.</summary>
     [LoggerMessage(LogLevel.Trace, "{ClassName} attempting deletion of {ItemType} {ItemName}")]
@@ -84,8 +89,8 @@ internal static partial class CacheLog
     [LoggerMessage(LogLevel.Trace, "{ClassName} skipped removing {Key} from {AbstractionName} because this instance raised the event")]
     internal static partial void CacheInvalidationSkipped(ILogger logger, string className, string key, string abstractionName);
 
-    /// <summary>Logs a failed distributed-lock acquisition.</summary>
-    [LoggerMessage(LogLevel.Warning, "{ClassName} failed to acquire distributed lock for {Key}")]
+    /// <summary>Logs a distributed-lock acquisition that timed out under contention; the entry is still created.</summary>
+    [LoggerMessage(LogLevel.Debug, "{ClassName} failed to acquire distributed lock for {Key}")]
     internal static partial void DistributedLockFailure(ILogger logger, string className, string key);
 
     /// <summary>Logs publication of a local-cache expiration message.</summary>
@@ -95,10 +100,6 @@ internal static partial class CacheLog
     /// <summary>Logs Redis expiration housekeeping.</summary>
     [LoggerMessage(LogLevel.Trace, "{ClassName} expiration detected key={Key}, removal status={Success}, {Count} item(s) remaining")]
     internal static partial void ExpirationDetected(ILogger logger, string className, string key, bool success, int count);
-
-    /// <summary>Logs a Redis Lua execution failure.</summary>
-    [LoggerMessage(LogLevel.Error, "{ClassName} Lua execution failed")]
-    internal static partial void LuaFailure(ILogger logger, Exception exception, string className);
 
     /// <summary>Logs loading a Redis Lua script.</summary>
     [LoggerMessage(LogLevel.Trace, "{ClassName} loading Lua script {ScriptName}")]
