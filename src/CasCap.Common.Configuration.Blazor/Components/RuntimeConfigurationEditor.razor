@@ -31,13 +31,13 @@
                 <InputTextArea id="@(_id + "-reason")" @bind-Value="_reason" maxlength="500" />
                 <label for="@(_id + "-lifetime")">Temporary lifetime in minutes (optional, 1-1440)</label>
                 <InputNumber id="@(_id + "-lifetime")" TValue="int?" @bind-Value="_lifetimeMinutes" min="1" max="1440" />
-                <label for="@(_id + "-confirm")">
+                <label class="runtime-confirmation" for="@(_id + "-confirm")">
                     <InputCheckbox id="@(_id + "-confirm")" @bind-Value="_confirmed" />
                     I confirm publication to the destination above.
                 </label>
                 <div class="runtime-actions">
                     <button type="submit">Validate / preview</button>
-                    <button type="button" disabled="@(!_previewed || !_confirmed)" @onclick="PublishAsync">Publish</button>
+                    <button class="runtime-publish" type="button" disabled="@(!_previewed || !_confirmed)" @onclick="PublishAsync">Publish</button>
                 </div>
             </fieldset>
         </EditForm>
