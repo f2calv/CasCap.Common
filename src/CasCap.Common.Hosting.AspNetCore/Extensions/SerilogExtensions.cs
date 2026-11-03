@@ -76,6 +76,7 @@ public static class SerilogExtensions
             .Enrich.WithExceptionDetails()
             .Enrich.WithAssemblyName()
             .Enrich.WithSpan()
+            .Enrich.With(new RequestPathRemovalEnricher())
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.Extensions.Http", LogEventLevel.Information)
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)

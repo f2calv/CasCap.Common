@@ -83,9 +83,59 @@ subscription/disposal and its immutable startup baseline; existing calls retain 
 | --- | --- |
 | `SerilogExtensions.GetBootstrapLogger()` | Creates a bootstrap console logger and wires `ApplicationLogging.LoggerFactory` |
 | `SerilogWebApplicationBuilderExtensions.InitializeSerilog(builder, categoryName)` | Configures Serilog as the host pipeline and forwards events to registered logging providers |
-| `LoggerConfiguration.AddCasCapDefaults(IConfiguration)` | Applies standard enrichers, console output, health-check filtering, and configuration binding |
+| `LoggerConfiguration.AddCasCapDefaults(IConfiguration)` | Applies standard enrichers, console output, health-check filtering, `RequestPath` removal and configuration binding |
+| `SerilogWebApplicationExtensions.UseCasCapRequestLogging(app, slowRequestThreshold)` | Emits one privacy-safe summary event per HTTP request |
 
 `SerilogExtensions.ConsoleLevelSwitch` controls console verbosity independently from other sinks. It defaults to `Verbose`; interactive applications can temporarily raise it to `Warning` to prevent rendered output from interleaving with logs.
+
+### Level Layers
+
+Three independent settings decide whether an event is written:
+
+1. The pipeline minimum, `Serilog:MinimumLevel:Default`, or a `LoggingLevelSwitch` attached
+   through `configureLogger`.
+2. Category overrides. The defaults set `Microsoft.AspNetCore` and `System.Net.Http.HttpClient` to
+   `Warning` and `Microsoft.Extensions.Http` to `Information`; `Serilog:MinimumLevel:Override`
+   entries replace them. An override applies whatever the pipeline minimum is, so lowering the
+   minimum to `Debug` does not reveal framework categories.
+3. Sink thresholds, such as `ConsoleLevelSwitch`, which can only drop events further.
+
+ASP.NET Core's hosting scope attaches the raw request path to every event logged during a
+request. Raw paths can carry record or user identifiers, so the defaults remove `RequestPath`;
+`RequestId`, `TraceId` and `SpanId` still correlate events with their request summary.
+
+### Request Summary
+
+`app.UseCasCapRequestLogging()` logs one event per request with the method, the matched route
+template, the status code and the elapsed time:
+
+```text
+HTTP GET /api/widgets/{id} responded 200 in 4.2 ms
+```
+
+It never logs the raw path, query string, headers or bodies. A request that matches no endpoint
+logs `(unmatched)` as its route.
+
+| Outcome | Level |
+| --- | --- |
+| Unhandled exception or 5xx response | `Error` |
+| Failed `/healthz` probe; non-streaming request slower than the threshold (default five seconds) | `Warning` |
+| Other 1xx-4xx responses | `Information` |
+| Client cancellation; 404 with no matching endpoint | `Debug` |
+| Successful `/healthz` probe; successful static file | `Verbose` |
+
+Register it first, before `UseExceptionHandler`, so it times the whole pipeline, records
+authentication and authorization rejections and leaves the exception itself to the exception
+handler, which logs it once:
+
+```csharp
+var app = builder.Build();
+app.UseCasCapRequestLogging();
+app.UseExceptionHandler();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+```
 
 ## OpenTelemetry
 

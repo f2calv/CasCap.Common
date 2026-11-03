@@ -1,0 +1,11 @@
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.TestHost;
+global using Microsoft.Extensions.Logging;
+global using Serilog;
+global using Serilog.Core;
+global using Serilog.Events;
+global using System.Collections.Concurrent;
+global using Xunit;
+global using ILogger = Microsoft.Extensions.Logging.ILogger;

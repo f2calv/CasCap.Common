@@ -16,6 +16,7 @@
     <Project Path="src/CasCap.Common.Configuration.Runtime/CasCap.Common.Configuration.Runtime.csproj" />
     <Project Path="src/CasCap.Common.Configuration.PostgreSql/CasCap.Common.Configuration.PostgreSql.csproj" />
     <Project Path="src/CasCap.Common.Abstractions/CasCap.Common.Abstractions.csproj" />
+    <Project Path="src/CasCap.Common.Hosting.AspNetCore.Tests/CasCap.Common.Hosting.AspNetCore.Tests.csproj" />
     <Project Path="src/CasCap.Common.Hosting.AspNetCore/CasCap.Common.Hosting.AspNetCore.csproj" />
     <Project Path="src/CasCap.Common.Caching.Tests/CasCap.Common.Caching.Tests.csproj" />
     <Project Path="src/CasCap.Common.Caching/CasCap.Common.Caching.csproj" />
