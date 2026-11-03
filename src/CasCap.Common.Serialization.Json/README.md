@@ -24,9 +24,9 @@ var restored = json.FromJson<Dictionary<string, string>>();
 Console.WriteLine(restored?["theme"]); // dark
 ```
 
-`ToJson` and `FromJson<T>` accept optional `JsonSerializerOptions`. They log and rethrow
-serialization errors. `TryFromJson<T>` logs a warning and returns `false` on deserialization failure;
-a null input still throws. A valid JSON `null` can deserialize successfully to a null result.
+`ToJson` and `FromJson<T>` accept optional `JsonSerializerOptions`. Serialization errors propagate
+unlogged, so the caller that handles them logs them once. `TryFromJson<T>` logs the failure at
+`Debug` and returns `false` on deserialization failure; a null input still throws. A valid JSON `null` can deserialize successfully to a null result.
 
 ## Custom Converters
 

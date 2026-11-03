@@ -5,8 +5,6 @@ namespace CasCap.Common.Extensions;
 /// </summary>
 public static class JsonExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(JsonExtensions));
-
     /// <summary>Serializes the specified object to a JSON string using default options.</summary>
     public static string ToJson(this object obj) => obj.ToJson(options: null);
 
@@ -14,15 +12,7 @@ public static class JsonExtensions
     public static string ToJson(this object obj, JsonSerializerOptions? options)
     {
         obj = obj ?? throw new ArgumentNullException(paramName: nameof(obj));
-        try
-        {
-            return JsonSerializer.Serialize(obj, options);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{ClassName} {MethodName} failed", nameof(JsonExtensions), nameof(JsonSerializer.Serialize));
-            throw;
-        }
+        return JsonSerializer.Serialize(obj, options);
     }
 
     /// <summary>Deserializes a JSON string to an instance of <typeparamref name="T"/> using default options.</summary>
@@ -34,16 +24,7 @@ public static class JsonExtensions
     public static T? FromJson<T>(this string json, JsonSerializerOptions? options)
     {
         json = json ?? throw new ArgumentNullException(paramName: nameof(json));
-        try
-        {
-            return JsonSerializer.Deserialize<T>(json, options);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
-                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
-            throw;
-        }
+        return JsonSerializer.Deserialize<T>(json, options);
     }
 
     /// <summary>
@@ -61,8 +42,12 @@ public static class JsonExtensions
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
-                nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
+            // The caller handles the false result; resolve the logger now so static logging configured after
+            // type initialisation is honoured.
+            var logger = ApplicationLogging.CreateLogger(nameof(JsonExtensions));
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug(ex, "{ClassName} {MethodName} failed to deserialize {ObjectType}",
+                    nameof(JsonExtensions), nameof(JsonSerializer.Deserialize), typeof(T));
         }
         return false;
     }

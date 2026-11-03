@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace CasCap.Common.Extensions;
@@ -6,8 +5,6 @@ namespace CasCap.Common.Extensions;
 /// <summary>Extension methods for file and directory I/O operations.</summary>
 public static class IOExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(IOExtensions));
-
     /// <summary>Combines a root path with a relative folder or file path.</summary>
     /// <param name="root">The root directory path.</param>
     /// <param name="folderOrFile">The relative path to append.</param>
@@ -135,16 +132,8 @@ public static class IOExtensions
             }
             else
             {
-                try
-                {
-                    using var sw = File.AppendText(path);
-                    sw.WriteLine(content);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "{ClassName} append failed", nameof(IOExtensions));
-                    throw;
-                }
+                using var sw = File.AppendText(path);
+                sw.WriteLine(content);
             }
         }
         else

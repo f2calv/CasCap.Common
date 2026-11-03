@@ -26,7 +26,8 @@ Console.WriteLine(restored["theme"]); // dark
 
 `ToMessagePack<T>()` returns a `byte[]`. `FromMessagePack<T>()` accepts either a `byte[]` or a
 `ReadOnlyMemory<byte>` slice, avoiding a preliminary array copy when the caller already has a buffer.
-Serialization and deserialization errors are logged and rethrown.
+Serialization and deserialization errors propagate unlogged, so the caller that handles them logs
+them once.
 
 The helpers use the underlying serializer's default options. Custom object types must satisfy
 [MessagePack-CSharp's serialization contract](https://github.com/MessagePack-CSharp/MessagePack-CSharp#serialization-of-custom-types).
