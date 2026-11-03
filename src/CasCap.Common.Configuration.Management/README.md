@@ -55,6 +55,8 @@ Publication returns durable commit with activation pending. Cancellation, author
 lost response must not trigger blind retry. Reload and make an explicit decision after a conflict.
 The existing authorities' EF concurrency exception is recognized by its exact type identity, keeping
 EF out of this module's references; other failures return sanitized 503 and log only exception type.
+A successful publication logs its revision number at `Information`; the actor and reason stay in the
+durable record and are never logged.
 
 See the [wire contract](../../docs/runtime-configuration-management.md) and
 [acceptance tests](../CasCap.Common.Configuration.Runtime.Tests/README.md).

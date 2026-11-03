@@ -30,6 +30,8 @@ public sealed partial class CachedRuntimeConfigurationStore<T> : IRuntimeConfigu
     private DateTimeOffset _nextReconciliation;
     private long _highestRevision;
     private bool _initialized;
+    private int _consecutiveBypasses;
+    private DateTimeOffset _bypassedSince;
 
     /// <summary>Creates a scoped cache reader over an already registered durable store.</summary>
     public CachedRuntimeConfigurationStore(
@@ -92,20 +94,22 @@ public sealed partial class CachedRuntimeConfigurationStore<T> : IRuntimeConfigu
                     || snapshot.ValidUntilUtc > now + _settings.MaximumAge
                     || snapshot.Revision is null || snapshot.Revision.Revision < _highestRevision)
                 {
-                    LogCacheRejected(_logger, "StaleOrMismatchedEntry");
+                    OnCacheBypassed("StaleOrMismatchedEntry");
                     return await ReadAuthorityAsync(cancellationToken);
                 }
-                return Validate(snapshot.Revision);
+                var validated = Validate(snapshot.Revision);
+                OnCacheRead();
+                return validated;
             }
             catch (Exception exception) when (exception is RedisException or JsonException or ValidationException or OptionsValidationException)
             {
-                LogCacheRejected(_logger, exception.GetType().Name);
+                OnCacheBypassed(exception.GetType().Name);
             }
             catch (Exception exception) when (
                 (exception is NotSupportedException or ArgumentOutOfRangeException)
                 && validUntil <= _timeProvider.GetUtcNow())
             {
-                LogCacheRejected(_logger, "CacheFillDeadlineElapsed");
+                OnCacheBypassed("CacheFillDeadlineElapsed");
             }
             return await ReadAuthorityAsync(cancellationToken);
         }
@@ -135,11 +139,36 @@ public sealed partial class CachedRuntimeConfigurationStore<T> : IRuntimeConfigu
         return revision with { Value = value };
     }
 
+    private void OnCacheBypassed(string failureType)
+    {
+        if (_consecutiveBypasses++ == 0)
+        {
+            _bypassedSince = _timeProvider.GetUtcNow();
+            LogCacheRejected(_logger, nameof(CachedRuntimeConfigurationStore<>), failureType);
+        }
+        else
+            LogCacheStillRejected(_logger, nameof(CachedRuntimeConfigurationStore<>), failureType, _consecutiveBypasses);
+    }
+
+    private void OnCacheRead()
+    {
+        if (_consecutiveBypasses == 0)
+            return;
+        LogCacheRecovered(_logger, nameof(CachedRuntimeConfigurationStore<>), _consecutiveBypasses, _timeProvider.GetUtcNow() - _bypassedSince);
+        _consecutiveBypasses = 0;
+    }
+
     /// <inheritdoc/>
     public void Dispose() => _gate.Dispose();
 
-    [LoggerMessage(LogLevel.Warning, "Runtime configuration cache bypassed ({FailureType}); consulting the durable authority")]
-    private static partial void LogCacheRejected(ILogger logger, string failureType);
+    [LoggerMessage(LogLevel.Warning, "{ClassName} runtime configuration cache bypassed ({FailureType}); consulting the durable authority")]
+    private static partial void LogCacheRejected(ILogger logger, string className, string failureType);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} runtime configuration cache still bypassed ({FailureType}) ConsecutiveBypasses={ConsecutiveBypasses}")]
+    private static partial void LogCacheStillRejected(ILogger logger, string className, string failureType, int consecutiveBypasses);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} runtime configuration cache recovered ConsecutiveBypasses={ConsecutiveBypasses} Downtime={Downtime}")]
+    private static partial void LogCacheRecovered(ILogger logger, string className, int consecutiveBypasses, TimeSpan downtime);
 
     private sealed record CachedSnapshot
     {
