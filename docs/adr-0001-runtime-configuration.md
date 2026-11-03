@@ -1293,7 +1293,9 @@ No cloud credentials should be required for the default CI test path.
 - Each UI host must select its browser-safe DTO, authenticated operator policies and destination
   scope. No generic editor can decide which application values are safe to expose.
 - A generic administration catalogue and automatic form generation are deferred until a second
-  concrete runtime control demonstrates a need. If revisited, list explicitly registered typed
+  concrete runtime control demonstrates a need. The proposed
+  [AOT-safe discovery and consumption draft](adr-0002-typed-runtime-control-discovery.md) records
+  alternatives without reopening this completed PoC. If revisited, list explicitly registered typed
   sections with approved browser-safe metadata, permissions and live/restart-required semantics;
   retain validated, versioned snapshot publication through the management API. Do not enumerate
   unrestricted appsettings/environment values or introduce arbitrary key/string writes directly
