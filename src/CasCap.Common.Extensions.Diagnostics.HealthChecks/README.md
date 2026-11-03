@@ -50,6 +50,10 @@ Replace the example URI with the caller's endpoint through application configura
 class sends a GET and reports healthy only for an expected status; `ConnectionActive` tracks the
 last result. Configure timeouts on the injected `HttpClient`.
 
+Each probe logs only at `Debug`. When the endpoint becomes inaccessible the check logs one
+`Warning`, repeated failures log at `Debug` with the count, and the next successful probe logs one
+`Information` recovery with the failure count. Log messages name the display name, not the URI.
+
 ## Configuration Examples
 
 The library does not bind a fixed JSON section. Your application supplies `IHealthCheckConfig`,

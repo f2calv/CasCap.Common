@@ -19,6 +19,7 @@ public abstract partial class HttpEndpointCheckBase(
 #endif
 
     private volatile bool _connectionActive = initialConnectionActive;
+    private int _consecutiveFailures;
 
     /// <summary>Indicates whether the most recent health check probe succeeded.</summary>
     public bool ConnectionActive
@@ -35,11 +36,19 @@ public abstract partial class HttpEndpointCheckBase(
         if (result)
         {
             ConnectionActive = true;
+            var failures = Interlocked.Exchange(ref _consecutiveFailures, 0);
+            if (failures > 0)
+                LogEndpointRecovered(logger, GetType().Name, serviceDisplayName, failures);
             return HealthCheckResult.Healthy($"{serviceDisplayName} is accessible!");
         }
         else
         {
             ConnectionActive = false;
+            var failures = Interlocked.Increment(ref _consecutiveFailures);
+            if (failures == 1)
+                LogEndpointFailing(logger, GetType().Name, serviceDisplayName);
+            else
+                LogEndpointStillFailing(logger, GetType().Name, serviceDisplayName, failures);
             return HealthCheckResult.Unhealthy($"{serviceDisplayName} is inaccessible!");
         }
     }
@@ -65,7 +74,6 @@ public abstract partial class HttpEndpointCheckBase(
     {
         requestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
         healthCheckExpectedHttpStatusCodes ??= DefaultExpectedStatusCodes;
-        LogHealthCheckExecutingDebug(logger, nameof(HttpEndpointCheckBase));
         HttpResponseMessage? result = null;
         try
         {
@@ -103,25 +111,31 @@ public abstract partial class HttpEndpointCheckBase(
         }
     }
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} healthcheck executing...")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} health check executing")]
     private static partial void LogHealthCheckExecuting(ILogger logger, string className);
 
-    [LoggerMessage(LogLevel.Debug, "{ClassName} health check executing")]
-    private static partial void LogHealthCheckExecutingDebug(ILogger logger, string className);
+    [LoggerMessage(LogLevel.Warning, "{ClassName} {ServiceName} became inaccessible")]
+    private static partial void LogEndpointFailing(ILogger logger, string className, string serviceName);
 
-    [LoggerMessage(LogLevel.Warning, "{ClassName} failure")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} {ServiceName} still inaccessible ConsecutiveFailures={ConsecutiveFailures}")]
+    private static partial void LogEndpointStillFailing(ILogger logger, string className, string serviceName, int consecutiveFailures);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} {ServiceName} recovered ConsecutiveFailures={ConsecutiveFailures}")]
+    private static partial void LogEndpointRecovered(ILogger logger, string className, string serviceName, int consecutiveFailures);
+
+    [LoggerMessage(LogLevel.Debug, "{ClassName} request failed")]
     private static partial void LogHealthCheckFailure(ILogger logger, Exception exception, string className);
 
     [LoggerMessage(LogLevel.Debug, "{ClassName} timed out")]
     private static partial void LogHealthCheckTimeout(ILogger logger, Exception exception, string className);
 
-    [LoggerMessage(LogLevel.Warning, "{ClassName} canceled")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} canceled")]
     private static partial void LogHealthCheckCanceled(ILogger logger, Exception exception, string className);
 
-    [LoggerMessage(LogLevel.Trace, "{ClassName} http endpoint failure")]
+    [LoggerMessage(LogLevel.Debug, "{ClassName} http endpoint failure")]
     private static partial void LogHttpEndpointFailure(ILogger logger, Exception exception, string className);
 
-    [LoggerMessage(LogLevel.Debug, "{ClassName} {RequestUri} is accessible")]
+    [LoggerMessage(LogLevel.Trace, "{ClassName} {RequestUri} is accessible")]
     private static partial void LogEndpointAccessible(ILogger logger, string className, string requestUri);
 
     [LoggerMessage(LogLevel.Debug, "{ClassName} {RequestUri} is inaccessible")]
