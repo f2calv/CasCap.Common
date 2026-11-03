@@ -1,6 +1,7 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
-**Status:** Accepted core scope implemented and verified locally; release and deployment are separate.
+**Status:** Accepted; bounded PoC complete, including the first Debug consumer's live UI trial.
+Package publication and Release adoption remain separately approved work.
 **Date:** 2026-11-03.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
@@ -132,9 +133,11 @@ operational steps requiring their own approval.
 
 ## Handover and Next Kick-off (2026-11-03)
 
-The reusable core and first Debug consumer embedding are implemented, and the consuming editor
-is now deployed and user-verified. Further work is deliberate release/adoption or concrete control
-requirements, not another provider, history/restoration workflow or long logging soak.
+The reusable core and first Debug consumer embedding are implemented. The user confirmed the
+browser-driven logging change to Debug and its subsequent return to Information, and approved
+marking the bounded PoC complete. No further feature development is scheduled until a concrete
+consumer requirement justifies reopening it. Package release/adoption remains a separate decision,
+not an unfinished PoC gate.
 Keep the dated acceptance results above distinct from validation of later source changes.
 
 ### Verified Progress
@@ -169,30 +172,48 @@ Keep the dated acceptance results above distinct from validation of later source
 - [x] No logging revision was published during either corrective rollout or the read-only
   verification. Source styling is committed locally; no public source push or package publication
   was performed by this work.
+- [x] Before the subsequent logging retest rollout, the shared hosting logging suite passed
+  17 cases, the consuming host's focused runtime-logging selection passed 21 cases, and its Debug
+  host build completed with zero warnings/errors. These are targeted checks, not a new complete
+  provider/release regression; the earlier 28-case selection also included authorization coverage
+  that now resides in a separate test project.
+- [x] The approved logging retest rollout completed with two Ready replicas, zero restarts,
+  a successful migration hook and healthy GitOps synchronization. Read-only checks confirmed
+  Information with Debug disabled on both replicas, successful health responses, protected
+  management access and successful request-summary logging on both replicas.
+- [x] The user then changed the logging level through the signed-in editor and observed an actual
+  Debug event alongside Information request summaries. The user subsequently confirmed the level
+  returned to Information and approved PoC completion. This is user-observed live UI/expiry
+  evidence, not an instrumented measurement of both replicas' activation/expiry timing or proof of
+  unchanged process identities throughout this latest trial.
 
 The earlier bounded logging trial proved actual Information-to-Debug-to-Information switch/filter
 behavior without replacing the observed processes. It did not exercise the editor in a real browser.
 An expired durable head is intentionally retained: its displayed value is not the effective replica
 level, and expiry does not require a reset publication.
 
-### Next Work Checklist
+### Completion and Conditional Reopening Checklist
 
 1. [x] Complete the first Debug consumer rollout and read-only authenticated page/assets verification.
    This is user-confirmed browser visibility/presentation plus per-replica HTTP/asset evidence,
    not automated OIDC, all live error states, mixed-version browser recovery or a full accessibility audit.
-2. [ ] Before a package release, review subsequent source/dependency changes and run the approved
+2. [x] Complete the bounded browser-driven logging activation/expiry trial and mark the PoC complete.
+   The latest result is user-confirmed; the earlier instrumented trial separately established
+   both replicas' switch/filter behavior and unchanged process identities.
+3. [ ] Only when package release is requested, review subsequent source/dependency changes and run the approved
    current-tree regression/release checks. The original 110/28-case results remain dated snapshot
    evidence. Observe remote CI rather than inferring execution from workflow discovery.
-3. [ ] Separately approve package publication and deliberate Release consumer adoption. Recheck
+4. [ ] Separately approve package publication and deliberate Release consumer adoption. Recheck
    shared lifecycle dependency compatibility: the integration snapshot's full Release host was
    blocked by unpublished APIs, and the later Debug rollout does not establish its current status.
-4. [ ] If further live mutation or browser authorization/accessibility coverage is needed, define
+5. [ ] If further live mutation or browser authorization/accessibility coverage is needed, define
    and approve that exact scope first. Do not publish a logging revision just to exercise the UI.
-5. [ ] Add another operational control or Redis live adoption only for a concrete host requirement,
+6. [ ] Add another operational control or Redis live adoption only for a concrete host requirement,
    with typed validation, operator policy, failure/expiry semantics and measurable acceptance.
 
 No 24–48-hour soak, stress test, Redis live adoption or history/restoration work is required to
-finish the completed consumer embedding trial. Revisit those only for a concrete requirement and separately
+finish the completed PoC. The unchecked items are conditional future work, not completion blockers.
+Revisit those only for a concrete requirement and separately
 approved acceptance scope. The [consumer guide](runtime-configuration.md),
 [management wire guide](runtime-configuration-management.md) and
 [RCL embedding guide](../src/CasCap.Common.Configuration.Blazor/README.md) remain the reusable entry points.
@@ -1244,10 +1265,14 @@ Acceptance evidence:
 - [x] Complete the first Debug consumer rollout and read-only authenticated browser/assets verification.
   The handover records user confirmation and per-replica evidence, with explicit limits on live
   mutation, identity-provider, mixed-version and full accessibility coverage.
+- [x] Complete the bounded user-driven logging trial: the user observed Debug output after the UI
+  change and confirmed the subsequent return to Information. The handover distinguishes this
+  observation from the earlier instrumented two-replica trial.
 
-The checked core evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis
-and bUnit, not shared production stores. Core source completion is distinct from a consuming browser
-rollout, published packages or remote CI execution; none of those is claimed here.
+The core test evidence uses isolated SQLite/PostgreSQL/Redis and bUnit, not shared production stores.
+The first Debug consumer's live rollout and user-confirmed browser trial are separately recorded in
+the handover. Neither source completion nor that trial establishes published packages, Release
+adoption or remote CI execution.
 
 ### Later Optional Phase: Azure Storage Adapters
 
@@ -1267,6 +1292,12 @@ No cloud credentials should be required for the default CI test path.
   not a multi-node shared-file substitute for PostgreSQL.
 - Each UI host must select its browser-safe DTO, authenticated operator policies and destination
   scope. No generic editor can decide which application values are safe to expose.
+- A generic administration catalogue and automatic form generation are deferred until a second
+  concrete runtime control demonstrates a need. If revisited, list explicitly registered typed
+  sections with approved browser-safe metadata, permissions and live/restart-required semantics;
+  retain validated, versioned snapshot publication through the management API. Do not enumerate
+  unrestricted appsettings/environment values or introduce arbitrary key/string writes directly
+  into PostgreSQL. Discoverability alone does not establish safe exposure or reloadability.
 - Is eventual convergence sufficient for every proposed control, or must some remain restart-only
   or use stronger domain-specific enforcement?
 - Who owns administrative policies, optional approvals, schema registration and audit retention?
