@@ -273,7 +273,7 @@ public sealed class RedisCacheService : IRemoteCache
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
         {
-            var script = GetType().Assembly.GetManifestResourceString(resourceName) ?? throw new GenericException($"Lua script '{resourceName}' is null or empty");
+            var script = GetType().Assembly.GetManifestResourceString(resourceName) ?? throw new InvalidOperationException($"Lua script '{resourceName}' is null or empty");
             LoadLuaScript(resourceName, script);
         }
     }

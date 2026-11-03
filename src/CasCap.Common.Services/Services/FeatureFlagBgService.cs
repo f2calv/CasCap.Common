@@ -38,7 +38,7 @@ public sealed partial class FeatureFlagBgService(
                 }
             }
             if (runningFeatures.IsNullOrEmpty())
-                throw new GenericException("no features found to launch!");
+                throw new ConfigurationException("no features found to launch!");
 
             var startedFeatureNames = runningFeatures.Select(feature => feature.Name).ToArray();
             // Always-enabled companions (metadata, cache expiry) must not keep a host alive once its explicitly

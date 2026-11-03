@@ -54,7 +54,7 @@ public static class IOExtensions
             File.WriteAllBytes(path, bytes);
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public static class IOExtensions
 #endif
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Writes all text to the specified path, creating the directory if it does not exist.</summary>
@@ -93,7 +93,7 @@ public static class IOExtensions
             File.WriteAllText(path, str);
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public static class IOExtensions
 #endif
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Appends text to the specified file, creating the file and directory if they do not exist.</summary>
@@ -148,7 +148,7 @@ public static class IOExtensions
             }
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Reads all non-empty lines from the specified text file.</summary>
@@ -226,13 +226,13 @@ public static class IOExtensions
                 }
                 catch (NotSupportedException e)
                 {
-                    throw new GenericException($"Unable to calculate folder size: {e.Message}");
+                    throw new GenericException("Unable to calculate folder size", e);
                 }
             }
         }
         catch (UnauthorizedAccessException e)
         {
-            throw new GenericException($"Unable to calculate folder size: {e.Message}");
+            throw new GenericException("Unable to calculate folder size", e);
         }
         return folderSize;
     }

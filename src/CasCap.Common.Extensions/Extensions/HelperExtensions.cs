@@ -78,7 +78,7 @@ public static class HelperExtensions
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new GenericException($"AddRange failed due to conflicting key");
+                throw new ArgumentException("AddRange failed due to conflicting key", nameof(d2));
         }
         return d1;
     }
@@ -91,7 +91,7 @@ public static class HelperExtensions
         foreach (var z in d2)
         {
             if (!d1.TryAdd(z.Key, z.Value))
-                throw new GenericException("AddRange failed due to conflicting key");
+                throw new ArgumentException("AddRange failed due to conflicting key", nameof(d2));
         }
         return d1;
     }
@@ -255,7 +255,7 @@ public static class HelperExtensions
     {
         var output = 0m;
         return !string.IsNullOrWhiteSpace(input) && !decimal.TryParse(input, out output)
-            ? throw new GenericException("TryParse failed")
+            ? throw new FormatException("TryParse failed")
             : output;
     }
     #endregion

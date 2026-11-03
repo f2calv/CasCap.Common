@@ -127,7 +127,7 @@ public static class ParseExtensions
     /// <summary>Parses the input string as a <see cref="decimal"/>.</summary>
     /// <param name="input">The string to parse.</param>
     /// <returns>The parsed decimal value.</returns>
-    public static decimal String2Decimal(this string input) => decimal.TryParse(input, out var val) ? val : throw new GenericException($"{nameof(String2Decimal)} issue! :/");//TODO: make this fast and not just a bog standard decimal.TryParse
+    public static decimal String2Decimal(this string input) => decimal.TryParse(input, out var val) ? val : throw new FormatException($"{nameof(String2Decimal)} issue! :/");//TODO: make this fast and not just a bog standard decimal.TryParse
 
     /// <summary>Fast parser that converts a string-ified decimal to its <see cref="long"/> equivalent.</summary>
     /// <param name="input">The string to parse.</param>
