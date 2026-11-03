@@ -1,7 +1,7 @@
 # ADR 0001: Durable Runtime Configuration and Optional Management UI
 
 **Status:** Accepted core scope implemented and verified locally; release and deployment are separate.
-**Date:** 2026-11-01.
+**Date:** 2026-11-03.
 **Scope:** Package ownership, SQLite/PostgreSQL persistence, optional Redis acceleration,
 typed configuration history, controlled .NET options reload, Kubernetes operation, an embeddable
 Blazor management surface and optional Azure Table/Blob storage extensions.
@@ -130,10 +130,11 @@ Azure authorities and fleet certification remain far-future stretch work. Packag
 consumer rollout, physical browser/accessibility checks and live deployment are separate
 operational steps requiring their own approval.
 
-## Handover and Next Kick-off (2026-11-01)
+## Handover and Next Kick-off (2026-11-03)
 
-The reusable core is implemented. The next practical step is verification of the first consuming
-browser application, not another provider, history/restoration workflow or long logging soak.
+The reusable core and first Debug consumer embedding are implemented, and the consuming editor
+is now deployed and user-verified. Further work is deliberate release/adoption or concrete control
+requirements, not another provider, history/restoration workflow or long logging soak.
 Keep the dated acceptance results above distinct from validation of later source changes.
 
 ### Verified Progress
@@ -144,7 +145,7 @@ Keep the dated acceptance results above distinct from validation of later source
 - [x] Agentizr's first Debug integration was committed locally as `aead178`. It embeds the actual
   typed RCL into the existing Blazor WebAssembly frontend using sibling project references,
   a browser-neutral logging DTO and the host's fixed-destination management API.
-  This is committed consumer source, not a verified deployed page or published package.
+  The subsequent Debug rollout and browser evidence are recorded below; this is not package publication.
 - [x] The integration snapshot passed 28 focused host authorization, API, component/wire and
   logging cases against isolated PostgreSQL. The Debug solution and Release WASM client built
   with zero warnings/errors; the Release browser dependency boundary was checked.
@@ -152,38 +153,46 @@ Keep the dated acceptance results above distinct from validation of later source
 - [x] Management remains opt-in. The normal grant is an explicit host-wide operator allowlist;
   the separately approved Debug trial may grant existing app-administrator identities that access.
   Tenant administration alone does not implicitly authorize host-wide logging changes.
-- [x] The attempted consumer deployment stopped at its dirty-worktree preflight, before image
-  build/publication or deployment mutation. The user then explicitly paused rollout.
-  No ConfigMap synchronization, push, new rollout or logging publication was performed by that attempt.
+- [x] After the earlier paused attempt, the consumer was rolled out separately. Its editor initially
+  returned not found because the deployed immutable bootstrap omitted both management flags.
+  An approved configuration-only GitOps correction preserved every other bootstrap value and
+  enabled the separately approved administrator grant before restarting the workload.
+- [x] The configuration restart and subsequent approved Debug styling rollout converged with two
+  healthy replicas, zero restarts and a successful migration gate. Both replicas served the protected
+  management bootstrap and the fingerprinted host/RCL styles. Ingress protection remained intact.
+- [x] The user confirmed the signed-in editor is visible and, after the styling rollout and refresh,
+  properly styled. The reusable styling fix `fd7d6f3` supplies bordered native fields, visible actions
+  and scoped descendant styles without introducing a MudBlazor package dependency.
+  All 24 component/client cases passed again; the Debug WASM build had zero warnings/errors.
+  A CSS-only synthetic browser preview verified desktop/mobile overflow, focus/disabled states
+  and host palette inheritance; it does not replace authenticated end-to-end coverage.
+- [x] No logging revision was published during either corrective rollout or the read-only
+  verification. Source styling is committed locally; no public source push or package publication
+  was performed by this work.
 
 The earlier bounded logging trial proved actual Information-to-Debug-to-Information switch/filter
 behavior without replacing the observed processes. It did not exercise the editor in a real browser.
 An expired durable head is intentionally retained: its displayed value is not the effective replica
 level, and expiry does not require a reset publication.
 
-### Ordered Resume Checklist
+### Next Work Checklist
 
-1. [ ] Review the current Common and consumer branches/worktrees and subsequent refactoring before
-   reusing the integration snapshot's evidence. Reconfirm Debug project references, typed contracts,
-   operator policy and fixed destination. At the integration snapshot the full Release host was
-   blocked by separate unpublished shared lifecycle APIs; recheck that dependency limitation rather
-   than treating it as a management-package failure or assuming it is still unchanged.
-2. [ ] Obtain renewed approval to resume the paused Debug rollout and its exact private GitOps
-   commit/push scope. Reconfirm the reviewed non-secret bootstrap, clean deployment inputs and no
-   competing rollout. Do not infer resume permission from this ADR update.
-3. [ ] With approval, run the existing Debug `deploy.ps1` path and normal migration preflight.
-   Reconcile the reviewed immutable management bootstrap before the workload update, then verify
-   the intended image, successful migration gate, healthy replicas and preserved ingress protection.
-4. [ ] Verify the real authenticated browser page and downloaded RCL/stylesheet assets.
-   Check the typed selector, fixed scope, durable revision/expiry, error/permission handling and
-   durable-versus-effective warning. Initial verification is read-only: do not publish another
-   logging revision merely to prove that the page loads.
-5. [ ] Record sanitized rollout/browser evidence here and in the consumer runbook, distinguishing
-   actual browser behavior from component tests. Package publication, deliberate Release adoption
-   and observed remote CI results remain separate gates; none is established by a Debug deployment.
+1. [x] Complete the first Debug consumer rollout and read-only authenticated page/assets verification.
+   This is user-confirmed browser visibility/presentation plus per-replica HTTP/asset evidence,
+   not automated OIDC, all live error states, mixed-version browser recovery or a full accessibility audit.
+2. [ ] Before a package release, review subsequent source/dependency changes and run the approved
+   current-tree regression/release checks. The original 110/28-case results remain dated snapshot
+   evidence. Observe remote CI rather than inferring execution from workflow discovery.
+3. [ ] Separately approve package publication and deliberate Release consumer adoption. Recheck
+   shared lifecycle dependency compatibility: the integration snapshot's full Release host was
+   blocked by unpublished APIs, and the later Debug rollout does not establish its current status.
+4. [ ] If further live mutation or browser authorization/accessibility coverage is needed, define
+   and approve that exact scope first. Do not publish a logging revision just to exercise the UI.
+5. [ ] Add another operational control or Redis live adoption only for a concrete host requirement,
+   with typed validation, operator policy, failure/expiry semantics and measurable acceptance.
 
 No 24–48-hour soak, stress test, Redis live adoption or history/restoration work is required to
-finish this consumer embedding trial. Revisit those only for a concrete requirement and separately
+finish the completed consumer embedding trial. Revisit those only for a concrete requirement and separately
 approved acceptance scope. The [consumer guide](runtime-configuration.md),
 [management wire guide](runtime-configuration-management.md) and
 [RCL embedding guide](../src/CasCap.Common.Configuration.Blazor/README.md) remain the reusable entry points.
@@ -911,9 +920,9 @@ verbosity.
 
 The selected first management-UI candidate is agentizr, which already has a
 [Blazor WebAssembly client](https://github.com/f2calv/agentizr/blob/main/src/CasCap.App.Client/CasCap.App.Client.csproj).
-This host choice was confirmed on 2026-10-30. The first Debug embedding is now committed and
-locally tested; its rollout and physical browser verification are paused at the
-[handover checklist](#handover-and-next-kick-off-2026-11-01). No separate portal is needed.
+This host choice was confirmed on 2026-10-30. The first Debug embedding is now committed,
+locally tested, deployed and user-verified as recorded in the
+[handover checklist](#handover-and-next-kick-off-2026-11-03). No separate portal is needed.
 Keep the reusable components and typed API client host-independent, with provider access and
 authorization enforced on the server.
 
@@ -1232,8 +1241,9 @@ Acceptance evidence:
 - [x] The first consuming Debug WASM page embeds the actual RCL and typed client, with fixed-scope
   cookie authorization and host-wide operator grants. Its 28-case local integration evidence is
   recorded in the handover; subsequent source changes require their own validation.
-- [ ] Complete the paused consumer rollout and authenticated browser/assets verification using
-  the ordered handover checklist. This is an operational gate, not unfinished reusable core code.
+- [x] Complete the first Debug consumer rollout and read-only authenticated browser/assets verification.
+  The handover records user confirmation and per-replica evidence, with explicit limits on live
+  mutation, identity-provider, mixed-version and full accessibility coverage.
 
 The checked core evidence is source-only and locally tested against isolated SQLite/PostgreSQL/Redis
 and bUnit, not shared production stores. Core source completion is distinct from a consuming browser
