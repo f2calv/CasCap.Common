@@ -1,8 +1,14 @@
 # CasCap.Common.Configuration.Management
 
 Optional .NET 10 ASP.NET Core controllers for authenticated management of one registered typed
-runtime configuration destination. This source project references Runtime and browser-neutral
+runtime configuration destination. This package references Runtime and browser-neutral
 Contracts, not a PostgreSQL/SQLite provider or Redis.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Management
+```
 
 ## Configuration Examples
 

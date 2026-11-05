@@ -1,8 +1,17 @@
 # CasCap.Common.Configuration.Runtime
 
-Provisional .NET 10 typed runtime configuration support. It reuses the prototype's standard
+.NET 10 typed runtime configuration support. It uses the standard
 configuration-provider and complete dictionary-replacement approach, with validation before reload,
 an isolated root and the standard `IOptionsMonitor<T>`. It is not a custom monitor implementation.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Runtime
+```
+
+Add a durable provider package for PostgreSQL or SQLite; this package defines the runtime contract,
+not a database authority.
 
 ## Contract
 

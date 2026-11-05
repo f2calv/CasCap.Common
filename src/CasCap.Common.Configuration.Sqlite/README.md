@@ -1,7 +1,13 @@
 # CasCap.Common.Configuration.Sqlite
 
-Source-only .NET 10 EF Core SQLite authority for complete typed runtime controls with immutable
-revision audit and expected-revision publication. Reference the source project; it is not released.
+.NET 10 EF Core SQLite authority for complete typed runtime controls with immutable
+revision audit and expected-revision publication.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Sqlite
+```
 
 ## Usage
 

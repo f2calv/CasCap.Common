@@ -1,7 +1,13 @@
 # CasCap.Common.Configuration.Redis
 
 Optional .NET 10 cache-aside acceleration for typed runtime configuration, backed by an independently
-authoritative store. This is a source-only trial, not a released package or a durable Redis provider.
+authoritative store. This bounded cache-aside adapter is not a durable Redis provider.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Redis
+```
 
 ## Usage
 

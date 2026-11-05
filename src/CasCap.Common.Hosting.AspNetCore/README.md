@@ -73,7 +73,7 @@ needed. This ordering matters: Serilog initialization clears existing logging pr
 Serilog reads the `Serilog` section and forwards events to Microsoft logging providers, including
 the OpenTelemetry exporter.
 
-The local source API also accepts an optional `configureLogger` callback, applied after the standard
+The API also accepts an optional `configureLogger` callback, applied after the standard
 defaults and configuration binding. A deliberately reloadable application can use it to attach a
 per-host `LoggingLevelSwitch` to `MinimumLevel.ControlledBy`. This controls the actual pipeline,
 including forwarding, rather than only console output. The application owns validation, monitor

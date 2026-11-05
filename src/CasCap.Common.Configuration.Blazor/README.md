@@ -3,7 +3,12 @@
 Optional .NET 10 Razor class library for embedding typed runtime-control editing in an existing
 Blazor frontend. It calls the authorized management API; it references only browser-neutral
 Contracts and Blazor packages, never Runtime, EF Core, SQL/Redis clients or server configuration.
-The source is unpublished; reference the project until a package release is approved.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Blazor
+```
 
 ## Usage
 
