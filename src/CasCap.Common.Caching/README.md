@@ -93,6 +93,8 @@ cancelled, pass its token to all I/O and child work, and await cleanup before re
   Cleanup has no runner timeout: configure the host and container termination budgets explicitly.
   An uncooperative worker is not abandoned and no replacement run starts while it is still active.
 - Lease polling has a detection delay; it is not downstream fencing or an exactly-once guarantee.
+- Logging records transitions only, each naming the lock resource: entering standby, acquisition and
+  graceful stop at `Information`, loss at `Warning`, and repeated standby retries at `Debug`.
 
 All caching registration overloads expose the same `CachingConfig.Redlock` instance through
 `IOptions<RedlockConfig>`. Repeated registration preserves the first configuration. Root timings,

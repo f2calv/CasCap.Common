@@ -37,8 +37,8 @@ public sealed class BasicAuthenticationHandler(
         {
             if (Logger.IsEnabled(LogLevel.Debug))
                 Logger.LogDebug(
-                    "{ClassName} authentication header missing or not Basic for {Method} {Path}",
-                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                    "{ClassName} authentication header missing or not Basic for {Method}",
+                    nameof(BasicAuthenticationHandler), Request.Method);
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
@@ -51,8 +51,8 @@ public sealed class BasicAuthenticationHandler(
             {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug(
-                        "{ClassName} invalid Basic header format for {Method} {Path}",
-                        nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                        "{ClassName} invalid Basic header format for {Method}",
+                        nameof(BasicAuthenticationHandler), Request.Method);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Basic authentication header format."));
             }
 
@@ -63,15 +63,15 @@ public sealed class BasicAuthenticationHandler(
             {
                 if (Logger.IsEnabled(LogLevel.Debug))
                     Logger.LogDebug(
-                        "{ClassName} invalid credentials for {Method} {Path}",
-                        nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                        "{ClassName} invalid credentials for {Method}",
+                        nameof(BasicAuthenticationHandler), Request.Method);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid username or password."));
             }
 
             if (Logger.IsEnabled(LogLevel.Debug))
                 Logger.LogDebug(
-                    "{ClassName} authenticated request for {Method} {Path}",
-                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                    "{ClassName} authenticated request for {Method}",
+                    nameof(BasicAuthenticationHandler), Request.Method);
 
             var claims = new[] { new Claim(ClaimTypes.Name, username) };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
@@ -84,8 +84,8 @@ public sealed class BasicAuthenticationHandler(
         {
             if (Logger.IsEnabled(LogLevel.Debug))
                 Logger.LogDebug(
-                    "{ClassName} invalid Base64 in Basic header for {Method} {Path}",
-                    nameof(BasicAuthenticationHandler), Request.Method, Request.Path);
+                    "{ClassName} invalid Base64 in Basic header for {Method}",
+                    nameof(BasicAuthenticationHandler), Request.Method);
             return Task.FromResult(AuthenticateResult.Fail("Invalid Base64 encoding in Basic authentication header."));
         }
     }

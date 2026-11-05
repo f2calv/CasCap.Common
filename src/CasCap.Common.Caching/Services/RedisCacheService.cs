@@ -225,28 +225,20 @@ public sealed class RedisCacheService : IRemoteCache
         async Task<RedisResult[]?> StringGetWithExpiryAsyncLua()
         {
             var cacheExpiry = slidingExpiration.HasValue ? (int)slidingExpiration.Value.TotalSeconds : -1;
-            try
+            var loaded = LuaScripts[keyStringGetSetExpiryAsync];
+            if (string.IsNullOrWhiteSpace(loaded.ExecutableScript))
+                throw new FileNotFoundException($"Lua script {keyStringGetSetExpiryAsync} not found!");
+            var ps = new
             {
-                var loaded = LuaScripts[keyStringGetSetExpiryAsync];
-                if (string.IsNullOrWhiteSpace(loaded.ExecutableScript))
-                    throw new FileNotFoundException($"Lua script {keyStringGetSetExpiryAsync} not found!");
-                var ps = new
-                {
-                    cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
-                    cacheExpiry = (RedisValue)cacheExpiry,
-                    trackKey = (RedisValue)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
-                    trackCaller = (RedisValue)caller//the method which instigated this particular access attempt
-                };
-                //var result = await loaded.EvaluateAsync(Db, ps, flags: flags);
-                var result = await Db.ScriptEvaluateAsync(loaded, ps, flags: flags).ConfigureAwait(false);
-                var retKeys = (RedisResult[]?)result;
-                return retKeys;
-            }
-            catch (Exception ex)
-            {
-                CacheLog.LuaFailure(_logger, ex, nameof(RedisCacheService));
-                throw;
-            }
+                cacheKey = (RedisKey)key,//the key of the item we wish to retrieve
+                cacheExpiry = (RedisValue)cacheExpiry,
+                trackKey = (RedisValue)GetTrackKey(),//the key of the HashSet recording access attempts (expiry set to 7 days)
+                trackCaller = (RedisValue)caller//the method which instigated this particular access attempt
+            };
+            //var result = await loaded.EvaluateAsync(Db, ps, flags: flags);
+            var result = await Db.ScriptEvaluateAsync(loaded, ps, flags: flags).ConfigureAwait(false);
+            var retKeys = (RedisResult[]?)result;
+            return retKeys;
 
             //edits the item cacheKey by appending the date.
             string GetTrackKey()
@@ -273,7 +265,7 @@ public sealed class RedisCacheService : IRemoteCache
         var resourceNames = new[] { keyStringGetSetExpiryAsync };
         foreach (var resourceName in resourceNames)
         {
-            var script = GetType().Assembly.GetManifestResourceString(resourceName) ?? throw new GenericException($"Lua script '{resourceName}' is null or empty");
+            var script = GetType().Assembly.GetManifestResourceString(resourceName) ?? throw new InvalidOperationException($"Lua script '{resourceName}' is null or empty");
             LoadLuaScript(resourceName, script);
         }
     }

@@ -48,8 +48,10 @@ public sealed class HttpAuditHandler(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "{ClassName} failed to persist audit entry for {RequestUri}",
-                nameof(HttpAuditHandler), entry.RequestUri);
+            // The request URI can carry identifiers or signed query values, so only its source and method are logged.
+            if (logger.IsEnabled(LogLevel.Warning))
+                logger.LogWarning(ex, "{ClassName} failed to persist audit entry for {Source} {HttpMethod}",
+                    nameof(HttpAuditHandler), entry.Source, entry.HttpMethod);
         }
 
         return response;

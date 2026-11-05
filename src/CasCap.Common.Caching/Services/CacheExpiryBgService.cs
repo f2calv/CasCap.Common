@@ -23,7 +23,7 @@ public sealed class CacheExpiryBgService(ILogger<CacheExpiryBgService> logger, I
             tasks.Add(remoteCacheExpirySvc.ExecuteAsync(cancellationToken));
         if (tasks.Count == 0)
         {
-            CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "exiting immediately, all expiry sub-services are disabled");
+            CacheLog.LifecycleSkipped(logger, nameof(CacheExpiryBgService), "exiting immediately, all expiry sub-services are disabled");
             return;
         }
         CacheLog.Lifecycle(logger, nameof(CacheExpiryBgService), "starting");

@@ -1,11 +1,17 @@
 # CasCap.Common.Configuration.Management.Contracts
 
 Browser-neutral .NET 10 request and response records for a host-owned typed runtime configuration
-editor. This source project has no Runtime, database, ASP.NET Core or Blazor dependency.
+editor. This package has no Runtime, database, ASP.NET Core or Blazor dependency.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Management.Contracts
+```
 
 ## Usage
 
-Reference this project from a client and its host. Keep the same `T` through the document,
+Reference this package from a client and its host. Keep the same `T` through the document,
 preview and publication requests; a host-supplied typed form can edit that value without a
 string dictionary or a reflection-based form engine.
 

@@ -1,16 +1,83 @@
 .runtime-editor {
+    --editor-border: var(--mud-palette-lines-inputs, #9ca3af);
+    --editor-primary: var(--mud-palette-primary, #2457c5);
+    --editor-primary-text: var(--mud-palette-primary-text, #ffffff);
+    --editor-surface: var(--mud-palette-surface, #ffffff);
+    --editor-text: var(--mud-palette-text-primary, #1f2937);
+    box-sizing: border-box;
     max-width: 52rem;
+    padding: 1.5rem;
+    border: 1px solid var(--editor-border);
+    border-radius: 0.75rem;
+    background: var(--editor-surface);
+    color: var(--editor-text);
+}
+
+.runtime-editor h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.runtime-editor p {
+    margin-block: 0.5rem;
+    overflow-wrap: anywhere;
 }
 
 .runtime-editor fieldset {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.5rem;
     min-width: 0;
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--editor-border);
+    border-radius: 0.5rem;
 }
 
-.runtime-editor textarea {
-    min-height: 4rem;
+.runtime-editor legend {
+    padding-inline: 0.4rem;
+    font-weight: 600;
+}
+
+.runtime-editor ::deep label {
+    font-weight: 500;
+}
+
+.runtime-editor ::deep input:not([type="checkbox"]),
+.runtime-editor ::deep select,
+.runtime-editor ::deep textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--editor-border);
+    border-radius: 0.35rem;
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    font: inherit;
+}
+
+.runtime-editor ::deep textarea {
+    min-height: 6rem;
     max-width: 100%;
+    resize: vertical;
+}
+
+.runtime-confirmation {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-block: 0.5rem;
+}
+
+.runtime-editor ::deep input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.2rem;
+    accent-color: var(--editor-primary);
 }
 
 .runtime-actions {
@@ -20,6 +87,66 @@
     margin-block: 0.75rem;
 }
 
+.runtime-editor button {
+    min-height: 2.75rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--editor-primary);
+    border-radius: 0.35rem;
+    background: var(--editor-surface);
+    color: var(--editor-primary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.runtime-editor .runtime-publish {
+    background: var(--editor-primary);
+    color: var(--editor-primary-text);
+}
+
+.runtime-editor button:hover:not(:disabled) {
+    box-shadow: 0 0 0 1px var(--editor-primary);
+}
+
+.runtime-editor button:disabled,
+.runtime-editor ::deep fieldset:disabled input,
+.runtime-editor ::deep fieldset:disabled select,
+.runtime-editor ::deep fieldset:disabled textarea {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.runtime-editor button:focus-visible,
+.runtime-editor ::deep input:focus-visible,
+.runtime-editor ::deep select:focus-visible,
+.runtime-editor ::deep textarea:focus-visible {
+    outline: 2px solid var(--editor-primary);
+    outline-offset: 3px;
+}
+
+.runtime-editor ::deep .invalid {
+    border-color: var(--mud-palette-error, #b42318);
+}
+
+.runtime-editor ::deep .validation-message,
+.runtime-editor ::deep .validation-errors {
+    color: var(--mud-palette-error, #b42318);
+}
+
 .runtime-editor [role="alert"] {
     font-weight: bold;
+}
+
+@media (max-width: 36rem) {
+    .runtime-editor {
+        padding: 1rem;
+    }
+
+    .runtime-editor fieldset {
+        padding: 0.75rem;
+    }
+
+    .runtime-actions button {
+        flex: 1 1 auto;
+    }
 }

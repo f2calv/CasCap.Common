@@ -3,7 +3,12 @@
 Optional .NET 10 Razor class library for embedding typed runtime-control editing in an existing
 Blazor frontend. It calls the authorized management API; it references only browser-neutral
 Contracts and Blazor packages, never Runtime, EF Core, SQL/Redis clients or server configuration.
-The source is unpublished; reference the project until a package release is approved.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Blazor
+```
 
 ## Usage
 
@@ -55,6 +60,10 @@ DTO enum converters shared with the server. Supply unique visible labels/IDs in 
 fragment. The page owns its `h1`, routing, sign-in and navigation chrome.
 
 Include the host's normal generated `.styles.css` bundle so the RCL's isolated styles load.
+The editor supplies bordered native controls, responsive card spacing and visible focus/disabled
+states even when the host resets browser defaults. It inherits the host font and uses MudBlazor
+palette CSS variables when available, with standalone fallbacks; no MudBlazor dependency is added.
+Scoped descendant styles also cover forms-compatible inputs supplied by the host field fragment.
 No JavaScript plugin, assembly scanner, external font or extra component framework is needed.
 
 ## Configuration Examples

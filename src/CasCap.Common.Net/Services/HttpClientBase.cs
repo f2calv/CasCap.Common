@@ -46,7 +46,6 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         var json = req is not null ? req.ToJson() : "{}";
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))//needs full url as a string as System.Uri can't cope with a colon
         {
@@ -79,7 +78,6 @@ public abstract class HttpClientBase
     {
         (TResult? result, TError? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders) tpl;
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using (var request = new HttpRequestMessage(HttpMethod.Post, url))
         {
             request.Content = new ByteArrayContent(bytes);
@@ -148,7 +146,6 @@ public abstract class HttpClientBase
         where TError : class
     {
         var url = requestUri.StartsWith("http") ? requestUri : $"{Client.BaseAddress}{requestUri}";//allows us to override base url
-        //_logger.LogDebug("{ClassName} {HttpMethod}\t{Url}", nameof(HttpClientBase), HttpMethod.Post, url);
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.AddOrOverwrite(headers);
         using var cts = CreateLinkedCts(timeout, cancellationToken);
@@ -192,11 +189,11 @@ public abstract class HttpClientBase
                 : typeof(TError).Equals(typeof(byte[]))
                 ? (TError)(object)await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false)
                 : (await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).FromJson<TError>();
-            _logger.LogError("{ClassName} StatusCode={StatusCode}, RequestUri={RequestUri}", nameof(HttpClientBase), response.StatusCode, response.RequestMessage?.RequestUri);
-            //var err = $"requestUri= fail";
-            //if (response.RequestMessage.Content.)
-            //if (req is not null) err += $"{json}";
-            //throw new GenericException(err);
+            // The caller receives the error and owns the failure; the request URI can carry identifiers or
+            // credentials in its path or query, so only the method and host are logged.
+            if (_logger.IsEnabled(LogLevel.Warning))
+                _logger.LogWarning("{ClassName} {HttpMethod} to {Host} returned StatusCode={StatusCode}", nameof(HttpClientBase),
+                    response.RequestMessage?.Method.Method, response.RequestMessage?.RequestUri?.Host, response.StatusCode);
             tpl.result = default;
         }
         return tpl;

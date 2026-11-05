@@ -1,15 +1,28 @@
 # CasCap.Common.Configuration.Runtime
 
-Provisional .NET 10 typed runtime configuration support. It reuses the prototype's standard
+.NET 10 typed runtime configuration support. It uses the standard
 configuration-provider and complete dictionary-replacement approach, with validation before reload,
 an isolated root and the standard `IOptionsMonitor<T>`. It is not a custom monitor implementation.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Runtime
+```
+
+Add a durable provider package for PostgreSQL or SQLite; this package defines the runtime contract,
+not a database authority.
 
 ## Contract
 
 Register one DTO per host through `AddRuntimeConfiguration<T>` and supply an
 `IRuntimeConfigurationStore<T>` implementation. A complete initial durable revision is required:
 missing data or unavailable storage fails startup. Expired revisions return to the supplied startup
-baseline. Invalid refreshes log a sanitized error and retain the previous accepted snapshot.
+baseline. Each newly activated revision logs one `Information` line with its revision number, and
+an accepted revision that expires logs once when the baseline is restored. Invalid refreshes retain
+the previous accepted snapshot: the first failure logs one sanitized `Error`, repeats log at
+`Debug`, and the next successful refresh logs one `Information` recovery with the failure count and
+duration.
 Consumers must not mutate returned options; capture one aggregate per operation.
 
 Durable adapters also expose [`IRuntimeConfigurationPublisher<T>`](Abstractions/IRuntimeConfigurationPublisher{T}.cs)

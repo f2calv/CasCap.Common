@@ -21,8 +21,9 @@ public static class HttpClientBuilderResilienceExtensions
     /// </summary>
     /// <remarks>
     /// Applies <see cref="HttpResiliencePipelineBuilderExtensions.AddStandardResilienceHandler"/>
-    /// with an <c>OnRetry</c> callback that emits a structured log message including the caller name,
-    /// attempt number, delay and outcome.
+    /// with an <c>OnRetry</c> callback that emits a structured <c>Debug</c> message including the caller name,
+    /// attempt number, delay and outcome (exception type or status code). The resilience telemetry already
+    /// reports each retry at <c>Warning</c>.
     /// <para>
     /// The default errs towards under-retrying rather than duplicating work: a timeout or a 5xx says
     /// nothing about whether the server already acted, so replaying a POST can apply it twice. Losing
@@ -57,12 +58,14 @@ public static class HttpClientBuilderResilienceExtensions
                 var logger = args.Context.Properties.GetValue(
                     new ResiliencePropertyKey<ILogger>("logger"), null!);
 
-                logger?.LogWarning(
+                // Resilience telemetry already logs each retry at Warning; exception messages can contain the URI.
+                if (logger?.IsEnabled(LogLevel.Debug) == true)
+                    logger.LogDebug(
                         "{ClassName} resilience retry attempt {AttemptNumber} after {Delay}ms, outcome: {Outcome}",
                         callerName,
                         args.AttemptNumber,
                         args.RetryDelay.TotalMilliseconds,
-                        args.Outcome.Exception?.Message ?? args.Outcome.Result?.StatusCode.ToString());
+                        args.Outcome.Exception?.GetType().Name ?? args.Outcome.Result?.StatusCode.ToString());
 
                 return ValueTask.CompletedTask;
             };

@@ -1,7 +1,13 @@
 # CasCap.Common.Configuration.Redis
 
 Optional .NET 10 cache-aside acceleration for typed runtime configuration, backed by an independently
-authoritative store. This is a source-only trial, not a released package or a durable Redis provider.
+authoritative store. This bounded cache-aside adapter is not a durable Redis provider.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.Redis
+```
 
 ## Usage
 
@@ -69,8 +75,9 @@ and revalidate snapshots. Each instance independently bypasses Redis at its reco
 Cached values are copied before returning; callers must still treat options as immutable.
 
 Redis is **evictable cache only**. Deletion or eviction causes refill; it never deletes SQL history.
-Malformed, wrong-scope, expired or previously superseded cache entries trigger a sanitized warning
-and a durable read. Redis connection failures also fall back to the authority. If that read fails,
+Malformed, wrong-scope, expired or previously superseded cache entries trigger a durable read. The
+first bypass logs one sanitized `Warning`, repeats log at `Debug` with the count, and the next
+successful cache read logs one `Information` recovery with the bypass count and duration. Redis connection failures also fall back to the authority. If that read fails,
 normal runtime-reader retention, expiry and sanitized failure behavior apply; Redis is not an
 availability substitute for required initial PostgreSQL or SQLite loading.
 
@@ -91,8 +98,8 @@ Shared caching suppresses concurrent fills per key within a process. Cross-proce
 can still occur; do not enable distributed locking without evaluating its cost and endpoint safety.
 Cache calls have the shared client's timeout semantics; cancellation stops waiting but an in-flight
 shared fill can finish afterward. Cache serialization is an internal format, not a public API.
-A fill whose absolute deadline expires before storage is rejected with a sanitized warning and
-retried directly against the authority, rather than extending the stale entry's lifetime.
+A fill whose absolute deadline expires before storage is rejected as a bypass and retried directly
+against the authority, rather than extending the stale entry's lifetime.
 
 This trial has no measured production performance benefit yet and is not deployed by opting into
 the source project. Keep the direct provider for low-volume or stricter-freshness workloads.

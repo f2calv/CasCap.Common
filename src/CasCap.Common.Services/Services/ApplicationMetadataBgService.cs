@@ -18,25 +18,26 @@ public sealed partial class ApplicationMetadataBgService(
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await Task.Yield();
-        LogStarting(logger, nameof(ApplicationMetadataBgService));
-        while (!cancellationToken.IsCancellationRequested)
+        // The supervisor already logs this feature starting, so the first metadata line is the startup event.
+        try
         {
-            LogMetadata(
-                logger,
-                nameof(ApplicationMetadataBgService),
-                applicationMetadata.Repository,
-                applicationMetadata.Version,
-                applicationMetadata.Branch,
-                applicationMetadata.Commit);
-            await Task.Delay(config.Value.LogInterval, timeProvider, cancellationToken).ConfigureAwait(false);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                LogMetadata(
+                    logger,
+                    nameof(ApplicationMetadataBgService),
+                    applicationMetadata.Repository,
+                    applicationMetadata.Version,
+                    applicationMetadata.Branch,
+                    applicationMetadata.Commit);
+                await Task.Delay(config.Value.LogInterval, timeProvider, cancellationToken).ConfigureAwait(false);
+            }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         LogExiting(logger, nameof(ApplicationMetadataBgService));
     }
 
-    [LoggerMessage(LogLevel.Information, "{ClassName} starting")]
-    private static partial void LogStarting(ILogger logger, string className);
-
-    [LoggerMessage(LogLevel.Information, "{ClassName} Repository {Repository}, Version {Version}, Branch {Branch}, Commit {Commit}")]
+    [LoggerMessage(LogLevel.Information, "{ClassName} Repository={Repository} Version={Version} Branch={Branch} Commit={Commit}")]
     private static partial void LogMetadata(
         ILogger logger,
         string className,

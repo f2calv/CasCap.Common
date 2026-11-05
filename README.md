@@ -40,7 +40,13 @@ Install the capabilities you need; NuGet resolves their dependencies.
 | [CasCap.Common.Abstractions](src/CasCap.Common.Abstractions/README.md) | Shared interfaces for configuration, caching, features and notifications | [![NuGet version for CasCap.Common.Abstractions](https://img.shields.io/nuget/v/CasCap.Common.Abstractions?color=blue)](https://www.nuget.org/packages/CasCap.Common.Abstractions) |
 | [CasCap.Common.Caching](src/CasCap.Common.Caching/README.md) | Memory, disk and Redis caching with optional distributed locking | [![NuGet version for CasCap.Common.Caching](https://img.shields.io/nuget/v/CasCap.Common.Caching?color=blue)](https://www.nuget.org/packages/CasCap.Common.Caching) |
 | [CasCap.Common.Configuration](src/CasCap.Common.Configuration/README.md) | Configuration layering, Azure Key Vault integration and validated options binding | [![NuGet version for CasCap.Common.Configuration](https://img.shields.io/nuget/v/CasCap.Common.Configuration?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration) |
-| [Runtime configuration](docs/runtime-configuration.md) | Typed PostgreSQL/SQLite live controls, optional Redis cache-aside and authorized management API/Blazor editor | Unpublished; use source projects |
+| [CasCap.Common.Configuration.Runtime](src/CasCap.Common.Configuration.Runtime/README.md) | Typed live controls with validated snapshots and standard options monitoring | [![NuGet version for CasCap.Common.Configuration.Runtime](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Runtime?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Runtime) |
+| [CasCap.Common.Configuration.PostgreSql](src/CasCap.Common.Configuration.PostgreSql/README.md) | PostgreSQL authority and immutable revision history for live controls | [![NuGet version for CasCap.Common.Configuration.PostgreSql](https://img.shields.io/nuget/v/CasCap.Common.Configuration.PostgreSql?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.PostgreSql) |
+| [CasCap.Common.Configuration.Sqlite](src/CasCap.Common.Configuration.Sqlite/README.md) | SQLite authority for live controls | [![NuGet version for CasCap.Common.Configuration.Sqlite](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Sqlite?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Sqlite) |
+| [CasCap.Common.Configuration.Redis](src/CasCap.Common.Configuration.Redis/README.md) | Optional cache-aside acceleration, never the durable authority | [![NuGet version for CasCap.Common.Configuration.Redis](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Redis?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Redis) |
+| [CasCap.Common.Configuration.Management.Contracts](src/CasCap.Common.Configuration.Management.Contracts/README.md) | Browser-neutral typed management requests and responses | [![NuGet version for CasCap.Common.Configuration.Management.Contracts](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Management.Contracts?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Management.Contracts) |
+| [CasCap.Common.Configuration.Management](src/CasCap.Common.Configuration.Management/README.md) | Authorized ASP.NET Core live-control management API | [![NuGet version for CasCap.Common.Configuration.Management](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Management?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Management) |
+| [CasCap.Common.Configuration.Blazor](src/CasCap.Common.Configuration.Blazor/README.md) | Typed live-control editing in an existing Blazor frontend | [![NuGet version for CasCap.Common.Configuration.Blazor](https://img.shields.io/nuget/v/CasCap.Common.Configuration.Blazor?color=blue)](https://www.nuget.org/packages/CasCap.Common.Configuration.Blazor) |
 | [CasCap.Common.Extensions](src/CasCap.Common.Extensions/README.md) | General-purpose extension methods and utilities | [![NuGet version for CasCap.Common.Extensions](https://img.shields.io/nuget/v/CasCap.Common.Extensions?color=blue)](https://www.nuget.org/packages/CasCap.Common.Extensions) |
 | [CasCap.Common.Extensions.Diagnostics.HealthChecks](src/CasCap.Common.Extensions.Diagnostics.HealthChecks/README.md) | HTTP endpoint health checks and Kubernetes probe tags | [![NuGet version for CasCap.Common.Extensions.Diagnostics.HealthChecks](https://img.shields.io/nuget/v/CasCap.Common.Extensions.Diagnostics.HealthChecks?color=blue)](https://www.nuget.org/packages/CasCap.Common.Extensions.Diagnostics.HealthChecks) |
 | [CasCap.Common.Hosting.AspNetCore](src/CasCap.Common.Hosting.AspNetCore/README.md) | ASP.NET Core hosting with feature-gated controllers, Serilog and OpenTelemetry | [![NuGet version for CasCap.Common.Hosting.AspNetCore](https://img.shields.io/nuget/v/CasCap.Common.Hosting.AspNetCore?color=blue)](https://www.nuget.org/packages/CasCap.Common.Hosting.AspNetCore) |
@@ -53,13 +59,16 @@ Install the capabilities you need; NuGet resolves their dependencies.
 
 ### Target Frameworks
 
-All libraries target .NET 8, 9 and 10. All except `Hosting.AspNetCore`, `Services` and `Testing` also target .NET Standard 2.0.
+The seven runtime-configuration packages target .NET 10 only. The other libraries target .NET 8,
+9 and 10; all except `Hosting.AspNetCore`, `Services` and `Testing` also target .NET Standard 2.0.
 Individual APIs can have framework-specific availability; see the relevant package documentation.
 
 ## Dependency Graph
 
-Arrows point from a library to its direct project dependencies. Node labels omit the common
-`CasCap.Common.` prefix; external NuGet dependencies are not shown.
+Arrows point from a core library to its direct project dependencies. Node labels omit the common
+`CasCap.Common.` prefix; external NuGet dependencies are not shown. The separate
+[runtime-configuration dependency graph](docs/runtime-configuration.md#dependency-graph) covers
+the .NET 10 live-control packages and their optional adapters.
 
 ```mermaid
 graph TD

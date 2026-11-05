@@ -1,23 +1,25 @@
 # Typed Runtime Configuration
 
-Use the source-only .NET 10 runtime/PostgreSQL/SQLite libraries for narrow, non-secret operational
+Use the .NET 10 runtime/PostgreSQL/SQLite packages for narrow, non-secret operational
 controls that must change without restarting a host. Immutable deployment configuration remains
 the default. Connections, authentication, DI topology and database/schema selection are not live controls.
 
 The [ADR](adr-0001-runtime-configuration.md) separates the implemented slice from the broader
 proposal. The optional [typed management API](runtime-configuration-management.md) is implemented
-as separate source projects; the Blazor UI/client, typed restore commands, Redis outbox projection
-and Azure authorities are not implemented. The optional Redis adapter is a bounded cache-aside trial only.
+as a separate package, with an optional [typed Blazor editor](../src/CasCap.Common.Configuration.Blazor/README.md).
+Typed restore commands, Redis outbox projection and Azure authorities are not implemented.
+The optional Redis adapter provides bounded cache-aside acceleration only.
 
 ## Choose a Read Mode
 
 | Mode | Dependencies | Freshness |
 | --- | --- | --- |
-| Direct PostgreSQL | Runtime and PostgreSQL source projects, PostgreSQL | Next successful poll, plus source/apply duration |
-| Direct SQLite | Runtime and SQLite source projects, durable local file | Next successful poll, plus source/apply duration |
-| Optional cache-aside | Direct provider plus Redis project and shared CasCap caching | Cache age or independent durable reconciliation, then polling/source duration |
+| Direct PostgreSQL | Runtime and PostgreSQL packages, PostgreSQL | Next successful poll, plus source/apply duration |
+| Direct SQLite | Runtime and SQLite packages, durable local file | Next successful poll, plus source/apply duration |
+| Optional cache-aside | Direct provider plus Redis package and shared CasCap caching | Cache age or independent durable reconciliation, then polling/source duration |
 
-Reference the source projects from the host while these packages are unpublished. The Redis
+Install the selected provider with `dotnet add package CasCap.Common.Configuration.PostgreSql`
+or `dotnet add package CasCap.Common.Configuration.Sqlite`. The Redis
 dependency stays out of the direct-provider projects. Ordinary `IOptionsMonitor<T>.CurrentValue`
 reads use accepted in-process state, not the database or Redis.
 
@@ -25,6 +27,22 @@ Two replicas with the default five-second interval perform about **0.4 aggregate
 second** in direct mode, not a read every 0.4 seconds. Polls currently fetch one full bounded snapshot.
 Redis can reduce repeated reads but adds dependencies and permitted staleness; it is not required
 for this small workload, and the trial does not claim measured production speedup.
+
+## Dependency Graph
+
+Arrows show direct package references, with the `CasCap.Common.` prefix omitted.
+Browser code depends only on the management contracts; database and cache dependencies stay server-side.
+
+```mermaid
+graph TD
+    blazor[Configuration.Blazor] --> contracts[Configuration.Management.Contracts]
+    management[Configuration.Management] --> contracts
+    management --> runtime[Configuration.Runtime]
+    postgres[Configuration.PostgreSql] --> runtime
+    sqlite[Configuration.Sqlite] --> runtime
+    redis[Configuration.Redis] --> runtime
+    redis --> caching[Caching]
+```
 
 ## Define a Typed Contract
 

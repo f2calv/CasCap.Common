@@ -1,7 +1,12 @@
 # CasCap.Common.Configuration.PostgreSql
 
-Provisional .NET 10 EF Core PostgreSQL authority for typed runtime configuration. Use the source
-project while validating; this package has not yet been released.
+.NET 10 EF Core PostgreSQL authority for typed runtime configuration.
+
+## Installation
+
+```bash
+dotnet add package CasCap.Common.Configuration.PostgreSql
+```
 
 ## Usage
 
@@ -25,7 +30,8 @@ or DELETE of journal rows; EF mappings alone do not enforce append-only permissi
 
 One typed contract per host, full snapshots, bounded payloads and direct polling are supported.
 Schema customization, idempotent command retries, paginated/as-of history, typed restore commands,
-store-generation recovery, outbox-backed Redis projection and SQLite remain follow-up ADR phases.
+store-generation recovery and outbox-backed Redis projection remain follow-up ADR phases.
+SQLite is available through the separate [SQLite provider](../CasCap.Common.Configuration.Sqlite/README.md).
 Do not use this provisional slice for safety-critical controls or restore a database under running
 readers. First-publication and existing-scope races produce explicit concurrency failures.
 

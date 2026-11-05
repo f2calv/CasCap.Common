@@ -24,7 +24,7 @@ public sealed partial class FeatureFlagBgService<T>(ILogger<FeatureFlagBgService
             }
         }
         if (tasks.IsNullOrEmpty())
-            throw new GenericException("no features found to launch!");
+            throw new ConfigurationException("no features found to launch!");
         //await-await-WhenAny propagates the first faulted task immediately so the
         //service crashes and the pod restarts rather than running in a degraded state.
         await await Task.WhenAny(tasks);

@@ -72,6 +72,11 @@ builder.Services.AddHttpClient<ExampleClient>()
 ```
 
 Apply the extension to the same registration that configures the client's base address.
+The resilience telemetry reports each retry at `Warning`; the extension's own retry line, with the
+caller name and the outcome's exception type or status code, is `Debug`.
+
+`HttpClientBase` returns non-success responses to the derived client and logs one `Warning` with
+the method, host and status code. It never logs the request path, query string or body.
 
 ## Authentication
 
@@ -134,7 +139,8 @@ and non-JSON responses without attempting to parse them as raw JSON.
 working directory. It has no automatic retention policy. Capture is not redaction: paths, query
 parameters and bodies may contain credentials or personal data. Assess the data and configure
 appropriate access, retention and consent before enabling persistence. Body capture also buffers
-content; do not assume it is suitable for large or streaming payloads.
+content; do not assume it is suitable for large or streaming payloads. A failed save logs a
+`Warning` with the source name and method only, never the captured URI or bodies.
 
 ## Network Extensions
 

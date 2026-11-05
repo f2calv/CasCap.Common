@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace CasCap.Common.Configuration.Management.Services;
 
-internal sealed class RuntimeConfigurationManagementService<T>(
+internal sealed partial class RuntimeConfigurationManagementService<T>(
     ILogger<RuntimeConfigurationManagementService<T>> logger,
     TimeProvider timeProvider,
     IRuntimeConfigurationPublisher<T> publisher,
@@ -73,6 +73,8 @@ internal sealed class RuntimeConfigurationManagementService<T>(
         {
             var revision = await publisher.PublishAsync(preview.Value.Value, request.ExpectedRevision, actor, request.Reason,
                 request.ExpiresAtUtc, cancellationToken);
+            // The actor and reason identify a person and stay in the durable audit record, not the log.
+            LogPublished(logger, nameof(RuntimeConfigurationManagementService<>), revision.Revision);
             return new(new(Document(revision)));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -95,6 +97,13 @@ internal sealed class RuntimeConfigurationManagementService<T>(
     private RuntimeConfigurationDocument<T> Document(RuntimeConfigurationRevision<T> revision)
         => new(revision.Revision, codec.Deserialize(codec.Serialize(revision.Value)), revision.RecordedAtUtc, revision.ExpiresAtUtc);
 
+    // Provider exceptions can carry values or the actor; only the exception type is logged.
     private void LogUnavailable(Exception exception)
-        => logger.LogWarning("Runtime configuration management unavailable ({ExceptionType}).", exception.GetType().Name);
+        => LogManagementUnavailable(logger, nameof(RuntimeConfigurationManagementService<>), exception.GetType().Name);
+
+    [LoggerMessage(LogLevel.Information, "{ClassName} published Revision={Revision}")]
+    private static partial void LogPublished(ILogger logger, string className, long revision);
+
+    [LoggerMessage(LogLevel.Warning, "{ClassName} runtime configuration management unavailable ({ExceptionType})")]
+    private static partial void LogManagementUnavailable(ILogger logger, string className, string exceptionType);
 }

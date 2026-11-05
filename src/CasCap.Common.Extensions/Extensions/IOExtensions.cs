@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace CasCap.Common.Extensions;
@@ -6,8 +5,6 @@ namespace CasCap.Common.Extensions;
 /// <summary>Extension methods for file and directory I/O operations.</summary>
 public static class IOExtensions
 {
-    private static readonly ILogger _logger = ApplicationLogging.CreateLogger(nameof(IOExtensions));
-
     /// <summary>Combines a root path with a relative folder or file path.</summary>
     /// <param name="root">The root directory path.</param>
     /// <param name="folderOrFile">The relative path to append.</param>
@@ -54,7 +51,7 @@ public static class IOExtensions
             File.WriteAllBytes(path, bytes);
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>
@@ -77,7 +74,7 @@ public static class IOExtensions
 #endif
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Writes all text to the specified path, creating the directory if it does not exist.</summary>
@@ -93,7 +90,7 @@ public static class IOExtensions
             File.WriteAllText(path, str);
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>
@@ -116,7 +113,7 @@ public static class IOExtensions
 #endif
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Appends text to the specified file, creating the file and directory if they do not exist.</summary>
@@ -135,20 +132,12 @@ public static class IOExtensions
             }
             else
             {
-                try
-                {
-                    using var sw = File.AppendText(path);
-                    sw.WriteLine(content);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "{ClassName} append failed", nameof(IOExtensions));
-                    throw;
-                }
+                using var sw = File.AppendText(path);
+                sw.WriteLine(content);
             }
         }
         else
-            throw new GenericException($"GetDirectoryName not possible for path '{path}'");
+            throw new ArgumentException("GetDirectoryName not possible for the supplied path", nameof(path));
     }
 
     /// <summary>Reads all non-empty lines from the specified text file.</summary>
@@ -226,13 +215,13 @@ public static class IOExtensions
                 }
                 catch (NotSupportedException e)
                 {
-                    throw new GenericException($"Unable to calculate folder size: {e.Message}");
+                    throw new GenericException("Unable to calculate folder size", e);
                 }
             }
         }
         catch (UnauthorizedAccessException e)
         {
-            throw new GenericException($"Unable to calculate folder size: {e.Message}");
+            throw new GenericException("Unable to calculate folder size", e);
         }
         return folderSize;
     }

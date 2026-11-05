@@ -55,7 +55,7 @@ public sealed partial class RuntimeConfigurationClient<T>(
             return new() { Status = token.Status, Message = token.Message, Errors = token.Errors };
         if (string.IsNullOrWhiteSpace(token.Value!.HeaderName) || string.IsNullOrWhiteSpace(token.Value.RequestToken))
         {
-            LogClientFailure(logger, "InvalidAntiforgeryResponse");
+            LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), "InvalidAntiforgeryResponse");
             return Failure<TResponse>(RuntimeConfigurationClientStatus.InvalidResponse);
         }
         var request = new HttpRequestMessage(HttpMethod.Post, $"{Path(destination)}/{suffix}")
@@ -65,7 +65,7 @@ public sealed partial class RuntimeConfigurationClient<T>(
         if (!request.Headers.TryAddWithoutValidation(token.Value.HeaderName, token.Value.RequestToken))
         {
             request.Dispose();
-            LogClientFailure(logger, "InvalidAntiforgeryHeader");
+            LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), "InvalidAntiforgeryHeader");
             return Failure<TResponse>(RuntimeConfigurationClientStatus.InvalidResponse);
         }
         return await SendAsync<TResponse>(request, cancellationToken);
@@ -91,7 +91,7 @@ public sealed partial class RuntimeConfigurationClient<T>(
                         && TrueProperty(body.RootElement, nameof(PublishRuntimeConfigurationResponse<T>.ActivationPending));
                     if (value is not null && ValidResponse(value) && acknowledgement)
                         return new() { Status = RuntimeConfigurationClientStatus.Success, Value = value, Message = "Completed." };
-                    LogClientFailure(logger, "InvalidSuccessResponse");
+                    LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), "InvalidSuccessResponse");
                     return Failure<TResponse>(RuntimeConfigurationClientStatus.InvalidResponse);
                 }
                 var status = response.StatusCode switch
@@ -117,17 +117,17 @@ public sealed partial class RuntimeConfigurationClient<T>(
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                LogClientFailure(logger, "TransportTimeout");
+                LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), "TransportTimeout");
                 return Failure<TResponse>(RuntimeConfigurationClientStatus.Unavailable);
             }
             catch (HttpRequestException exception)
             {
-                LogClientFailure(logger, exception.GetType().Name);
+                LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), exception.GetType().Name);
                 return Failure<TResponse>(RuntimeConfigurationClientStatus.Unavailable);
             }
             catch (JsonException exception)
             {
-                LogClientFailure(logger, exception.GetType().Name);
+                LogClientFailure(logger, nameof(RuntimeConfigurationClient<>), exception.GetType().Name);
                 return Failure<TResponse>(RuntimeConfigurationClientStatus.InvalidResponse);
             }
         }
@@ -172,6 +172,6 @@ public sealed partial class RuntimeConfigurationClient<T>(
         },
     };
 
-    [LoggerMessage(LogLevel.Warning, "Runtime configuration HTTP operation failed ({FailureType})")]
-    private static partial void LogClientFailure(ILogger logger, string failureType);
+    [LoggerMessage(LogLevel.Warning, "{ClassName} runtime configuration HTTP operation failed ({FailureType})")]
+    private static partial void LogClientFailure(ILogger logger, string className, string failureType);
 }
