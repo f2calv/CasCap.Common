@@ -5,5 +5,5 @@ public sealed class FeatureFlagConfig
 {
     /// <summary>Case-insensitive set of enabled feature names.</summary>
     [Required, MinLength(1)]
-    public HashSet<string> EnabledFeatures { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public HashSet<string> EnabledFeatures { get; set; } = [with(StringComparer.OrdinalIgnoreCase)];
 }

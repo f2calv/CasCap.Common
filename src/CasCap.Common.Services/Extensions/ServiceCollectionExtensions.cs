@@ -100,7 +100,7 @@ public static class ServiceCollectionExtensions
         if (addApplicationMetadataService)
         {
             services.Configure<FeatureFlagConfig>(options =>
-                options.EnabledFeatures = new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+                options.EnabledFeatures = [with(StringComparer.OrdinalIgnoreCase)]);
             services.AddApplicationExitState();
             services.AddHostedService<FeatureFlagBgService>();
             AddApplicationMetadataService(services);

@@ -38,7 +38,7 @@ public sealed class RuntimeConfigurationCodec<T>(IEnumerable<IValidateOptions<T>
     private void Validate(T value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        ValidateObject(value, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        ValidateObject(value, [with(ReferenceEqualityComparer.Instance)], 0);
         var failures = validators.Select(validator => validator.Validate(Options.DefaultName, value))
             .Where(result => result.Failed)
             .SelectMany(result => result.Failures ?? []).ToArray();
