@@ -8,7 +8,7 @@ Multi-tier distributed caching library implementing the cache-aside pattern with
 dotnet add package CasCap.Common.Caching
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
@@ -68,7 +68,7 @@ enabling `DiskCache` in JSON alone does not switch from memory to disk.
 ## Leadership Election
 
 The current checkout also provides
-[`ILeadershipRunner`](Abstractions/ILeadershipRunner.cs) on .NET 8 and later. This API is provisional
+[`ILeadershipRunner`](Abstractions/ILeadershipRunner.cs) on .NET 10 and later. This API is provisional
 and not yet available in the published package; use local Debug project references while validating
 consumers, without publishing a package for each contract refinement.
 
@@ -127,10 +127,10 @@ Important defaults:
 | `CacheExpiryServiceEnabled`, `LocalCacheExpiryServiceEnabled`, `RemoteCacheExpiryServiceEnabled` | true |
 | `ExpirationSyncMode` | `None` |
 | `DistributedLockingEnabled`, `UseBuiltInLuaScripts`, `CacheAsideDisabled` | false |
-| `HealthCheckRedis` | `Liveness`; Redis health-check registration is .NET 8+ only |
+| `HealthCheckRedis` | `Liveness`; Redis health-check registration is .NET 10+ only |
 | `MemoryCacheSizeLimit` | null; no configured limit |
 | `CacheKeyFormat` | `{0}` |
-| `Redlock.LeadershipCheckIntervalMs` | `1000`; .NET 8+ leadership observation only |
+| `Redlock.LeadershipCheckIntervalMs` | `1000`; .NET 10+ leadership observation only |
 
 `PubSubPrefix` distinguishes this instance's own invalidation messages; choose a distinct value per
 instance when overriding it. `HealthCheckRedis: None` suppresses Redis check registration.
@@ -174,7 +174,7 @@ flowchart TD
     REDIS_SERVER[("Redis Server<br/>(Pub/Sub)")]
     LOCK["AsyncDuplicateLock<br/>(In-process coordination)"]
     REDLOCK["IDistributedLockFactory<br/>(RedLock.net — optional)"]
-    LEADER["LeadershipRunner<br/>(.NET 8+)"]
+    LEADER["LeadershipRunner<br/>(.NET 10+)"]
 
     CLIENT --> DIST
     DIST -->|Choose one local implementation| MEM

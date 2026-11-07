@@ -4,7 +4,7 @@ Test-only executable used by
 [ProcessOutcomeTests](../CasCap.Common.Services.Tests/Tests/Unit/ProcessOutcomeTests.cs) to verify
 application exit codes in a separate process. It is not a production application or NuGet package.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Modes
 
@@ -22,7 +22,7 @@ Missing, unknown or multiple arguments return exit code 1.
 
 ## Running the Tests
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 RC3 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj --filter-class CasCap.Common.Services.Tests.ProcessOutcomeTests

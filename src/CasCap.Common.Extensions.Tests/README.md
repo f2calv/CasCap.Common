@@ -2,11 +2,11 @@
 
 xUnit v3 tests for enum, string, date, parsing, collection, file and process helpers, plus configuration-source precedence.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 RC3 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj --framework net10.0

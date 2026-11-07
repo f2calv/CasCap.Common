@@ -8,7 +8,7 @@ public sealed class DiskCacheService : ILocalCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     private readonly TimeProvider _timeProvider;
 #endif
     private readonly string _diskCacheFolder;
@@ -33,14 +33,14 @@ public sealed class DiskCacheService : ILocalCache
 
     /// <summary>Initializes a new instance of the <see cref="DiskCacheService"/> class.</summary>
     public DiskCacheService(ILogger<DiskCacheService> logger, IOptions<CachingConfig> cachingConfig
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         , TimeProvider timeProvider
 #endif
     )
     {
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         _timeProvider = timeProvider;
 #endif
         _diskCacheFolder = _cachingConfig.DiskCacheFolder;
@@ -119,7 +119,7 @@ public sealed class DiskCacheService : ILocalCache
             var newExpiration = slidingExpiration.Value;
             _slidingExpirations.AddOrUpdate(key, newExpiration, (_, _) => newExpiration);
             if (!absoluteExpiration.HasValue)
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
                 absoluteExpiration = _timeProvider.GetUtcNow() + newExpiration;
 #else
                 absoluteExpiration = DateTimeOffset.UtcNow + newExpiration;
@@ -142,7 +142,7 @@ public sealed class DiskCacheService : ILocalCache
         if (_absoluteExpirations.TryGetValue(key, out var aExpiration))
             absoluteExpiration = aExpiration;
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         return absoluteExpiration.HasValue && absoluteExpiration.Value < _timeProvider.GetUtcNow();
 #else
         return absoluteExpiration.HasValue && absoluteExpiration.Value < DateTimeOffset.UtcNow;
@@ -159,7 +159,7 @@ public sealed class DiskCacheService : ILocalCache
     /// <summary>
     /// Asynchronously retrieves an object from disk, optionally creating it via <paramref name="createItem"/> if not found.
     /// </summary>
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     [ExcludeFromCodeCoverage(Justification = "not yet plugged into the interface")]
 #else
     [ExcludeFromCodeCoverage]
@@ -172,7 +172,7 @@ public sealed class DiskCacheService : ILocalCache
         if (File.Exists(key))
         {
             string json;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             json = await File.ReadAllTextAsync(key, cancellationToken).ConfigureAwait(false);
 #else
             json = File.ReadAllText(key);

@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Abstractions;
 
 /// <summary>Runs a long-lived worker only while holding a distributed leadership lease.</summary>

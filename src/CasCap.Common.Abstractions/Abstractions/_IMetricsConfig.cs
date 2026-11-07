@@ -12,7 +12,7 @@ public interface IMetricsConfig
     /// <summary>OpenTelemetry service name reported to the OTEL collector.</summary>
     public string OtelServiceName { get; }
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>OTLP gRPC exporter endpoint URI (e.g. <c>http://otelcol:4317</c>).</summary>
     /// <remarks>When <see langword="null"/> or default, OpenTelemetry registration is skipped.</remarks>
     public Uri? OtlpExporterEndpoint => null;

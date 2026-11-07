@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 using HealthChecks.Redis;
 #endif
 using CasCap.Common.Validators;
@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         string? sectionName = null,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(configuration);
 #else
         if (configuration is null) throw new ArgumentNullException(nameof(configuration));
@@ -59,7 +59,7 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, CachingConfig cachingConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(cachingConfig);
 #else
         if (cachingConfig is null) throw new ArgumentNullException(nameof(cachingConfig));
@@ -105,7 +105,7 @@ public static class ServiceCollectionExtensions
     public static ConnectionMultiplexer? AddCasCapCaching(this IServiceCollection services, Action<CachingConfig> configureConfig,
         string? remoteCacheConnectionString = null, CacheType LocalCacheType = CacheType.Memory)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(configureConfig);
 #else
         if (configureConfig is null) throw new ArgumentNullException(nameof(configureConfig));
@@ -135,7 +135,7 @@ public static class ServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<CachingConfig>, CachingConfigValidator>());
         services.TryAddSingleton(provider => Microsoft.Extensions.Options.Options.Create(
             provider.GetRequiredService<IOptions<CachingConfig>>().Value.Redlock));
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         services.TryAddSingleton(TimeProvider.System);
 #endif
 
@@ -153,7 +153,7 @@ public static class ServiceCollectionExtensions
 
         ConnectionMultiplexer? multiplexer = null;
         if (
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             !string.IsNullOrWhiteSpace(remoteCacheConnectionString)
 #else
             !string.IsNullOrWhiteSpace(remoteCacheConnectionString) && remoteCacheConnectionString is not null
@@ -176,7 +176,7 @@ public static class ServiceCollectionExtensions
             multiplexer = GetMultiplexer(remoteCacheConnectionString);
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             if (healthCheckRedis != KubernetesProbeTypes.None)
                 services.AddHealthChecks()
                     .AddRedis(multiplexer, tags: healthCheckRedis.GetTags());
@@ -194,7 +194,7 @@ public static class ServiceCollectionExtensions
         }
         else
             services.TryAddSingleton<IRemoteCache, NullRemoteCache>();
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         if (services.Any(descriptor => descriptor.ServiceType == typeof(IDistributedLockFactory)))
             services.TryAddSingleton<ILeadershipRunner, LeadershipRunner>();
 #endif

@@ -7,7 +7,7 @@ namespace CasCap.Common.Converters;
 public sealed class MicrosecondEpochConverter : JsonConverter<DateTime?>
 {
     private static readonly DateTime _epoch =
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         DateTime.UnixEpoch;
 #else
         new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);

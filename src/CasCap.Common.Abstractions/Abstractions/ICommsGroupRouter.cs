@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Abstractions;
 
 /// <summary>Chooses the notification group a <see cref="CommsEvent"/> is delivered to.</summary>

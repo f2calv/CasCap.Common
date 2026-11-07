@@ -8,7 +8,7 @@ MessagePack binary serialization helpers using the MessagePack-CSharp library.
 dotnet add package CasCap.Common.Serialization.MessagePack
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 

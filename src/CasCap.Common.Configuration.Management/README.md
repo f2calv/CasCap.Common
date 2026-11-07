@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Management
 
-Optional .NET 10 ASP.NET Core controllers for authenticated management of one registered typed
+Optional .NET 11 ASP.NET Core controllers for authenticated management of one registered typed
 runtime configuration destination. This package references Runtime and browser-neutral
 Contracts, not a PostgreSQL/SQLite provider or Redis.
 

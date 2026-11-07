@@ -1,6 +1,6 @@
 # Typed Runtime Configuration
 
-Use the .NET 10 runtime/PostgreSQL/SQLite packages for narrow, non-secret operational
+Use the .NET 11 runtime/PostgreSQL/SQLite packages for narrow, non-secret operational
 controls that must change without restarting a host. Immutable deployment configuration remains
 the default. Connections, authentication, DI topology and database/schema selection are not live controls.
 

@@ -130,12 +130,12 @@ public sealed partial class RuntimeConfigurationEditor<T>(RuntimeConfigurationCl
             return;
         _validation!.Clear();
         _previewed = false;
-        if (!_editContext.Validate())
-            return;
         _busy = true;
         var cancellation = _cancellation.Token;
         try
         {
+            if (!await _editContext.ValidateAsync(cancellation) || cancellation.IsCancellationRequested)
+                return;
             var result = await runtimeConfigurationClient.PreviewAsync(Destination, _value, cancellation);
             if (cancellation.IsCancellationRequested)
                 return;
@@ -168,12 +168,12 @@ public sealed partial class RuntimeConfigurationEditor<T>(RuntimeConfigurationCl
             _validation.Add(new FieldIdentifier(this, nameof(_reason)), "Supply a publication reason of 1-500 characters.");
         if (_lifetimeMinutes is < 1 or > 1440)
             _validation.Add(new FieldIdentifier(this, nameof(_lifetimeMinutes)), "Lifetime must be between 1 and 1440 minutes.");
-        if (!_editContext.Validate())
-            return;
         _busy = true;
         var cancellation = _cancellation.Token;
         try
         {
+            if (!await _editContext.ValidateAsync(cancellation) || cancellation.IsCancellationRequested)
+                return;
             var result = await runtimeConfigurationClient.PublishAsync(Destination, new()
             {
                 Value = _value,

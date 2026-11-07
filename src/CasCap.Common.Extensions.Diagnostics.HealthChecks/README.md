@@ -8,7 +8,7 @@ Custom ASP.NET Core health check base classes for monitoring HTTP endpoint avail
 dotnet add package CasCap.Common.Extensions.Diagnostics.HealthChecks
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
@@ -64,7 +64,7 @@ either directly as above or by binding its own options.
 | `HealthCheckUri` | Required endpoint URI | `https://example.com/ready` |
 | `HealthCheckExpectedHttpStatusCodes` | `[200]` | `[200, 204]` |
 
-On .NET Standard 2.0, implement both properties. On .NET 8+, the interface supplies `[200]` when the
+On .NET Standard 2.0, implement both properties. On .NET 10+, the interface supplies `[200]` when the
 status list is not overridden.
 
 ## Kubernetes Probe Tags

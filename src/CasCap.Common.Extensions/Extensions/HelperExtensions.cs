@@ -184,7 +184,7 @@ public static class HelperExtensions
 
     /// <summary>Parses a string value into the specified <see cref="Enum"/> type (case-insensitive).</summary>
     public static T ParseEnum<T>(this string value) where T : struct =>
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
         Enum.Parse<T>(value, true);
 #else
         (T)Enum.Parse(typeof(T), value, true);

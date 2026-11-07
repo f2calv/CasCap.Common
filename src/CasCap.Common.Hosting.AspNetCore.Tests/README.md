@@ -2,11 +2,11 @@
 
 xUnit v3 tests for the request summary, health-check filter and log privacy defaults in `CasCap.Common.Hosting.AspNetCore`.
 
-**Target framework:** `net10.0`
+**Target framework:** `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Hosting.AspNetCore.Tests/CasCap.Common.Hosting.AspNetCore.Tests.csproj

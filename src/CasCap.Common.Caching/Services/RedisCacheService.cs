@@ -7,14 +7,14 @@ public sealed class RedisCacheService : IRemoteCache
 {
     private readonly ILogger _logger;
     private readonly CachingConfig _cachingConfig;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     private readonly TimeProvider _timeProvider;
 #endif
 
     /// <summary>Initializes a new instance of the <see cref="RedisCacheService"/> class.</summary>
     public RedisCacheService(ILogger<RedisCacheService> logger, IOptions<CachingConfig> cachingConfig,
         IConnectionMultiplexer connectionMultiplexer
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         , TimeProvider timeProvider
 #endif
     )
@@ -22,7 +22,7 @@ public sealed class RedisCacheService : IRemoteCache
         _logger = logger;
         _cachingConfig = cachingConfig.Value;
         Connection = connectionMultiplexer;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         _timeProvider = timeProvider;
 #endif
         //Note: below for getting Redis working container to container on docker compose, https://github.com/StackExchange/StackExchange.Redis/issues/1002
@@ -132,7 +132,7 @@ public sealed class RedisCacheService : IRemoteCache
         //Redis doesn't support absolute expiration, so we convert any given absoluteExpiration
         //into a relative value - but we don't add the key to the _slidingExpirations collection.
         if (absoluteExpiration.HasValue)
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             slidingExpiration = absoluteExpiration.Value - _timeProvider.GetUtcNow();
 #else
             slidingExpiration = absoluteExpiration.Value - DateTime.UtcNow;
@@ -245,7 +245,7 @@ public sealed class RedisCacheService : IRemoteCache
             {
                 var lIndex = key.LastIndexOf(':');
                 if (lIndex > -1) key = key.Substring(0, lIndex);
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
                 key = $"{key}:{_timeProvider.GetUtcNow():yyyy-MM-dd}";
 #else
                 key = $"{key}:{DateTime.UtcNow:yyyy-MM-dd}";
@@ -278,7 +278,7 @@ public sealed class RedisCacheService : IRemoteCache
         var prepared = LuaScript.Prepare(script);
         CacheLog.LuaScriptLoading(_logger, nameof(RedisCacheService), scriptName);
         var loaded = prepared.Load(Server);
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         if (!LuaScripts.TryAdd(scriptName, loaded))
 #else
         if (!LuaScripts.ContainsKey(scriptName))

@@ -8,7 +8,7 @@ xUnit v3 helpers for routing .NET logs to test output, stubbing HTTP responses, 
 dotnet add package CasCap.Common.Testing
 ```
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Usage
 

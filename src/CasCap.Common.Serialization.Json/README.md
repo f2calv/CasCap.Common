@@ -8,7 +8,7 @@
 dotnet add package CasCap.Common.Serialization.Json
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
@@ -51,7 +51,7 @@ Console.WriteLine(day); // Friday
 | `MicrosecondEpochConverter` | Nullable `DateTime` values represented as Unix microseconds |
 | `MillisecondEpochConverter` | Nullable `DateTime` values represented as Unix milliseconds |
 | `ParseEnumConverter<TEnum>` | Case-insensitive enum names |
-| `RawJsonStringConverter` | Embed valid JSON held in a string without double encoding; .NET 8+ only |
+| `RawJsonStringConverter` | Embed valid JSON held in a string without double encoding; .NET 10+ only |
 | `StringToIntConverter` | Nullable integers supplied as JSON strings |
 
 `To2D()` also converts rectangular lists of lists into a two-dimensional array; inconsistent row

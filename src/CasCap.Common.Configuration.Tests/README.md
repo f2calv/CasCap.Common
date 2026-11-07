@@ -2,11 +2,11 @@
 
 Unit and optional live Key Vault tests for prefix filtering and configuration-key mapping in `CasCap.Common.Configuration`.
 
-**Target framework:** `net10.0`
+**Target framework:** `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Configuration.Tests/CasCap.Common.Configuration.Tests.csproj

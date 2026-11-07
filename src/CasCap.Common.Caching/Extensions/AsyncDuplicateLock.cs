@@ -15,7 +15,7 @@ public sealed class AsyncDuplicateLock
     }
 
     private static readonly Dictionary<object, RefCounted<SemaphoreSlim>> SemaphoreSlims = [];
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
     private static readonly Lock s_lock = new();
 #else
     private static readonly object s_lock = new();

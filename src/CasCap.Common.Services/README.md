@@ -8,7 +8,7 @@ Run selected .NET background features by name, observe their lifecycle and expos
 dotnet add package CasCap.Common.Services
 ```
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Usage
 

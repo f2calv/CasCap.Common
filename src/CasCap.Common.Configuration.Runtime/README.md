@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Runtime
 
-.NET 10 typed runtime configuration support. It uses the standard
+.NET 11 typed runtime configuration support. It uses the standard
 configuration-provider and complete dictionary-replacement approach, with validation before reload,
 an isolated root and the standard `IOptionsMonitor<T>`. It is not a custom monitor implementation.
 
@@ -33,7 +33,7 @@ Expiry of an already accepted override is checked locally before polling and aft
 a newer invalid durable revision cannot extend that override indefinitely. Scheduling and in-flight
 store operations can delay reconciliation, so expiry is not a hard real-time safety deadline.
 
-The initial slice supports one contract, complete snapshots, direct polling and .NET 10 only.
+The initial slice supports one contract, complete snapshots, direct polling and .NET 11 only.
 It does not merge arbitrary deployment overrides, implement cross-contract atomicity or promise
 rollback of failing application callbacks. Deployment settings and credentials stay immutable.
 Register runtime configuration before consumers' hosted services.

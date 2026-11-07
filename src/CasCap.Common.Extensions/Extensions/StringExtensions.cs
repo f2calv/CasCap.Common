@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 using System.Buffers;
 #endif
 
@@ -71,7 +71,7 @@ public static class StringExtensions
     /// <summary>Removes tab, newline and carriage-return characters from the string.</summary>
     public static string Clean(this string thisString, string replacement = "")
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         if (replacement.Length == 0)
         {
             var span = thisString.AsSpan();
@@ -117,7 +117,7 @@ public static class StringExtensions
     public static string? Sanitize(this string? input, string replacement = SingleSpace)
     {
         if (input is null) return input;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         var span = input.AsSpan();
         var idx = span.IndexOfAny(s_sanitizeChars);
         if (idx < 0)
@@ -144,7 +144,7 @@ public static class StringExtensions
 
     private static readonly TimeSpan s_regexTimeout = TimeSpan.FromSeconds(1);
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     private static readonly SearchValues<char> s_cleanChars = SearchValues.Create("\t\n\r");
 
     private static readonly SearchValues<char> s_sanitizeChars = SearchValues.Create("~#%&*{}/:<>?|\"-\\");
@@ -156,7 +156,7 @@ public static class StringExtensions
         @"^((\w+)|(\w+[!#$%&'*+\-,./=?^_`{|}~\w]*[!#$%&'*+\-,/=?^_`{|}~\w]))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,10}|[0-9]{1,3})(\]?)$",
         RegexOptions.Compiled, s_regexTimeout);
 
-#if !NET8_0_OR_GREATER
+#if !NET10_0_OR_GREATER
     private static readonly Regex rgxSanitize = new("[\\~#%&*{}/:<>?|\"-]", RegexOptions.IgnoreCase | RegexOptions.Compiled, s_regexTimeout);
 #endif
 
@@ -179,7 +179,7 @@ public static class StringExtensions
         if (maskLen <= 0)
             return phoneNumber;
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         var digits = phoneNumber.AsSpan();
         return string.Concat(digits[..prefixLen], new string('*', maskLen), digits[^suffixLen..]);
 #else

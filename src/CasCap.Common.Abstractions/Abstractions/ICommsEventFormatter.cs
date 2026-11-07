@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Abstractions;
 
 /// <summary>Renders a <see cref="CommsEvent"/> as the text sent to a notification group when it is forwarded directly.</summary>

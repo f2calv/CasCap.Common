@@ -8,7 +8,7 @@ ASP.NET Core hosting defaults for feature-gated controllers, Serilog logging, an
 dotnet add package CasCap.Common.Hosting.AspNetCore
 ```
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Usage
 

@@ -2,11 +2,11 @@
 
 xUnit v3 tests for feature selection, background-service lifecycle, assembly-backed application metadata and event-sink registration.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 RC3 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj --framework net10.0

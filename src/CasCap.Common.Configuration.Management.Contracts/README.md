@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Management.Contracts
 
-Browser-neutral .NET 10 request and response records for a host-owned typed runtime configuration
+Browser-neutral .NET 11 request and response records for a host-owned typed runtime configuration
 editor. This package has no Runtime, database, ASP.NET Core or Blazor dependency.
 
 ## Installation

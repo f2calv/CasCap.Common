@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Redis
 
-Optional .NET 10 cache-aside acceleration for typed runtime configuration, backed by an independently
+Optional .NET 11 cache-aside acceleration for typed runtime configuration, backed by an independently
 authoritative store. This bounded cache-aside adapter is not a durable Redis provider.
 
 ## Installation

@@ -18,7 +18,7 @@ public static class ConfigurationServiceCollectionExtensions
         Action<TConfig>? configure = null)
         where TConfig : class, IAppConfig
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         services.TryAddSingleton(TimeProvider.System);
 #endif
         var optionsBuilder = services
@@ -30,7 +30,7 @@ public static class ConfigurationServiceCollectionExtensions
         return services;
     }
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>
     /// Binds a configuration section to <typeparamref name="TConfig"/> using
     /// <see cref="IAppConfig.ConfigurationSectionName"/> and registers it as a

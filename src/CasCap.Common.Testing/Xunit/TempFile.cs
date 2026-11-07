@@ -29,11 +29,7 @@ public sealed class TempFile : IDisposable
     public static async Task<TempFile> CreateAsync(byte[] bytes, CancellationToken cancellationToken, string extension = ".tmp")
     {
         var path = NewPath(extension);
-#if NET8_0_OR_GREATER
         await File.WriteAllBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
-#else
-        await Task.Run(() => File.WriteAllBytes(path, bytes), cancellationToken).ConfigureAwait(false);
-#endif
         return new TempFile(path);
     }
 

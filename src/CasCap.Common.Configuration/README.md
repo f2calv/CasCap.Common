@@ -8,11 +8,11 @@ Configuration bootstrapping helpers for .NET applications — standard `IConfigu
 dotnet add package CasCap.Common.Configuration
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
-In a .NET 8+ host, register an
+In a .NET 10+ host, register an
 [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs)
 record to bind and validate its named section:
 
@@ -39,7 +39,7 @@ Consumers inject `IOptions<ExampleConfig>` or `IOptionsMonitor<ExampleConfig>`.
 The explicit-section overload, `AddCasCapConfiguration<ExampleConfig>("Example")`, also works on
 .NET Standard 2.0.
 
-On .NET 8+, `GetCasCapConfiguration<TConfig>()` eagerly binds and validates without registering DI
+On .NET 10+, `GetCasCapConfiguration<TConfig>()` eagerly binds and validates without registering DI
 services. `AddAndGetCasCapConfiguration<TConfig>(configuration)` combines registration with that
 eager read. A configuration delegate applies to registered options, not the separately bound
 instance returned by the eager read.
