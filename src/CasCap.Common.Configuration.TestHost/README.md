@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.TestHost
 
-Permanent .NET 11 ASP.NET Core test application for the runtime configuration packages.
+Permanent .NET 10/11 ASP.NET Core test application for the runtime configuration packages.
 It uses modern `WebApplication.CreateBuilder` composition in
 [AppHost](AppHost.cs), with a thin [entrypoint](Program.cs) and public partial `Program` marker
 for `WebApplicationFactory`.

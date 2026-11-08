@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Blazor.Tests
 
-.NET 11 bUnit component and typed-client tests for the embeddable runtime-configuration editor.
+.NET 10/11 bUnit component and typed-client tests for the embeddable runtime-configuration editor.
 Tests use isolated in-memory HTTP handlers and need no PostgreSQL, Redis, credentials or browser.
 
 ## Running

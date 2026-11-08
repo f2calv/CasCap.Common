@@ -22,7 +22,7 @@ Missing, unknown or multiple arguments return exit code 1.
 
 ## Running the Tests
 
-From the repository root with the .NET 11 RC3 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj --filter-class CasCap.Common.Services.Tests.ProcessOutcomeTests

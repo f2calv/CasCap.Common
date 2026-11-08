@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Runtime.Tests
 
-.NET 11 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
+.NET 10/11 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
 optional shared Redis cache-aside and an ASP.NET Core stub exercised through `WebApplicationFactory`.
 The optional typed management API is exercised with real test-only cookie authentication.
 

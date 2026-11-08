@@ -17,7 +17,11 @@ internal sealed class RuntimeSnapshotProvider : ConfigurationProvider
     {
         if (string.Equals(json, _acceptedJson, StringComparison.Ordinal))
             return;
+#if NET11_0_OR_GREATER
         using var stream = new StringStream(json, Encoding.UTF8);
+#else
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+#endif
         var candidate = new ConfigurationBuilder().AddJsonStream(stream).Build();
         using var lifetime = (IDisposable)candidate;
         Data = candidate.AsEnumerable().ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);

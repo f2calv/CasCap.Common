@@ -134,7 +134,13 @@ public sealed partial class RuntimeConfigurationEditor<T>(RuntimeConfigurationCl
         var cancellation = _cancellation.Token;
         try
         {
-            if (!await _editContext.ValidateAsync(cancellation) || cancellation.IsCancellationRequested)
+#if NET11_0_OR_GREATER
+            var valid = await _editContext.ValidateAsync(cancellation);
+#else
+            cancellation.ThrowIfCancellationRequested();
+            var valid = _editContext.Validate();
+#endif
+            if (!valid || cancellation.IsCancellationRequested)
                 return;
             var result = await runtimeConfigurationClient.PreviewAsync(Destination, _value, cancellation);
             if (cancellation.IsCancellationRequested)
@@ -172,7 +178,13 @@ public sealed partial class RuntimeConfigurationEditor<T>(RuntimeConfigurationCl
         var cancellation = _cancellation.Token;
         try
         {
-            if (!await _editContext.ValidateAsync(cancellation) || cancellation.IsCancellationRequested)
+#if NET11_0_OR_GREATER
+            var valid = await _editContext.ValidateAsync(cancellation);
+#else
+            cancellation.ThrowIfCancellationRequested();
+            var valid = _editContext.Validate();
+#endif
+            if (!valid || cancellation.IsCancellationRequested)
                 return;
             var result = await runtimeConfigurationClient.PublishAsync(Destination, new()
             {

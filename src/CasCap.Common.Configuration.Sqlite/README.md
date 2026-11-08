@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Sqlite
 
-.NET 11 EF Core SQLite authority for complete typed runtime controls with immutable
+.NET 10/11 EF Core SQLite authority for complete typed runtime controls with immutable
 revision audit and expected-revision publication.
 
 ## Installation

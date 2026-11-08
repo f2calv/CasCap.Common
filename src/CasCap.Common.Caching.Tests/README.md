@@ -6,7 +6,7 @@ xUnit v3 tests for memory, disk and Redis caching, registration, distributed loc
 
 ## Running
 
-From the repository root, with the .NET 11 RC3 SDK and Docker Compose:
+From the repository root, with the .NET 11 SDK and Docker Compose:
 
 ```bash
 docker compose up -d --wait redis

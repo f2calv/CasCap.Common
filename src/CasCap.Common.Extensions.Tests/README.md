@@ -6,7 +6,7 @@ xUnit v3 tests for enum, string, date, parsing, collection, file and process hel
 
 ## Running
 
-From the repository root with the .NET 11 RC3 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Extensions.Tests/CasCap.Common.Extensions.Tests.csproj --framework net10.0

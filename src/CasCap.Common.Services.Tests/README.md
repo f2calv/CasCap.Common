@@ -6,7 +6,7 @@ xUnit v3 tests for feature selection, background-service lifecycle, assembly-bac
 
 ## Running
 
-From the repository root with the .NET 11 RC3 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Services.Tests/CasCap.Common.Services.Tests.csproj --framework net10.0

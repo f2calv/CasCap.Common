@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.PostgreSql
 
-.NET 11 EF Core PostgreSQL authority for typed runtime configuration.
+.NET 10/11 EF Core PostgreSQL authority for typed runtime configuration.
 
 ## Installation
 

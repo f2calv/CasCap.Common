@@ -6,7 +6,7 @@ xUnit v3 tests for JSON and MessagePack round-trips, epoch and enum converters, 
 
 ## Running
 
-From the repository root with the .NET 11 RC3 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj --framework net10.0

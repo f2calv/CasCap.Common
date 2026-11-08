@@ -2,7 +2,7 @@
 
 Unit and optional live Key Vault tests for prefix filtering and configuration-key mapping in `CasCap.Common.Configuration`.
 
-**Target framework:** `net11.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
