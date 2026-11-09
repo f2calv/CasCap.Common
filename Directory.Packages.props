@@ -55,6 +55,6 @@
     <PackageVersion Include="RedLock.net" Version="2.3.2" />
     <PackageVersion Include="StackExchange.Redis" Version="3.4.31" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.2" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.3" />
   </ItemGroup>
 </Project>
