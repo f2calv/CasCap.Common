@@ -9,3 +9,11 @@ To load them, clone that repository and either add it to this VS Code workspace,
 If those shared files are not visible, stop and tell the user rather than guessing the conventions — this repository depends on them.
 
 Everything below is specific to this repository.
+
+## Provider Compatibility
+
+Keep `Microsoft.EntityFrameworkCore.Design`, `Microsoft.EntityFrameworkCore.Relational` and
+`Microsoft.EntityFrameworkCore.Sqlite` on the compatible 10.x family with
+`Npgsql.EntityFrameworkCore.PostgreSQL` 10.x for both .NET targets. The PostgreSQL provider requires
+EF Core below 11. Reassess the family together when a stable compatible PostgreSQL provider is
+available, validating both targets and both database adapters before changing this ceiling.
