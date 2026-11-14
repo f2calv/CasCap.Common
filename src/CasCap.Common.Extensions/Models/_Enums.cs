@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Models;
 
 /// <summary>Controls how much of an external process's standard error stream is retained.</summary>

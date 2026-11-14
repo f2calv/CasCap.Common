@@ -53,7 +53,7 @@ public static class ShellExtensions
     }
 
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>
     /// Runs an external process with binary data piped to stdin and returns the stdout bytes.
     /// </summary>
@@ -96,7 +96,7 @@ public static class ShellExtensions
         ProcessErrorCapture errorCapture = ProcessErrorCapture.Text,
         CancellationToken cancellationToken = default)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(arguments);
         ArgumentNullException.ThrowIfNull(stdinBytes);
 #else
@@ -131,7 +131,7 @@ public static class ShellExtensions
             var outputTask = ReadAllBytesAsync(process.StandardOutput.BaseStream, cancellationToken);
             var errorTask = ReadErrorAsync(process.StandardError, errorCapture, cancellationToken);
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             await using (var input = process.StandardInput.BaseStream)
                 await input.WriteAsync(stdinBytes, cancellationToken).ConfigureAwait(false);
 #endif

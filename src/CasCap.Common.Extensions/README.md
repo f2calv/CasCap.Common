@@ -8,7 +8,7 @@ General-purpose extension methods and helper utilities for .NET applications.
 dotnet add package CasCap.Common.Extensions
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
@@ -34,7 +34,7 @@ Console.WriteLine(endpoint);   // https://example.com/api/items
 | `ParseExtensions` | Numeric conversions and CSV date parsing |
 | `IOExtensions` | File creation, writing and appending |
 | `ShellExtensions` | Process execution, binary stdin/stdout and Linux Bash commands |
-| `BufferExtensions` | `TryReadLine()` for sequence buffers; .NET 8+ only |
+| `BufferExtensions` | `TryReadLine()` for sequence buffers; .NET 10+ only |
 
 `FixedSizedQueue<T>` provides a fixed-capacity concurrent queue that evicts the oldest items.
 

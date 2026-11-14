@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>CasCap.Common</RootNamespace>
-    <LangVersion>14.0</LangVersion>
+    <LangVersion>15.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <!--nullable we disable on a per project basis-->
     <Nullable>enable</Nullable>
@@ -53,11 +53,8 @@
   <PropertyGroup>
     <!-- CS1574 - XML comment has cref attribute that could not be resolved -->
     <!-- NETSDK1233 - Targeting .NET 10.0 or higher in Visual Studio 2022 XX.XX is not supported. -->
-    <!-- NU1901 - Package has a known low severity vulnerability. -->
-    <!-- NU1902 - Package has a known moderate severity vulnerability. -->
-    <!-- NU1903 - Package has a known high severity vulnerability. -->
     <!-- NU5104 - A stable release of a package should not have a prerelease dependency. -->
-    <NoWarn>CS1574;NETSDK1233;NU1901;NU1902;NU1903;NU5104</NoWarn>
+    <NoWarn>CS1574;NETSDK1233;NU5104</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

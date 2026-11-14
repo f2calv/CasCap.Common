@@ -66,7 +66,7 @@ public static class IOExtensions
         if (dir is not null)
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             await File.WriteAllBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
 #else
             await Task.Delay(0, cancellationToken).ConfigureAwait(false);
@@ -105,7 +105,7 @@ public static class IOExtensions
         if (dir is not null)
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
             await File.WriteAllTextAsync(path, str, cancellationToken).ConfigureAwait(false);
 #else
             await Task.Delay(0, cancellationToken).ConfigureAwait(false);

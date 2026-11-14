@@ -5,7 +5,7 @@ namespace CasCap.Common.Abstractions;
 /// </summary>
 public interface IAppConfig
 {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>Configuration section path used for options binding (e.g. <c>"CasCap:MyConfig"</c>).</summary>
     public static abstract string ConfigurationSectionName { get; }
 #endif

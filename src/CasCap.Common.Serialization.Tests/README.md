@@ -2,11 +2,11 @@
 
 xUnit v3 tests for JSON and MessagePack round-trips, epoch and enum converters, rectangular arrays and string-to-integer conversion.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Serialization.Tests/CasCap.Common.Serialization.Tests.csproj --framework net10.0

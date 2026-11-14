@@ -2,11 +2,11 @@
 
 xUnit v3 tests for typed HTTP request/response handling, retry safety and network extensions in `CasCap.Common.Net`.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
-From the repository root with the .NET 10 SDK:
+From the repository root with the .NET 11 SDK:
 
 ```bash
 dotnet test --project src/CasCap.Common.Net.Tests/CasCap.Common.Net.Tests.csproj --framework net10.0

@@ -8,7 +8,7 @@ namespace CasCap.Common.Models;
 public sealed class FixedSizedQueue<T> : IReadOnlyCollection<T>
 {
     private readonly Queue<T> _queue = new();
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
     private readonly object _lock = new();
@@ -26,7 +26,7 @@ public sealed class FixedSizedQueue<T> : IReadOnlyCollection<T>
     /// <param name="limit">The maximum number of items the queue can hold.</param>
     public FixedSizedQueue(int limit)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
 #endif
         Limit = limit;
@@ -39,7 +39,7 @@ public sealed class FixedSizedQueue<T> : IReadOnlyCollection<T>
     /// <param name="collection">The initial collection to populate the queue.</param>
     public FixedSizedQueue(int limit, IEnumerable<T> collection)
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
 #endif
         if (collection is null || !collection.Any())

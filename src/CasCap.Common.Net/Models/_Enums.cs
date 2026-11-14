@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Models;
 
 /// <summary>Which requests a resilience pipeline is permitted to retry.</summary>

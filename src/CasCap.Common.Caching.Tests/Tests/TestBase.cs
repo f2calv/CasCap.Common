@@ -32,14 +32,12 @@ public abstract class TestBase : IDisposable
     /// <remarks>
     /// The test project multi-targets, so each target framework's test process runs concurrently against
     /// the same Redis server. Tests that use <c>ClearOnStartup</c> flush the whole database, which would wipe
-    /// keys written by another framework's process. Isolating each framework to its own database id (net8.0 → 8,
-    /// net9.0 → 9, net10.0 → 10) prevents cross-process interference.
+    /// keys written by another framework's process. Isolating each framework to its own database id
+    /// (net10.0 uses 10, net11.0 uses 11) prevents cross-process interference.
     /// </remarks>
-#if NET10_0_OR_GREATER
-    protected const int remoteCacheDatabaseId = 10;
-#elif NET9_0
-    protected const int remoteCacheDatabaseId = 9;
+#if NET11_0_OR_GREATER
+    protected const int remoteCacheDatabaseId = 11;
 #else
-    protected const int remoteCacheDatabaseId = 8;
+    protected const int remoteCacheDatabaseId = 10;
 #endif
 }

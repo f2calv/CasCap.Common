@@ -8,9 +8,9 @@ Abstract base class, extensions, and authentication handlers for building typed 
 dotnet add package CasCap.Common.Net
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
-The HTTP client base, authentication handler, resilience and auditing APIs require .NET 8+.
+The HTTP client base, authentication handler, resilience and auditing APIs require .NET 10+.
 The .NET Standard target exposes the applicable network extensions.
 
 ## Usage

@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Services;
 
 /// <summary>
@@ -123,7 +123,7 @@ public abstract class HttpClientBase
         where TResult : class
         where TError : class
     {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(content);
 #else
         if (content is null) throw new ArgumentNullException(nameof(content));

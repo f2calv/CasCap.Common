@@ -8,12 +8,12 @@ Shared contracts for .NET configuration, background features, caching, notificat
 dotnet add package CasCap.Common.Abstractions
 ```
 
-**Target frameworks:** `netstandard2.0`, `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `netstandard2.0`, `net10.0`, `net11.0`
 
 ## Usage
 
 Implement [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs)
-to give a configuration type a section name. On .NET 8+, the interface
+to give a configuration type a section name. On .NET 10+, the interface
 requires that static property:
 
 ```csharp
@@ -37,14 +37,14 @@ for feature execution.
 
 | Interface | Description |
 | --- | --- |
-| [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs) | Application options contract with a section name on .NET 8+ |
+| [`IAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAppConfig.cs) | Application options contract with a section name on .NET 10+ |
 | [`IBgFeature`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IBgFeature.cs) | Named background feature with `FeatureName` and `ExecuteAsync` |
 | [`IEventSink<T>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IEventSink%7BT%7D.cs) | Event write path, initialization and housekeeping for reference or value types |
 | [`ILocalCache`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ILocalCache.cs) | Local cache get, set and deletion operations |
 | [`INotifier`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotifier.cs) | Notification send/receive operations |
 | [`INotificationMessage`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationMessage.cs), [`INotificationAttachment`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationAttachment.cs), [`INotificationGroup`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationGroup.cs), [`INotificationResponse`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/INotificationResponse.cs), [`IReceivedNotification`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IReceivedNotification.cs) | Notification payload and result contracts |
-| [`ICommsEventFormatter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsEventFormatter.cs), [`ICommsGroupRouter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsGroupRouter.cs) | Communication-event formatting and routing; .NET 8+ only |
-| [`IHttpAuditStore`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IHttpAuditStore.cs) | HTTP audit persistence; .NET 8+ only |
+| [`ICommsEventFormatter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsEventFormatter.cs), [`ICommsGroupRouter`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/ICommsGroupRouter.cs) | Communication-event formatting and routing; .NET 10+ only |
+| [`IHttpAuditStore`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IHttpAuditStore.cs) | HTTP audit persistence; .NET 10+ only |
 | [`IMyBlob`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/IMyBlob.cs) | Blob data and metadata |
 | [`IAzBlobStorageConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAzBlobStorageConfig.cs), [`IAzTableStorageConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IAzTableStorageConfig.cs) | Azure storage configuration contracts |
 | [`IKubeAppConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IKubeAppConfig.cs), [`IMetricsConfig`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Abstractions/Abstractions/_IMetricsConfig.cs) | Host identity and telemetry configuration |
@@ -55,10 +55,10 @@ for feature execution.
 | --- | --- |
 | `KubernetesProbeTypes` | Flags for readiness, liveness and startup probes |
 | `CommsEvent` | Communication event with source, timestamp, message and optional JSON payload |
-| `MediaReference` | Cached-media pointer; .NET 8+ only |
-| `HttpAuditEntry` | HTTP request/response audit record; .NET 8+ only |
-| `ApiAuthConfig` | Required basic-auth username/password and anonymous path prefixes; .NET 8+ only |
-| `SinkConfig`, `SinkConfigParams`, `SinkSettingKeys` | Sink selection and settings; .NET 8+ only |
+| `MediaReference` | Cached-media pointer; .NET 10+ only |
+| `HttpAuditEntry` | HTTP request/response audit record; .NET 10+ only |
+| `ApiAuthConfig` | Required basic-auth username/password and anonymous path prefixes; .NET 10+ only |
+| `SinkConfig`, `SinkConfigParams`, `SinkSettingKeys` | Sink selection and settings; .NET 10+ only |
 
 Probe tag conversion is supplied by
 [CasCap.Common.Extensions.Diagnostics.HealthChecks](https://github.com/f2calv/CasCap.Common/tree/main/src/CasCap.Common.Extensions.Diagnostics.HealthChecks),
@@ -66,7 +66,7 @@ not this package.
 
 ## Event Sink Registration
 
-On .NET 8+, decorate sink implementations with `[SinkType("Console")]`, enable the matching
+On .NET 10+, decorate sink implementations with `[SinkType("Console")]`, enable the matching
 `AvailableSinks` entry, and call `services.AddEventSinks<TEvent>(sinkConfig, assemblies)`.
 Registration discovers implementations; it does not dispatch events. The application resolves the
 registered `IEventSink<TEvent>` instances and invokes their write methods.
@@ -80,7 +80,7 @@ Task WriteEvent(T @event, CancellationToken cancellationToken = default);
 Task HousekeepingAsync(IReadOnlyCollection<string> validIds, CancellationToken cancellationToken = default);
 ```
 
-`SinkType` should match the attribute's name. On .NET 8+, initialization and housekeeping have
+`SinkType` should match the attribute's name. On .NET 10+, initialization and housekeeping have
 default no-op implementations. On .NET Standard 2.0, implement all interface methods explicitly.
 
 An application can define additional query interfaces in a `CasCap` namespace. `AddEventSinks`

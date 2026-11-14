@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Auditing;
 
 /// <summary>Defines the <see cref="HttpRequestOptionsKey{TValue}"/> used to tag requests with a logical source name.</summary>

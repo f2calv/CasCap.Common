@@ -70,7 +70,7 @@ public static class DateTimeExtensions
     /// <summary>Represent a date in "yyyy-MM-dd" format</summary>
     public static string To_yyyy_MM_dd(this DateTime thisDateTime) => thisDateTime.ToString("yyyy-MM-dd");
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>Converts a Unix timestamp in seconds to a <see cref="DateTime"/>.</summary>
     public static DateTime FromUnixTime(this long seconds) => DateTime.UnixEpoch.AddSeconds(seconds);
 

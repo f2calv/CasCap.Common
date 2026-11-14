@@ -15,7 +15,7 @@ public static class BgFeatureNames
 /// </remarks>
 public interface IBgFeature
 {
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>
     /// Sentinel value for <see cref="FeatureName"/> indicating the service runs in every feature combination.
     /// </summary>

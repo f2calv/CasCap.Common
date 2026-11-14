@@ -7,6 +7,6 @@ global using System.IO;
 global using System.Linq;
 global using System.Numerics;
 global using System.Runtime.CompilerServices;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 global using CasCap.Common.Models;
 #endif

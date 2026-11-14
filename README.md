@@ -59,8 +59,8 @@ Install the capabilities you need; NuGet resolves their dependencies.
 
 ### Target Frameworks
 
-The seven runtime-configuration packages target .NET 10 only. The other libraries target .NET 8,
-9 and 10; all except `Hosting.AspNetCore`, `Services` and `Testing` also target .NET Standard 2.0.
+All packages target .NET 10 and 11. The seven runtime-configuration packages do not target
+.NET Standard 2.0; the other libraries retain it except `Hosting.AspNetCore`, `Services` and `Testing`.
 Individual APIs can have framework-specific availability; see the relevant package documentation.
 
 ## Dependency Graph
@@ -68,7 +68,7 @@ Individual APIs can have framework-specific availability; see the relevant packa
 Arrows point from a core library to its direct project dependencies. Node labels omit the common
 `CasCap.Common.` prefix; external NuGet dependencies are not shown. The separate
 [runtime-configuration dependency graph](docs/runtime-configuration.md#dependency-graph) covers
-the .NET 10 live-control packages and their optional adapters.
+the .NET 10/11 live-control packages and their optional adapters.
 
 ```mermaid
 graph TD
@@ -114,7 +114,8 @@ graph TD
 
 ## Development
 
-Building all target frameworks requires the .NET 10 SDK. Start the
+Building all target frameworks requires the .NET 11 SDK selected in
+[global.json](global.json). Start the
 [local dependencies](docker-compose.yml) before running integration tests. Run these commands from
 the repository root:
 

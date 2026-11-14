@@ -40,7 +40,7 @@ services:
       retries: 30
 
   sqlite-tests:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:11.0-resolute
     profiles: [ sqlite-tests ]
     restart: "no"
     working_dir: /workspace

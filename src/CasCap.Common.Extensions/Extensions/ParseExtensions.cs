@@ -36,7 +36,7 @@ public static class ParseExtensions
         return dot == -1 ? 0 : s.Length - dot;
     }
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     /// <summary>
     /// Returns the number of decimal places in the specified <see cref="System.Numerics.INumber{T}"/> value.
     /// </summary>

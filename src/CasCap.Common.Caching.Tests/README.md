@@ -2,11 +2,11 @@
 
 xUnit v3 tests for memory, disk and Redis caching, registration, distributed locking and expiry behavior in `CasCap.Common.Caching`.
 
-**Target frameworks:** `net8.0`, `net9.0`, `net10.0`
+**Target frameworks:** `net10.0`, `net11.0`
 
 ## Running
 
-From the repository root, with the .NET 10 SDK and Docker Compose:
+From the repository root, with the .NET 11 SDK and Docker Compose:
 
 ```bash
 docker compose up -d --wait redis
@@ -15,7 +15,7 @@ docker compose down
 ```
 
 Use only a disposable Redis instance from the [Compose stack](../../docker-compose.yml): tests can clear databases and need
-administrative commands. The test fixture selects databases 8, 9 and 10 for the corresponding target
+administrative commands. The test fixture selects databases 10 and 11 for the corresponding target
 frameworks. When running the whole solution, use `--max-parallel-test-modules 1` as described in the
 [repository quick start](../../README.md#development).
 
@@ -70,6 +70,8 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | `Integration` | Credential-free DI/configuration checks in `LeadershipRegistrationTests` |
 
 `SlidingExpirationTest_Async` and `AbsoluteExpirationTest_Async` carry no trait category.
+Excluding `Category=Integration` does not exclude the Redis-backed `CacheTests`; select the
+documented Redis-free classes explicitly when the service is not available.
 
 ### Skipped Tests
 

@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 namespace CasCap.Common.Models;
 
 /// <summary>The outcome of running an external process.</summary>

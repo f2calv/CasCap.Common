@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 using System.IO;
 using System.Text.Json;
 using CasCap.Common.Converters;

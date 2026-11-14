@@ -414,7 +414,7 @@ missing guarantee is reusable. Do not assume an unversioned cache helper solves 
 and do not create a parallel connection-registration stack to bypass a bootstrap limitation.
 Any necessary shared infrastructure change is an explicit prerequisite to the Redis phase.
 
-The current configuration library targets .NET Standard 2.0 and .NET 8/9/10.
+The current configuration library targets .NET Standard 2.0 and .NET 10/11.
 Do not automatically impose that entire matrix on new management/UI packages or silently narrow
 existing targets. Inventory actual consumers and driver support first; propose modern supported
 .NET targets for the new subsystem, recording the supported matrix before implementation.

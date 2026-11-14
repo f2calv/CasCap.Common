@@ -1,6 +1,6 @@
 # CasCap.Common.Configuration.Runtime.Tests
 
-.NET 10 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
+.NET 10/11 acceptance tests for typed runtime configuration, real EF Core PostgreSQL and SQLite adapters,
 optional shared Redis cache-aside and an ASP.NET Core stub exercised through `WebApplicationFactory`.
 The optional typed management API is exercised with real test-only cookie authentication.
 
@@ -105,7 +105,7 @@ Its observation endpoint is test-only, not a management API. The fixture explici
 [management controllers](../CasCap.Common.Configuration.Management/README.md) and installs cookie
 sign-in middleware only from this test assembly. Replacement-host tests share fixture-owned Data
 Protection keys, cleaned with the isolated SQLite files. Focused API execution uses
-`--filter-class '*Management*'` with the same native .NET 10 MTP command.
+`--filter-class '*Management*'` with the same native .NET 11 MTP command.
 
 The unavailable/missing-publication contract also uses an injected publisher to inspect sanitized
 logs and single-attempt behavior; actual PostgreSQL outage coverage complements this fault injection.
