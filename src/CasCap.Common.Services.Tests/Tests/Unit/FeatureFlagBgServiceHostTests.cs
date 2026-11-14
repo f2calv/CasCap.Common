@@ -31,12 +31,18 @@ public sealed class FeatureFlagBgServiceHostTests
         await faultingFeatureStarted.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
         Assert.False(lifetime.ApplicationStopping.IsCancellationRequested);
 
-        faultSource.SetException(new InvalidOperationException("later failure"));
+        var failure = new InvalidOperationException("later failure");
+        faultSource.SetException(failure);
         await stopping.Task.WaitAsync(_timeout, TestContext.Current.CancellationToken);
 
         Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
         Assert.Equal(1, exitState.ExitCode);
+#if NET11_0_OR_GREATER
+        Assert.Same(failure, await Assert.ThrowsAsync<InvalidOperationException>(
+            () => host.StopAsync(TestContext.Current.CancellationToken)));
+#else
         await host.StopAsync(TestContext.Current.CancellationToken);
+#endif
     }
 
     [Fact, Trait("Category", "BackgroundService")]

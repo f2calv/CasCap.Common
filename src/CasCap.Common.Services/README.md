@@ -75,8 +75,7 @@ Set the Kubernetes `terminationGracePeriodSeconds` longer than this timeout, inc
 
 ### UTC Cron Scheduling
 
-The current checkout also exposes `CoalescingScheduleRunner` in `CasCap.Common.Services`
-(source-reference development until the next package publication). It accepts a parsed Cronos
+`CoalescingScheduleRunner` in `CasCap.Common.Services` accepts a parsed Cronos
 expression, an injected `TimeProvider`, an awaited callback and a cancellation token.
 Five-field expressions use minute precision; seconds require explicit `CronFormat.IncludeSeconds`.
 
@@ -104,9 +103,11 @@ timeout. It does not forcibly abandon work that ignores cancellation.
 - Host cancellation cancels and awaits outstanding features, including their cleanup.
 - A child fault requests host shutdown immediately, then cancels and awaits its siblings before
   propagating the failure.
-- A child fault marks `ApplicationExitState` as failed before requesting shutdown. The process entry
-  point returns `GetApplicationExitCode()` after `RunAsync`, so graceful cleanup still completes but
-  Kubernetes observes a nonzero result.
+- A child fault marks `ApplicationExitState` as failed before requesting shutdown. On .NET 10, the
+  process entry point returns `GetApplicationExitCode()` after `RunAsync` to report a nonzero result.
+- On .NET 11 with `BackgroundServiceExceptionBehavior.StopHost`, `Host.StopAsync` and `RunAsync`
+  rethrow background failures after cleanup. Preserve that failure at the process boundary rather
+  than suppressing it; the exit state remains available for custom exception-handling entry points.
 - `AddFeatureFlagService` registers the exit state automatically. Call
   `AddApplicationExitState()` directly in hosts that also need to report startup or non-feature
   outcomes through the same process boundary.
