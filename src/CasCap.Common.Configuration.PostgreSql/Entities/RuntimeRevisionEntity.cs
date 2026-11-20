@@ -1,8 +1,32 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace CasCap.Common.Configuration.PostgreSql.Entities;
 
 /// <summary>Immutable snapshot-carrying publication event; never contains provider credentials.</summary>
-internal sealed class RuntimeRevisionEntity
+public sealed class RuntimeRevisionEntity
 {
+    /// <summary>Creates an EF entity populated by object initializers or materialization.</summary>
+    public RuntimeRevisionEntity() { }
+
+    /// <summary>Allows direct precompiled projection without EF 10's required-member unsafe-accessor bug.</summary>
+    [SetsRequiredMembers]
+    public RuntimeRevisionEntity(
+        string application,
+        string environment,
+        string contractId,
+        string payload,
+        string actor,
+        string reason
+    )
+    {
+        Application = application;
+        Environment = environment;
+        ContractId = contractId;
+        Payload = payload;
+        Actor = actor;
+        Reason = reason;
+    }
+
     /// <summary>Gets or sets the scoped application identifier.</summary>
     public required string Application { get; set; }
     /// <summary>Gets or sets the deployment-defined environment identifier.</summary>

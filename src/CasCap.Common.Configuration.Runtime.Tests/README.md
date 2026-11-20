@@ -45,9 +45,31 @@ corresponding dedicated Redis test service.
 
 ## Tests
 
+### Published JIT and Native AOT
+
+```powershell
+docker compose --profile configuration-aot-tests run --rm configuration-aot-tests
+```
+
+The [separate console fixture](../CasCap.Common.Configuration.Aot.TestHost/README.md) is published
+as real JIT and native executables. `PublishedConfigurationTests` is explicitly opted in by this
+profile; ordinary test runs do not silently substitute managed execution for a missing native
+artifact. Each case migrates with the JIT binary, exercises the selected binary, then verifies
+history/state in a fresh process. Four cases cover PostgreSQL/SQLite times JIT/AOT, asserting
+deployment mode, publication/history, writer races, validation, scope isolation and actual monitor
+reload/expiry. No Redis service is needed. See the [AOT guide](../../docs/runtime-configuration.md#experimental-native-aot)
+for warnings, platform and source-build distribution limits.
+
+Four additional paired cases demonstrate runtime-built predicates and runtime-composed
+join/group/aggregate queries. Each checks real JIT rows and then the exact EF `QueryNotPrecompiled`
+native rejection against the same database; arbitrary exceptions do not count as success.
+
+### Source-Declared Coverage
+
 | Class | Methods | Expanded cases | Category | Coverage |
 | --- | --- | --- | --- | --- |
-| `RuntimeConfigurationCodecTests` | 8 | 11 | Serialization | Bounds, shape, undefined enum, nested/cross-property validation, cycles, round-trip, validators, payload limit |
+| `RuntimeConfigurationCodecTests` | 10 | 13 | Serialization | Bounds, shape, undefined enum, nested/cross-property validation, cycles, round-trip, validators, payload limit, generated-metadata parity and skipped-validator rejection |
+| `PublishedConfigurationTests` | 2 | 8 | Integration | Explicit published parity and paired dynamic-query native rejection with both real providers |
 | `PostgresRuntimeConfigurationTests` | 9 | 11 | Integration | Migrations, history, first/existing-head races, 1/20 environment isolation, rejected writes, startup, reload, expiry |
 | `RuntimeConfigurationResilienceTests` | 5 | 5 | Integration | Real database refusal/recovery, startup failure, replicas/replacement, durable regression, I/O-free monitor reads, cancellation/nonoverlap |
 | `RuntimeConfigurationReloadTests` | 4 | 4 | Integration | Captured aggregate consistency, immutable bootstrap, listener/apply failures and server-enforced feature control |
@@ -56,12 +78,18 @@ corresponding dedicated Redis test service.
 | `ManagementApiTests` | 14 | 45 | Integration | SQLite/Redis stateless hosts and replacement, typed preview/no write, audit identity, fixed-scope/operation policy matrix, named browser auth schemes, JSON CSRF, shape/enum/integral/metadata bounds, races, unavailable/no-retry, closed ApiExplorer metadata |
 | `ManagementPostgresTests` | 2 | 2 | Integration | Real PostgreSQL HTTP writer race/audit and sanitized database outage while reader state/sentinel/feature remain accepted |
 | `ManagementClientTests` | 2 | 3 | Integration | Actual typed browser client against cookies/antiforgery, preview/no write, publish, conflict and permission failures |
-| Total | 64 | 110 | | |
+| Total | 68 | 120 | | Includes eight explicit published-process cases |
 
-Observed local Release result: 110 passed, 0 failed, 0 skipped, including all 47 management API cases
+Earlier local Release baseline: 110 passed, 0 failed, 0 skipped, including all 47 management API cases
 and three typed-client cases. The separate component/client suite passes all 24 cases.
 The complete solution also builds with zero warnings and errors. Both provider model-drift
 checks and offline migration SQL generation pass; PostgreSQL migrations/schema are unchanged.
+
+The experimental AOT pilot's focused regression run passed 60 cases across .NET 10/11.
+Its Linux amd64 published-process run passed all eight cases: four PostgreSQL/SQLite times JIT/AOT
+parity cases and four paired dynamic-query rejection probes, with no failures or skips.
+These are focused checks, not a rerun of the entire 120-case suite.
+Native publication still emits upstream compatibility warnings.
 
 The reload case asserts the standard
 `OptionsMonitor<T>`, complete collection replacement, suppressed unchanged reloads and an unchanged
@@ -75,7 +103,8 @@ No automatic test claims successful remote CI execution.
 
 ### Skipped Tests
 
-None: there are no skip branches or credential-dependent exclusions.
+Eight published-process cases are explicit: ordinary runs do not execute them. The AOT Compose
+profile opts them in and requires both real artifacts. No credential-dependent skip branches exist.
 
 ### Test Layout
 
@@ -97,6 +126,7 @@ Tests/
     |-- ManagementApiTests.cs
     |-- ManagementPostgresTests.cs
     |-- ManagementClientTests.cs
+    |-- PublishedConfigurationTests.cs
     `-- PostgresRuntimeConfigurationTests.cs
 ```
 

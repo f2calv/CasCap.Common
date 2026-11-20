@@ -78,6 +78,12 @@ Use PostgreSQL when multiple highly available writers are needed.
 
 ## Validation
 
+The [experimental source-build AOT pilot](https://github.com/f2calv/CasCap.Common/blob/main/docs/runtime-configuration.md#experimental-native-aot)
+adds generated-metadata/explicit-validator registration and compiled models/queries, including
+explicit typed date comparers. Published JIT and .NET 11 Linux amd64 native processes use real
+fixture-owned files and managed migrations. EF analysis warnings remain visible; this does not
+establish production or normal prebuilt NuGet AOT compatibility.
+
 The permanent runtime acceptance suite uses real disposable files, real migrations, shared-file
 preservation, first/existing-head races and direct/cache-aside HTTP hosts. The root
 [Compose test runner](https://github.com/f2calv/CasCap.Common/blob/main/docker-compose.yml)

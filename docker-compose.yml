@@ -9,6 +9,7 @@
 #   docker compose --profile tests up -d --wait postgres-tests
 #   docker compose --profile tests stop postgres-tests
 #   docker compose --profile sqlite-tests run --rm sqlite-tests
+#   docker compose --profile configuration-aot-tests run --rm configuration-aot-tests
 #
 # Redis and PostgreSQL track their supported major versions without digest pins.
 # Test PostgreSQL storage is disposable and lost when its container stops.
@@ -23,7 +24,7 @@ services:
 
   postgres-tests:
     image: postgres:18-alpine
-    profiles: [ tests ]
+    profiles: [ tests, configuration-aot-tests ]
     restart: unless-stopped
     environment:
       POSTGRES_USER: configuration_tests
@@ -65,6 +66,36 @@ services:
       redis:
         condition: service_healthy
 
+  configuration-aot-tests:
+    image: mcr.microsoft.com/dotnet/sdk:11.0-resolute-aot
+    platform: linux/amd64
+    profiles: [ configuration-aot-tests ]
+    restart: "no"
+    working_dir: /workspace
+    environment:
+      RuntimeConfigurationTests__ConnectionStrings__Postgres: Host=postgres-tests;Database=postgres;Username=configuration_tests;Password=local_test_password
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    volumes:
+      - .:/source:ro
+      - configuration_aot_workspace:/workspace
+      - configuration_aot_nuget:/root/.nuget/packages
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        run="$$(date +%s%N)"
+        mkdir "/workspace/$$run"
+        trap 'rm -rf -- "/workspace/$$run"' EXIT
+        tar --exclude=.git --exclude=bin --exclude=obj --exclude=.copilot-tracking --exclude=TestResults -C /source -cf - . | tar -C "/workspace/$$run" -xf -
+        cd "/workspace/$$run"
+        host=src/CasCap.Common.Configuration.Aot.TestHost/CasCap.Common.Configuration.Aot.TestHost.csproj
+        export CONFIGURATION_PUBLISHED_DIRECTORY="/workspace/$$run/published"
+        dotnet publish "$$host" -c Release -r linux-x64 --self-contained true -o "$$CONFIGURATION_PUBLISHED_DIRECTORY/jit"
+        ExperimentalConfigurationAot=true dotnet publish "$$host" -c Release -r linux-x64 --self-contained true -p:PublishAot=true -o "$$CONFIGURATION_PUBLISHED_DIRECTORY/aot"
+        dotnet test --project src/CasCap.Common.Configuration.Runtime.Tests/CasCap.Common.Configuration.Runtime.Tests.csproj --configuration Release --framework net11.0 --filter-class '*PublishedConfigurationTests' --explicit only
+    depends_on:
+      postgres-tests:
+        condition: service_healthy
+
   redis:
     image: redis:8
     restart: unless-stopped
@@ -92,6 +123,8 @@ services:
         condition: service_healthy
 
 volumes:
+  configuration_aot_workspace:
+  configuration_aot_nuget:
   sqlite_tests_workspace:
   sqlite_tests_files:
   sqlite_tests_nuget:

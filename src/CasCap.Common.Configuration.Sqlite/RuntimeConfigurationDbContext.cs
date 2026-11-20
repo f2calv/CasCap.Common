@@ -1,4 +1,5 @@
 using CasCap.Common.Configuration.Sqlite.Entities;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CasCap.Common.Configuration.Sqlite;
 
@@ -20,10 +21,13 @@ public sealed class RuntimeConfigurationDbContext(
         revisions.Property(row => row.Revision).HasColumnName("revision");
         revisions.Property(row => row.ContractVersion).HasColumnName("contract_version");
         revisions.Property(row => row.Payload).HasColumnName("payload");
-        revisions.Property(row => row.RecordedAtUtc).HasColumnName("recorded_at_utc");
+        // Avoid SQLite's lazy reflection-based default comparer in the generated native model.
+        revisions.Property(row => row.RecordedAtUtc).HasColumnName("recorded_at_utc")
+            .Metadata.SetValueComparer(ValueComparer.CreateDefault<DateTimeOffset>(favorStructuralComparisons: false));
         revisions.Property(row => row.Actor).HasColumnName("actor").HasMaxLength(200);
         revisions.Property(row => row.Reason).HasColumnName("reason").HasMaxLength(500);
-        revisions.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc");
+        revisions.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc")
+            .Metadata.SetValueComparer(ValueComparer.CreateDefault<DateTimeOffset?>(favorStructuralComparisons: false));
         revisions.Property(row => row.RestoredFromRevision).HasColumnName("restored_from_revision");
         var heads = modelBuilder.Entity<RuntimeHeadEntity>();
         heads.ToTable(RuntimeConfigurationStorage.Prefix + "heads");

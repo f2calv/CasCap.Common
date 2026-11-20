@@ -1,4 +1,5 @@
 using CasCap.Common.Configuration.Runtime.Providers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CasCap.Common.Configuration.Runtime.Services;
 
@@ -10,7 +11,7 @@ namespace CasCap.Common.Configuration.Runtime.Services;
 /// appends to initialized collections, so binding the flattened snapshot onto a new instance can diverge from
 /// the revision the codec validated.
 /// </remarks>
-internal sealed class RuntimeOptionsFactory<T>(
+internal sealed class RuntimeOptionsFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
     RuntimeSnapshotProvider provider,
     RuntimeConfigurationCodec<T> codec,
     IEnumerable<IConfigureOptions<T>> setups,

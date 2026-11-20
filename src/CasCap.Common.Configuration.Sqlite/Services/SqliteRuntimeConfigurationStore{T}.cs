@@ -19,13 +19,7 @@ public sealed class SqliteRuntimeConfigurationStore<T>(
     public async Task<RuntimeConfigurationRevision<T>?> ReadAsync(CancellationToken cancellationToken)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var row = await (from head in db.Set<RuntimeHeadEntity>().AsNoTracking()
-                         join revision in db.Set<RuntimeRevisionEntity>().AsNoTracking()
-                         on new { head.Application, head.Environment, head.ContractId, head.Revision }
-                         equals new { revision.Application, revision.Environment, revision.ContractId, revision.Revision }
-                         where head.Application == settings.Scope.Application
-                             && head.Environment == settings.Scope.Environment && head.ContractId == settings.ContractId
-                         select revision).SingleOrDefaultAsync(cancellationToken);
+        var row = await RuntimeConfigurationQueries.ReadAsync(db, settings, cancellationToken);
         return row is null ? null : Convert(row);
     }
 
@@ -64,9 +58,7 @@ public sealed class SqliteRuntimeConfigurationStore<T>(
     public async Task<RuntimeConfigurationRevision<T>?> ReadRevisionAsync(long revision, CancellationToken cancellationToken = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var row = await db.Set<RuntimeRevisionEntity>().AsNoTracking().SingleOrDefaultAsync(row =>
-            row.Application == settings.Scope.Application && row.Environment == settings.Scope.Environment
-            && row.ContractId == settings.ContractId && row.Revision == revision, cancellationToken);
+        var row = await RuntimeConfigurationQueries.ReadRevisionAsync(db, settings, revision, cancellationToken);
         return row is null ? null : Convert(row);
     }
 
@@ -83,9 +75,7 @@ public sealed class SqliteRuntimeConfigurationStore<T>(
         // SQLite's non-deferred transaction reserves the writer before reading the expected head.
         // Busy/locked after the configured connection timeout is a conflict, not an automatic retry.
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var head = await db.Set<RuntimeHeadEntity>().SingleOrDefaultAsync(row =>
-            row.Application == settings.Scope.Application && row.Environment == settings.Scope.Environment
-            && row.ContractId == settings.ContractId, cancellationToken);
+        var head = await RuntimeConfigurationQueries.ReadHeadAsync(db, settings, cancellationToken);
         if ((head?.Revision ?? 0) != expectedRevision)
             throw new DbUpdateConcurrencyException("The current configuration revision changed.");
         var row = new RuntimeRevisionEntity
