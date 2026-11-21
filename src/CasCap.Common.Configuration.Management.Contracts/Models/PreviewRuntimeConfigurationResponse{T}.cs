@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A validated copy of the complete candidate. No durable state has changed.</summary>
 /// <param name="Value">The validated browser-safe value. <example>{}</example></param>

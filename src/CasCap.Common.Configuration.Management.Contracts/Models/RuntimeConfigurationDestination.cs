@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>The exact application/environment/contract resource passed to host authorization handlers.</summary>
 /// <param name="Application">The configured application. <example>sample-app</example></param>

@@ -7,10 +7,10 @@ using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 
-namespace CasCap.Common.Configuration.Runtime.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Registers an isolated runtime root using the standard options monitor implementation.</summary>
-public static class ServiceCollectionExtensions
+public static class RuntimeServiceCollectionExtensions
 {
     /// <summary>Registers one typed contract, its baseline and required durable-reader lifecycle.</summary>
     [RequiresDynamicCode("Use the overload accepting generated JSON metadata and a contract validator for Native AOT.")]

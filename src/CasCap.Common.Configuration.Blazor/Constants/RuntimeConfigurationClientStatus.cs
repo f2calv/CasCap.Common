@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Blazor.Constants;
+namespace CasCap.Common.Constants;
 
 /// <summary>Typed client outcomes; no operation silently converts an error to a document.</summary>
 public static class RuntimeConfigurationClientStatus

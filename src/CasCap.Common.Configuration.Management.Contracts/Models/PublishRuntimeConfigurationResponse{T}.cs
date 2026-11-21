@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>Confirms durable commit only; activation by monitors and replicas remains pending.</summary>
 /// <param name="Document">The committed document. <example>{}</example></param>

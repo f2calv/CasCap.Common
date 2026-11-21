@@ -15,6 +15,8 @@ dotnet add package CasCap.Common.Testing
 ### Capture Application Logs
 
 ```csharp
+using CasCap.Common.Extensions;
+using CasCap.Common.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;

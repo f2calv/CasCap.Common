@@ -16,6 +16,7 @@ For local memory caching, disable the remote tier explicitly:
 
 ```csharp
 using System;
+using CasCap.Common.Extensions;
 using CasCap.Common.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

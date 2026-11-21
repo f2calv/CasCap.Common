@@ -1,9 +1,10 @@
 #if NET10_0_OR_GREATER
-using System.Reflection;
 using CasCap.Common.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Extension methods for registering <see cref="IEventSink{T}"/> implementations

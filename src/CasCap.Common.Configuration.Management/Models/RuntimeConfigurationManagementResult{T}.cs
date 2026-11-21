@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A typed service outcome, independent of HTTP response execution.</summary>
 /// <param name="Value">The successful response, when available.</param>

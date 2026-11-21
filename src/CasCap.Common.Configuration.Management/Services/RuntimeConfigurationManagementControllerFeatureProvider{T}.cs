@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Management.Controllers;
+using CasCap.Common.Controllers;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using System.Reflection;

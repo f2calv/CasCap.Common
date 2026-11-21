@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Runtime.Abstractions;
+using CasCap.Common.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -128,7 +128,7 @@ public sealed class RuntimeConfigurationResilienceTests(ITestOutputHelper output
         BlockingStore? probe = null;
         await using var host = new RuntimeConfigurationHostFactory(_connectionString, _environment,
             configureServices: services => services.Replace(ServiceDescriptor.Singleton<IRuntimeConfigurationStore<RuntimeControls>>(provider =>
-                probe = new BlockingStore(provider.GetRequiredService<CasCap.Common.Configuration.PostgreSql.Services.PostgresRuntimeConfigurationStore<RuntimeControls>>()))));
+                probe = new BlockingStore(provider.GetRequiredService<CasCap.Common.Services.PostgresRuntimeConfigurationStore<RuntimeControls>>()))));
         using var client = host.CreateClient();
         var store = Assert.IsType<BlockingStore>(probe);
         await store.Blocked.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);

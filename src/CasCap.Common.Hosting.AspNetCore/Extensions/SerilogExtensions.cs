@@ -1,4 +1,4 @@
-namespace Serilog;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Extension methods for configuring Serilog with standard CasCap defaults.</summary>
 public static class SerilogExtensions
@@ -13,7 +13,7 @@ public static class SerilogExtensions
     /// raise this to <see cref="LogEventLevel.Warning"/> or higher once startup completes to stop log lines
     /// interleaving with rendered output, without affecting the file/Seq/Loki sinks.
     /// </summary>
-    public static readonly Core.LoggingLevelSwitch ConsoleLevelSwitch = new(LogEventLevel.Verbose);
+    public static readonly LoggingLevelSwitch ConsoleLevelSwitch = new(LogEventLevel.Verbose);
 
     /// <summary>
     /// Creates a bootstrap <see cref="Log.Logger"/> with a platform-aware console sink
@@ -47,7 +47,7 @@ public static class SerilogExtensions
     /// <summary>
     /// Applies the standard CasCap Serilog configuration: platform-aware console sink,
     /// common enrichers, the <see cref="IsHealthCheckNoise"/> filter, and <c>appsettings</c> binding via
-    /// <see cref="Configuration.LoggerSettingsConfiguration"/>.
+    /// <see cref="Serilog.Configuration.LoggerSettingsConfiguration"/>.
     /// </summary>
     /// <param name="loggerConfiguration">The <see cref="LoggerConfiguration"/> to configure.</param>
     /// <param name="configuration">
@@ -95,7 +95,7 @@ public static class SerilogExtensions
     {
         ArgumentNullException.ThrowIfNull(logEvent);
         return logEvent.Level < LogEventLevel.Warning
-            && logEvent.Properties.TryGetValue(Core.Constants.SourceContextPropertyName, out var sourceContext)
+            && logEvent.Properties.TryGetValue(Serilog.Core.Constants.SourceContextPropertyName, out var sourceContext)
             && sourceContext is ScalarValue { Value: string category }
             && category.StartsWith(HealthCheckCategoryPrefix, StringComparison.Ordinal);
     }

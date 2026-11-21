@@ -1,5 +1,6 @@
 global using CasCap.Common.Abstractions;
 global using CasCap.Common.Extensions;
+global using CasCap.Common.Logging;
 global using CasCap.Common.Models;
 global using CasCap.Common.Providers;
 global using CasCap.Common.Services;

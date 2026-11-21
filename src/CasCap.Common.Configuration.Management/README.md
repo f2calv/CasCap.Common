@@ -13,10 +13,10 @@ dotnet add package CasCap.Common.Configuration.Management
 ## Configuration Examples
 
 After registering the existing runtime authority and host authentication, opt in with
-[`AddRuntimeConfigurationManagement<T>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Configuration.Management/Extensions/ServiceCollectionExtensions.cs):
+[`AddRuntimeConfigurationManagement<T>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Configuration.Management/Extensions/ManagementServiceCollectionExtensions.cs):
 
 ```csharp
-using CasCap.Common.Configuration.Management.Extensions;
+using CasCap.Common.Extensions;
 
 builder.Services.AddRuntimeConfigurationManagement<BrowserControls>();
 ```

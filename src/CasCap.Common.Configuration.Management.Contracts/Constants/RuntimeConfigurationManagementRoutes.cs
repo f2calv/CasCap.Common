@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Constants;
+namespace CasCap.Common.Constants;
 
 /// <summary>Stable management routes. Each host serves exactly one configured destination.</summary>
 public static class RuntimeConfigurationManagementRoutes

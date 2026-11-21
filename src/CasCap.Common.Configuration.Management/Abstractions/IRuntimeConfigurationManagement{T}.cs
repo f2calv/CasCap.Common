@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace CasCap.Common.Configuration.Management.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>The typed management boundary for an already authorized fixed destination.</summary>
 public interface IRuntimeConfigurationManagement<T> where T : class

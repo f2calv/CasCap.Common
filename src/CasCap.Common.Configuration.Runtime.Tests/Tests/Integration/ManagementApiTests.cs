@@ -1,5 +1,5 @@
-using CasCap.Common.Configuration.Management.Contracts.Constants;
-using CasCap.Common.Configuration.Runtime.Abstractions;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -9,11 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using static CasCap.Common.Configuration.Runtime.Tests.Tests.Integration.ManagementTestSupport;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using static CasCap.Common.Configuration.Runtime.Tests.Tests.Integration.ManagementTestSupport;
 
 namespace CasCap.Common.Configuration.Runtime.Tests.Tests.Integration;
 

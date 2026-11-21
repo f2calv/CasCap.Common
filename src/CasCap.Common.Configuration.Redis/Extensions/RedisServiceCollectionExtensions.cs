@@ -1,15 +1,14 @@
 using CasCap.Common.Abstractions;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Redis.Services;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Models;
+using CasCap.Common.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace CasCap.Common.Configuration.Redis.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Opt-in cache wiring; durable providers do not acquire a Redis dependency.</summary>
-public static class ServiceCollectionExtensions
+public static class RedisServiceCollectionExtensions
 {
     /// <summary>Decorates reads after registering the durable contract and shared CasCap caching.</summary>
     public static IServiceCollection AddRuntimeConfigurationCache<T, TStore>(

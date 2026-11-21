@@ -1,4 +1,6 @@
-namespace Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace CasCap.Common.Logging;
 
 /// <summary>
 /// Provides a static <see cref="ILoggerFactory"/> for creating loggers outside of dependency injection.
@@ -7,8 +9,8 @@ namespace Microsoft.Extensions.Logging;
 public static class ApplicationLogging
 {
     /// <inheritdoc cref="ILoggerFactory"/>
-    /// <remarks>Defaults to <see cref="Abstractions.NullLoggerFactory"/> so loggers can be created safely before <c>AddStaticLogging</c> runs.</remarks>
-    public static ILoggerFactory LoggerFactory { get; set; } = Abstractions.NullLoggerFactory.Instance;
+    /// <remarks>Defaults to <see cref="NullLoggerFactory"/> so loggers can be created safely before <c>AddStaticLogging</c> runs.</remarks>
+    public static ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
     /// <inheritdoc cref="LoggerFactoryExtensions.CreateLogger{T}(ILoggerFactory)"/>
     public static ILogger CreateLogger<T>() => LoggerFactory.CreateLogger<T>();

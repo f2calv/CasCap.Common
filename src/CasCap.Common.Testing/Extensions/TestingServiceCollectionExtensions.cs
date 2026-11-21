@@ -1,8 +1,11 @@
-namespace Microsoft.Extensions.DependencyInjection;
+using CasCap.Common.Logging;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CasCap.Common.Extensions;
 
 /// <summary>Extension methods for registering xUnit test logging services.</summary>
 [ExcludeFromCodeCoverage]
-public static class ServiceCollectionExtensions
+public static class TestingServiceCollectionExtensions
 {
     /// <summary>Adds logging providers that route output to xUnit's <see cref="ITestOutputHelper"/>.</summary>
     /// <param name="services">The service collection to add logging to.</param>

@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Runtime.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>Immutable startup settings for one registered typed configuration contract.</summary>
 public sealed record RuntimeConfigurationOptions

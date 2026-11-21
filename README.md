@@ -63,6 +63,44 @@ All packages target .NET 10 and 11. The seven runtime-configuration packages do 
 .NET Standard 2.0; the other libraries retain it except `Hosting.AspNetCore`, `Services` and `Testing`.
 Individual APIs can have framework-specific availability; see the relevant package documentation.
 
+### Registration Class Alignment (Unreleased)
+
+The following public registration classes have new names. This is a breaking API change:
+consumers must recompile and update explicit static-class references. These classes now share the
+`CasCap.Common.Extensions` namespace; add or update `using CasCap.Common.Extensions;` in consumers.
+Extension-method names and call syntax are unchanged. Each class stays in its original package;
+the shared namespace does not introduce project dependencies or move code into the Extensions package.
+
+| Package | Registration class |
+| --- | --- |
+| Caching | `CachingServiceCollectionExtensions` |
+| Configuration.Runtime | `RuntimeServiceCollectionExtensions` |
+| Configuration.PostgreSql | `PostgresServiceCollectionExtensions` |
+| Configuration.Sqlite | `SqliteServiceCollectionExtensions` |
+| Configuration.Redis | `RedisServiceCollectionExtensions` |
+| Configuration.Management | `ManagementServiceCollectionExtensions` |
+| Testing | `TestingServiceCollectionExtensions` |
+| Logging | `LoggingServiceProviderExtensions` |
+
+### Public Namespace Alignment (Unreleased)
+
+Library-owned Sink and Serilog extensions use `CasCap.Common.Extensions`.
+`ApplicationLogging` and `TestLogProvider` use `CasCap.Common.Logging`.
+The HTTP endpoint probe base uses `CasCap.Common.HealthChecks`; its configuration contract
+uses `CasCap.Common.Abstractions`.
+Runtime configuration contracts use `CasCap.Common.Abstractions`, options and revisions use
+`CasCap.Common.Models`, and codecs/stores use `CasCap.Common.Services`. SQLite storage constants
+use `CasCap.Common.Constants`. Provider-specific contexts, factories, entities and migrations
+retain their existing namespaces.
+Management transport models use `CasCap.Common.Models`, policies/routes use `CasCap.Common.Constants`,
+and the management interface/controller use `CasCap.Common.Abstractions`/`CasCap.Common.Controllers`.
+HTTP routes, JSON shapes and authorization policies are unchanged.
+Blazor inputs/editors use `CasCap.Common.Components`, client outcomes use `CasCap.Common.Models`,
+client status constants use `CasCap.Common.Constants`, and the typed HTTP client uses
+`CasCap.Common.Services`. Component markup, isolated styles and HTTP behavior are unchanged.
+These namespace moves are breaking API changes: update imports and recompile consumers.
+Types remain in their existing packages; no new project dependencies are introduced.
+
 ## Dependency Graph
 
 Arrows point from a core library to its direct project dependencies. Node labels omit the common

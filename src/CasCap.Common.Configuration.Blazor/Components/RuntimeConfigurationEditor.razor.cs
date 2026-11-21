@@ -1,10 +1,10 @@
-using CasCap.Common.Configuration.Blazor.Services;
+using CasCap.Common.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using System.Text.Json;
 
-namespace CasCap.Common.Configuration.Blazor.Components;
+namespace CasCap.Common.Components;
 
 /// <summary>Edits one host-selected browser-safe DTO through the authorized management API.</summary>
 public sealed partial class RuntimeConfigurationEditor<T>(RuntimeConfigurationClient<T> runtimeConfigurationClient) : ComponentBase, IDisposable where T : class

@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Runtime.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>Reads the durable typed authority, not a cache or an arbitrary key/value bag.</summary>
 public interface IRuntimeConfigurationStore<T> where T : class

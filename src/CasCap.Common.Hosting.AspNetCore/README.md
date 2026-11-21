@@ -67,6 +67,8 @@ flowchart TD
 
 ## Serilog
 
+Import `CasCap.Common.Extensions` for the library-owned Serilog extensions; they remain in this package.
+
 `SerilogExtensions.GetBootstrapLogger()` provides early startup logging. Call
 `builder.InitializeSerilog()` to configure the host pipeline, then initialize OpenTelemetry if
 needed. This ordering matters: Serilog initialization clears existing logging providers.

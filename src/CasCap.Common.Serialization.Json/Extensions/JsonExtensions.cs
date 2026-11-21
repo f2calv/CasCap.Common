@@ -1,3 +1,5 @@
+using CasCap.Common.Logging;
+
 namespace CasCap.Common.Extensions;
 
 /// <summary>

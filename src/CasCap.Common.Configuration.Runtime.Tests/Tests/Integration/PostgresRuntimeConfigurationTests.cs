@@ -1,5 +1,5 @@
 using CasCap.Common.Configuration.PostgreSql;
-using CasCap.Common.Configuration.PostgreSql.Services;
+using CasCap.Common.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

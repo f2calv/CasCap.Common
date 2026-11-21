@@ -1,9 +1,10 @@
-using CasCap.Common.Configuration.Runtime.Abstractions;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Abstractions;
+using CasCap.Common.Configuration.Sqlite;
 using CasCap.Common.Configuration.Sqlite.Entities;
+using CasCap.Common.Configuration.Sqlite.Services;
 using Microsoft.Data.Sqlite;
 
-namespace CasCap.Common.Configuration.Sqlite.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Publishes complete validated snapshots atomically with an expected scoped head.</summary>
 // TODO: Extract shared journal mapping/publication mechanics with PostgreSQL when a third relational

@@ -1,6 +1,5 @@
 using CasCap.Common.Abstractions;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -10,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CasCap.Common.Configuration.Redis.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Accelerates reads without replacing authoritative startup, validation or reconciliation.</summary>
 public sealed partial class CachedRuntimeConfigurationStore<T> : IRuntimeConfigurationStore<T>, IDisposable where T : class

@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Constants;
+namespace CasCap.Common.Constants;
 
 /// <summary>Host-defined, resource-aware policies; the module never supplies permissive defaults.</summary>
 public static class RuntimeConfigurationManagementPolicies

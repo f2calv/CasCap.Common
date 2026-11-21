@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Serilog;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Extension methods for initializing Serilog on a <see cref="WebApplicationBuilder"/>.

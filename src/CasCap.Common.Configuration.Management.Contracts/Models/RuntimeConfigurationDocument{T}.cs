@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>The authoritative durable document, not a reader activation acknowledgement or audit record.</summary>
 /// <param name="Revision">The durable head revision. <example>1</example></param>

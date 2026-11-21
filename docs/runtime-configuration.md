@@ -74,8 +74,8 @@ Treat returned options as immutable, including nested collections.
 In the existing `Program.cs` or `AppHost` composition root:
 
 ```csharp
-using CasCap.Common.Configuration.PostgreSql.Extensions;
-using CasCap.Common.Configuration.Runtime.Models;
+using CasCap.Common.Models;
+using CasCap.Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var connection = builder.Configuration.GetConnectionString("RuntimeConfiguration")
@@ -262,7 +262,7 @@ All records are non-secret; never use configuration history as a credential stor
 ## Provision SQLite Externally
 
 Use the [SQLite source adapter](../src/CasCap.Common.Configuration.Sqlite/README.md) instead of
-PostgreSQL by importing `CasCap.Common.Configuration.Sqlite.Extensions` and calling
+PostgreSQL by importing `CasCap.Common.Extensions` and calling
 `AddSqliteRuntimeConfiguration` with the same settings/baseline and a file connection string
 such as `Data Source=configuration.db;Pooling=False;Default Timeout=5`.
 
@@ -291,7 +291,7 @@ nodes or expect Redis to reconcile independent files.
 Use the concrete typed writer, with an audit actor derived from an authorized operator/principal:
 
 ```csharp
-using CasCap.Common.Configuration.PostgreSql.Services;
+using CasCap.Common.Services;
 
 var writer = services.GetRequiredService<PostgresRuntimeConfigurationStore<Controls>>();
 var initial = await writer.PublishAsync(

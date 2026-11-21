@@ -1,7 +1,5 @@
-using CasCap.Common.Configuration.PostgreSql.Extensions;
-using CasCap.Common.Configuration.Sqlite.Extensions;
 using CasCap.Common.Configuration.TestHost.Services;
-using CasCap.Common.Configuration.Management.Extensions;
+using CasCap.Common.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 
