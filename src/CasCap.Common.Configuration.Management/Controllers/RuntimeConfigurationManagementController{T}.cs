@@ -1,10 +1,10 @@
-using CasCap.Common.Configuration.Management.Abstractions;
+using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.Management.Attributes;
 using CasCap.Common.Configuration.Management.Services;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Routing;
 
-namespace CasCap.Common.Configuration.Management.Controllers;
+namespace CasCap.Common.Controllers;
 
 /// <summary>Optional typed management operations for one host-owned contract and destination.</summary>
 [ApiController]

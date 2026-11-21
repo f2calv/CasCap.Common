@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Management.Contracts.Constants;
+using CasCap.Common.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;

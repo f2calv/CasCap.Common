@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Management.Contracts.Constants;
+using CasCap.Common.Constants;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;

@@ -34,9 +34,9 @@ registered DTO and enforces destination/operation policies independently of the 
   provides the header name and principal-bound request token.
 - [`RuntimeConfigurationDestination`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Configuration.Management.Contracts/Models/RuntimeConfigurationDestination.cs)
   identifies the fixed authorization resource. Route and policy constants live in
-  `CasCap.Common.Configuration.Management.Contracts.Constants`.
+  `CasCap.Common.Constants`.
 
-All records live in `CasCap.Common.Configuration.Management.Contracts.Models`. HTTP errors use
+All records live in `CasCap.Common.Models`. HTTP errors use
 standard problem-details JSON, not a dependency on server MVC types in this project.
 See the [wire contract](../../docs/runtime-configuration-management.md) for exact routes,
 authentication, antiforgery and error handling.

@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A complete typed candidate to validate without publication.</summary>
 public sealed record PreviewRuntimeConfigurationRequest<T> where T : class

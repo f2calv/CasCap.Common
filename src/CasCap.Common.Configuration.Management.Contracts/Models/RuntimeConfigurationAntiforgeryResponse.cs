@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A browser request token paired with the server's HttpOnly antiforgery cookie.</summary>
 /// <param name="HeaderName">The header to attach on POST requests. <example>RequestVerificationToken</example></param>

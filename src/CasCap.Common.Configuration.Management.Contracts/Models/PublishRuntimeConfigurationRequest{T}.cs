@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Management.Contracts.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A complete optimistic publication request. Actor identity is never accepted from the browser.</summary>
 public sealed record PublishRuntimeConfigurationRequest<T> where T : class

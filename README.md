@@ -92,6 +92,9 @@ Runtime configuration contracts use `CasCap.Common.Abstractions`, options and re
 `CasCap.Common.Models`, and codecs/stores use `CasCap.Common.Services`. SQLite storage constants
 use `CasCap.Common.Constants`. Provider-specific contexts, factories, entities and migrations
 retain their existing namespaces.
+Management transport models use `CasCap.Common.Models`, policies/routes use `CasCap.Common.Constants`,
+and the management interface/controller use `CasCap.Common.Abstractions`/`CasCap.Common.Controllers`.
+HTTP routes, JSON shapes and authorization policies are unchanged.
 These namespace moves are breaking API changes: update imports and recompile consumers.
 Types remain in their existing packages; no new project dependencies are introduced.
 

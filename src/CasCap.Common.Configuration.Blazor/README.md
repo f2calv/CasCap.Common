@@ -32,7 +32,7 @@ inside an existing interactive page, with typed fields rather than a key/string-
 
 ```razor
 @using CasCap.Common.Configuration.Blazor.Components
-@using CasCap.Common.Configuration.Management.Contracts.Models
+@using CasCap.Common.Models
 
 <RuntimeConfigurationEditor T="BrowserControls" Destination="_destination">
     <Fields Context="value">

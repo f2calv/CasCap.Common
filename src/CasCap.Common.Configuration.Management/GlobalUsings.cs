@@ -1,6 +1,4 @@
-global using CasCap.Common.Configuration.Management.Contracts.Constants;
-global using CasCap.Common.Configuration.Management.Contracts.Models;
-global using CasCap.Common.Configuration.Management.Models;
+global using CasCap.Common.Constants;
 global using CasCap.Common.Models;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;

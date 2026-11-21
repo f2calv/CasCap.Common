@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Management.Controllers;
+using CasCap.Common.Controllers;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace CasCap.Common.Configuration.Management.Services;
