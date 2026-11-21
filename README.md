@@ -86,6 +86,8 @@ the shared namespace does not introduce project dependencies or move code into t
 
 Library-owned Sink and Serilog extensions use `CasCap.Common.Extensions`.
 `ApplicationLogging` and `TestLogProvider` use `CasCap.Common.Logging`.
+The HTTP endpoint probe base uses `CasCap.Common.HealthChecks`; its configuration contract
+uses `CasCap.Common.Abstractions`.
 These namespace moves are breaking API changes: update imports and recompile consumers.
 Types remain in their existing packages; no new project dependencies are introduced.
 

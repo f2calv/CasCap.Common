@@ -1,4 +1,4 @@
-namespace CasCap.Common.Diagnostics.HealthChecks;
+namespace CasCap.Common.HealthChecks;
 
 /// <summary>
 /// Base class for health checks that verify HTTP endpoint accessibility.

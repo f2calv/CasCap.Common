@@ -19,8 +19,8 @@ registers an HTTP client and exposes the check through the standard health endpo
 ```csharp
 using System.Collections.Generic;
 using System.Net.Http;
-using CasCap.Common.Diagnostics.HealthChecks;
-using CasCap.Common.Diagnostics.HealthChecks.Abstractions;
+using CasCap.Common.Abstractions;
+using CasCap.Common.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,4 @@
-namespace CasCap.Common.Diagnostics.HealthChecks.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>Defines health check configuration properties shared by all HTTP endpoint health checks.</summary>
 public interface IHealthCheckConfig
