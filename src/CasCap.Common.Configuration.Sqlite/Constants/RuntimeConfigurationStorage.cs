@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Sqlite.Constants;
+namespace CasCap.Common.Constants;
 
 /// <summary>Fixed ownership boundary within a possibly shared SQLite file.</summary>
 public static class RuntimeConfigurationStorage

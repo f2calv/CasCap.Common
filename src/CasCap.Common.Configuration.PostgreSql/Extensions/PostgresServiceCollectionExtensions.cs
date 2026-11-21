@@ -1,6 +1,6 @@
+using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.PostgreSql;
-using CasCap.Common.Configuration.PostgreSql.Services;
-using CasCap.Common.Configuration.Runtime.Abstractions;
+using CasCap.Common.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;

@@ -1,9 +1,7 @@
 using CasCap.Common.Abstractions;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Redis.Services;
 using CasCap.Common.Configuration.Sqlite;
-using CasCap.Common.Configuration.Sqlite.Services;
 using CasCap.Common.Models;
+using CasCap.Common.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

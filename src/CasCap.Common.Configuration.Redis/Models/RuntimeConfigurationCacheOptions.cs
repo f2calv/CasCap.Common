@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Redis.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>Immutable bootstrap settings for the optional, bounded cache-aside trial.</summary>
 public sealed record RuntimeConfigurationCacheOptions

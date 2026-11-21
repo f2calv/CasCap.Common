@@ -88,6 +88,10 @@ Library-owned Sink and Serilog extensions use `CasCap.Common.Extensions`.
 `ApplicationLogging` and `TestLogProvider` use `CasCap.Common.Logging`.
 The HTTP endpoint probe base uses `CasCap.Common.HealthChecks`; its configuration contract
 uses `CasCap.Common.Abstractions`.
+Runtime configuration contracts use `CasCap.Common.Abstractions`, options and revisions use
+`CasCap.Common.Models`, and codecs/stores use `CasCap.Common.Services`. SQLite storage constants
+use `CasCap.Common.Constants`. Provider-specific contexts, factories, entities and migrations
+retain their existing namespaces.
 These namespace moves are breaking API changes: update imports and recompile consumers.
 Types remain in their existing packages; no new project dependencies are introduced.
 

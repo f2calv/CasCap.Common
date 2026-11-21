@@ -1,9 +1,6 @@
 using CasCap.Common.Abstractions;
-using CasCap.Common.Configuration.PostgreSql.Services;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Redis.Services;
-using CasCap.Common.Configuration.Runtime.Abstractions;
 using CasCap.Common.Models;
+using CasCap.Common.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -232,7 +229,7 @@ public sealed class RuntimeConfigurationCacheTests(ITestOutputHelper output) : T
         using var store = new CachedRuntimeConfigurationStore<RuntimeControls>(
             NullLogger<CachedRuntimeConfigurationStore<RuntimeControls>>.Instance, TimeProvider.System,
             settings, contract, new FaultingCache(null), _store,
-            new CasCap.Common.Configuration.Runtime.Services.RuntimeConfigurationCodec<RuntimeControls>([]));
+            new CasCap.Common.Services.RuntimeConfigurationCodec<RuntimeControls>([]));
         return store.CacheKey;
     }
 

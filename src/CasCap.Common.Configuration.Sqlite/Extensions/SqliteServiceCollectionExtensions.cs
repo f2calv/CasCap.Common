@@ -1,6 +1,6 @@
-using CasCap.Common.Configuration.Runtime.Abstractions;
+using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.Sqlite;
-using CasCap.Common.Configuration.Sqlite.Services;
+using CasCap.Common.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;

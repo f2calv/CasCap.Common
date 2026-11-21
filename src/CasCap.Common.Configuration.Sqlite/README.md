@@ -26,7 +26,7 @@ APIs are deferred.
 ## Configuration Examples
 
 ```csharp
-using CasCap.Common.Configuration.Runtime.Models;
+using CasCap.Common.Models;
 using CasCap.Common.Extensions;
 
 services.AddSqliteRuntimeConfiguration(

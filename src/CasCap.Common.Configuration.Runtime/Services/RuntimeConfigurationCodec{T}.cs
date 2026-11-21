@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace CasCap.Common.Configuration.Runtime.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Enforces typed serialization and complete validation at persistence and activation boundaries.</summary>
 public sealed class RuntimeConfigurationCodec<T> where T : class

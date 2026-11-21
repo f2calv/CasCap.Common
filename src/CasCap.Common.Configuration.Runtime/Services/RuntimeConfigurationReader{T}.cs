@@ -1,4 +1,4 @@
-using CasCap.Common.Configuration.Runtime.Abstractions;
+using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.Runtime.Providers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

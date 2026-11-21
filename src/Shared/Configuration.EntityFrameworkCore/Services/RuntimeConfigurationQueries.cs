@@ -5,7 +5,7 @@ using CasCap.Common.Configuration.Sqlite.Entities;
 #else
 #error Select the configuration database adapter when compiling shared EF source.
 #endif
-using CasCap.Common.Configuration.Runtime.Models;
+using CasCap.Common.Models;
 
 #if CONFIGURATION_POSTGRESQL
 namespace CasCap.Common.Configuration.PostgreSql.Services;

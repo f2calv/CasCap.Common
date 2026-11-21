@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Runtime.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A complete typed publication and its immutable audit metadata.</summary>
 public sealed record RuntimeConfigurationRevision<T> where T : class

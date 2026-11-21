@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Runtime.Abstractions;
+namespace CasCap.Common.Abstractions;
 
 /// <summary>Reads and publishes against the durable authority, never the optional cache.</summary>
 public interface IRuntimeConfigurationPublisher<T> : IRuntimeConfigurationStore<T> where T : class

@@ -1,7 +1,6 @@
 using CasCap.Common.Abstractions;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Redis.Services;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Models;
+using CasCap.Common.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;

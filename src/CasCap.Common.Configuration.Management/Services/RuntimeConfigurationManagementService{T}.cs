@@ -1,6 +1,6 @@
+using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.Management.Abstractions;
-using CasCap.Common.Configuration.Runtime.Abstractions;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Services;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;

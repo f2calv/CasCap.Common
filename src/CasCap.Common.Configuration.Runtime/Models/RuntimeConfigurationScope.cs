@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Runtime.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>Identifies one application and deployment-defined environment.</summary>
 public sealed record RuntimeConfigurationScope

@@ -15,9 +15,9 @@ First register a durable provider and the existing shared CasCap cache. Then opt
 [`AddRuntimeConfigurationCache<T, TStore>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Configuration.Redis/Extensions/RedisServiceCollectionExtensions.cs):
 
 ```csharp
-using CasCap.Common.Configuration.PostgreSql.Services;
-using CasCap.Common.Configuration.Redis.Models;
-using CasCap.Common.Configuration.Runtime.Models;
+using CasCap.Common.Services;
+using CasCap.Common.Models;
+using CasCap.Common.Models;
 using CasCap.Common.Extensions;
 
 builder.Services.AddPostgresRuntimeConfiguration(

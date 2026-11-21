@@ -1,9 +1,10 @@
+using CasCap.Common.Abstractions;
+using CasCap.Common.Configuration.PostgreSql;
 using CasCap.Common.Configuration.PostgreSql.Entities;
-using CasCap.Common.Configuration.Runtime.Abstractions;
-using CasCap.Common.Configuration.Runtime.Services;
+using CasCap.Common.Configuration.PostgreSql.Services;
 using Npgsql;
 
-namespace CasCap.Common.Configuration.PostgreSql.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Reads a scoped head and journal atomically and publishes complete typed revisions.</summary>
 // TODO: Extract the head/journal read, publication bounds and revision mapping shared with
