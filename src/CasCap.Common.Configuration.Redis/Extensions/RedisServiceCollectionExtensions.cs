@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace CasCap.Common.Configuration.Redis.Extensions;
 
 /// <summary>Opt-in cache wiring; durable providers do not acquire a Redis dependency.</summary>
-public static class ServiceCollectionExtensions
+public static class RedisServiceCollectionExtensions
 {
     /// <summary>Decorates reads after registering the durable contract and shared CasCap caching.</summary>
     public static IServiceCollection AddRuntimeConfigurationCache<T, TStore>(

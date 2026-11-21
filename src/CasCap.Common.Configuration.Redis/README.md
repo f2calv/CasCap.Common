@@ -12,7 +12,7 @@ dotnet add package CasCap.Common.Configuration.Redis
 ## Usage
 
 First register a durable provider and the existing shared CasCap cache. Then opt in through
-[`AddRuntimeConfigurationCache<T, TStore>`](Extensions/ServiceCollectionExtensions.cs):
+[`AddRuntimeConfigurationCache<T, TStore>`](https://github.com/f2calv/CasCap.Common/blob/main/src/CasCap.Common.Configuration.Redis/Extensions/RedisServiceCollectionExtensions.cs):
 
 ```csharp
 using CasCap.Common.Configuration.PostgreSql.Extensions;

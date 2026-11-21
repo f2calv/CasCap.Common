@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Antiforgery;
 namespace CasCap.Common.Configuration.Management.Extensions;
 
 /// <summary>Opts one reader host into management without changing authentication schemes or default policies.</summary>
-public static class ServiceCollectionExtensions
+public static class ManagementServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the fixed-scope controller for T. The host must register the authority, authentication,

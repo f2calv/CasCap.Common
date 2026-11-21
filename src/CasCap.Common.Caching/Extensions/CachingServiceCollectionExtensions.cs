@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// Note: Official documentation says to not add these extension methods to the
 /// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
 /// </remarks>
-public static class ServiceCollectionExtensions
+public static class CachingServiceCollectionExtensions
 {
     /// <summary>Add all necessary services to enable the CasCap distributed caching API.</summary>
     /// <param name="services">The service collection to add caching services to.</param>

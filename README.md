@@ -63,6 +63,23 @@ All packages target .NET 10 and 11. The seven runtime-configuration packages do 
 .NET Standard 2.0; the other libraries retain it except `Hosting.AspNetCore`, `Services` and `Testing`.
 Individual APIs can have framework-specific availability; see the relevant package documentation.
 
+### Registration Class Renames (Unreleased)
+
+The following public registration classes have new names. This is a breaking API change:
+consumers must recompile and update explicit static-class references. Extension-method names,
+call syntax and namespaces are unchanged.
+
+| Package | Registration class |
+| --- | --- |
+| Caching | `CachingServiceCollectionExtensions` |
+| Configuration.Runtime | `RuntimeServiceCollectionExtensions` |
+| Configuration.PostgreSql | `PostgresServiceCollectionExtensions` |
+| Configuration.Sqlite | `SqliteServiceCollectionExtensions` |
+| Configuration.Redis | `RedisServiceCollectionExtensions` |
+| Configuration.Management | `ManagementServiceCollectionExtensions` |
+| Testing | `TestingServiceCollectionExtensions` |
+| Logging | `LoggingServiceProviderExtensions` |
+
 ## Dependency Graph
 
 Arrows point from a core library to its direct project dependencies. Node labels omit the common
