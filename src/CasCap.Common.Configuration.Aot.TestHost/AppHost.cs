@@ -1,12 +1,11 @@
 using CasCap.Common.Configuration.Aot.TestHost.Models;
 using CasCap.Common.Configuration.Aot.TestHost.Services;
-using CasCap.Common.Configuration.PostgreSql.Extensions;
 using CasCap.Common.Configuration.PostgreSql.Services;
 using CasCap.Common.Configuration.Runtime.Abstractions;
 using CasCap.Common.Configuration.Runtime.Models;
 using CasCap.Common.Configuration.Runtime.Services;
-using CasCap.Common.Configuration.Sqlite.Extensions;
 using CasCap.Common.Configuration.Sqlite.Services;
+using CasCap.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

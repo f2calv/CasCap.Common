@@ -1,12 +1,12 @@
+using CasCap.Common.Configuration.PostgreSql;
 using CasCap.Common.Configuration.PostgreSql.Services;
 using CasCap.Common.Configuration.Runtime.Abstractions;
-using CasCap.Common.Configuration.Runtime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 
-namespace CasCap.Common.Configuration.PostgreSql.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Registers PostgreSQL as the only authority for a typed runtime configuration scope.</summary>
 public static class PostgresServiceCollectionExtensions

@@ -1,6 +1,5 @@
 using CasCap.Common.Abstractions;
 using CasCap.Common.Configuration.PostgreSql.Services;
-using CasCap.Common.Configuration.Redis.Extensions;
 using CasCap.Common.Configuration.Redis.Models;
 using CasCap.Common.Configuration.Redis.Services;
 using CasCap.Common.Configuration.Runtime.Abstractions;

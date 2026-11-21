@@ -15,6 +15,7 @@ dotnet add package CasCap.Common.Logging
 Connect the application's logging factory before calling helpers that create static loggers:
 
 ```csharp
+using CasCap.Common.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

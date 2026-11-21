@@ -63,11 +63,13 @@ All packages target .NET 10 and 11. The seven runtime-configuration packages do 
 .NET Standard 2.0; the other libraries retain it except `Hosting.AspNetCore`, `Services` and `Testing`.
 Individual APIs can have framework-specific availability; see the relevant package documentation.
 
-### Registration Class Renames (Unreleased)
+### Registration Class Alignment (Unreleased)
 
 The following public registration classes have new names. This is a breaking API change:
-consumers must recompile and update explicit static-class references. Extension-method names,
-call syntax and namespaces are unchanged.
+consumers must recompile and update explicit static-class references. These classes now share the
+`CasCap.Common.Extensions` namespace; add or update `using CasCap.Common.Extensions;` in consumers.
+Extension-method names and call syntax are unchanged. Each class stays in its original package;
+the shared namespace does not introduce project dependencies or move code into the Extensions package.
 
 | Package | Registration class |
 | --- | --- |

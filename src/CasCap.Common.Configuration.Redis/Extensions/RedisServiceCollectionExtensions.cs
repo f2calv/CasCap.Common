@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace CasCap.Common.Configuration.Redis.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Opt-in cache wiring; durable providers do not acquire a Redis dependency.</summary>
 public static class RedisServiceCollectionExtensions

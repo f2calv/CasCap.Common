@@ -2,7 +2,7 @@ using CasCap.Common.Configuration.Management.Abstractions;
 using CasCap.Common.Configuration.Management.Services;
 using Microsoft.AspNetCore.Antiforgery;
 
-namespace CasCap.Common.Configuration.Management.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Opts one reader host into management without changing authentication schemes or default policies.</summary>
 public static class ManagementServiceCollectionExtensions
@@ -31,7 +31,7 @@ public static class ManagementServiceCollectionExtensions
             var previous = options.InvalidModelStateResponseFactory;
             options.InvalidModelStateResponseFactory = context =>
                 context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor descriptor
-                    && descriptor.ControllerTypeInfo.AsType() == typeof(Controllers.RuntimeConfigurationManagementController<T>)
+                    && descriptor.ControllerTypeInfo.AsType() == typeof(CasCap.Common.Configuration.Management.Controllers.RuntimeConfigurationManagementController<T>)
                     ? new BadRequestObjectResult(new ValidationProblemDetails(new Dictionary<string, string[]>
                     {
                         ["request"] = ["A complete, correctly shaped JSON request is required."],

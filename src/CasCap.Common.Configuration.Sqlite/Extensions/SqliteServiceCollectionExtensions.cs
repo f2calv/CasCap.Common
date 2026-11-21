@@ -1,12 +1,12 @@
 using CasCap.Common.Configuration.Runtime.Abstractions;
-using CasCap.Common.Configuration.Runtime.Extensions;
+using CasCap.Common.Configuration.Sqlite;
 using CasCap.Common.Configuration.Sqlite.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 
-namespace CasCap.Common.Configuration.Sqlite.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Registers a SQLite authority independently of optional read caches.</summary>
 public static class SqliteServiceCollectionExtensions

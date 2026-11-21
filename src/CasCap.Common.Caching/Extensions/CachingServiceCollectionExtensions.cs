@@ -2,19 +2,16 @@
 using HealthChecks.Redis;
 #endif
 using CasCap.Common.Validators;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace CasCap.Common.Extensions;
 
 /// <summary>
 /// Extension methods to setup local/remote/distributed Caching services.
 /// Follows official best practice/guidance from Microsoft for library authors,
 /// <see href="https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors"/>.
 /// </summary>
-/// <remarks>
-/// Note: Official documentation says to not add these extension methods to the
-/// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
-/// </remarks>
 public static class CachingServiceCollectionExtensions
 {
     /// <summary>Add all necessary services to enable the CasCap distributed caching API.</summary>

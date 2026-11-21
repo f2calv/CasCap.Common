@@ -1,4 +1,6 @@
-namespace Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CasCap.Common.Extensions;
 
 /// <summary>Extension methods for registering xUnit test logging services.</summary>
 [ExcludeFromCodeCoverage]

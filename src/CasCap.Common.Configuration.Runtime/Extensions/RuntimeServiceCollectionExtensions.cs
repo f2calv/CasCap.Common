@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 
-namespace CasCap.Common.Configuration.Runtime.Extensions;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Registers an isolated runtime root using the standard options monitor implementation.</summary>
 public static class RuntimeServiceCollectionExtensions
