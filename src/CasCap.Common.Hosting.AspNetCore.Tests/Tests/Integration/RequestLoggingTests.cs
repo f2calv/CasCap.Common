@@ -2,6 +2,7 @@ namespace CasCap.Common.Hosting.AspNetCore.Tests;
 
 /// <summary>Request summaries emitted by <c>UseCasCapRequestLogging</c> through the real Serilog pipeline.</summary>
 [Trait("Category", "RequestLogging")]
+[Trait("Category", "Integration")]
 public sealed class RequestLoggingTests
 {
     private const string SyntheticId = "record-4711";

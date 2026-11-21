@@ -6,6 +6,7 @@ namespace CasCap.Common.Configuration.Tests.Integration;
 
 /// <summary>Verifies prefix filtering against a caller-configured Azure Key Vault.</summary>
 [Trait("Category", "Integration")]
+[Trait("Category", "Live")]
 [Trait("Category", "Key Vault")]
 public sealed class KeyVaultPrefixIntegrationTests
 {
