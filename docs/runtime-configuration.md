@@ -109,7 +109,7 @@ startup rather than using a success-shaped default.
 
 The runtime core and direct PostgreSQL/SQLite adapters have an opt-in **source-build pilot**.
 Normal builds and existing registrations retain managed .NET 10/11 behavior. The .NET 10 assets
-use EF 10.0.14/Npgsql EF 10.0.3; .NET 11 assets and the native pilot use EF/Npgsql EF 11.0.0.
+use EF 10.0.15/Npgsql EF 10.0.3; .NET 11 assets and the native pilot use EF/Npgsql EF 11.0.0.
 Native AOT support remains experimental, not production-certified.
 The MVC management API, Blazor editor, Redis decorator and bootstrap configuration package are
 outside this pilot.
