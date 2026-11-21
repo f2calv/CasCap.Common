@@ -1,7 +1,7 @@
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for <see cref="DateTimeExtensions"/>.</summary>
-public class DateTimeExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class DateTimeExtensionTests
 {
     [Fact, Trait("Category", "Dates")]
     public void TruncateToHour()

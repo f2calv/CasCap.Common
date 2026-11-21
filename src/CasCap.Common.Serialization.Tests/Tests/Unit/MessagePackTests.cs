@@ -1,7 +1,7 @@
 namespace CasCap.Common.Serialization.Tests;
 
 /// <summary>Tests for MessagePack serialization extension methods.</summary>
-public class MessagePackTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class MessagePackTests
 {
     /// <summary>Verifies MessagePack serialization and deserialization of objects via extension methods.</summary>
     [Fact]

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for <see cref="EnumExtensions"/> and enum-related helpers in <see cref="HelperExtensions"/>.</summary>
-public class EnumExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class EnumExtensionTests
 {
     private enum Sample { None = 0, First = 1, Second = 2 }
 

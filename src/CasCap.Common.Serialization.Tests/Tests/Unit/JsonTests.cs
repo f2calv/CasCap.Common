@@ -1,7 +1,7 @@
 namespace CasCap.Common.Serialization.Tests;
 
 /// <summary>Tests for JSON serialization extension methods.</summary>
-public class JsonTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class JsonTests
 {
     /// <summary>Verifies JSON serialization and deserialization of objects via extension methods.</summary>
     [Fact]

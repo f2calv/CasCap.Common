@@ -4,7 +4,7 @@ using System.Text;
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for <see cref="BufferExtensions.TryReadLine"/>.</summary>
-public class BufferExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class BufferExtensionTests
 {
     [Fact, Trait("Category", "Parsing")]
     public void TryReadLine_SplitsLines_TrimmingCarriageReturns()

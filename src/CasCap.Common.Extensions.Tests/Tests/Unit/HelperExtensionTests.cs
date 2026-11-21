@@ -4,7 +4,7 @@ using System.Text;
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for collection, parsing and serialization helpers in <see cref="HelperExtensions"/>.</summary>
-public class HelperExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class HelperExtensionTests
 {
     private static readonly int[] s_duplicateValues = [1, 1, 2, 3, 3];
 

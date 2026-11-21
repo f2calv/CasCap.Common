@@ -9,7 +9,6 @@ using CasCap.Common.Extensions;
 using CasCap.Common.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -81,9 +80,7 @@ public abstract class SqliteTestBase(ITestOutputHelper output) : IAsyncLifetime
 
     protected void AddCache(IServiceCollection services)
     {
-        using var configuration = new ConfigurationManager();
-        configuration.AddStandardConfiguration("Test").AddEnvironmentVariables("RuntimeConfigurationTests__");
-        var connectionString = configuration.GetConnectionString("Redis")
+        var connectionString = RuntimeTestConnectionStringsConfig.Load().Redis
             ?? throw new InvalidOperationException("Configure the disposable test Redis connection.");
         var multiplexer = services.AddCasCapCaching(config =>
         {

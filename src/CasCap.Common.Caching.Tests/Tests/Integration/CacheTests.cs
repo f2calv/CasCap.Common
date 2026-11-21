@@ -1,6 +1,7 @@
 namespace CasCap.Common.Caching.Tests;
 
 /// <summary>Caching service registration and integration tests.</summary>
+[Trait("Category", "Integration")]
 public class CacheTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
     /// <summary>Verifies that <see cref="CacheExpiryBgService"/> executes and stops correctly with configured caching options.</summary>

@@ -65,16 +65,15 @@ not measured results from the current machine.
 
 ```text
 Tests/
-├── Unit/
-│   └── ConfigurationBuilderExtensionsTests.cs
-├── BufferExtensionTests.cs
-├── DateTimeExtensionTests.cs
-├── EnumExtensionTests.cs
-├── ExtensionTests.cs
-├── FixedSizedQueueTests.cs
-├── HelperExtensionTests.cs
-├── IOExtensionTests.cs
-├── ShellExtensionTests.cs
-├── StringExtensionTests.cs
-└── TestBase.cs
+└── Unit/
+    ├── BufferExtensionTests.cs
+    ├── ConfigurationBuilderExtensionsTests.cs
+    ├── DateTimeExtensionTests.cs
+    ├── EnumExtensionTests.cs
+    ├── ExtensionTests.cs
+    ├── FixedSizedQueueTests.cs
+    ├── HelperExtensionTests.cs
+    ├── IOExtensionTests.cs
+    ├── ShellExtensionTests.cs
+    └── StringExtensionTests.cs
 ```

@@ -47,13 +47,12 @@ No declared or conditional skips.
 ```text
 Tests/
 ├── ErrorPayload.cs
-├── HttpClientBaseTests.cs
-├── HttpClientBuilderResilienceExtensionTests.cs
 ├── MockHandler.cs
-├── NetExtensionTests.cs
-├── TestBase.cs
 ├── TestHttpClient.cs
 ├── TestPayload.cs
 └── Unit/
-    └── HttpAuditHandlerTests.cs
+    ├── HttpAuditHandlerTests.cs
+    ├── HttpClientBaseTests.cs
+    ├── HttpClientBuilderResilienceExtensionTests.cs
+    └── NetExtensionTests.cs
 ```

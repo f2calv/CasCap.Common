@@ -1,7 +1,7 @@
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for <see cref="StringExtensions"/>.</summary>
-public class StringExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class StringExtensionTests
 {
     [Theory, Trait("Category", "String Manipulation")]
     [InlineData("GetAllState", "get_all_state")]

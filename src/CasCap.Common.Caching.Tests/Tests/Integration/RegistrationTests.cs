@@ -7,6 +7,7 @@ namespace CasCap.Common.Caching.Tests;
 
 /// <summary>Tests caching registration without requiring a Redis connection.</summary>
 [Trait("Category", "Registration")]
+[Trait("Category", "Integration")]
 public class RegistrationTests
 {
     [Fact]

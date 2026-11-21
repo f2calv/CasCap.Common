@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace CasCap.Common.Serialization.Tests;
 
 /// <summary>Tests for the custom <see cref="JsonConverter"/> implementations.</summary>
-public class JsonConverterTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class JsonConverterTests
 {
     private static readonly JsonSerializerOptions s_array2DOptions = new() { Converters = { new Array2DConverter() } };
     private static readonly JsonSerializerOptions s_microsecondEpochOptions = new() { Converters = { new MicrosecondEpochConverter() } };

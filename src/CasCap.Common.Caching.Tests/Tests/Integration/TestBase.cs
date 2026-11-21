@@ -18,7 +18,9 @@ public abstract class TestBase : IDisposable
     protected IConfiguration Configuration => _configuration;
 
     /// <summary>Redis connection string used by integration tests.</summary>
-    protected string remoteCacheConnectionString => Configuration.GetConnectionString("Redis")
+    protected string remoteCacheConnectionString => Configuration
+        .GetSection(CacheTestConnectionStringsConfig.ConfigurationSectionName)
+        .Get<CacheTestConnectionStringsConfig>()?.Redis
         ?? throw new InvalidOperationException("The Redis test connection is required.");
 
     /// <inheritdoc/>

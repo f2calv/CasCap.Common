@@ -11,7 +11,7 @@ namespace CasCap.Common.Extensions.Tests;
 /// <c>dotnet</c> is used as the subject because it is guaranteed present wherever these tests run,
 /// and an unrecognised flag gives a deterministic non-zero exit with standard error output.
 /// </remarks>
-public class ShellExtensionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ShellExtensionTests
 {
     private const string _host = "dotnet";
     private static readonly string[] _failingArguments = ["--a-flag-that-does-not-exist"];

@@ -123,6 +123,7 @@ Tests/
     |-- RuntimeConfigurationResilienceTests.cs
     |-- RuntimeConfigurationReloadTests.cs
     |-- RuntimeConfigurationFailureLog.cs
+    |-- RuntimeTestConnectionStringsConfig.cs
     |-- SqliteTestBase.cs
     |-- SqliteRuntimeConfigurationTests.cs
     |-- ManagementTestSupport.cs

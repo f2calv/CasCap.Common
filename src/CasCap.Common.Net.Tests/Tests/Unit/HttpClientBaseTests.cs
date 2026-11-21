@@ -1,17 +1,17 @@
-
 using CasCap.Common.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Text;
 using System.Text.Json;
 
 namespace CasCap.Common.Net.Tests;
 /// <summary>Tests for <see cref="HttpClientBase"/> protected HTTP methods.</summary>
-public class HttpClientBaseTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public sealed class HttpClientBaseTests
 {
     private static TestHttpClient CreateClient(MockHandler handler)
     {
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
         var client = new TestHttpClient();
-        client.SetDependencies(httpClient, new LoggerFactory().CreateLogger<TestHttpClient>());
+        client.SetDependencies(httpClient, NullLogger<TestHttpClient>.Instance);
         return client;
     }
 

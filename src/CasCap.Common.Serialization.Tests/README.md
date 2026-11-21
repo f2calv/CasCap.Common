@@ -41,8 +41,8 @@ No declared or conditional skips.
 
 ```text
 Tests/
-├── JsonConverterTests.cs
-├── JsonTests.cs
-├── MessagePackTests.cs
-└── TestBase.cs
+└── Unit/
+    ├── JsonConverterTests.cs
+    ├── JsonTests.cs
+    └── MessagePackTests.cs
 ```

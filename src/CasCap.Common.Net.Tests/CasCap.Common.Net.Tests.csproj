@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CasCap.Common.Net\CasCap.Common.Net.csproj" />
-    <ProjectReference Include="..\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" />

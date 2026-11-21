@@ -67,11 +67,10 @@ Counts are declared methods and expanded data rows per target framework, not a r
 | `BackgroundService` | `TestBgServices_Async` |
 | `Registration` | `RegistrationTests` |
 | `Leadership` | Shared leadership lifecycle and configuration |
-| `Integration` | Credential-free DI/configuration checks in `LeadershipRegistrationTests` |
+| `Integration` | `CacheTests`, `RegistrationTests`, and `LeadershipRegistrationTests` |
 
-`SlidingExpirationTest_Async` and `AbsoluteExpirationTest_Async` carry no trait category.
-Excluding `Category=Integration` does not exclude the Redis-backed `CacheTests`; select the
-documented Redis-free classes explicitly when the service is not available.
+Excluding `Category=Integration` removes Redis-backed tests and offline registration tests alike.
+Select the documented Redis-free classes explicitly to include offline registration coverage.
 
 ### Skipped Tests
 
@@ -81,15 +80,16 @@ No declared or conditional skips. Redis-backed tests fail rather than skip if th
 
 ```text
 Tests/
-├── CacheTests.cs
 ├── MockApiService.cs
 ├── MockDto.cs
-├── RegistrationTests.cs
-├── TestBase.cs
 ├── TestLease.cs
 ├── TestLockFactory.cs
 ├── Integration/
-│   └── LeadershipRegistrationTests.cs
+│   ├── CacheTestConnectionStringsConfig.cs
+│   ├── CacheTests.cs
+│   ├── LeadershipRegistrationTests.cs
+│   ├── RegistrationTests.cs
+│   └── TestBase.cs
 └── Unit/
     ├── DistributedCacheServiceTests.cs
     └── LeadershipRunnerTests.cs

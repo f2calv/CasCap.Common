@@ -3,7 +3,7 @@ using CasCap.Common.Models;
 namespace CasCap.Common.Extensions.Tests;
 
 /// <summary>Tests for <see cref="FixedSizedQueue{T}"/>.</summary>
-public class FixedSizedQueueTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class FixedSizedQueueTests
 {
     [Fact, Trait("Category", "Collections")]
     public void Enqueue_EvictsOldestBeyondLimit()
