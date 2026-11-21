@@ -1,10 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(ExperimentalConfigurationAot)' != 'true'">net10.0;net11.0</TargetFrameworks>
+    <TargetFramework Condition="'$(ExperimentalConfigurationAot)' == 'true'">net11.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Description>EF Core PostgreSQL authority for typed, audited runtime configuration.</Description>
+    <DefineConstants>$(DefineConstants);CONFIGURATION_POSTGRESQL</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(ExperimentalConfigurationAot)' == 'true'">
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.EntityFrameworkCore.GeneratedInterceptors</InterceptorsNamespaces>
+    <EFScaffoldModelStage>build</EFScaffoldModelStage>
+    <EFPrecompileQueriesStage>build</EFPrecompileQueriesStage>
+    <EFTargetNamespace>CasCap.Common.Configuration.PostgreSql.Generated</EFTargetNamespace>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(ExperimentalConfigurationAot)' == 'true'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tasks" PrivateAssets="all" />
+  </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\Configuration.EntityFrameworkCore\**\*.cs" LinkBase="Shared" />
     <ProjectReference Include="..\CasCap.Common.Configuration.Runtime\CasCap.Common.Configuration.Runtime.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />

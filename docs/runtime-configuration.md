@@ -105,6 +105,131 @@ host's whole `IConfiguration`, replace Key Vault, or update unrelated options. A
 revision is required before enabled startup; an unavailable authority or invalid initial value fails
 startup rather than using a success-shaped default.
 
+## Experimental Native AOT
+
+The runtime core and direct PostgreSQL/SQLite adapters have an opt-in **source-build pilot**.
+Normal builds and existing registrations retain managed .NET 10/11 behavior. The .NET 10 assets
+use EF 10.0.14/Npgsql EF 10.0.3; .NET 11 assets and the native pilot use EF/Npgsql EF 11.0.0.
+Native AOT support remains experimental, not production-certified.
+The MVC management API, Blazor editor, Redis decorator and bootstrap configuration package are
+outside this pilot.
+
+Use the overload accepting generated `JsonTypeInfo<T>` and an explicit `IValidateOptions<T>`
+contract validator. The codec still enforces the 65,536-byte limit, JSON depth 32 and unknown-member
+rejection. Instead of reflective recursive DataAnnotations, the supplied validator must validate
+the **entire** graph: nested objects, collection items, enum bounds and cross-property invariants.
+Use an options-validation generator with the appropriate nested-validation attributes or write
+that validator explicitly. Skipping the default options name is an error. Separately registered
+validators still run.
+
+For the flat `Controls` DTO above, registration can use:
+
+```csharp
+using Microsoft.Extensions.Options;
+using System.Text.Json.Serialization;
+
+services.AddPostgresRuntimeConfiguration(
+    settings, connection, new Controls(),
+    ControlsJsonContext.Default.Controls,
+    new ValidateOptions<Controls>(Options.DefaultName,
+        value => value.Verbosity is >= 0 and <= 5, "Verbosity must be between zero and five."));
+
+[JsonSerializable(typeof(Controls))]
+public sealed partial class ControlsJsonContext : JsonSerializerContext;
+```
+
+Use the host's service collection, `RuntimeConfigurationOptions` settings and connection string
+from the registration above. The SQLite overload
+accepts the same metadata/validator arguments. Keep migrations in a separate managed process;
+native publication does not make `Database.Migrate` supported.
+
+### Published-Process Integration Probe
+
+From the repository root, with Docker running Linux containers:
+
+```powershell
+docker compose --profile configuration-aot-tests run --rm configuration-aot-tests
+# Stop PostgreSQL afterward only if this run started it.
+docker compose --profile tests stop postgres-tests
+```
+
+The [Compose profile](../docker-compose.yml) uses the existing disposable PostgreSQL test service,
+not another database. It publishes the separate [console test host](../src/CasCap.Common.Configuration.Aot.TestHost/README.md)
+twice and runs eight explicit xUnit cases: four PostgreSQL/SQLite times JIT/AOT parity cases and
+four paired dynamic-query probes. Each process asserts its
+actual dynamic-code capability. SQLite uses fixture-owned temporary files; the PostgreSQL fixture
+creates/drops GUID-named databases. A managed subprocess applies migrations; the native executable
+excludes that migration branch at compile time. No MVC host or test runner is native-published.
+
+The shared scenarios check first and subsequent publication, history, stale writes/no phantom
+history, first/existing-head writer races, scope isolation, invalid nested/enum/cross-property
+values, malformed/unknown JSON, payload limits, real monitor notifications, complete collection
+replacement, expiry/baseline restoration and persisted state after a fresh process starts.
+Observed validation is .NET 11, `linux-x64` on Linux amd64; .NET 10 retains managed validation only.
+
+### Examples of Queries That Require Runtime Compilation
+
+The fixture's `DynamicQueryProbe` runs the **same** code and persisted rows in both executables:
+
+| Scenario | EF construct | JIT result | Expected native rejection |
+| --- | --- | --- | --- |
+| `dynamic-filter` | Runtime-built `Expression<Func<long, bool>>`, `Where`, ordering and paging | Revisions 3, 4, 5 | EF `QueryNotPrecompiled` |
+| `dynamic-aggregate` | Runtime-composed predicate, self-join, `GroupBy`, `Sum` and aggregate filter | Sum 12 | EF `QueryNotPrecompiled` |
+
+See the [exact query code](../src/CasCap.Common.Configuration.Aot.TestHost/Services/DynamicQueryProbe.cs).
+The predicate threshold uses a captured value rather than creating constant-shaped queries.
+Each paired test seeds/migrates through JIT, asserts the actual SQL-backed JIT result, then runs
+the native binary against that same scope. Only `InvalidOperationException` whose message equals
+EF's `CoreStrings.QueryNotPrecompiled` is accepted; provider, connectivity, missing-native-code
+or unrelated failures fail the test. Unexpected native success also fails, flagging a changed
+compatibility boundary rather than pretending the example is still blocked.
+
+This is **not** a claim that joins, grouping, aggregation or parameterized predicates inherently
+fail under AOT. Fixed complete query sites may be precompiled; runtime-built expression trees and
+conditional `IQueryable` composition cannot use those fixed interceptors. These deliberate
+negative examples live only in the test executable, without changing the production adapters.
+
+### Build and Distribution Boundaries
+
+The runner sets `ExperimentalConfigurationAot=true` as an environment property for native
+publishing, so the separate design-time workspace sees the same settings. That variant selects
+only `net11.0` in the three source projects and enables EF Tasks in each query-owning adapter.
+The regular build still targets both frameworks and does not run experimental generation.
+Generated code stays under `obj`; do not commit it or hand-patch it.
+EF 11 generation is controlled by `EFScaffoldModelStage`/`EFPrecompileQueriesStage`; the retired
+`EFOptimizeContext` property is not used. Both adapters reference EF Design directly.
+
+EF 10 needs non-generic complete method-chain query sites with local captured values. Explicit
+revision projections and required-member constructors avoid its no-tracking materializer bugs.
+The adapters link the [shared EF source](../src/Shared/Configuration.EntityFrameworkCore) for those
+queries and revision entities. Each compiles its own concrete provider-specific types and query
+sites, retaining existing namespaces and separate EF generation; no shared EF runtime package or
+duplication exclusion is introduced. Provider models, migrations and transaction logic remain local.
+Storage entities are public because generated accessors are public, and the head is unsealed
+because the generated tracked materializer performs an interface cast. SQLite date properties
+have explicit typed default comparers to avoid lazy runtime generic creation. PostgreSQL's .NET 11
+mapping converts UTC `DateTimeOffset` values to UTC `DateTime` provider values (and back), avoiding
+EF/Npgsql 11's generated nullable timestamp comparer mismatch. EF preserves null expiry values
+without invoking the converter. The database still stores `timestamp with time zone`.
+The .NET 11 JSONB mapping also explicitly retains string provider values and comparers; Npgsql's
+generated default otherwise selects `JsonElement`, causing a lazy native comparer failure.
+None of these
+changes alters tables, column types, history or transaction boundaries.
+
+The probe deliberately keeps EF's substantial compiler/linker warnings visible. Known generated
+documentation/nullability warnings are not errors only in the experimental
+adapter build; native analysis warnings are not fatal only for this test executable. The regular
+warning-as-error policy is unchanged. Passing these scenarios is **not** warning-free AOT
+certification, a production recommendation, a performance benchmark or validation of other
+architectures/runtime images.
+EF 11 no longer emits the legacy interceptor diagnostic in this probe, so its `CS9270`
+warning exception was removed. Substantial trimming/native diagnostics remain.
+
+Normal prebuilt NuGet assemblies do not acquire interceptors when a consuming application sets
+this switch. Use source project references for the pilot; packaged-consumer AOT distribution still
+needs separate validation. EF 11 migration does not remove the native warning or production gates.
+No package is marked `IsAotCompatible`.
+
 ## Provision PostgreSQL Externally
 
 The independently owned EF context uses `cascap_config` in either a standalone database or the

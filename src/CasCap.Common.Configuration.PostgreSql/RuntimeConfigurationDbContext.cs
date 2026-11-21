@@ -1,4 +1,6 @@
 using CasCap.Common.Configuration.PostgreSql.Entities;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CasCap.Common.Configuration.PostgreSql;
 
@@ -19,11 +21,22 @@ public sealed class RuntimeConfigurationDbContext(
         revisions.Property(row => row.ContractId).HasColumnName("contract_id").HasMaxLength(100);
         revisions.Property(row => row.Revision).HasColumnName("revision");
         revisions.Property(row => row.ContractVersion).HasColumnName("contract_version");
-        revisions.Property(row => row.Payload).HasColumnName("payload").HasColumnType("jsonb");
-        revisions.Property(row => row.RecordedAtUtc).HasColumnName("recorded_at_utc");
+        var payload = revisions.Property(row => row.Payload).HasColumnName("payload").HasColumnType("jsonb");
+        var recorded = revisions.Property(row => row.RecordedAtUtc).HasColumnName("recorded_at_utc");
         revisions.Property(row => row.Actor).HasColumnName("actor").HasMaxLength(200);
         revisions.Property(row => row.Reason).HasColumnName("reason").HasMaxLength(500);
-        revisions.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc");
+        var expires = revisions.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc");
+#if NET11_0_OR_GREATER
+        // The generated jsonb default is JsonElement; explicitly retain string provider values.
+        var payloadComparer = ValueComparer.CreateDefault<string>(favorStructuralComparisons: false);
+        payload.HasConversion(new ValueConverter<string, string>(value => value, value => value),
+            payloadComparer, payloadComparer);
+        // Npgsql 11's generated timestamptz mapping defaults to DateTime; retain UTC instant semantics.
+        var timestampConverter = new ValueConverter<DateTimeOffset, DateTime>(
+            value => value.UtcDateTime, value => new DateTimeOffset(value));
+        recorded.HasConversion(timestampConverter);
+        expires.HasConversion(timestampConverter);
+#endif
         revisions.Property(row => row.RestoredFromRevision).HasColumnName("restored_from_revision");
         var heads = modelBuilder.Entity<RuntimeHeadEntity>();
         heads.ToTable("heads");

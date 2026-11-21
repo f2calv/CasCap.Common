@@ -1,7 +1,8 @@
 namespace CasCap.Common.Configuration.PostgreSql.Entities;
 
 /// <summary>Scoped current pointer, updated in the same transaction as the immutable journal.</summary>
-internal sealed class RuntimeHeadEntity
+// EF 10's generated tracked materializer casts to IInjectableService, which cannot compile for a sealed entity.
+public class RuntimeHeadEntity
 {
     /// <summary>Gets or sets the application identifier.</summary>
     public required string Application { get; set; }

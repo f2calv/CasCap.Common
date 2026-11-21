@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <DefineConstants Condition="'$(PublishAot)' == 'true'">$(DefineConstants);NATIVEAOT</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CasCap.Common.Configuration.PostgreSql\CasCap.Common.Configuration.PostgreSql.csproj" />
+    <ProjectReference Include="..\CasCap.Common.Configuration.Sqlite\CasCap.Common.Configuration.Sqlite.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+</Project>

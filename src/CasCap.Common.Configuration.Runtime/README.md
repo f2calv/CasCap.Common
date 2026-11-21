@@ -13,6 +13,18 @@ dotnet add package CasCap.Common.Configuration.Runtime
 Add a durable provider package for PostgreSQL or SQLite; this package defines the runtime contract,
 not a database authority.
 
+## Generated Metadata and Native AOT
+
+`AddRuntimeConfiguration` also accepts generated `JsonTypeInfo<T>` and a required
+`IValidateOptions<T>` validator covering the complete DTO graph. That path avoids reflective JSON
+and DataAnnotations while retaining byte/depth limits, strict shape checks and registered validators.
+The existing overload retains its managed validation behavior and now explicitly declares its
+trimming/dynamic-code requirements.
+
+See the [source-build AOT pilot](https://github.com/f2calv/CasCap.Common/blob/main/docs/runtime-configuration.md#experimental-native-aot)
+for usage, published JIT/native integration checks and the separate EF/provider limitations.
+This is not a production AOT or prebuilt NuGet compatibility promise.
+
 ## Contract
 
 Register one DTO per host through `AddRuntimeConfiguration<T>` and supply an

@@ -65,6 +65,18 @@ public abstract class TestBase(ITestOutputHelper output) : IAsyncLifetime
     protected RuntimeConfigurationHostFactory CreateHost(TimeProvider? timeProvider = null) =>
         new(_connectionString, _environment, timeProvider);
 
+    protected static async Task AssertDatabaseUnavailableAsync(Func<Task> operation)
+    {
+        // EF/provider 11 exposes the server refusal directly; the retained 10.x strategy wraps it.
+#if NET11_0_OR_GREATER
+        var failure = await Assert.ThrowsAsync<PostgresException>(operation);
+#else
+        var wrapper = await Assert.ThrowsAsync<InvalidOperationException>(operation);
+        var failure = Assert.IsType<PostgresException>(wrapper.InnerException);
+#endif
+        Assert.Equal(PostgresErrorCodes.ObjectNotInPrerequisiteState, failure.SqlState);
+    }
+
     protected async Task SetDatabaseAvailabilityAsync(bool available)
     {
         await using var admin = new NpgsqlConnection(_adminConnection);

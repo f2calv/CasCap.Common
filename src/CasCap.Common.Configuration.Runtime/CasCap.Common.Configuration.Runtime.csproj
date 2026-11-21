@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(ExperimentalConfigurationAot)' != 'true'">net10.0;net11.0</TargetFrameworks>
+    <TargetFramework Condition="'$(ExperimentalConfigurationAot)' == 'true'">net11.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Description>Typed, validated runtime configuration snapshots with standard options-monitor reload.</Description>
   </PropertyGroup>

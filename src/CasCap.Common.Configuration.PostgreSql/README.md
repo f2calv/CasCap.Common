@@ -28,6 +28,12 @@ or DELETE of journal rows; EF mappings alone do not enforce append-only permissi
 
 ## Initial Slice Limits
 
+An [experimental source-build AOT pilot](https://github.com/f2calv/CasCap.Common/blob/main/docs/runtime-configuration.md#experimental-native-aot)
+adds generated-metadata/explicit-validator registration and precompiled fixed query sites.
+Published JIT and .NET 11 Linux amd64 native processes exercise the real PostgreSQL adapter.
+EF emits substantial compatibility warnings; retain managed external migrations and do not infer
+production or normal prebuilt NuGet AOT support from this probe.
+
 One typed contract per host, full snapshots, bounded payloads and direct polling are supported.
 Schema customization, idempotent command retries, paginated/as-of history, typed restore commands,
 store-generation recovery and outbox-backed Redis projection remain follow-up ADR phases.

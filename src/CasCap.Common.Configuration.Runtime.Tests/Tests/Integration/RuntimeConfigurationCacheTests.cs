@@ -128,9 +128,8 @@ public sealed class RuntimeConfigurationCacheTests(ITestOutputHelper output) : T
             Assert.NotNull(await cache.Get<string>(reader.CacheKey));
             await using var replacement = CreateCachedServices(settings, TimeProvider.System);
             await SetDatabaseAvailabilityAsync(false);
-            var failure = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await AssertDatabaseUnavailableAsync(() =>
                 ReadAsync(replacement.GetRequiredService<CachedRuntimeConfigurationStore<RuntimeControls>>()));
-            Assert.Equal("55000", Assert.IsType<Npgsql.PostgresException>(failure.InnerException).SqlState);
         }
         finally
         {
