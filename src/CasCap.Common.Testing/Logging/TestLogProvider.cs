@@ -1,4 +1,4 @@
-namespace Microsoft.Extensions.Logging;
+namespace CasCap.Common.Logging;
 
 /// <summary><see cref="ILoggerProvider"/> that routes log output to xUnit's <see cref="ITestOutputHelper"/>.</summary>
 [ExcludeFromCodeCoverage]

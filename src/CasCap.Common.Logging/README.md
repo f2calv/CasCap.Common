@@ -16,6 +16,7 @@ Connect the application's logging factory before calling helpers that create sta
 
 ```csharp
 using CasCap.Common.Extensions;
+using CasCap.Common.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

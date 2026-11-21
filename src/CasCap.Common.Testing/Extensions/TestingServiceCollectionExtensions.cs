@@ -1,3 +1,4 @@
+using CasCap.Common.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CasCap.Common.Extensions;

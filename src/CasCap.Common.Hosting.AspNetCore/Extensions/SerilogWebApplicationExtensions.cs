@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Serilog;
+namespace CasCap.Common.Extensions;
 
 /// <summary>Extension methods for configuring Serilog request logging on a <see cref="WebApplication" />.</summary>
 public static class SerilogWebApplicationExtensions

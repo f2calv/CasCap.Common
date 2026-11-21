@@ -82,6 +82,13 @@ the shared namespace does not introduce project dependencies or move code into t
 | Testing | `TestingServiceCollectionExtensions` |
 | Logging | `LoggingServiceProviderExtensions` |
 
+### Public Namespace Alignment (Unreleased)
+
+Library-owned Sink and Serilog extensions use `CasCap.Common.Extensions`.
+`ApplicationLogging` and `TestLogProvider` use `CasCap.Common.Logging`.
+These namespace moves are breaking API changes: update imports and recompile consumers.
+Types remain in their existing packages; no new project dependencies are introduced.
+
 ## Dependency Graph
 
 Arrows point from a core library to its direct project dependencies. Node labels omit the common
