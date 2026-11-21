@@ -4,6 +4,7 @@
     <TargetFramework Condition="'$(ExperimentalConfigurationAot)' == 'true'">net11.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Description>EF Core SQLite authority for typed, audited runtime configuration.</Description>
+    <DefineConstants>$(DefineConstants);CONFIGURATION_SQLITE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ExperimentalConfigurationAot)' == 'true'">
     <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.EntityFrameworkCore.GeneratedInterceptors</InterceptorsNamespaces>
@@ -15,6 +16,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tasks" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\Configuration.EntityFrameworkCore\**\*.cs" LinkBase="Shared" />
     <ProjectReference Include="..\CasCap.Common.Configuration.Runtime\CasCap.Common.Configuration.Runtime.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

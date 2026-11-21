@@ -85,8 +85,11 @@ public sealed class RuntimeConfigurationResilienceTests(ITestOutputHelper output
         try
         {
             await using var host = CreateHost();
-            var failure = Assert.Throws<InvalidOperationException>(() => host.CreateClient());
-            Assert.Equal("55000", Assert.IsType<PostgresException>(failure.InnerException).SqlState);
+            await AssertDatabaseUnavailableAsync(() =>
+            {
+                using var client = host.CreateClient();
+                return Task.CompletedTask;
+            });
         }
         finally
         {

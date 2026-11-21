@@ -201,6 +201,10 @@ EF 11 generation is controlled by `EFScaffoldModelStage`/`EFPrecompileQueriesSta
 
 EF 10 needs non-generic complete method-chain query sites with local captured values. Explicit
 revision projections and required-member constructors avoid its no-tracking materializer bugs.
+The adapters link the [shared EF source](../src/Shared/Configuration.EntityFrameworkCore) for those
+queries and revision entities. Each compiles its own concrete provider-specific types and query
+sites, retaining existing namespaces and separate EF generation; no shared EF runtime package or
+duplication exclusion is introduced. Provider models, migrations and transaction logic remain local.
 Storage entities are public because generated accessors are public, and the head is unsealed
 because the generated tracked materializer performs an interface cast. SQLite date properties
 have explicit typed default comparers to avoid lazy runtime generic creation. PostgreSQL's .NET 11

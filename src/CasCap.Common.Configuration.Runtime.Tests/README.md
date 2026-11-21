@@ -96,7 +96,10 @@ The reload case asserts the standard
 host singleton sentinel.
 
 Database outage cases disable connections only to the fixture database and terminate only its
-backends, then restore availability. Redis outage is a fault-injected connection exception, not
+backends, then restore availability. Startup assertions require PostgreSQL's exact `55000` refusal:
+the EF/provider 10 path wraps it in `InvalidOperationException`, while the 11 path exposes
+`PostgresException` directly. Unrelated exceptions or a successful warm-cache startup fail.
+Redis outage is a fault-injected connection exception, not
 a real server interruption. Cache-age tests use a logical clock; the slow-fill test exercises a
 real elapsed physical deadline. These are not Redis failover, large-fleet load or live rollout tests.
 No automatic test claims successful remote CI execution.
