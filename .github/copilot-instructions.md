@@ -10,6 +10,21 @@ If those shared files are not visible, stop and tell the user rather than guessi
 
 Everything below is specific to this repository.
 
+## Architecture and Namespaces
+
+This repository follows the `capability-library-suite` architecture in the shared
+[architecture-patterns skill](https://github.com/f2calv/.github/blob/main/.github/skills/patterns-architecture/SKILL.md):
+its published packages supply capabilities composed by consuming applications, not a deployed
+modular monolith.
+
+The approved public-library alignment target is `flattened-role-namespaces` with root
+`CasCap.Common`, as defined by the shared
+[.NET namespace policy](https://github.com/f2calv/.github/blob/main/.github/skills/patterns-architecture/references/dotnet-namespaces.md).
+Existing capability/provider-scoped configuration APIs and framework-owned namespaces remain
+current deviations for the architecture review; this declaration does not claim completed
+alignment or approve breaking API changes. Test suites and executable test hosts are outside this
+namespace review; the published `CasCap.Common.Testing` support library remains in scope.
+
 ## Provider Compatibility
 
 Keep EF Core runtime/design/tasks and Npgsql's EF provider aligned per target: EF 10.x with
