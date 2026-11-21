@@ -108,8 +108,9 @@ startup rather than using a success-shaped default.
 ## Experimental Native AOT
 
 The runtime core and direct PostgreSQL/SQLite adapters have an opt-in **source-build pilot**.
-Normal builds and existing registrations retain managed .NET 10/11 behavior. EF remains on the
-compatible 10.x provider family; its Native AOT support is experimental, not production-supported.
+Normal builds and existing registrations retain managed .NET 10/11 behavior. The .NET 10 assets
+use EF 10.0.14/Npgsql EF 10.0.3; .NET 11 assets and the native pilot use EF/Npgsql EF 11.0.0.
+Native AOT support remains experimental, not production-certified.
 The MVC management API, Blazor editor, Redis decorator and bootstrap configuration package are
 outside this pilot.
 
@@ -191,28 +192,39 @@ negative examples live only in the test executable, without changing the product
 ### Build and Distribution Boundaries
 
 The runner sets `ExperimentalConfigurationAot=true` as an environment property for native
-publishing, so EF 10's separate design-time workspace sees the same settings. That variant selects
+publishing, so the separate design-time workspace sees the same settings. That variant selects
 only `net11.0` in the three source projects and enables EF Tasks in each query-owning adapter.
 The regular build still targets both frameworks and does not run experimental generation.
 Generated code stays under `obj`; do not commit it or hand-patch it.
+EF 11 generation is controlled by `EFScaffoldModelStage`/`EFPrecompileQueriesStage`; the retired
+`EFOptimizeContext` property is not used. Both adapters reference EF Design directly.
 
 EF 10 needs non-generic complete method-chain query sites with local captured values. Explicit
 revision projections and required-member constructors avoid its no-tracking materializer bugs.
 Storage entities are public because generated accessors are public, and the head is unsealed
 because the generated tracked materializer performs an interface cast. SQLite date properties
-have explicit typed default comparers to avoid lazy runtime generic creation. None of these
+have explicit typed default comparers to avoid lazy runtime generic creation. PostgreSQL's .NET 11
+mapping converts UTC `DateTimeOffset` values to UTC `DateTime` provider values (and back), avoiding
+EF/Npgsql 11's generated nullable timestamp comparer mismatch. EF preserves null expiry values
+without invoking the converter. The database still stores `timestamp with time zone`.
+The .NET 11 JSONB mapping also explicitly retains string provider values and comparers; Npgsql's
+generated default otherwise selects `JsonElement`, causing a lazy native comparer failure.
+None of these
 changes alters tables, column types, history or transaction boundaries.
 
 The probe deliberately keeps EF's substantial compiler/linker warnings visible. Known generated
-documentation/nullability/legacy-interceptor warnings are not errors only in the experimental
+documentation/nullability warnings are not errors only in the experimental
 adapter build; native analysis warnings are not fatal only for this test executable. The regular
 warning-as-error policy is unchanged. Passing these scenarios is **not** warning-free AOT
 certification, a production recommendation, a performance benchmark or validation of other
 architectures/runtime images.
+EF 11 no longer emits the legacy interceptor diagnostic in this probe, so its `CS9270`
+warning exception was removed. Substantial trimming/native diagnostics remain.
 
 Normal prebuilt NuGet assemblies do not acquire interceptors when a consuming application sets
-this switch. Use source project references for the pilot; packaged-consumer AOT distribution and
-EF 11 migration still need separate validation. No package is marked `IsAotCompatible`.
+this switch. Use source project references for the pilot; packaged-consumer AOT distribution still
+needs separate validation. EF 11 migration does not remove the native warning or production gates.
+No package is marked `IsAotCompatible`.
 
 ## Provision PostgreSQL Externally
 

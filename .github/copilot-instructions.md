@@ -12,8 +12,7 @@ Everything below is specific to this repository.
 
 ## Provider Compatibility
 
-Keep `Microsoft.EntityFrameworkCore.Design`, `Microsoft.EntityFrameworkCore.Relational` and
-`Microsoft.EntityFrameworkCore.Sqlite` on the compatible 10.x family with
-`Npgsql.EntityFrameworkCore.PostgreSQL` 10.x for both .NET targets. The PostgreSQL provider requires
-EF Core below 11. Reassess the family together when a stable compatible PostgreSQL provider is
-available, validating both targets and both database adapters before changing this ceiling.
+Keep EF Core runtime/design/tasks and Npgsql's EF provider aligned per target: EF 10.x with
+Npgsql EF 10.x for `net10.0`, and EF 11.x with Npgsql EF 11.x for `net11.0`.
+The 11.x packages target .NET 11 only; do not upgrade the retained .NET 10 assets to them.
+Validate both targets and both database adapters when changing either family.

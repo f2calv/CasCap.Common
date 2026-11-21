@@ -7,7 +7,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(ExperimentalConfigurationAot)' == 'true'">
     <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.EntityFrameworkCore.GeneratedInterceptors</InterceptorsNamespaces>
-    <EFOptimizeContext>true</EFOptimizeContext>
     <EFScaffoldModelStage>build</EFScaffoldModelStage>
     <EFPrecompileQueriesStage>build</EFPrecompileQueriesStage>
     <EFTargetNamespace>CasCap.Common.Configuration.PostgreSql.Generated</EFTargetNamespace>

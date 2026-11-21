@@ -114,8 +114,8 @@ internal static class AppHost
             var changes = 0;
             using var registration = monitor.OnChange(_ => Interlocked.Increment(ref changes));
             await publisher.PublishAsync(new Controls(), 1, "test-operator", "Second", cancellationToken: token);
-            await WaitForAsync(() => !monitor.CurrentValue.Enabled && monitor.CurrentValue.Children.Length == 0, token);
-            Ensure(Volatile.Read(ref changes) > 0, "Standard monitor change notification");
+            await WaitForAsync(() => !monitor.CurrentValue.Enabled && monitor.CurrentValue.Children.Length == 0
+                && Volatile.Read(ref changes) > 0, token);
             Ensure((await ReadRevisionAsync(host.Services, 1, token))?.Value.Children.Length == 1, "Historical snapshot");
             await ExpectAsync<DbUpdateConcurrencyException>(() =>
                 publisher.PublishAsync(new Controls(), 1, "test-operator", "Stale", cancellationToken: token));

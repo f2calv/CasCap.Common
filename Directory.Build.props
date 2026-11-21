@@ -41,11 +41,11 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!-- EF 10 declares these experimental compatibility diagnostics on DbContext itself.
+  <!-- EF declares these experimental compatibility diagnostics on DbContext itself.
        Keep them visible, but permit the explicitly opted-in native integration probe to publish. -->
   <PropertyGroup Condition="'$(ExperimentalConfigurationAot)' == 'true' And ('$(MSBuildProjectName)' == 'CasCap.Common.Configuration.PostgreSql' Or '$(MSBuildProjectName)' == 'CasCap.Common.Configuration.Sqlite')">
-    <!-- CS8669/CS9270/CS1591: EF 10 omits nullable/XML contexts and emits the legacy interceptor attribute. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2026;IL3050;CS8669;CS9270;CS1591</WarningsNotAsErrors>
+    <!-- CS8669/CS1591: generated EF code omits nullable/XML contexts. EF 11 no longer needs the CS9270 exception. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2026;IL3050;CS8669;CS1591</WarningsNotAsErrors>
   </PropertyGroup>
 
   <!-- The experimental EF probe must execute despite upstream analysis warnings.
