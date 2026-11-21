@@ -1,4 +1,4 @@
-namespace CasCap.Common.Configuration.Blazor.Models;
+namespace CasCap.Common.Models;
 
 /// <summary>A typed HTTP outcome with safe user-facing text and optional server validation fields.</summary>
 public sealed record RuntimeConfigurationClientResult<T> where T : class

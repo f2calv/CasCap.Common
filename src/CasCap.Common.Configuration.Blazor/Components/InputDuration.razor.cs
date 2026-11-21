@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
-namespace CasCap.Common.Configuration.Blazor.Components;
+namespace CasCap.Common.Components;
 
 /// <summary>A typed invariant duration input using the constant hours:minutes:seconds format.</summary>
 public sealed partial class InputDuration : InputBase<TimeSpan>

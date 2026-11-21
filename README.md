@@ -95,6 +95,9 @@ retain their existing namespaces.
 Management transport models use `CasCap.Common.Models`, policies/routes use `CasCap.Common.Constants`,
 and the management interface/controller use `CasCap.Common.Abstractions`/`CasCap.Common.Controllers`.
 HTTP routes, JSON shapes and authorization policies are unchanged.
+Blazor inputs/editors use `CasCap.Common.Components`, client outcomes use `CasCap.Common.Models`,
+client status constants use `CasCap.Common.Constants`, and the typed HTTP client uses
+`CasCap.Common.Services`. Component markup, isolated styles and HTTP behavior are unchanged.
 These namespace moves are breaking API changes: update imports and recompile consumers.
 Types remain in their existing packages; no new project dependencies are introduced.
 

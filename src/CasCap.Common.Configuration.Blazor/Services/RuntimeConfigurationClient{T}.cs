@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CasCap.Common.Configuration.Blazor.Services;
+namespace CasCap.Common.Services;
 
 /// <summary>Calls the same-origin management API with typed values, principal-bound antiforgery and no mutation retries.</summary>
 public sealed partial class RuntimeConfigurationClient<T>(

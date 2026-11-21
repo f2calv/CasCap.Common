@@ -16,6 +16,8 @@ Register [`RuntimeConfigurationClient<T>`](Services/RuntimeConfigurationClient{T
 in the existing browser DI container. Reuse its same-origin authenticated `HttpClient`:
 
 ```csharp
+using CasCap.Common.Services;
+
 builder.Services.AddScoped<RuntimeConfigurationClient<BrowserControls>>();
 ```
 
@@ -31,7 +33,7 @@ Mount [`RuntimeConfigurationEditor<T>`](Components/RuntimeConfigurationEditor.ra
 inside an existing interactive page, with typed fields rather than a key/string-value catalogue:
 
 ```razor
-@using CasCap.Common.Configuration.Blazor.Components
+@using CasCap.Common.Components
 @using CasCap.Common.Models
 
 <RuntimeConfigurationEditor T="BrowserControls" Destination="_destination">

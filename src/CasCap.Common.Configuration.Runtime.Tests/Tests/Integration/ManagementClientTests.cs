@@ -1,5 +1,5 @@
-using CasCap.Common.Configuration.Blazor.Constants;
-using CasCap.Common.Configuration.Blazor.Services;
+using CasCap.Common.Constants;
+using CasCap.Common.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CasCap.Common.Configuration.Runtime.Tests.Tests.Integration;
