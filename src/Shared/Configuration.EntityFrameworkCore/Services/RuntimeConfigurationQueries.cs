@@ -9,7 +9,7 @@ using CasCap.Common.Configuration.Runtime.Models;
 
 #if CONFIGURATION_POSTGRESQL
 namespace CasCap.Common.Configuration.PostgreSql.Services;
-#elif CONFIGURATION_SQLITE
+#else
 namespace CasCap.Common.Configuration.Sqlite.Services;
 #endif
 

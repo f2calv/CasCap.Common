@@ -1,11 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 
+#if !CONFIGURATION_POSTGRESQL && !CONFIGURATION_SQLITE
+#error Select the configuration database adapter when compiling shared EF source.
+#endif
+
 #if CONFIGURATION_POSTGRESQL
 namespace CasCap.Common.Configuration.PostgreSql.Entities;
-#elif CONFIGURATION_SQLITE
-namespace CasCap.Common.Configuration.Sqlite.Entities;
 #else
-#error Select the configuration database adapter when compiling shared EF source.
+namespace CasCap.Common.Configuration.Sqlite.Entities;
 #endif
 
 /// <summary>Immutable snapshot-carrying publication event; never contains provider credentials.</summary>
