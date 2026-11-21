@@ -17,13 +17,24 @@ This repository follows the `capability-library-suite` architecture in the share
 its published packages supply capabilities composed by consuming applications, not a deployed
 modular monolith.
 
-The approved public-library alignment target is `flattened-role-namespaces` with root
+The public-library namespace profile is `flattened-role-namespaces` with root
 `CasCap.Common`, as defined by the shared
 [.NET namespace policy](https://github.com/f2calv/.github/blob/main/.github/skills/patterns-architecture/references/dotnet-namespaces.md).
-Existing capability/provider-scoped configuration APIs and framework-owned namespaces remain
-current deviations for the architecture review; this declaration does not claim completed
-alignment or approve breaking API changes. Test suites and executable test hosts are outside this
-namespace review; the published `CasCap.Common.Testing` support library remains in scope.
+Public APIs use common role namespaces without moving code between packages or adding dependencies.
+All published projects inherit the common `RootNamespace`. Test suites and executable test hosts
+are outside this profile; the published `CasCap.Common.Testing` support library remains in scope.
+
+Retain these reviewed exceptions:
+
+- PostgreSQL and SQLite each keep `RuntimeConfigurationDbContext` and
+  `RuntimeConfigurationDesignTimeFactory` in their provider root, and `RuntimeHeadEntity` and
+  `RuntimeRevisionEntity` in the provider's `.Entities` namespace. Their identical names would
+  collide after flattening; retain provider tooling identities rather than rename these APIs.
+- Generated EF migrations, models and queries, plus internal capability implementation types,
+  retain their appropriate provider/capability namespaces.
+- Blazor's explicit `_Imports.razor` namespace preserves the generated public
+  `CasCap.Common.Configuration.Blazor._Imports` identity without a project RootNamespace override.
+  Public components declare `CasCap.Common.Components` explicitly in both Razor and code-behind.
 
 ## Provider Compatibility
 
