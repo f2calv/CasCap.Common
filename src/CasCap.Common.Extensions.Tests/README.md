@@ -23,7 +23,7 @@ Counts are declared methods and expanded data rows per target framework, before 
 
 | Test class | Methods | Test cases | Coverage |
 | --- | --- | --- | --- |
-| `ConfigurationBuilderExtensionsTests` | 1 | 1 | Standard configuration provider precedence |
+| `ConfigurationBuilderExtensionsTests` | 3 | 7 | Standard provider precedence; global-tool optional files, override order and no-reload source contract |
 | `EnumExtensionTests` | 8 | 11 | `GetAllItems`, `ParseEnum`, `TryParseEnum`, `ParseEnumFAST` (cache + cross-enum isolation), `ToStringCached`, `GetDisplayName`, `HasFlag` |
 | `StringExtensionTests` | 13 | 21 | `ToSnakeCase`, `UrlCombine`, `String2List`, `SubstringSafe`, `Clean`, `IsEmail`, `ToBase64`, `Split`, `Sanitize`, `MaskPhoneNumber`, `MaskEndpoint` (incl. null), `NormalizeWhitespace` |
 | `HelperExtensionTests` | 9 | 17 | `GetBatches`, `IsNullOrEmpty`/`IsAny`, `ToHashSet`, `ToBoolean`, `ToInt`, `ToDecimal`, `GetDescription`, XML & byte round-trips |
@@ -33,7 +33,7 @@ Counts are declared methods and expanded data rows per target framework, before 
 | `ExtensionTests` | 2 | 2 | `UnixTimeMS`, `Decimal2Int` |
 | `IOExtensionTests` | 1 | 1 | File read/write round-trip |
 | `ShellExtensionTests` | 17 | 17 | `RunProcess`, `RunProcessDiagnostic`, `RunProcessWithStdinAsync` — success and failure paths, error capture modes, argument and stdin guards, oversized-payload round trip, cancellation, `Bash` platform guards |
-| **Total** | **65** | **86** | |
+| **Total** | **67** | **92** | |
 
 ### Trait Categories
 

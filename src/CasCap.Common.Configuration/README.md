@@ -77,6 +77,29 @@ make sure it is copied to the output directory. Environment, local and test-loca
 Pass no assembly to skip user secrets. Environment variables are added last by this helper;
 it does not add command-line arguments.
 
+### Global Tool Configuration Sources
+
+For a global tool with optional installed defaults and per-project settings, use
+`AddGlobalToolConfiguration` from the current source checkout:
+
+```csharp
+using CasCap.Common.Extensions;
+using Microsoft.Extensions.Configuration;
+
+var configuration = new ConfigurationBuilder()
+    .AddGlobalToolConfiguration(
+        typeof(Program).Assembly,
+        AppContext.BaseDirectory,
+        Directory.GetCurrentDirectory())
+    .Build();
+```
+
+Both `appsettings.json` files are optional. Working-directory settings override installed settings,
+then optional user secrets and environment variables override both. JSON reload is disabled.
+Unlike `AddStandardConfiguration`, this helper adds no environment-specific or local overlays and
+does not add command-line arguments. The directories are explicit so callers and tests can select
+their configuration roots without changing the process working directory.
+
 ### Optional Key Vault Provider
 
 Call `AddKeyVaultConfiguration(vaultUri, credential)` after adding the base sources. The caller

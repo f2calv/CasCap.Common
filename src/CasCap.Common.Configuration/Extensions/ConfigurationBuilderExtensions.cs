@@ -50,6 +50,29 @@ public static class ConfigurationBuilderExtensions
     }
 
     /// <summary>
+    /// Adds optional installed-tool defaults and working-directory overrides, followed by
+    /// user secrets and environment variables, without enabling file reload.
+    /// </summary>
+    /// <param name="builder">The configuration builder to configure.</param>
+    /// <param name="assembly">The entry assembly whose user secrets should be loaded.</param>
+    /// <param name="basePath">The directory containing the installed tool's settings.</param>
+    /// <param name="workingDirectory">The directory containing the caller's settings override.</param>
+    /// <returns>The configuration builder for further chaining.</returns>
+    public static IConfigurationBuilder AddGlobalToolConfiguration(
+        this IConfigurationBuilder builder,
+        Assembly assembly,
+        string basePath,
+        string workingDirectory) =>
+        builder.SetBasePath(basePath)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddJsonFile(
+                Path.Combine(workingDirectory, "appsettings.json"),
+                optional: true,
+                reloadOnChange: false)
+            .AddUserSecrets(assembly, optional: true)
+            .AddEnvironmentVariables();
+
+    /// <summary>
     /// Adds Azure Key Vault as a configuration source. If either
     /// <paramref name="keyVaultUri"/> or <paramref name="credential"/> is
     /// <see langword="null"/>, the step is skipped silently.
