@@ -24,7 +24,7 @@ public abstract class TestBase(ITestOutputHelper output) : IAsyncLifetime
     {
         var connections = RuntimeTestConnectionStringsConfig.Load();
         _adminConnection = connections.Postgres
-            ?? throw new InvalidOperationException("Configure ConnectionStrings:Postgres in appsettings.Test.json or RuntimeConfigurationTests__ConnectionStrings__Postgres for a disposable test server.");
+            ?? throw new InvalidOperationException("Configure ConnectionStrings:Postgres in appsettings.Tests.json or RuntimeConfigurationTests__ConnectionStrings__Postgres for a disposable test server.");
         _redisConnectionString = connections.Redis
             ?? throw new InvalidOperationException("Configure ConnectionStrings:Redis for a disposable test server.");
         var builder = new NpgsqlConnectionStringBuilder(_adminConnection) { Database = _database, Pooling = false };

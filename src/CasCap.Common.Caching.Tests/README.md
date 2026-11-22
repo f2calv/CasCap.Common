@@ -19,10 +19,10 @@ administrative commands. The test fixture selects databases 10 and 11 for the co
 frameworks. When running the whole solution, use `--max-parallel-test-modules 1` as described in the
 [repository quick start](../../README.md#development).
 
-The fixture uses the shared `Test`-environment configuration loader: required `appsettings.json`,
-optional `appsettings.Test.json` and local overlays, then user secrets and environment variables.
-Local Redis defaults live in the Test overlay, not C#. Override `ConnectionStrings__Redis` for an
-explicit disposable target; if the Test file is absent, another provider must supply that value.
+The fixture uses the shared `Tests`-environment configuration loader: required `appsettings.json`,
+optional `appsettings.Tests.json` and local overlays, then user secrets and environment variables.
+Local Redis defaults live in the Tests overlay, not C#. Override `ConnectionStrings__Redis` for an
+explicit disposable target; if the Tests file is absent, another provider must supply that value.
 
 `RegistrationTests` and the local-only lifecycle checks do not require Redis. To run only the
 registration class:

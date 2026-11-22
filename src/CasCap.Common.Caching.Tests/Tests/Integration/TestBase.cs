@@ -1,6 +1,6 @@
 namespace CasCap.Common.Caching.Tests;
 
-/// <summary>Provides shared Test-environment configuration and output for caching tests.</summary>
+/// <summary>Provides shared Tests-environment configuration and output for caching tests.</summary>
 public abstract class TestBase : IDisposable
 {
     private readonly ConfigurationManager _configuration = new();
@@ -8,7 +8,7 @@ public abstract class TestBase : IDisposable
     protected TestBase(ITestOutputHelper testOutputHelper)
     {
         TestOutputHelper = testOutputHelper;
-        _configuration.AddStandardConfiguration("Test", typeof(TestBase).Assembly);
+        _configuration.AddStandardConfiguration("Tests", typeof(TestBase).Assembly);
     }
 
     /// <summary>Provides xUnit test output.</summary>

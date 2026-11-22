@@ -33,8 +33,8 @@ uses a separate named volume, not a fictional database service. Test fixtures cl
 build/NuGet volumes persist for inspection and reuse. Default solution test discovery includes
 these classes; no remote CI result is asserted.
 
-Defaults come from [appsettings.Test.json](appsettings.Test.json), loaded optionally by the shared
-configuration extension in the `Test` environment. The optional local override files load after it;
+Defaults come from [appsettings.Tests.json](appsettings.Tests.json), loaded optionally by the shared
+configuration extension in the `Tests` environment. The optional local override files load after it;
 environment variables load last. Missing test settings are allowed when another provider supplies
 the required connection string.
 

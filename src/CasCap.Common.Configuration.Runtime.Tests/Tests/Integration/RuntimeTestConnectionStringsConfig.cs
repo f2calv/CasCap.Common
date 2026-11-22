@@ -14,7 +14,7 @@ internal sealed class RuntimeTestConnectionStringsConfig
     internal static RuntimeTestConnectionStringsConfig Load()
     {
         using var configuration = new ConfigurationManager();
-        configuration.AddStandardConfiguration("Test")
+        configuration.AddStandardConfiguration("Tests")
             .AddEnvironmentVariables("RuntimeConfigurationTests__");
         return configuration.GetSection(ConfigurationSectionName).Get<RuntimeTestConnectionStringsConfig>() ?? new();
     }
