@@ -371,3 +371,7 @@ FodyWeavers.xsd
 
 # HVE / Copilot runtime artefacts
 .copilot-tracking/
+
+# Local application configuration
+appsettings.Local*.json
+appsettings.*.Local.json
