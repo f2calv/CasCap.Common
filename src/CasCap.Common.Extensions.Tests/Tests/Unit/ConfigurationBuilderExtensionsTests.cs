@@ -34,7 +34,7 @@ public sealed class ConfigurationBuilderExtensionsTests
             AppContext.BaseDirectory);
 
         var jsonSources = builder.Sources.OfType<JsonConfigurationSource>().ToArray();
-        Assert.Equal(3, jsonSources.Length);
+        Assert.Equal(4, jsonSources.Length);
         Assert.All(jsonSources, source =>
         {
             Assert.True(source.Optional);
@@ -46,14 +46,18 @@ public sealed class ConfigurationBuilderExtensionsTests
     }
 
     [Theory]
-    [InlineData(false, false, false, null)]
-    [InlineData(true, false, false, "installed")]
-    [InlineData(true, true, false, "project")]
-    [InlineData(true, true, true, "secret")]
-    [InlineData(false, true, false, "project")]
+    [InlineData(false, false, false, false, null)]
+    [InlineData(true, false, false, false, "installed")]
+    [InlineData(true, true, false, false, "project")]
+    [InlineData(true, true, false, true, "secret")]
+    [InlineData(false, true, false, false, "project")]
+    [InlineData(false, false, true, false, "local")]
+    [InlineData(true, true, true, false, "local")]
+    [InlineData(true, true, true, true, "secret")]
     public void AddGlobalToolConfiguration_BindsOptionalFilesInOrder(
         bool installedSettings,
         bool projectSettings,
+        bool localSettings,
         bool userSecrets,
         string? expected)
     {
@@ -70,6 +74,8 @@ public sealed class ConfigurationBuilderExtensionsTests
                 File.WriteAllText(Path.Combine(installedDirectory, "appsettings.json"), """{"Value":"installed"}""");
             if (projectSettings)
                 File.WriteAllText(Path.Combine(projectDirectory, "appsettings.json"), """{"Value":"project"}""");
+            if (localSettings)
+                File.WriteAllText(Path.Combine(projectDirectory, "appsettings.Local.json"), """{"Value":"local"}""");
             if (userSecrets)
                 File.WriteAllText(Path.Combine(secretsDirectory, "secrets.json"), """{"Value":"secret"}""");
 
@@ -90,6 +96,46 @@ public sealed class ConfigurationBuilderExtensionsTests
         finally
         {
             Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(false, false, null)]
+    [InlineData(true, false, "test-local")]
+    [InlineData(true, true, "secret")]
+    public void AddLocalConfiguration_BindsOptionalProbeFilesBelowUserSecrets(
+        bool localSettings,
+        bool userSecrets,
+        string? expected)
+    {
+        var root = Directory.CreateTempSubdirectory(nameof(ConfigurationBuilderExtensionsTests));
+        try
+        {
+            if (localSettings)
+            {
+                File.WriteAllText(Path.Combine(root.FullName, "appsettings.Local.json"), """{"Value":"local"}""");
+                File.WriteAllText(Path.Combine(root.FullName, "appsettings.Local.Tests.json"), """{"Value":"local-environment"}""");
+                File.WriteAllText(Path.Combine(root.FullName, "appsettings.Tests.Local.json"), """{"Value":"test-local"}""");
+            }
+            if (userSecrets)
+                File.WriteAllText(Path.Combine(root.FullName, "secrets.json"), """{"Value":"secret"}""");
+
+            using var fileProvider = new PhysicalFileProvider(root.FullName);
+            var builder = new ConfigurationBuilder()
+                .AddLocalConfiguration("Tests")
+                .SetFileProvider(fileProvider)
+                .AddUserSecrets(typeof(ConfigurationBuilderExtensionsTests).Assembly, optional: true);
+            var secretSource = builder.Sources.OfType<JsonConfigurationSource>().Last();
+            secretSource.FileProvider = fileProvider;
+            secretSource.Path = "secrets.json";
+            var configuration = builder.Build();
+            using var lifetime = (IDisposable)configuration;
+
+            Assert.Equal(expected, configuration["Value"]);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
         }
     }
 }

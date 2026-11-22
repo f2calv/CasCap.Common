@@ -20,7 +20,9 @@ dotnet test --project src/CasCap.Common.Configuration.Tests/CasCap.Common.Config
 
 ## Local Configuration
 
-The live integration test reads `KeyVaultConfigurationTests` from the repository's shared .NET User Secrets store:
+The live integration test reads `KeyVaultConfigurationTests` from optional project-local overlays,
+then the repository's shared .NET User Secrets store. Create `appsettings.Tests.Local.json` in this
+test project for a private file-based override:
 
 ```json
 {
@@ -33,9 +35,15 @@ The live integration test reads `KeyVaultConfigurationTests` from the repository
 }
 ```
 
-The example values are placeholders. Supply actual values through the repository's User Secrets
-store, never tracked configuration. The certificate must be in the current user's personal
-certificate store and the identity must be allowed to read the vault.
+The example values are placeholders. Supply actual values through gitignored local files or the
+repository's User Secrets store, never tracked configuration. The loader reads
+`appsettings.Local.json`, `appsettings.Local.Tests.json` and `appsettings.Tests.Local.json` from the
+test output directory, then User Secrets. No base settings file is required, and no environment
+variable provider is added. Local files are copied for execution but excluded from publishing and
+packaging. User Secrets override duplicate local values.
+
+The certificate must be in the current user's personal certificate store and the identity must be
+allowed to read the vault. Existing configuration and certificate skip guards remain in force.
 
 The test is read-only: prepare the selected-prefix and excluded-prefix fixture secrets separately,
 using the constants and expectations in

@@ -1,5 +1,6 @@
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using System.Security.Cryptography.X509Certificates;
 
 namespace CasCap.Common.Configuration.Tests.Integration;
@@ -19,10 +20,12 @@ public sealed class KeyVaultPrefixIntegrationTests
     [Fact]
     public void AddKeyVaultConfiguration_SelectedPrefixIsMappedAndOtherPrefixIsExcluded()
     {
-        var bootstrap = new ConfigurationBuilder()
-            .AddUserSecrets(typeof(KeyVaultPrefixIntegrationTests).Assembly, optional: true)
-            .Build()
-            .GetSection(ConfigurationSection);
+        using var fileProvider = new PhysicalFileProvider(AppContext.BaseDirectory);
+        using var bootstrapConfiguration = new ConfigurationManager();
+        bootstrapConfiguration.SetFileProvider(fileProvider)
+            .AddLocalConfiguration("Tests")
+            .AddUserSecrets(typeof(KeyVaultPrefixIntegrationTests).Assembly, optional: true);
+        var bootstrap = bootstrapConfiguration.GetSection(ConfigurationSection);
         var keyVaultUri = bootstrap[nameof(KeyVaultUri)];
         var tenantId = bootstrap[nameof(TenantId)];
         var clientId = bootstrap[nameof(ClientId)];
@@ -32,7 +35,7 @@ public sealed class KeyVaultPrefixIntegrationTests
             && !string.IsNullOrWhiteSpace(tenantId)
             && !string.IsNullOrWhiteSpace(clientId)
             && !string.IsNullOrWhiteSpace(certificateThumbprint),
-            $"Configure {ConfigurationSection} in the repository user-secrets store to run the live Key Vault test.");
+            $"Configure {ConfigurationSection} in a gitignored local overlay or the repository user-secrets store to run the live Key Vault test.");
 
         using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);

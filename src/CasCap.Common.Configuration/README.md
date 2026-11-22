@@ -77,6 +77,28 @@ make sure it is copied to the output directory. Environment, local and test-loca
 Pass no assembly to skip user secrets. Environment variables are added last by this helper;
 it does not add command-line arguments.
 
+### Local Overrides for an Existing Host
+
+For a host whose default providers are already configured, use `AddLocalConfiguration` from the
+current source checkout:
+
+```csharp
+using CasCap.Common.Extensions;
+using Microsoft.Extensions.Hosting;
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Configuration.AddLocalConfiguration(builder.Environment.EnvironmentName);
+```
+
+The helper uses the existing file provider and inserts optional local, environment-local and
+test-local JSON files immediately after the environment appsettings source. Existing User Secrets,
+environment variables and command-line providers retain their higher priority, without being
+duplicated. Development-only User Secrets behavior is unchanged.
+
+For a standalone builder without an environment appsettings source, local files are appended.
+Set its base path first and add User Secrets or other higher-priority providers afterward.
+JSON reload is enabled, matching the standard application profile.
+
 ### Global Tool Configuration Sources
 
 For a global tool with optional installed defaults and per-project settings, use
@@ -94,11 +116,12 @@ var configuration = new ConfigurationBuilder()
     .Build();
 ```
 
-Both `appsettings.json` files are optional. Working-directory settings override installed settings,
-then optional user secrets and environment variables override both. JSON reload is disabled.
-Unlike `AddStandardConfiguration`, this helper adds no environment-specific or local overlays and
-does not add command-line arguments. The directories are explicit so callers and tests can select
-their configuration roots without changing the process working directory.
+Both `appsettings.json` files and the working-directory `appsettings.Local.json` are optional.
+Working-directory settings override installed settings, then the local file overrides both.
+Optional User Secrets and environment variables override the local file. JSON reload is disabled.
+Unlike `AddStandardConfiguration`, this helper adds no environment-specific or test-local overlays
+and does not add command-line arguments. The directories are explicit so callers and tests can
+select their configuration roots without changing the process working directory.
 
 ### Optional Key Vault Provider
 

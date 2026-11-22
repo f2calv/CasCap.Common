@@ -1,5 +1,6 @@
 using Azure.Core;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Microsoft.Extensions.Configuration.Json;
 using System.Reflection;
 
 namespace CasCap.Common.Extensions;
@@ -37,9 +38,7 @@ public static class ConfigurationBuilderExtensions
         builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
-               .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
-               .AddJsonFile($"appsettings.Local.{environmentName}.json", optional: true, reloadOnChange: true)
-               .AddJsonFile("appsettings.Tests.Local.json", optional: true, reloadOnChange: true);
+               .AddLocalConfiguration(environmentName);
 
         if (assembly is not null)
             builder.AddUserSecrets(assembly, optional: true);
@@ -49,8 +48,41 @@ public static class ConfigurationBuilderExtensions
         return builder;
     }
 
+    /// <summary>Adds optional local JSON overrides without superseding later host providers.</summary>
+    /// <param name="builder">The configuration builder to configure.</param>
+    /// <param name="environmentName">The environment used to select its local override file.</param>
+    /// <returns>The configuration builder for further chaining.</returns>
+    /// <remarks>
+    /// Uses the builder's existing file provider. Inserts the local sources immediately after the
+    /// environment appsettings source, preserving subsequent user secrets, environment variables and
+    /// command-line arguments. Without an environment appsettings source, appends the local sources;
+    /// callers must then add their higher-priority providers.
+    /// </remarks>
+    public static IConfigurationBuilder AddLocalConfiguration(
+        this IConfigurationBuilder builder,
+        string environmentName)
+    {
+        var environmentFileName = $"appsettings.{environmentName}.json";
+        var insertionIndex = builder.Sources.Count;
+        for (var index = 0; index < builder.Sources.Count; index++)
+            if (builder.Sources[index] is JsonConfigurationSource source
+                && string.Equals(Path.GetFileName(source.Path), environmentFileName, StringComparison.Ordinal))
+                insertionIndex = index + 1;
+
+        string[] localFiles = ["appsettings.Local.json", $"appsettings.Local.{environmentName}.json", "appsettings.Tests.Local.json"];
+        foreach (var fileName in localFiles)
+            builder.Sources.Insert(insertionIndex++, new JsonConfigurationSource
+            {
+                Path = fileName,
+                Optional = true,
+                ReloadOnChange = true,
+            });
+
+        return builder;
+    }
+
     /// <summary>
-    /// Adds optional installed-tool defaults and working-directory overrides, followed by
+    /// Adds optional installed-tool defaults and working-directory settings and local overrides, followed by
     /// user secrets and environment variables, without enabling file reload.
     /// </summary>
     /// <param name="builder">The configuration builder to configure.</param>
@@ -67,6 +99,10 @@ public static class ConfigurationBuilderExtensions
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
             .AddJsonFile(
                 Path.Combine(workingDirectory, "appsettings.json"),
+                optional: true,
+                reloadOnChange: false)
+            .AddJsonFile(
+                Path.Combine(workingDirectory, "appsettings.Local.json"),
                 optional: true,
                 reloadOnChange: false)
             .AddUserSecrets(assembly, optional: true)
