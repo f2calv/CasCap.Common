@@ -23,7 +23,7 @@
 services:
 
   postgres-tests:
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     profiles: [ tests, configuration-aot-tests ]
     restart: unless-stopped
     environment:
